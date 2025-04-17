@@ -32,7 +32,7 @@ export default function AdminPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Fetch games
-  const { data: games, isLoading: gamesLoading } = useQuery({
+  const { data: games = [], isLoading: gamesLoading } = useQuery<Game[]>({
     queryKey: ['/api/games'],
     refetchOnWindowFocus: false,
   });

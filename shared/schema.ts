@@ -50,9 +50,22 @@ export const insertBetSchema = createInsertSchema(bets).pick({
   clientSeed: true,
 });
 
+export const insertGameSchema = createInsertSchema(games).pick({
+  name: true,
+  slug: true,
+  type: true,
+  activePlayers: true,
+  rtp: true,
+  maxMultiplier: true,
+  minBet: true,
+  maxBet: true,
+  imageUrl: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Game = typeof games.$inferSelect;
+export type InsertGame = z.infer<typeof insertGameSchema>;
 export type Bet = typeof bets.$inferSelect;
 export type InsertBet = z.infer<typeof insertBetSchema>;
 

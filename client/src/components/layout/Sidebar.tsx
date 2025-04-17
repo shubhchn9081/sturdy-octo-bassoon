@@ -91,6 +91,9 @@ const Sidebar = () => {
             <SidebarLink href="/bets" icon={<Wallet className="h-5 w-5" />}>
               My Bets
             </SidebarLink>
+            <SidebarLink href="/admin" icon={<Settings className="h-5 w-5" />}>
+              Admin Panel
+            </SidebarLink>
           </div>
           
           <div className="pt-4 border-t border-[#243442]">

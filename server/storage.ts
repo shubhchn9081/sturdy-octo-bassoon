@@ -4,6 +4,7 @@ import {
   type InsertUser, 
   games, 
   type Game, 
+  type InsertGame,
   bets, 
   type Bet, 
   type InsertBet 
@@ -22,6 +23,7 @@ export interface IStorage {
   // Game methods
   getGame(id: number): Promise<Game | undefined>;
   getAllGames(): Promise<Game[]>;
+  createGame(game: InsertGame): Promise<Game>;
   updateGameImage(id: number, imageUrl: string): Promise<Game | undefined>;
   
   // Bet methods

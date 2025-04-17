@@ -39,6 +39,54 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // prefix all routes with /api
+
+  // Initialize the database with some game data if none exists
+  app.get('/api/initialize', async (req, res) => {
+    try {
+      // Check if we have games
+      const games = await storage.getAllGames();
+      
+      // If there are already games, do nothing
+      if (games.length > 0) {
+        return res.json({ message: 'Database already initialized', gamesCount: games.length });
+      }
+      
+      // Import GAMES from the client list (these should match the InsertGame schema)
+      const { GAMES } = await import('../client/src/games');
+      
+      // Initialize database with games
+      for (const game of GAMES) {
+        await storage.createGame({
+          name: game.name,
+          slug: game.slug,
+          type: game.type,
+          activePlayers: game.activePlayers || Math.floor(Math.random() * 10000),
+          rtp: game.rtp || 99,
+          maxMultiplier: game.maxMultiplier || 1000,
+          minBet: game.minBet || 0.00000001,
+          maxBet: game.maxBet || 100,
+          imageUrl: null
+        });
+      }
+      
+      // Create a demo user if needed
+      const demoUser = await storage.getUserByUsername('demo_user');
+      if (!demoUser) {
+        await storage.createUser({
+          username: 'demo_user',
+          password: 'hashed_password', // In a real app, this would be properly hashed
+        });
+      }
+      
+      res.json({ 
+        message: 'Database initialized successfully', 
+        gamesCount: GAMES.length
+      });
+    } catch (error) {
+      console.error('Initialization error:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+    }
+  });
   
   // User routes
   app.get('/api/user', async (req, res) => {
