@@ -61,18 +61,12 @@ const Sidebar = () => {
           <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
         </div>
         
-        <div className="flex space-x-2 mb-6">
+        <div className="mb-6">
           <div 
-            className="flex-1 bg-[#57FBA2] text-black font-bold py-2 px-4 rounded-lg text-center cursor-pointer"
+            className="bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold py-3 px-4 rounded-md text-center cursor-pointer text-lg shadow-md"
             onClick={() => window.location.href = '/'}
           >
             CASINO
-          </div>
-          <div 
-            className="flex-1 bg-[#1C2731] text-white font-bold py-2 px-4 rounded-lg text-center cursor-pointer"
-            onClick={() => window.location.href = '/sports'}
-          >
-            SPORTS
           </div>
         </div>
         
