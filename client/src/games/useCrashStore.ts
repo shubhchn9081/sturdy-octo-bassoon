@@ -51,7 +51,7 @@ interface CrashStore {
 
 // Constants for the game
 const TIME_SCALE = 80; // Much higher TIME_SCALE for extreme horizontal stretching
-const HEIGHT_SCALE = 60; // Much lower HEIGHT_SCALE for minimal vertical growth
+const HEIGHT_SCALE = 100; // Increased HEIGHT_SCALE for better visibility
 
 // Helper functions
 function generateCrashPoint(): number {
@@ -101,9 +101,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // Ultra-slow growth rate to match the extremely gradual slope in Stake.com
-    // Using the minimum possible multiplier to make it almost flat like in the screenshot
-    return Math.pow(1.0001, elapsed * 1000);
+    // Slightly increased growth rate for better visibility while maintaining gradual slope
+    // Still extremely gradual but should be more visible on the graph
+    return Math.pow(1.0003, elapsed * 1000);
   };
   
   // Cashout AI players
@@ -296,10 +296,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         // Calculate new data point for graph - matching exact trajectory from reference
         const x = elapsed * TIME_SCALE;
         
-        // Extremely flat relationship between multiplier and height to match reference exactly
-        // This creates a trajectory with minimal vertical growth and maximum horizontal movement
-        // Using the minimum scaling factor to achieve the slightest possible upward slope
-        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.4; // Minimum scaling for almost flat trajectory
+        // Slightly increased vertical scaling for better visibility
+        // Still maintaining the gradual slope but more pronounced
+        // This creates a trajectory that's more visible while still resembling the reference
+        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.8; // Increased scaling factor for better visibility
         
         const newDataPoints = [...dataPoints, { x, y }];
         

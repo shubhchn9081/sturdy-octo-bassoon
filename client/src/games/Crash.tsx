@@ -104,15 +104,17 @@ const CrashGame: React.FC = () => {
       ctx.fillText(marker.label, CANVAS_WIDTH - 5, CANVAS_HEIGHT - y - 2);
     });
     
-    // Add shadow effect
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 15;
-    ctx.shadowOffsetY = 5;
+    // Add enhanced shadow effect for better visibility
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetY = 8;
     
     // Begin drawing the main crash line
     ctx.beginPath();
     ctx.strokeStyle = '#ffffff'; // White line as shown in the new screenshot
-    ctx.lineWidth = 10; // Extra bold line as requested
+    ctx.lineWidth = 15; // Much bolder line for visibility
+    ctx.lineCap = 'round'; // Rounded ends on the line
+    ctx.lineJoin = 'round'; // Rounded corners
     
     // Start at the bottom-left of the chart
     ctx.moveTo(0, CANVAS_HEIGHT);
@@ -140,16 +142,16 @@ const CrashGame: React.FC = () => {
       // Draw graph endpoint circle
       const lastPoint = dataPoints[dataPoints.length - 1];
       
-      // Add shadow effect for circle
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = 15;
-      ctx.shadowOffsetY = 5;
+      // Add enhanced shadow effect for circle
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 20;
+      ctx.shadowOffsetY = 8;
       
       ctx.beginPath();
-      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 9, 0, Math.PI * 2);
+      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 15, 0, Math.PI * 2); // Larger circle (15px radius)
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#ffffff'; // White circle with white border to match screenshot
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3; // Thicker border
       ctx.fill();
       ctx.stroke(); // Add stroke to make the circle more visible
       
