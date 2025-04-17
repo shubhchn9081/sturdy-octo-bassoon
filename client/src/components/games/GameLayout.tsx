@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 type GameControlsProps = {
@@ -29,43 +28,47 @@ export const GameControls = ({
 }: GameControlsProps) => {
   return (
     <div className={cn("space-y-4", className)}>
-      <div>
-        <label className="block text-muted-foreground mb-2">Bet Amount</label>
-        <div className="relative">
-          <Input
-            type="text"
-            value={betAmount}
-            onChange={(e) => onBetAmountChange(e.target.value)}
-            className="w-full bg-panel-bg text-foreground pr-20"
-          />
-          <div className="absolute right-0 top-0 flex h-full">
-            <Button 
-              variant="ghost" 
-              className="h-full rounded-none border-l border-border px-3"
-              onClick={onHalfBet}
-            >
-              ½
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="h-full rounded-none border-l border-border px-3"
-              onClick={onDoubleBet}
-            >
-              2×
-            </Button>
+      <div className="mb-4">
+        <div className="bg-[#243442] p-2 rounded">
+          <div className="flex justify-between">
+            <label className="text-xs text-gray-400">Bet Amount</label>
+            <div className="text-xs text-gray-400">$0.00</div>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              value={betAmount}
+              onChange={(e) => onBetAmountChange(e.target.value)}
+              className="w-full bg-transparent outline-none text-white h-6"
+              placeholder="0.00000000"
+            />
+            <div className="absolute right-0 top-0 flex h-full">
+              <button 
+                onClick={onHalfBet}
+                className="h-full px-2 text-gray-400 hover:text-white bg-transparent hover:bg-[#1B3549] rounded-none"
+              >
+                ½
+              </button>
+              <button 
+                onClick={onDoubleBet}
+                className="h-full px-2 text-gray-400 hover:text-white bg-transparent hover:bg-[#1B3549] rounded-none"
+              >
+                2×
+              </button>
+            </div>
           </div>
         </div>
       </div>
       
       {children}
       
-      <Button 
-        className="w-full bg-accent text-accent-foreground font-semibold py-3"
+      <button 
+        className="w-full bg-[#4ECD5D] hover:bg-[#3DBB4C] text-black font-medium py-2 rounded"
         disabled={betButtonDisabled}
         onClick={onBet}
       >
         {betButtonText}
-      </Button>
+      </button>
     </div>
   );
 };
@@ -84,13 +87,13 @@ export const GameTabs = ({
   className
 }: GameTabsProps) => {
   return (
-    <div className={cn("flex space-x-4 mb-6", className)}>
+    <div className={cn("flex bg-[#1B3549] rounded-full overflow-hidden mb-6", className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           className={cn(
-            "bg-panel-bg text-foreground px-6 py-2 rounded-full",
-            activeTab === tab.id ? "bg-accent text-accent-foreground" : "bg-secondary border border-border"
+            "flex-1 py-2 text-center",
+            activeTab === tab.id ? "bg-[#243442]" : "text-gray-400"
           )}
           onClick={() => onTabChange(tab.id)}
         >
@@ -115,14 +118,15 @@ const GameLayout = ({
   className
 }: GameLayoutProps) => {
   return (
-    <div className={cn("bg-secondary rounded-lg p-6 mb-6", className)}>
-      <h2 className="text-xl font-bold mb-4">{title}</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
+    <div className="bg-[#0F212E] min-h-screen text-white">
+      <div className="flex">
+        {/* Left Panel (Controls) */}
+        <div className="w-64 bg-[#172B3A] p-4">
           {controlsPanel}
         </div>
-        <div className="md:col-span-2">
+        
+        {/* Right Panel (Game) */}
+        <div className="flex-1 p-6">
           {gamePanel}
         </div>
       </div>
