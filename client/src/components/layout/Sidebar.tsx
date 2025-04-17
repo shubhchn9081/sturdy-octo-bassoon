@@ -58,18 +58,18 @@ const Sidebar = () => {
           className="flex items-center justify-center mb-6 cursor-pointer"
           onClick={() => window.location.href = '/'}
         >
-          <h1 className="text-2xl font-bold text-accent">Stake</h1>
+          <h1 className="text-3xl font-bold text-[#00E700]">Stake</h1>
         </div>
         
         <div className="flex space-x-2 mb-6">
           <div 
-            className="flex-1 bg-accent text-accent-foreground font-medium py-2 px-4 rounded text-center cursor-pointer"
+            className="flex-1 bg-[#57FBA2] text-black font-bold py-2 px-4 rounded-lg text-center cursor-pointer"
             onClick={() => window.location.href = '/'}
           >
             CASINO
           </div>
           <div 
-            className="flex-1 bg-secondary text-secondary-foreground font-medium py-2 px-4 rounded text-center cursor-pointer"
+            className="flex-1 bg-[#1C2731] text-white font-bold py-2 px-4 rounded-lg text-center cursor-pointer"
             onClick={() => window.location.href = '/sports'}
           >
             SPORTS
