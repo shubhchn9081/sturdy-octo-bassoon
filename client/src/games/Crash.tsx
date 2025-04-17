@@ -99,7 +99,7 @@ const CrashGame: React.FC = () => {
     ctx.font = '11px Arial';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
     MULTIPLIER_MARKERS.forEach(marker => {
-      const y = Math.log(marker.value) * HEIGHT_SCALE * 0.6;
+      const y = (marker.value - 1.0) * HEIGHT_SCALE * 0.85;
       // Draw label on right side
       ctx.fillText(marker.label, CANVAS_WIDTH - 5, CANVAS_HEIGHT - y - 2);
     });
@@ -160,7 +160,7 @@ const CrashGame: React.FC = () => {
     ctx.textAlign = 'left';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     MULTIPLIER_MARKERS.forEach(marker => {
-      const y = Math.log(marker.value) * HEIGHT_SCALE * 0.6;
+      const y = (marker.value - 1.0) * HEIGHT_SCALE * 0.85;
       ctx.fillText(marker.label, 5, CANVAS_HEIGHT - y);
     });
     
