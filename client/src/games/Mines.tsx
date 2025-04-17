@@ -7,34 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 
-// SVG Components for Gems and Bombs
-const GemSVG = () => (
-  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-11 h-11">
-    <path d="M18 0L27 9L18 36L9 9L18 0Z" fill="#7bfa4c" />
-    <path d="M18 0L27 9L36 9L18 0Z" fill="#66d340" />
-    <path d="M18 0L0 9L9 9L18 0Z" fill="#66d340" />
-    <path d="M27 9L18 36L36 9L27 9Z" fill="#56b136" />
-    <path d="M9 9L18 36L0 9L9 9Z" fill="#56b136" />
-  </svg>
+// Image components for Gems and Bombs
+const GemImage = () => (
+  <img src="/images/diamond.png" alt="Diamond" className="w-12 h-12" />
 );
 
-const BombSVG = () => (
-  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-11 h-11">
-    <circle cx="18" cy="18" r="18" fill="#ff4747" />
-    <path d="M18 7L20 16H16L18 7Z" fill="white" />
-    <circle cx="18" cy="22" r="6" fill="white" />
-    <circle cx="18" cy="22" r="3" fill="#ff4747" />
-  </svg>
+const BombImage = () => (
+  <img src="/images/bomb.png" alt="Bomb" className="w-12 h-12" />
 );
 
-const DarkerGemSVG = () => (
-  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-11 h-11">
-    <path d="M18 0L27 9L18 36L9 9L18 0Z" fill="#56b136" />
-    <path d="M18 0L27 9L36 9L18 0Z" fill="#448f2b" />
-    <path d="M18 0L0 9L9 9L18 0Z" fill="#448f2b" />
-    <path d="M27 9L18 36L36 9L27 9Z" fill="#367823" />
-    <path d="M9 9L18 36L0 9L9 9Z" fill="#367823" />
-  </svg>
+const DarkerGemImage = () => (
+  <img src="/images/diamond.png" alt="Diamond" className="w-12 h-12 opacity-80" />
 );
 
 const MINE_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
@@ -365,11 +348,11 @@ const MinesGame = () => {
   
   const getTileContent = (index: number, status: TileStatus) => {
     if (status === 'revealed') {
-      return <GemSVG />;
+      return <GemImage />;
     } else if (status === 'mine') {
-      return <BombSVG />;
+      return <BombImage />;
     } else if (status === 'gem') {
-      return <DarkerGemSVG />;
+      return <DarkerGemImage />;
     } else if (selectedTile === index) {
       return (
         <div className="absolute inset-0 border-2 border-[#7bfa4c] rounded-md animate-pulse"></div>
