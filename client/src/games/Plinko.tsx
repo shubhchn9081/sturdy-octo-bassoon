@@ -88,7 +88,7 @@ const PlinkoGame = () => {
     setRows(parseInt(value));
   };
   
-  // Function to generate a provably fair path
+  // Function to generate a provably fair path - updated for 3 pins at top
   const generatePath = (rows: number): number[] => {
     const result = getGameResult();
     
@@ -96,16 +96,39 @@ const PlinkoGame = () => {
       // Use provably fair algorithm if available
       // The provably fair function needs a total slots parameter (rows + 1)
       // because the bottom row has one more slot than pins in the last row
-      return result(rows + 1, rows);
+      const rawPath = result(rows + 1, rows);
+      
+      // Transform the raw path to work with our 3-pin start grid
+      // We start at position 1 (middle of 3 pins) and adjust from there
+      const adjustedPath = [];
+      let currentPosition = 1; // Middle pin of first row (3 pins)
+      
+      for (let i = 0; i < rawPath.length; i++) {
+        // Each position is relative to the previous position plus the direction
+        const direction = rawPath[i] > currentPosition ? 1 : (rawPath[i] < currentPosition ? -1 : 0);
+        currentPosition += direction;
+        
+        // Ensure we don't go out of bounds
+        const pinsInCurrentRow = i + 3; // First row has 3 pins, then 4, 5, etc.
+        currentPosition = Math.max(0, Math.min(currentPosition, pinsInCurrentRow - 1));
+        
+        adjustedPath.push(currentPosition);
+      }
+      
+      return adjustedPath;
     } else {
       // Fallback to simple random algorithm for simulation
       const path = [];
-      let currentPosition = Math.floor((rows + 1) / 2); // Start at center
+      let currentPosition = 1; // Start at the middle of 3 pins
       
       for (let i = 0; i < rows; i++) {
         const direction = Math.random() > 0.5 ? 1 : -1;
         currentPosition += direction;
-        currentPosition = Math.max(0, Math.min(rows, currentPosition));
+        
+        // Ensure we don't go out of bounds - each row has (i+3) pins
+        const pinsInCurrentRow = i + 3; // First row has 3 pins, then 4, 5, etc.
+        currentPosition = Math.max(0, Math.min(currentPosition, pinsInCurrentRow - 1));
+        
         path.push(currentPosition);
       }
       
@@ -113,14 +136,32 @@ const PlinkoGame = () => {
     }
   };
   
-  // Generate grid of dots for the plinko board - exactly matching screenshot
+  // Generate grid of dots for the plinko board - with proper 3-pin start
   const renderPlinkoGrid = () => {
     const grid = [];
     
-    // Generate rows of pins (dots) - fixed at 16 rows to match screenshot
-    for (let r = 0; r < 16; r++) {
+    // First row should have 3 pins (matching stake.com and real Plinko)
+    // Add the first row with exactly 3 pins
+    grid.push(
+      <div 
+        key="row-0" 
+        className="flex justify-center"
+        style={{ gap: '21px' }}
+      >
+        {[0, 1, 2].map(p => (
+          <div 
+            key={`pin-0-${p}`} 
+            className="w-2 h-2 bg-white rounded-full"
+          />
+        ))}
+      </div>
+    );
+    
+    // Generate the rest of the rows (starting from the second row)
+    for (let r = 1; r < 16; r++) {
       const pins = [];
-      const pinsInRow = r + 1;
+      // Each row increases by 1 pin (starting from 4 in the second row)
+      const pinsInRow = r + 3; 
       
       // Add pins (dots) to each row
       for (let p = 0; p < pinsInRow; p++) {
@@ -158,9 +199,9 @@ const PlinkoGame = () => {
       // Generate the ball path using provably fair algorithm
       const path = generatePath(rows);
       
-      // Create a new ball with its path
+      // Create a new ball with its path - centered at top with the 3 pegs
       const newBall: BallState = {
-        position: 0,
+        position: 1, // Position over the middle peg of the 3 initial pegs
         row: 0,
         done: false,
         finalMultiplier: null,
@@ -422,7 +463,7 @@ const PlinkoGame = () => {
                 animate={{
                   translateX: ball.position === -999 
                     ? `-50%` // Final position offscreen
-                    : `calc(-50% + ${(ball.position - rows/2) * 21}px)`, // Normal movement
+                    : `calc(-50% + ${(ball.position - 1) * 21}px)`, // Adjusted for 3-pin start (middle is 1)
                   translateY: ball.position === -999 
                     ? ball.row * 21 // Stay in same row before fading
                     : ball.row * 21, // Match the grid spacing
