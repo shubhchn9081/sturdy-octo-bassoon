@@ -117,19 +117,77 @@ const PlinkoGame = () => {
       
       return adjustedPath;
     } else {
-      // Fallback to simple random algorithm for simulation
+      // Enhanced client-side random generation with realistic physics-based trajectories
+      
+      // Physics constants for ball trajectory
+      const BOUNCE_BIAS = 0.52;  // Slight bias to make paths more interesting (0.5 = equal chance left/right)
+      const MOMENTUM_FACTOR = 0.3; // How much the previous direction affects the next bounce (0-1)
+      const EDGE_REPULSION = 0.7; // Tendency to bounce away from edges (0-1)
+      
       const path = [];
+      let prevDirection = 0; // Track the previous direction for momentum
       let currentPosition = 1; // Start at the middle of 3 pins
       
+      // Log trajectory information to console for debugging
+      console.log("Generating path with physics-based trajectory:");
+      console.log("BOUNCE_BIAS:", BOUNCE_BIAS, "(higher means more right bounces)");
+      console.log("MOMENTUM_FACTOR:", MOMENTUM_FACTOR, "(higher means more tendency to continue same direction)");
+      console.log("EDGE_REPULSION:", EDGE_REPULSION, "(higher means more bouncing away from edges)");
+      
       for (let i = 0; i < rows; i++) {
-        const direction = Math.random() > 0.5 ? 1 : -1;
+        // Each row has (i+3) pins - first row has 3, second has 4, etc.
+        const pinsInCurrentRow = i + 3;
+        
+        if (i === 0) {
+          // First position is fixed at the middle pin (index 1 of 3 pins)
+          path.push(currentPosition);
+          continue;
+        }
+        
+        // Calculate bounce probabilities based on physics factors
+        let leftProbability = 1 - BOUNCE_BIAS; // Base probability
+        
+        // Factor 1: Previous momentum - ball tends to continue in same direction
+        if (i > 1) {
+          // Calculate previous direction: -1 = left, 0 = same, 1 = right
+          const lastDirection = path[i-1] - path[i-2];
+          if (lastDirection < 0) {
+            // If we went left before, more likely to go left again
+            leftProbability += MOMENTUM_FACTOR * 0.12;
+          } else if (lastDirection > 0) {
+            // If we went right before, less likely to go left (more likely to go right)
+            leftProbability -= MOMENTUM_FACTOR * 0.12;
+          }
+        }
+        
+        // Factor 2: Edge repulsion - balls near edges tend to bounce inward
+        if (currentPosition <= 1) {
+          // Near left edge, reduce left probability (more likely to go right)
+          leftProbability -= EDGE_REPULSION * 0.2;
+        } else if (currentPosition >= pinsInCurrentRow - 2) {
+          // Near right edge, increase left probability (more likely to go left)
+          leftProbability += EDGE_REPULSION * 0.2;
+        }
+        
+        // Clamp the probability between 0.1 and 0.9 to avoid deterministic paths
+        leftProbability = Math.max(0.1, Math.min(0.9, leftProbability));
+        
+        // Determine direction based on calculated probability
+        const direction = Math.random() < leftProbability ? -1 : 1;
         currentPosition += direction;
         
-        // Ensure we don't go out of bounds - each row has (i+3) pins
-        const pinsInCurrentRow = i + 3; // First row has 3 pins, then 4, 5, etc.
+        // Ensure we don't go out of bounds
         currentPosition = Math.max(0, Math.min(currentPosition, pinsInCurrentRow - 1));
         
+        // Store the current position in the path
         path.push(currentPosition);
+        
+        // Store for next iteration
+        prevDirection = direction;
+        
+        if (i % 5 === 0) {
+          console.log(`Row ${i+1}: Position=${currentPosition}, Direction=${direction > 0 ? 'Right' : 'Left'}, Probability=${leftProbability.toFixed(2)}`);
+        }
       }
       
       return path;
@@ -220,17 +278,52 @@ const PlinkoGame = () => {
       
       // Animate the ball dropping with improved physics and realistic timing
       const animateBall = async () => {
-        // Use much slower timing with realistic physics
-        // The first drops are slower, then it gradually accelerates
-        const baseDelay = 220; // Increased base delay for slower animation (was 120)
+        // Physics constants
+        const GRAVITY = 9.8;               // Gravitational constant (m/s²)
+        const INITIAL_VELOCITY = 0;        // Starting velocity (m/s)
+        const DISTANCE_BETWEEN_ROWS = 21;  // Pixel distance between rows
+        const PIXEL_TO_METER_RATIO = 100;  // Conversion ratio (pixels per meter)
+        const FRICTION_COEFFICIENT = 0.82; // Friction coefficient (slowdown factor) - increased friction
+        const TIME_SCALING = 4.5;          // Time scaling factor (higher = slower animation) - increased for slower ball
         
         // Start with a slight pause before dropping
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise(resolve => setTimeout(resolve, 350));
+        
+        // Calculate time for a ball to fall between rows using physics
+        // Formula: t = sqrt(2 * distance / gravity)
+        let currentVelocity = INITIAL_VELOCITY;
+        let totalDistance = 0;
+        
+        // Log information about ball speed
+        console.log("Starting ball drop with physics simulation:");
+        console.log("Initial velocity:", INITIAL_VELOCITY, "m/s");
+        console.log("Gravity constant:", GRAVITY, "m/s²");
+        console.log("Time scaling factor:", TIME_SCALING, "x (higher = slower animation)");
         
         for (let i = 0; i < path.length; i++) {
-          // Calculate delay based on row - ball moves gradually faster as it falls
-          // But keep a minimum delay to ensure it's not too fast
-          const delay = Math.max(140, baseDelay - (i * 4)); 
+          // Distance calculation (in meters)
+          const distance = DISTANCE_BETWEEN_ROWS / PIXEL_TO_METER_RATIO; 
+          totalDistance += distance;
+          
+          // Physics time calculation using gravity equation
+          // t = sqrt(2*d/g) where d is distance and g is gravity
+          // For realistic peg bouncing, we add the previous velocity
+          currentVelocity += Math.sqrt(2 * GRAVITY * distance);
+          
+          // Apply friction at each peg collision
+          currentVelocity *= FRICTION_COEFFICIENT;
+          
+          // Convert the physics time to milliseconds and scale for animation
+          // Higher TIME_SCALING makes the animation slower
+          const timeToFall = (distance / currentVelocity) * 1000 * TIME_SCALING;
+          
+          // Ensure minimum and maximum delay times
+          const delay = Math.max(100, Math.min(300, timeToFall));
+          
+          if (i % 5 === 0) {
+            console.log(`Row ${i+1} - Fall speed: ${currentVelocity.toFixed(2)} m/s, Delay: ${delay.toFixed(0)}ms`);
+          }
+          
           await new Promise(resolve => setTimeout(resolve, delay));
           
           // Show impact on the pin that the ball hits
@@ -257,9 +350,10 @@ const PlinkoGame = () => {
               // We'll show an intermediate position where the ball appears to bounce
               // off the peg in a slightly exaggerated way before settling
               
+              // Calculate bluff position with enhanced realistic physics
               const bluffPosition = i > 0 ? 
-                // Exaggerate the direction change for more realistic bouncing
-                path[i] + (path[i] - path[i-1]) * 0.4 : 
+                // More exaggerated direction change for realistic bouncing (increased from 0.4 to 0.65)
+                path[i] + (path[i] - path[i-1]) * 0.65 : 
                 path[i];
               
               updated[0] = {
@@ -275,7 +369,7 @@ const PlinkoGame = () => {
           // Add a small delay and then adjust to the actual position
           // This creates the "bounce and settle" effect
           if (i > 0) {
-            await new Promise(resolve => setTimeout(resolve, 70)); // Longer delay for more effect
+            await new Promise(resolve => setTimeout(resolve, 110)); // Increased from 70ms for more pronounced bounce effect
             
             // Correct the position after the bluff bounce
             setBalls(prev => {
@@ -512,7 +606,7 @@ const PlinkoGame = () => {
             {balls.map((ball, index) => (
               <motion.div
                 key={`ball-${index}`}
-                className="absolute top-0 left-1/2 w-4 h-4 bg-white rounded-full z-10 shadow-lg"
+                className="absolute top-0 left-1/2 w-4 h-4 bg-[#ff6f03] rounded-full z-10 shadow-lg"
                 initial={{ translateX: "-50%", translateY: 0, opacity: 1 }}
                 animate={{
                   translateX: ball.position === -999 
