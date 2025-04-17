@@ -130,7 +130,7 @@ export const GAMES = [
     activePlayers: 1843
   },
   {
-    id: 8,
+    id: 9,
     name: 'PUMP',
     slug: 'pump',
     type: 'STAKE ORIGINALS',
@@ -145,7 +145,7 @@ export const GAMES = [
     activePlayers: 1705
   },
   {
-    id: 9,
+    id: 10,
     name: 'HILO',
     slug: 'hilo',
     type: 'STAKE ORIGINALS',
@@ -160,7 +160,7 @@ export const GAMES = [
     activePlayers: 3021
   },
   {
-    id: 10,
+    id: 11,
     name: 'KENO',
     slug: 'keno',
     type: 'STAKE ORIGINALS',
