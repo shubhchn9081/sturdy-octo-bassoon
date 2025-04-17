@@ -50,8 +50,8 @@ interface CrashStore {
 }
 
 // Constants for the game
-const TIME_SCALE = 50; // Higher TIME_SCALE makes it move more horizontally
-const HEIGHT_SCALE = 100; // Lower HEIGHT_SCALE makes the vertical growth less steep
+const TIME_SCALE = 80; // Much higher TIME_SCALE for extreme horizontal stretching
+const HEIGHT_SCALE = 60; // Much lower HEIGHT_SCALE for minimal vertical growth
 
 // Helper functions
 function generateCrashPoint(): number {
@@ -101,9 +101,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // Much slower growth rate to exactly match Stake.com pace - flatter more gradual slope
-    // Using a significantly reduced multiplier to create the exact slant shown in screenshot
-    return Math.pow(1.0002, elapsed * 1000);
+    // Ultra-slow growth rate to match the extremely gradual slope in Stake.com
+    // Using the minimum possible multiplier to make it almost flat like in the screenshot
+    return Math.pow(1.0001, elapsed * 1000);
   };
   
   // Cashout AI players
@@ -296,10 +296,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         // Calculate new data point for graph - matching exact trajectory from reference
         const x = elapsed * TIME_SCALE;
         
-        // More gradual sloped relationship between multiplier and height to match reference
-        // This creates a trajectory that matches the screenshot
-        // Using a flatter curve with a reduced slope to match the reference
-        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.6; // Reduced factor for flatter trajectory
+        // Extremely flat relationship between multiplier and height to match reference exactly
+        // This creates a trajectory with minimal vertical growth and maximum horizontal movement
+        // Using the minimum scaling factor to achieve the slightest possible upward slope
+        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.4; // Minimum scaling for almost flat trajectory
         
         const newDataPoints = [...dataPoints, { x, y }];
         

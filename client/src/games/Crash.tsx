@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
 
 // Constants
-const CANVAS_WIDTH = 700;
-const CANVAS_HEIGHT = 400;
+const CANVAS_WIDTH = 1000; // Increased width for fullscreen
+const CANVAS_HEIGHT = 600; // Increased height for fullscreen
 const MAX_VISIBLE_TIME = 12; // Maximum visible time in seconds
 const TIME_SCALE = CANVAS_WIDTH / MAX_VISIBLE_TIME;
 const HEIGHT_SCALE = CANVAS_HEIGHT / 4; // Lower value to make line less steep
@@ -228,8 +228,8 @@ const CrashGame: React.FC = () => {
   };
   
   return (
-    <div className="flex flex-col h-full w-full bg-[#0F212E] text-white">
-      <div className="flex flex-row w-full">
+    <div className="flex flex-col h-full w-full bg-[#0F212E] text-white overflow-hidden">
+      <div className="flex flex-row w-full h-screen">
         {/* Game Controls */}
         <div className="flex flex-col w-[260px] p-4 bg-[#11232F]">
           {/* Game Mode Toggle */}
@@ -375,7 +375,7 @@ const CrashGame: React.FC = () => {
         {/* Game Area */}
         <div className="flex-1 p-4 flex flex-col">
           {/* Game Canvas */}
-          <div className="relative mb-4 bg-[#0E1C27] rounded-lg overflow-hidden">
+          <div className="relative mb-4 bg-[#0E1C27] rounded-lg overflow-hidden w-full h-full min-h-[720px]">
             <div className="absolute inset-0 flex items-center justify-center">
               {gameState === 'waiting' && (
                 <div className="text-center">
@@ -394,7 +394,7 @@ const CrashGame: React.FC = () => {
             
             <canvas 
               ref={canvasRef} 
-              className="w-full h-[400px]"
+              className="w-full h-[600px]"
             />
             
             {/* Current multiplier display */}
