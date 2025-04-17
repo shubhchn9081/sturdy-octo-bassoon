@@ -22,8 +22,8 @@ type Game = {
 
 const OriginalsPage = () => {
   const { data: apiGames = [], isLoading } = useQuery({
-    queryKey: ['/api/games'],
-    queryFn: () => apiRequest('/api/games', { method: 'GET' })
+    queryKey: ['/api/games']
+    // Using default query function from queryClient.ts - no need to specify queryFn
   });
   
   // Combine API game data (mainly for imageUrl) with our static game data for other props
