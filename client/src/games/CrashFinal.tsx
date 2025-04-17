@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, Area, ResponsiveContainer } from 'recharts';
 
-// Multiplier quick-select levels for matching existing tabs
+// Constants for the game
+const CANVAS_WIDTH = 1200;
+const CANVAS_HEIGHT = 800;
+
+// Multiplier quick-select levels
 const MULTIPLIER_QUICKTABS = [
   { value: 1.71, label: '1.71x', color: 'bg-[#5BE12C]' },
   { value: 1.97, label: '1.97x', color: 'bg-[#5BE12C]' },
@@ -13,131 +16,162 @@ const MULTIPLIER_QUICKTABS = [
   { value: 1.03, label: '1.03x', color: 'bg-[#5BE12C]' }
 ];
 
-// Multiplier markers for chart
-const MULTIPLIER_MARKERS = [1.0, 1.3, 1.5, 1.8, 2.0, 2.3];
-
-// Physics constants for the curve simulation
-const GRAVITY = 0.02;  // Gravity factor (lower = more flat)
-const INITIAL_VELOCITY = { x: 5, y: 0.1 }; // Initial velocity vector (higher x = more horizontal)
-const CURVE_FACTOR = 0.1; // Factor for curve bending (lower = flatter curve)
-
-const CrashRecharts: React.FC = () => {
-  // Game state from store
-  const {
+const CrashFinal: React.FC = () => {
+  // Use our Zustand store
+  const { 
     gameState,
     currentMultiplier,
-    crashPoint,
     countdown,
     hasPlacedBet,
     hasCashedOut,
     betAmount,
     autoCashoutValue,
     activeBets,
+    dataPoints,
     
+    // Actions
     placeBet,
     cashOut,
     setBetAmount,
     setAutoCashoutValue,
-    initialize,
+    initialize
   } = useCrashGame();
   
-  // Chart data state
-  const [chartData, setChartData] = useState<{ x: number, y: number, multiplier: number }[]>([]);
-  const [animationFrame, setAnimationFrame] = useState<number | null>(null);
-  const [simulationTime, setSimulationTime] = useState(0);
-  const [particlePosition, setParticlePosition] = useState({ x: 0, y: 0 });
-  const [velocityVector, setVelocityVector] = useState({ ...INITIAL_VELOCITY });
+  // Canvas ref
+  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   
-  // Physics-based animation
-  useEffect(() => {
-    // Reset chart when game state changes
-    if (gameState === 'waiting') {
-      setChartData([]);
-      setSimulationTime(0);
-      setParticlePosition({ x: 0, y: 0 });
-      setVelocityVector({ ...INITIAL_VELOCITY });
+  // Draw function
+  const drawGraph = React.useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
+    // Only draw if we're in running or crashed state
+    if (gameState !== 'running' && gameState !== 'crashed') return;
+    
+    // Create the white arc curve that matches the screenshot
+    // This is a static curve shape based on a quadratic curve
+    
+    // Start at bottom left
+    const startX = 0;
+    const startY = CANVAS_HEIGHT;
+    
+    // Draw background grid
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    
+    // Horizontal grid lines
+    for (let y = CANVAS_HEIGHT - 100; y > 0; y -= 100) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(CANVAS_WIDTH, y);
+    }
+    
+    // Vertical grid lines
+    for (let x = 100; x < CANVAS_WIDTH; x += 100) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, CANVAS_HEIGHT);
+    }
+    ctx.stroke();
+    
+    // Apply glow effect
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetY = 0;
+    
+    // Draw the curve path
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    
+    // Calculate the current point along the curve
+    // Use simple physics to create a parabola-like curve
+    const progressPercent = currentMultiplier / 10; // Scale to 0-1 range
+    const curveLength = Math.min(progressPercent * CANVAS_WIDTH, CANVAS_WIDTH - 100);
+    
+    // Generate points along a curved path - specifically matching screenshot
+    const points = [];
+    for (let x = 0; x <= curveLength; x += 20) {
+      // Quadratic equation to create a flattened curve
+      // y = ax² + bx + c where a is very small for a flat curve
+      const normalizedX = x / CANVAS_WIDTH;
+      const y = CANVAS_HEIGHT - (normalizedX * normalizedX * 50 + normalizedX * 80);
+      points.push({ x, y });
+    }
+    
+    // Draw the path
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    
+    // Draw lines between points
+    points.forEach(point => {
+      ctx.lineTo(point.x, point.y);
+    });
+    
+    // Style the line
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 15;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    
+    // Fill the area under the curve
+    if (points.length > 0) {
+      ctx.lineTo(points[points.length - 1].x, CANVAS_HEIGHT);
+      ctx.lineTo(startX, startY);
+      ctx.fillStyle = '#ff9d02';
+      ctx.fill();
       
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-        setAnimationFrame(null);
-      }
-      return;
+      // Draw the end point circle
+      const lastPoint = points[points.length - 1];
+      ctx.beginPath();
+      ctx.arc(lastPoint.x, lastPoint.y, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
     }
     
-    // Only run animation in 'running' state
-    if (gameState !== 'running') {
-      return;
-    }
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
     
-    // Animation frame function
+  }, [gameState, currentMultiplier]);
+  
+  // Set up canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    
+    // Draw the graph
+    drawGraph();
+    
+    // Draw on each animation frame
+    let frame: number;
     const animate = () => {
-      // Time step
-      const timeStep = 0.05;
-      
-      // Update simulation time
-      setSimulationTime(prevTime => {
-        const newTime = prevTime + timeStep;
-        
-        // Update particle position based on current state
-        setParticlePosition(prevPos => {
-          // Calculate new X position
-          const newX = prevPos.x + velocityVector.x * timeStep;
-          
-          // Apply quadratic curve physics for a more natural-looking curve
-          // This creates the typical Aviator/Crash graph shape with extremely flat trajectory
-          const quadraticY = CURVE_FACTOR * Math.pow(newX, 0.8);
-          
-          // Calculate multiplier based on x position
-          const newMultiplier = 1 + (newX * 0.02);
-          
-          // Add data point to chart
-          setChartData(prev => [
-            ...prev, 
-            { 
-              x: newX * 10, // Scale x for better visualization
-              y: quadraticY * 5,  // Scale y for better visualization
-              multiplier: newMultiplier
-            }
-          ]);
-          
-          // Check if we've reached the crash point
-          if (newMultiplier >= crashPoint) {
-            if (animationFrame) {
-              cancelAnimationFrame(animationFrame);
-              setAnimationFrame(null);
-            }
-          }
-          
-          return { x: newX, y: quadraticY };
-        });
-        
-        // Increase x velocity slightly for accelerating curve
-        setVelocityVector(prev => ({
-          ...prev,
-          x: prev.x + timeStep * 0.01 // Very slight acceleration
-        }));
-        
-        return newTime;
-      });
+      drawGraph();
+      frame = requestAnimationFrame(animate);
     };
     
-    // Only start a new animation frame if we don't already have one
-    if (!animationFrame) {
-      const frame = requestAnimationFrame(animate);
-      setAnimationFrame(frame);
-    }
+    frame = requestAnimationFrame(animate);
     
-    // Cleanup
     return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
+      cancelAnimationFrame(frame);
     };
-  }, [gameState, crashPoint]);
+  }, [drawGraph]);
   
-  // Initialize game on component mount
+  // Initialize game on mount
   useEffect(() => {
-    if (gameState === 'waiting' && chartData.length === 0) {
+    if (gameState === 'waiting') {
       initialize();
     }
   }, []);
@@ -151,40 +185,6 @@ const CrashRecharts: React.FC = () => {
   // Format for display
   const formatAmount = (amount: number) => {
     return amount.toFixed(2);
-  };
-  
-  // Custom dot for chart - the glowing circle at the end of the line
-  const CustomDot = (props: any) => {
-    const { cx, cy, index } = props;
-    
-    if (index === chartData.length - 1) {
-      return (
-        <g>
-          {/* Glow effect with radial gradient */}
-          <defs>
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          
-          {/* Main circle */}
-          <circle 
-            cx={cx} 
-            cy={cy} 
-            r={15} 
-            fill="white" 
-            stroke="white"
-            strokeWidth={3}
-            filter="url(#glow)"
-          />
-        </g>
-      );
-    }
-    return null;
   };
   
   return (
@@ -334,7 +334,7 @@ const CrashRecharts: React.FC = () => {
         
         {/* Game Area */}
         <div className="flex-1 p-4 flex flex-col">
-          {/* Game Chart */}
+          {/* Game Canvas */}
           <div className="relative mb-4 bg-[#0E1C27] rounded-lg overflow-hidden w-full h-full min-h-[720px]">
             <div className="absolute inset-0 flex items-center justify-center">
               {gameState === 'waiting' && (
@@ -352,96 +352,10 @@ const CrashRecharts: React.FC = () => {
               )}
             </div>
             
-            <div className="w-full h-[800px] relative">
-              {chartData.length > 0 && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={chartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    
-                    {/* Reference lines for multiplier levels */}
-                    {MULTIPLIER_MARKERS.map((mult, idx) => (
-                      <ReferenceLine 
-                        key={idx}
-                        y={(mult - 1) * 5} // Scale to match data points
-                        stroke="rgba(255,255,255,0.2)"
-                        strokeDasharray="3 3"
-                        label={{ 
-                          value: `${mult.toFixed(1)}x`, 
-                          position: 'right',
-                          fill: 'white',
-                          fontSize: 12
-                        }}
-                      />
-                    ))}
-                    
-                    {/* X Axis (time) */}
-                    <XAxis 
-                      dataKey="x" 
-                      type="number"
-                      domain={[0, 'dataMax']}
-                      hide 
-                    />
-                    
-                    {/* Y Axis (multiplier) */}
-                    <YAxis
-                      type="number"
-                      domain={[0, 'dataMax']}
-                      hide
-                    />
-                    
-                    {/* Area under the curve */}
-                    <defs>
-                      <linearGradient id="colorMultiplier" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ff9d02" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#ff9d02" stopOpacity={0.2}/>
-                      </linearGradient>
-                    </defs>
-                    
-                    <Area
-                      type="monotone"
-                      dataKey="y"
-                      stroke="none"
-                      fillOpacity={1}
-                      fill="url(#colorMultiplier)"
-                    />
-                    
-                    {/* Main curve line with glow effect */}
-                    <defs>
-                      <filter id="glow">
-                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    
-                    <Line
-                      type="monotone"
-                      dataKey="y"
-                      stroke="#ffffff"
-                      strokeWidth={15}
-                      dot={false}
-                      activeDot={false}
-                      isAnimationActive={false}
-                      style={{ filter: 'url(#glow)' }}
-                    />
-                    
-                    {/* End point dot */}
-                    <Line
-                      type="monotone"
-                      dataKey="y"
-                      stroke="none"
-                      dot={<CustomDot />}
-                      isAnimationActive={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </div>
+            <canvas 
+              ref={canvasRef} 
+              className="w-full h-[800px]"
+            />
             
             {/* Current multiplier display */}
             {gameState === 'running' && (
@@ -504,4 +418,4 @@ const CrashRecharts: React.FC = () => {
   );
 };
 
-export default CrashRecharts;
+export default CrashFinal;
