@@ -162,7 +162,7 @@ const DiceGame = () => {
               <button 
                 onClick={handleBet}
                 disabled={rolling || betAmount <= 0}
-                className="w-full bg-[#73FC8A] hover:bg-[#65E07A] text-black font-medium h-10 rounded text-sm"
+                className="w-full bg-[#00E700] hover:bg-[#00D100] text-black font-medium h-10 rounded text-sm"
               >
                 {rolling ? 'Rolling...' : 'Bet'}
               </button>
@@ -193,7 +193,7 @@ const DiceGame = () => {
                 
                 {/* Green section */}
                 <div 
-                  className="absolute right-0 top-0 bottom-0 bg-[#73FC8A]"
+                  className="absolute right-0 top-0 bottom-0 bg-[#00E700]"
                   style={{ width: `${100 - target}%` }}
                 ></div>
                 
@@ -217,7 +217,7 @@ const DiceGame = () => {
               
               {/* Result display */}
               {result !== null && (
-                <div className={`text-center my-4 text-2xl font-bold ${won ? 'text-[#73FC8A]' : 'text-[#FF5359]'}`}>
+                <div className={`text-center my-4 text-2xl font-bold ${won ? 'text-[#00E700]' : 'text-[#FF5359]'}`}>
                   {result.toFixed(2)} - {won ? 'WIN!' : 'LOSE'}
                 </div>
               )}
@@ -265,7 +265,10 @@ const DiceGame = () => {
               </div>
               
               {/* Bottom toolbar */}
-              <div className="flex justify-end items-center mt-4">
+              <div className="flex justify-between items-center mt-4">
+                <div>
+                  <img src="/stake_logo_transparent.png" alt="Stake" className="h-6 opacity-30" />
+                </div>
                 <div className="text-xs text-[#7F8990]">
                   <span className="cursor-pointer hover:text-white">Fairness</span>
                 </div>
