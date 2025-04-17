@@ -3,11 +3,16 @@ import { GAMES } from '@/games';
 import GameCard from '@/components/games/GameCard';
 import Layout from '@/components/layout/Layout';
 import { formatNumber } from '@/lib/utils';
-import { ListFilter } from 'lucide-react';
+import { ListFilter, Trophy, Zap } from 'lucide-react';
 
 const OriginalsPage = () => {
   // Filter only Stake Originals games
   const originalsGames = GAMES.filter(game => game.type === 'STAKE ORIGINALS');
+  
+  // Get featured games (first 4 games)
+  const featuredGames = originalsGames.slice(0, 4);
+  // Get remaining games
+  const remainingGames = originalsGames.slice(4);
   
   return (
     <Layout>
@@ -25,8 +30,31 @@ const OriginalsPage = () => {
           </div>
         </div>
         
+        <div className="flex items-center gap-2 mb-6">
+          <div className="bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black p-2 rounded-md">
+            <Zap className="h-5 w-5" />
+          </div>
+          <h2 className="text-xl font-medium text-white">Featured Stake Originals</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {featuredGames.map(game => (
+            <GameCard
+              key={game.id}
+              id={game.id}
+              name={game.name}
+              slug={game.slug}
+              type={game.type}
+              activePlayers={game.activePlayers}
+              color={game.color}
+              iconType={game.iconType}
+              multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${formatNumber(game.maxMultiplier)}x` : undefined}
+            />
+          ))}
+        </div>
+        
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-medium text-white">View All Providers</h2>
+          <h2 className="text-lg font-medium text-white">All Stake Originals</h2>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 text-white">
               <ListFilter className="h-4 w-4" />
@@ -38,8 +66,8 @@ const OriginalsPage = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
-          {originalsGames.map(game => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {remainingGames.map(game => (
             <GameCard
               key={game.id}
               id={game.id}

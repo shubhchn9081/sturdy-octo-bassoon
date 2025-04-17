@@ -158,22 +158,69 @@ const DiceGame = () => {
                 </div>
               </div>
               
-              {/* Bet Button */}
-              <button 
-                onClick={handleBet}
-                disabled={rolling || betAmount <= 0}
-                className="w-full bg-[#00E700] hover:bg-[#00D100] text-black font-medium h-10 rounded text-sm"
-              >
-                {rolling ? 'Rolling...' : 'Bet'}
-              </button>
+              {/* Bet and keyboard shortcuts */}
+              <div className="space-y-4">
+                <button 
+                  onClick={handleBet}
+                  disabled={rolling || betAmount <= 0}
+                  className="w-full bg-[#00E700] hover:bg-[#00D100] text-black font-medium h-10 rounded text-sm transition-colors"
+                >
+                  {rolling ? 'Rolling...' : 'BET'}
+                </button>
+                
+                <div className="text-xs text-[#7F8990] bg-[#0F212E] rounded p-3">
+                  <div className="mb-2">Keyboard shortcuts:</div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex space-x-1">
+                      <div className="w-5 h-5 bg-[#172B3A] flex items-center justify-center rounded">↑</div>
+                      <div className="w-5 h-5 bg-[#172B3A] flex items-center justify-center rounded">↓</div>
+                    </div>
+                    <span>Adjust target</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         
         {/* Right side (game interface) */}
-        <div className="flex-1">
-          <div className="bg-[#172B3A] rounded-lg h-full flex flex-col p-5">
+        <div className="flex-1 flex flex-col gap-4">
+          <div className="bg-[#172B3A] rounded-lg flex-1 flex flex-col p-5">
             <div className="flex-1 flex flex-col">
+            
+              {/* Betting History Table */}
+              <div className="mb-6 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[#7F8990] text-xs">
+                      <th className="text-left pb-2 font-normal">PLAYER</th>
+                      <th className="text-left pb-2 font-normal">BET</th>
+                      <th className="text-left pb-2 font-normal">MULTIPLIER</th>
+                      <th className="text-left pb-2 font-normal">PAYOUT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="text-white border-t border-[#243442]">
+                      <td className="py-2 flex items-center">
+                        <div className="w-6 h-6 bg-[#243442] rounded-full mr-2"></div>
+                        <span className="text-[#57FBA2]">Player123</span>
+                      </td>
+                      <td className="py-2">0.00123456 BTC</td>
+                      <td className="py-2">2.00×</td>
+                      <td className="py-2 text-[#57FBA2]">0.00246912 BTC</td>
+                    </tr>
+                    <tr className="text-white border-t border-[#243442]">
+                      <td className="py-2 flex items-center">
+                        <div className="w-6 h-6 bg-[#243442] rounded-full mr-2"></div>
+                        <span>Player456</span>
+                      </td>
+                      <td className="py-2">0.00054321 BTC</td>
+                      <td className="py-2">1.98×</td>
+                      <td className="py-2 text-[#FF5359]">0.00000000 BTC</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               {/* Slider scale numbers */}
               <div className="flex justify-between text-white text-sm font-bold mb-1">
                 <span>0</span>

@@ -33,29 +33,31 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <div className="bg-[#172B3A] rounded-md px-3 py-2 flex items-center">
-            <span className="text-white mr-2">{balance}</span>
+          <div className="hidden md:flex bg-[#172B3A] rounded-md px-3 py-2 items-center">
+            <span className="text-white mr-2 font-mono">{balance}</span>
             <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M15 8.5C14.315 7.81501 13.1087 7.33855 12 7.30872M9 15C9.64448 15.8593 10.8428 16.3494 12 16.391M12 7.30872C10.6809 7.27322 9.5 7.86998 9.5 9.50001C9.5 12.5 15 11 15 14C15 15.711 13.5362 16.4462 12 16.391M12 7.30872V5.5M12 16.391V18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
           
-          <Button className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4">
+          <Button className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4 text-sm">
             Wallet
           </Button>
           
-          <Button variant="ghost" size="icon">
-            <Search className="h-5 w-5" />
-          </Button>
-          
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-          </Button>
-          
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <div className="hidden md:flex items-center space-x-1">
+            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+              <Search className="h-5 w-5" />
+            </Button>
+            
+            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+              <User className="h-5 w-5" />
+            </Button>
+            
+            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+              <Bell className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
       
