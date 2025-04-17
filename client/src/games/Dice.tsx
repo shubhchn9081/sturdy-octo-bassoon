@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { formatCrypto, formatPercentage } from '@/lib/utils';
-import GameLayout, { GameControls, GameTabs } from '@/components/games/GameLayout';
+import { formatCrypto } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
-import { useProvablyFair } from '@/hooks/use-provably-fair';
-import { useBalance } from '@/hooks/use-balance';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowRight, ArrowLeft, RefreshCw } from 'lucide-react';
 
 const DiceGame = () => {
   const { getGameResult } = useProvablyFair('dice');

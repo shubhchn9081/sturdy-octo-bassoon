@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { GAMES, getGameBySlug } from '@/games';
 import Dice from '@/games/Dice';
@@ -10,7 +10,6 @@ import DragonTower from '@/games/DragonTower';
 import BlueSamurai from '@/games/BlueSamurai';
 import Pump from '@/games/Pump';
 import Hilo from '@/games/Hilo';
-import { useGame } from '@/context/GameContext';
 
 const GameComponents: Record<string, React.ComponentType> = {
   dice: Dice,
@@ -27,7 +26,7 @@ const GameComponents: Record<string, React.ComponentType> = {
 const GamePage = () => {
   const [match, params] = useRoute<{ gameSlug: string }>('/games/:gameSlug');
   const [_, setLocation] = useLocation();
-  const { selectGame } = useGame();
+  const [currentGame, setCurrentGame] = useState(null);
   
   useEffect(() => {
     if (!match) return;
@@ -38,8 +37,8 @@ const GamePage = () => {
       return;
     }
     
-    // Set the selected game in the global context
-    selectGame(game);
+    // Set the selected game in the local state
+    setCurrentGame(game);
     
     // Update document title
     document.title = `${game.name} - Stake.com`;
@@ -47,7 +46,7 @@ const GamePage = () => {
     return () => {
       document.title = 'Stake.com';
     };
-  }, [match, params.gameSlug, selectGame, setLocation]);
+  }, [match, params.gameSlug, setLocation]);
   
   if (!match) {
     return null;
