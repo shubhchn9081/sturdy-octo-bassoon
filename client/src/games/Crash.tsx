@@ -106,8 +106,8 @@ const CrashGame: React.FC = () => {
     
     // Begin drawing the main crash line
     ctx.beginPath();
-    ctx.strokeStyle = '#ff8400'; // Exact Stake.com orange color
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ff9d02'; // Exact color code as requested
+    ctx.lineWidth = 5; // Thicker line for smoother appearance
     
     // Start at the bottom-left of the chart
     ctx.moveTo(0, CANVAS_HEIGHT);
@@ -124,16 +124,19 @@ const CrashGame: React.FC = () => {
     if (dataPoints.length > 0) {
       ctx.lineTo(dataPoints[dataPoints.length - 1].x, CANVAS_HEIGHT);
       ctx.lineTo(0, CANVAS_HEIGHT);
-      ctx.fillStyle = 'rgba(255, 132, 0, 0.3)'; // Matching Stake.com's line color with transparency for fill
+      ctx.fillStyle = '#ff9d02'; // Exact color code as requested, solid without transparency
       ctx.fill();
       
       // Draw graph endpoint circle
       const lastPoint = dataPoints[dataPoints.length - 1];
       
       ctx.beginPath();
-      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 6, 0, Math.PI * 2);
+      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 7, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#ff9d02'; // Same orange color for the circle border
+      ctx.lineWidth = 2;
       ctx.fill();
+      ctx.stroke(); // Add stroke to make the circle more visible
     }
     
     // Draw time markers
