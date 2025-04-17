@@ -21,8 +21,16 @@ export const BombImage = () => (
 
 export const DarkerDiamondImage = () => (
   <svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="50,5 95,50 50,95 5,50" fill="#5ac531" stroke="#38b916" strokeWidth="2" />
-    <polygon points="50,15 85,50 50,85 15,50" fill="#4aa828" />
-    <polygon points="50,25 75,50 50,75 25,50" fill="#70dd48" />
+    <defs>
+      <radialGradient id="diamondGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="0%" stopColor="#7bfa4c" stopOpacity="0.3"/>
+        <stop offset="100%" stopColor="#38b916" stopOpacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="100" height="100" fill="url(#diamondGlow)"/>
+    <path d="M50,10 L85,40 L70,80 L30,80 L15,40 Z" fill="#5ac531" stroke="#38b916" strokeWidth="1"/>
+    <path d="M50,15 L80,42 L65,75 L35,75 L20,42 Z" fill="#4aa828"/>
+    <path d="M50,20 L75,44 L60,70 L40,70 L25,44 Z" fill="#70dd48"/>
+    <path d="M50,25 L70,45 L55,65 L45,65 L30,45 Z" fill="#7bfa4c"/>
   </svg>
 );
