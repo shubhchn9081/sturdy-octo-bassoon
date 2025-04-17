@@ -134,7 +134,7 @@ const HomePage = () => {
                 activePlayers={game.activePlayers}
                 color={game.color}
                 iconType={game.iconType}
-                multiplier={game.multiplier}
+                multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${game.maxMultiplier.toFixed(2)}x` : undefined}
               />
             ))}
           </div>

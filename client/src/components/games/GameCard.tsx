@@ -71,27 +71,151 @@ const GameCard = ({
   const gameImage = getGameImage();
   const hasImage = gameImage !== null;
 
+  // Function to get background gradient by game name
+  const getGameBackground = () => {
+    switch (name) {
+      case 'KENO': 
+        return 'bg-gradient-to-b from-blue-500 to-blue-300';
+      case 'LIMBO':
+        return 'bg-gradient-to-b from-orange-400 to-yellow-300';
+      case 'PLINKO':
+        return 'bg-gradient-to-b from-blue-600 to-blue-400';
+      case 'MINES':
+        return 'bg-gradient-to-b from-blue-600 to-green-400';
+      case 'DICE':
+        return 'bg-gradient-to-b from-purple-600 to-red-400';
+      case 'VIDEO POKER':
+        return 'bg-gradient-to-b from-red-600 to-red-400';
+      case 'DRAGON TOWER':
+        return 'bg-gradient-to-b from-yellow-500 to-red-500';
+      case 'CRASH':
+        return 'bg-gradient-to-b from-purple-600 to-indigo-400';
+      case 'BLUE SAMURAI':
+        return 'bg-gradient-to-b from-blue-700 to-blue-500';
+      case 'HILO':
+        return 'bg-gradient-to-b from-green-600 to-green-400';
+      case 'PUMP':
+        return 'bg-gradient-to-b from-red-500 to-orange-400';
+      default:
+        return color;
+    }
+  };
+
+  // Get game icon based on game type
+  const getGameIcon = () => {
+    switch (name) {
+      case 'KENO':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-24 h-24 flex items-center justify-center">
+              <div className="grid grid-cols-3 grid-rows-2 gap-1">
+                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">8</div>
+                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">9</div>
+                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">10</div>
+                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">11</div>
+                <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-blue-500 font-bold">12</div>
+                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">13</div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'LIMBO':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-24 h-24 flex items-center justify-center">
+              <div className="w-16 h-16 bg-white rounded-lg rotate-45 flex items-center justify-center">
+                <span className="text-orange-400 font-bold text-lg -rotate-45">×</span>
+              </div>
+            </div>
+          </div>
+        );
+      case 'MINES':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-24 h-24 flex items-center justify-center">
+              <div className="w-16 h-16 bg-green-400 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-white rounded-lg"></div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'DICE':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-24 h-24 flex items-center justify-center gap-2">
+              <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center rotate-12">
+                <div className="grid grid-cols-3 grid-rows-3 gap-1">
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-red-400 rounded-lg flex items-center justify-center -rotate-12 -ml-4 -mt-3">
+                <div className="grid grid-cols-2 grid-rows-2 gap-1">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'VIDEO POKER':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex gap-1">
+              <div className="w-10 h-14 bg-white rounded-md flex items-center justify-center shadow-md">
+                <div className="text-red-600 text-lg font-bold">A</div>
+                <div className="text-red-600 text-xs">♦</div>
+              </div>
+              <div className="w-10 h-14 bg-white rounded-md flex items-center justify-center shadow-md">
+                <div className="text-black text-lg font-bold">A</div>
+                <div className="text-black text-xs">♠</div>
+              </div>
+              <div className="w-10 h-14 bg-white rounded-md flex items-center justify-center shadow-md">
+                <div className="text-red-600 text-lg font-bold">A</div>
+                <div className="text-red-600 text-xs">♥</div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'DRAGON TOWER':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-24 h-24 flex items-center justify-center">
+              <div className="w-16 h-16 flex flex-col items-center justify-center">
+                <div className="w-0 h-0 border-l-[25px] border-r-[25px] border-b-[40px] border-l-transparent border-r-transparent border-b-orange-400"></div>
+                <div className="w-12 h-6 bg-yellow-500 -mt-3 rounded-b-md"></div>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const background = getGameBackground();
+  const gameIcon = getGameIcon();
+
   return (
     <div 
       className={cn("game-card block cursor-pointer overflow-hidden rounded-md transition-transform hover:translate-y-[-2px]", className)} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
       <div 
-        className={cn("relative h-48 flex flex-col items-center justify-end pb-4 text-center", color)}
-        style={{
-          background: hasImage ? `url(${gameImage}) center/cover no-repeat` : color,
-        }}
+        className={cn("relative h-48 flex flex-col items-center justify-end", background)}
       >
-        {multiplier && (
-          <div className="absolute top-2 right-2 bg-[#ffbb00] text-xs px-2 py-0.5 rounded-sm text-black font-bold">
-            {multiplier}
-          </div>
-        )}
+        {gameIcon}
         
-        <h3 className="text-2xl font-bold text-white uppercase tracking-wide drop-shadow-md">{name}</h3>
-        <div className="text-[10px] text-white/70 uppercase tracking-wider mt-1">
-          STAKE ORIGINALS
-        </div>
+        <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
       </div>
       <div className="bg-[#0F212E] px-3 py-1.5 text-xs text-green-400 flex items-center justify-center">
         <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
