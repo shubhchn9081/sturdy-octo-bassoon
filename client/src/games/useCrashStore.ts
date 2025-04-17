@@ -50,19 +50,28 @@ interface CrashStore {
 }
 
 // Constants for the game
-const TIME_SCALE = 50; // X-axis scale for time
-const HEIGHT_SCALE = 300; // Y-axis scale for multiplier
+const TIME_SCALE = 60; // X-axis scale for time - higher number = slower growth
+const HEIGHT_SCALE = 150; // Y-axis scale for multiplier
 
 // Helper functions
 function generateCrashPoint(): number {
-  // Using a simplified version of the formula mentioned
-  const h = Math.random().toString();
-  const n = parseInt(h.substring(2, 15), 16);
+  // Generate more varied crash points to make the game interesting
+  const r = Math.random();
   
-  if (n % 33 === 0) return 1.00; // 1 in 33 chance of instant crash
-  
-  const crashPoint = Math.floor((100 * (1e9)) / (n + 1)) / 1e7;
-  return Math.min(crashPoint, 1000.00); // Cap at 1000x
+  // Distribution of crash points similar to real crash games
+  if (r < 0.15) {
+    // Early crash (1.00x to 2.00x) - ~15% chance
+    return 1.00 + Math.random();
+  } else if (r < 0.70) {
+    // Medium crash (2.00x to 5.00x) - ~55% chance 
+    return 2.00 + (Math.random() * 3);
+  } else if (r < 0.90) {
+    // Higher crash (5.00x to 20.00x) - ~20% chance
+    return 5.00 + (Math.random() * 15);
+  } else {
+    // Rare high crash (20.00x to 100.00x) - ~10% chance
+    return 20.00 + (Math.random() * 80);
+  }
 }
 
 // Create Zustand store

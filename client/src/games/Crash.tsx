@@ -11,11 +11,18 @@ const HEIGHT_SCALE = CANVAS_HEIGHT / 2.3;
 
 // Multiplier quicktabs
 const MULTIPLIER_QUICKTABS = [
-  { value: 1.5, label: '1.5x', color: 'bg-[#5BE12C]' },
-  { value: 2.0, label: '2x', color: 'bg-[#5BE12C]' },
-  { value: 3.0, label: '3x', color: 'bg-[#5BE12C]' },
-  { value: 5.0, label: '5x', color: 'bg-[#5BE12C]' },
-  { value: 10.0, label: '10x', color: 'bg-[#5BE12C]' }
+  { value: 2.07, label: '2.07x', color: 'bg-green-500' },
+  { value: 1.71, label: '1.71x', color: 'bg-green-500' },
+  { value: 1.97, label: '1.97x', color: 'bg-green-500' },
+  { value: 5.25, label: '5.25x', color: 'bg-green-500' },
+  { value: 1.37, label: '1.37x', color: 'bg-green-500' },
+  { value: 8.34, label: '8.34x', color: 'bg-green-500' },
+  { value: 1.03, label: '1.03x', color: 'bg-green-500' },
+  { value: 3.26, label: '3.26x', color: 'bg-green-500' }, 
+  { value: 20.24, label: '20.24x', color: 'bg-green-500' },
+  { value: 12.03, label: '12.03x', color: 'bg-green-500' },
+  { value: 1.14, label: '1.14x', color: 'bg-green-500' },
+  { value: 1.88, label: '1.88x', color: 'bg-green-500' },
 ];
 
 const CrashGame: React.FC = () => {
@@ -54,12 +61,34 @@ const CrashGame: React.FC = () => {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
     // Set up the graph style
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ff9800'; // Orange line like in the screenshots
     ctx.lineJoin = 'round';
     
-    // Begin drawing the line
+    // Draw horizontal and vertical grid lines
     ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    
+    // Horizontal grid lines
+    [1.0, 1.2, 1.3, 1.5, 1.7, 1.8, 2.0, 2.3].forEach(mult => {
+      const y = (Math.log(mult) / Math.log(1.0024 * 100)) * HEIGHT_SCALE;
+      ctx.moveTo(0, CANVAS_HEIGHT - y);
+      ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT - y);
+    });
+    
+    // Vertical grid lines (time markers)
+    for (let i = 2; i <= MAX_VISIBLE_TIME; i += 2) {
+      const x = i * TIME_SCALE;
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, CANVAS_HEIGHT);
+    }
+    ctx.stroke();
+    
+    // Begin drawing the main crash line
+    ctx.beginPath();
+    ctx.strokeStyle = '#ff9800'; // Orange line like in screenshots
+    ctx.lineWidth = 4;
     
     // Start at the bottom-left of the chart
     ctx.moveTo(0, CANVAS_HEIGHT);
@@ -76,7 +105,7 @@ const CrashGame: React.FC = () => {
     if (dataPoints.length > 0) {
       ctx.lineTo(dataPoints[dataPoints.length - 1].x, CANVAS_HEIGHT);
       ctx.lineTo(0, CANVAS_HEIGHT);
-      ctx.fillStyle = 'rgba(255, 152, 0, 0.3)';
+      ctx.fillStyle = 'rgba(255, 152, 0, 0.15)'; // More transparent fill
       ctx.fill();
       
       // Draw graph endpoint circle
@@ -90,7 +119,7 @@ const CrashGame: React.FC = () => {
     
     // Draw time markers
     ctx.font = '12px Arial';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.textAlign = 'center';
     
     // Draw time markers every 2 seconds
@@ -99,8 +128,18 @@ const CrashGame: React.FC = () => {
       ctx.fillText(`${i}s`, x, CANVAS_HEIGHT - 5);
     }
     
+    // Draw vertical time markers at the bottom
+    ctx.font = '13px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.textAlign = 'center';
+    ['2s', '4s', '6s', '8s'].forEach((time, index) => {
+      const x = (index + 1) * 2 * TIME_SCALE;
+      ctx.fillText(time, x, CANVAS_HEIGHT - 10);
+    });
+    
     // Draw multiplier markers on y-axis
     ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     [1.0, 1.2, 1.3, 1.5, 1.7, 1.8, 2.0, 2.3].forEach(mult => {
       const y = (Math.log(mult) / Math.log(1.0024 * 100)) * HEIGHT_SCALE;
       ctx.fillText(`${mult.toFixed(1)}x`, 5, CANVAS_HEIGHT - y);
@@ -318,18 +357,27 @@ const CrashGame: React.FC = () => {
             
             {/* Current multiplier display */}
             {gameState === 'running' && (
-              <div className="absolute top-4 left-4 bg-black bg-opacity-50 px-3 py-2 rounded-lg">
-                <div className="text-4xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="text-7xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
+              </div>
+            )}
+            
+            {/* Starting in display */}
+            {gameState === 'waiting' && (
+              <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
+                <div className="bg-[#11232F] bg-opacity-80 px-16 py-3 rounded-md text-center text-xl">
+                  Starting in
+                </div>
               </div>
             )}
           </div>
           
           {/* Quick Multiplier Buttons */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4 -mx-1 px-1">
             {MULTIPLIER_QUICKTABS.map((level, i) => (
               <button
                 key={i}
-                className={`px-3 py-1 rounded ${level.color} text-black font-medium`}
+                className={`px-3 py-1 rounded-md ${level.color} text-black text-xs font-semibold`}
                 onClick={() => setAutoCashoutValue(level.value)}
               >
                 {level.label}
@@ -341,7 +389,6 @@ const CrashGame: React.FC = () => {
           <div className="bg-[#11232F] p-3 rounded">
             <h3 className="text-sm font-semibold mb-2">Recent Games</h3>
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {/* We'll use some dummy data for recent games */}
               {[2.31, 1.02, 4.56, 1.68, 10.21, 1.08, 3.45, 7.89, 1.54, 2.01].map((value, i) => (
                 <div 
                   key={i}
@@ -354,6 +401,13 @@ const CrashGame: React.FC = () => {
                   {value.toFixed(2)}x
                 </div>
               ))}
+            </div>
+            
+            <div className="flex justify-end text-xs text-gray-400 mt-2">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span>Network Status</span>
+              </div>
             </div>
           </div>
         </div>
