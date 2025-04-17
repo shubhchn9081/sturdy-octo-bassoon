@@ -41,8 +41,7 @@ const Header = () => {
             </svg>
           </div>
           
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <WalletIcon className="h-4 w-4 mr-2" />
+          <Button className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4">
             Wallet
           </Button>
           
