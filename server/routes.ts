@@ -1,0 +1,205 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { z } from "zod";
+import { insertBetSchema, insertUserSchema } from "@shared/schema";
+import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // prefix all routes with /api
+  
+  // User routes
+  app.get('/api/user', async (req, res) => {
+    try {
+      // For demo purposes, return a sample user
+      const user = await storage.getUser(1);
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.get('/api/user/balance', async (req, res) => {
+    try {
+      const user = await storage.getUser(1);
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      
+      res.json(user.balance);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Game routes
+  app.get('/api/games', async (req, res) => {
+    try {
+      const games = await storage.getAllGames();
+      res.json(games);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.get('/api/games/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const game = await storage.getGame(id);
+      
+      if (!game) {
+        return res.status(404).json({ message: 'Game not found' });
+      }
+      
+      res.json(game);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Bet routes
+  app.post('/api/bets/place', async (req, res) => {
+    try {
+      // Validate request body
+      const betSchema = insertBetSchema.extend({
+        options: z.record(z.any()).optional()
+      });
+      
+      const validatedData = betSchema.parse(req.body);
+      
+      // Get user and game
+      const user = await storage.getUser(validatedData.userId);
+      const game = await storage.getGame(validatedData.gameId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      if (!game) {
+        return res.status(404).json({ message: 'Game not found' });
+      }
+      
+      // Check if user has enough balance
+      if (user.balance < validatedData.amount) {
+        return res.status(400).json({ message: 'Insufficient balance' });
+      }
+      
+      // Generate server seed
+      const serverSeed = createServerSeed();
+      
+      // Create bet with initial state
+      const bet = await storage.createBet({
+        ...validatedData,
+        serverSeed,
+        nonce: 1,
+        completed: false,
+        outcome: {},
+      });
+      
+      // Deduct bet amount from user balance
+      await storage.updateUserBalance(user.id, user.balance - validatedData.amount);
+      
+      res.json({ betId: bet.id, serverSeedHash: bet.serverSeed });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid bet data', errors: error.errors });
+      }
+      
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/bets/:id/complete', async (req, res) => {
+    try {
+      const betId = parseInt(req.params.id);
+      const bet = await storage.getBet(betId);
+      
+      if (!bet) {
+        return res.status(404).json({ message: 'Bet not found' });
+      }
+      
+      if (bet.completed) {
+        return res.status(400).json({ message: 'Bet already completed' });
+      }
+      
+      // Validate outcome based on game type
+      const game = await storage.getGame(bet.gameId);
+      
+      if (!game) {
+        return res.status(404).json({ message: 'Game not found' });
+      }
+      
+      // Update bet with outcome and mark as completed
+      const updatedBet = await storage.updateBet(betId, {
+        ...bet,
+        outcome: req.body.outcome,
+        completed: true,
+        multiplier: req.body.outcome.win ? req.body.outcome.multiplier : 0
+      });
+      
+      // Update user balance if won
+      if (req.body.outcome.win) {
+        const user = await storage.getUser(bet.userId);
+        if (user) {
+          const winAmount = bet.amount * req.body.outcome.multiplier;
+          await storage.updateUserBalance(user.id, user.balance + winAmount);
+        }
+      }
+      
+      res.json(updatedBet);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.get('/api/bets/history', async (req, res) => {
+    try {
+      const userId = parseInt(req.query.userId as string) || 1;
+      const gameId = req.query.gameId ? parseInt(req.query.gameId as string) : undefined;
+      
+      const bets = await storage.getBetHistory(userId, gameId);
+      res.json(bets);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Provably fair verification
+  app.post('/api/verify', async (req, res) => {
+    try {
+      const { serverSeed, clientSeed, nonce, gameType } = req.body;
+      
+      if (!serverSeed || !clientSeed || !nonce || !gameType) {
+        return res.status(400).json({ message: 'Missing required parameters' });
+      }
+      
+      let result;
+      
+      switch (gameType) {
+        case 'dice':
+          result = calculateDiceRoll(serverSeed, clientSeed, nonce);
+          break;
+        case 'crash':
+          result = calculateCrashPoint(serverSeed, clientSeed, nonce);
+          break;
+        case 'limbo':
+          result = calculateLimboResult(serverSeed, clientSeed, nonce);
+          break;
+        default:
+          return res.status(400).json({ message: 'Invalid game type' });
+      }
+      
+      res.json({ result });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  const httpServer = createServer(app);
+
+  return httpServer;
+}
