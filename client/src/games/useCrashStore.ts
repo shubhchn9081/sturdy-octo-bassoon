@@ -196,8 +196,8 @@ export const useCrashStore = create<CrashStore>((set, get) => {
     
     resetGame: () => {
       // Clear any existing intervals
-      if (gameInterval) window.clearInterval(gameInterval);
-      if (countdownInterval) window.clearInterval(countdownInterval);
+      if (gameInterval) window.clearInterval(gameInterval as number);
+      if (countdownInterval) window.clearInterval(countdownInterval as number);
       
       // Generate new random bets for AI players
       const newAIBets = Array.from({ length: Math.floor(Math.random() * 10) + 5 }, (_, i) => ({
@@ -212,7 +212,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       // Keep player bet if it exists
       const playerBet = get().activeBets.find(bet => bet.isPlayer);
       const nextBets = playerBet 
-        ? [...newAIBets, { ...playerBet, status: 'active', cashoutMultiplier: undefined, profit: undefined }] 
+        ? [...newAIBets, { ...playerBet, status: 'active' as BetStatus, cashoutMultiplier: undefined, profit: undefined }] 
         : newAIBets;
       
       const newCrashPoint = generateCrashPoint();
@@ -233,7 +233,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       countdownInterval = window.setInterval(() => {
         count--;
         if (count <= 0) {
-          window.clearInterval(countdownInterval);
+          if (countdownInterval) {
+            window.clearInterval(countdownInterval as number);
+            countdownInterval = null;
+          }
           get().startGame();
         } else {
           set({ countdown: count });
@@ -243,7 +246,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
     
     startGame: () => {
       // Clear any existing intervals
-      if (gameInterval) window.clearInterval(gameInterval);
+      if (gameInterval) {
+        window.clearInterval(gameInterval as number);
+        gameInterval = null;
+      }
       
       const startTime = Date.now();
       
@@ -288,7 +294,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         // Check for crash
         if (formattedMultiplier >= crashPoint) {
           // Game over - crashed
-          if (gameInterval) window.clearInterval(gameInterval);
+          if (gameInterval) {
+            window.clearInterval(gameInterval as number);
+            gameInterval = null;
+          }
           
           // Update remaining bets as lost
           const finalBets = updatedBets.map(bet => {
