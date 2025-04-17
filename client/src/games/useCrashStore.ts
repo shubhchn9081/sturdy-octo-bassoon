@@ -50,7 +50,7 @@ interface CrashStore {
 }
 
 // Constants for the game
-const TIME_SCALE = 80; // Much higher TIME_SCALE for extreme horizontal stretching
+const TIME_SCALE = 100; // Even higher TIME_SCALE for extreme horizontal stretching and more slanted appearance
 const HEIGHT_SCALE = 200; // Dramatically increased HEIGHT_SCALE for immediate visibility
 
 // Helper functions
@@ -101,9 +101,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // Much higher growth rate for significantly better early visibility
-    // This will make the graph line start to rise faster immediately
-    return Math.pow(1.001, elapsed * 1000);
+    // More moderate growth rate for a slanted rise while still maintaining visibility
+    // This creates a more gradual slant that's still visible
+    return Math.pow(1.0005, elapsed * 1000);
   };
   
   // Cashout AI players
@@ -296,10 +296,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         // Calculate new data point for graph - matching exact trajectory from reference
         const x = elapsed * TIME_SCALE;
         
-        // Dramatically increased vertical scaling for immediate visibility from 1.00x
-        // Creates a much more noticeable trajectory from the very start
-        // Sacrificing exact reference matching for better visibility
-        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 1.5; // Maximum scaling factor for immediate visibility
+        // Moderate vertical scaling to create slanted trajectory while maintaining visibility
+        // This creates the perfect balance between slant and visibility
+        // Emphasizing horizontal movement more than vertical movement
+        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.9; // Reduced scaling factor for more slanted appearance
         
         const newDataPoints = [...dataPoints, { x, y }];
         
