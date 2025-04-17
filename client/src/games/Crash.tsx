@@ -106,8 +106,8 @@ const CrashGame: React.FC = () => {
     
     // Begin drawing the main crash line
     ctx.beginPath();
-    ctx.strokeStyle = '#ff9d02'; // Exact color code as requested
-    ctx.lineWidth = 5; // Thicker line for smoother appearance
+    ctx.strokeStyle = '#ffffff'; // White line as shown in the new screenshot
+    ctx.lineWidth = 7; // Bolder line to match the screenshot
     
     // Start at the bottom-left of the chart
     ctx.moveTo(0, CANVAS_HEIGHT);
@@ -131,9 +131,9 @@ const CrashGame: React.FC = () => {
       const lastPoint = dataPoints[dataPoints.length - 1];
       
       ctx.beginPath();
-      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 7, 0, Math.PI * 2);
+      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 9, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#ff9d02'; // Same orange color for the circle border
+      ctx.strokeStyle = '#ffffff'; // White circle with white border to match screenshot
       ctx.lineWidth = 2;
       ctx.fill();
       ctx.stroke(); // Add stroke to make the circle more visible
