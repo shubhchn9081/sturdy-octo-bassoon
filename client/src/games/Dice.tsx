@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { formatCrypto } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Settings, LayoutGrid, BarChart2, Star } from 'lucide-react';
+import { RefreshCw, Star, LayoutGrid, BarChart2, Settings } from 'lucide-react';
 
 const DiceGame = () => {
-  // Mock state for now
+  // Game state
   const [betAmount, setBetAmount] = useState('0.00000000');
   const [target, setTarget] = useState(50.50);
   const [multiplier, setMultiplier] = useState(2.0000);
@@ -51,8 +49,8 @@ const DiceGame = () => {
     setTarget(value[0]);
   };
   
-  const handleModeChange = (value: string) => {
-    setMode(value as 'manual' | 'auto');
+  const handleModeChange = (value: 'manual' | 'auto') => {
+    setMode(value);
   };
   
   const handleRollModeChange = () => {
@@ -88,90 +86,92 @@ const DiceGame = () => {
       setRolling(false);
     }
   };
-  
+
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#1A1D27]">
-      <div className="flex flex-col min-h-full">
-        <div className="flex-1 flex flex-col lg:flex-row">
-          {/* Left Panel (Controls) */}
-          <div className="w-full lg:w-[270px] bg-[#1E2328] border-r border-[#2A2F3C]">
-            <div className="p-4">
-              <Tabs value={mode} onValueChange={handleModeChange} className="mb-5">
-                <TabsList className="w-full grid grid-cols-2 rounded-full bg-[#24282F]">
-                  <TabsTrigger 
-                    value="manual" 
-                    className="rounded-full data-[state=active]:bg-[#3F444E] data-[state=active]:text-white"
-                  >
-                    Manual
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="auto" 
-                    className="rounded-full data-[state=active]:bg-[#3F444E] data-[state=active]:text-white"
-                  >
-                    Auto
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              
-              <div className="mb-4">
-                <div className="flex justify-between mb-1">
-                  <div className="text-[#6E7682] text-xs">Bet Amount</div>
-                  <div className="text-[#8B8E99] text-xs">$0.00</div>
-                </div>
-                <div className="relative mb-3">
-                  <Input 
-                    value={betAmount}
-                    onChange={handleBetAmountChange}
-                    className="bg-[#24282F] border-0 text-white h-10 rounded pl-3 pr-16"
-                  />
-                  <div className="absolute right-0 top-0 flex h-10">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={handleHalfBet}
-                      className="h-10 px-2 text-[#8B8E99] hover:text-white bg-transparent hover:bg-[#3F444E]"
-                    >
-                      ½
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={handleDoubleBet}
-                      className="h-10 px-2 text-[#8B8E99] hover:text-white bg-transparent hover:bg-[#3F444E]"
-                    >
-                      2×
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mb-6">
-                <div className="flex justify-between mb-1">
-                  <div className="text-[#6E7682] text-xs">Profit on Win</div>
-                  <div className="text-[#8B8E99] text-xs">$0.00</div>
-                </div>
-                <div className="relative">
-                  <Input 
-                    value={profit}
-                    readOnly
-                    className="bg-[#24282F] border-0 text-white h-10 rounded pl-3"
-                  />
-                </div>
-              </div>
-              
-              <Button 
-                onClick={handleBet}
-                disabled={rolling}
-                className="w-full h-12 bg-[#5AEF7B] hover:bg-[#4CD66A] text-black font-medium rounded"
+    <div className="min-h-screen bg-[#1A1D27] flex flex-col">
+      <div className="flex flex-col lg:flex-row flex-1">
+        {/* Left Panel (Controls) */}
+        <div className="w-full lg:w-[220px] bg-[#1E2328]">
+          <div className="p-4">
+            {/* Manual/Auto Tabs */}
+            <div className="rounded-full bg-[#24282F] mb-5 flex">
+              <button 
+                className={`w-1/2 py-2 rounded-full text-center ${mode === 'manual' ? 'bg-[#3F444E] text-white' : 'text-[#6E7682]'}`}
+                onClick={() => handleModeChange('manual')}
               >
-                {rolling ? 'Rolling...' : 'Bet'}
-              </Button>
+                Manual
+              </button>
+              <button 
+                className={`w-1/2 py-2 rounded-full text-center ${mode === 'auto' ? 'bg-[#3F444E] text-white' : 'text-[#6E7682]'}`}
+                onClick={() => handleModeChange('auto')}
+              >
+                Auto
+              </button>
             </div>
+            
+            {/* Bet Amount */}
+            <div className="mb-4">
+              <div className="flex justify-between">
+                <div className="text-[#6E7682] text-xs">Bet Amount</div>
+                <div className="text-[#6E7682] text-xs">$0.00</div>
+              </div>
+              <div className="relative mt-1">
+                <Input 
+                  value={betAmount}
+                  onChange={handleBetAmountChange}
+                  className="bg-[#24282F] border-0 text-white h-10 rounded-sm"
+                />
+                <div className="absolute right-0 top-0 flex h-full">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={handleHalfBet}
+                    className="h-full px-2 text-[#8B8E99] hover:text-white bg-transparent hover:bg-[#3F444E] rounded-none"
+                  >
+                    ½
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={handleDoubleBet}
+                    className="h-full px-2 text-[#8B8E99] hover:text-white bg-transparent hover:bg-[#3F444E] rounded-none"
+                  >
+                    2×
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Profit on Win */}
+            <div className="mb-6">
+              <div className="flex justify-between">
+                <div className="text-[#6E7682] text-xs">Profit on Win</div>
+                <div className="text-[#6E7682] text-xs">$0.00</div>
+              </div>
+              <div className="relative mt-1">
+                <Input 
+                  value={profit}
+                  readOnly
+                  className="bg-[#24282F] border-0 text-white h-10 rounded-sm"
+                />
+              </div>
+            </div>
+            
+            {/* Bet Button */}
+            <Button 
+              onClick={handleBet}
+              disabled={rolling}
+              className="w-full h-12 bg-[#5AEF7B] hover:bg-[#4CD66A] text-black font-medium rounded"
+            >
+              {rolling ? 'Rolling...' : 'Bet'}
+            </Button>
           </div>
-          
-          {/* Right Panel (Game) */}
-          <div className="flex-1 flex flex-col p-6">
-            <div className="flex justify-between mb-3 text-sm text-[#6E7682]">
+        </div>
+        
+        {/* Right Panel (Game) */}
+        <div className="flex-1 flex flex-col p-0">
+          <div className="p-6 flex-1 flex flex-col">
+            <div className="flex justify-between text-[#6E7682] text-sm mb-2">
               <div>0</div>
               <div>25</div>
               <div>50</div>
@@ -179,22 +179,23 @@ const DiceGame = () => {
               <div>100</div>
             </div>
             
-            <div className="relative h-10 bg-[#24282F] rounded-full overflow-hidden mb-8">
-              {/* Red background for under section */}
+            {/* Slider Component */}
+            <div className="relative h-10 rounded-full border-4 border-[#24272C] overflow-hidden mb-auto">
+              {/* Red section */}
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-[#EB5757] rounded-l-full"
+                className="absolute left-0 top-0 h-full bg-[#EB5757]"
                 style={{ width: `${target}%` }}
               />
               
-              {/* Green background for over section */}
+              {/* Green section */}
               <div 
-                className="absolute top-0 bottom-0 right-0 bg-[#5AEF7B] rounded-r-full"
+                className="absolute right-0 top-0 h-full bg-[#5AEF7B]"
                 style={{ width: `${100 - target}%` }}
               />
               
               {/* Slider Thumb */}
               <div 
-                className="absolute top-0 bottom-0 w-8 bg-[#5583EA] rounded z-10"
+                className="absolute top-0 bottom-0 w-8 bg-[#5583EA] z-10 rounded"
                 style={{ left: `${target}%`, transform: 'translateX(-50%)' }}
               />
               
@@ -209,49 +210,47 @@ const DiceGame = () => {
               />
             </div>
             
-            {/* Game Stats */}
-            <div className="mt-auto">
-              <div className="bg-[#24282F] rounded-lg grid grid-cols-3 p-4">
-                <div className="flex flex-col items-center justify-center">
-                  <div className="text-xs text-[#6E7682] mb-1">Multiplier</div>
-                  <div className="text-white flex items-center">
-                    {multiplier.toFixed(4)}<span className="text-[#6E7682]">×</span>
+            {/* Stats Panel */}
+            <div className="mt-auto bg-[#24282F] rounded p-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-[#6E7682] text-xs mb-1">Multiplier</div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-white">{multiplier.toFixed(4)}</span>
+                    <span className="text-[#6E7682]">×</span>
                   </div>
                 </div>
                 
                 <div 
-                  className="flex flex-col items-center justify-center cursor-pointer" 
+                  className="text-center cursor-pointer"
                   onClick={handleRollModeChange}
                 >
-                  <div className="text-xs text-[#6E7682] mb-1">Roll {rollMode === 'over' ? 'Over' : 'Under'}</div>
-                  <div className="text-white flex items-center">
-                    {target.toFixed(2)} 
-                    <RefreshCw size={14} className="ml-2 text-[#6E7682]" />
+                  <div className="text-[#6E7682] text-xs mb-1">Roll {rollMode === 'over' ? 'Over' : 'Under'}</div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-white">{target.toFixed(2)}</span>
+                    <RefreshCw size={14} className="ml-1 text-[#6E7682]" />
                   </div>
                 </div>
                 
-                <div className="flex flex-col items-center justify-center">
-                  <div className="text-xs text-[#6E7682] mb-1">Win Chance</div>
-                  <div className="text-white flex items-center">
-                    {winChance.toFixed(4)}<span className="text-[#6E7682]">%</span>
+                <div className="text-center">
+                  <div className="text-[#6E7682] text-xs mb-1">Win Chance</div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-white">{winChance.toFixed(4)}</span>
+                    <span className="text-[#6E7682]">%</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Bottom Row with Icons and Logo */}
+            {/* Bottom toolbar */}
             <div className="flex justify-between items-center mt-4 text-[#6E7682]">
-              <div className="flex space-x-4">
-                <button className="hover:text-white"><Settings size={18} /></button>
-                <button className="hover:text-white"><LayoutGrid size={18} /></button>
-                <button className="hover:text-white"><BarChart2 size={18} /></button>
-                <button className="hover:text-white"><Star size={18} /></button>
+              <div className="flex space-x-6">
+                <button className="hover:text-white"><Star size={16} /></button>
+                <button className="hover:text-white"><LayoutGrid size={16} /></button>
+                <button className="hover:text-white"><BarChart2 size={16} /></button>
+                <button className="hover:text-white"><Settings size={16} /></button>
               </div>
-              
-              <div className="flex items-center">
-                <span className="text-white font-bold italic text-lg mr-4">Stake</span>
-                <span className="text-xs">Fairness</span>
-              </div>
+              <div className="text-xs">Fairness</div>
             </div>
           </div>
         </div>
