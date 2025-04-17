@@ -50,7 +50,7 @@ interface CrashStore {
 }
 
 // Constants for the game
-const TIME_SCALE = 100; // Even higher TIME_SCALE for extreme horizontal stretching and more slanted appearance
+const TIME_SCALE = 1000; // Maximum TIME_SCALE (1000% more) for extreme horizontal stretching
 const HEIGHT_SCALE = 200; // Dramatically increased HEIGHT_SCALE for immediate visibility
 
 // Helper functions
@@ -296,10 +296,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         // Calculate new data point for graph - matching exact trajectory from reference
         const x = elapsed * TIME_SCALE;
         
-        // Moderate vertical scaling to create slanted trajectory while maintaining visibility
-        // This creates the perfect balance between slant and visibility
-        // Emphasizing horizontal movement more than vertical movement
-        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.9; // Reduced scaling factor for more slanted appearance
+        // Drastically reduced vertical scaling to create extremely flat trajectory
+        // This creates an almost horizontal line with minimal vertical rise
+        // Maximizing horizontal movement while minimizing vertical movement
+        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.3; // Extremely reduced scaling factor for ultra-flat appearance
         
         const newDataPoints = [...dataPoints, { x, y }];
         
