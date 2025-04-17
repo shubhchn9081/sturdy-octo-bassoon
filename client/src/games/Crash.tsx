@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
 
 // Constants
-const CANVAS_WIDTH = 1000; // Increased width for fullscreen
-const CANVAS_HEIGHT = 600; // Increased height for fullscreen
+const CANVAS_WIDTH = 1200; // Dramatically increased width for fullscreen
+const CANVAS_HEIGHT = 800; // Dramatically increased height for fullscreen
 const MAX_VISIBLE_TIME = 12; // Maximum visible time in seconds
 const TIME_SCALE = CANVAS_WIDTH / MAX_VISIBLE_TIME;
 const HEIGHT_SCALE = CANVAS_HEIGHT / 4; // Lower value to make line less steep
@@ -394,13 +394,13 @@ const CrashGame: React.FC = () => {
             
             <canvas 
               ref={canvasRef} 
-              className="w-full h-[600px]"
+              className="w-full h-[800px]"
             />
             
             {/* Current multiplier display */}
             {gameState === 'running' && (
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <div className="text-7xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
+                <div className="text-9xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
               </div>
             )}
             
