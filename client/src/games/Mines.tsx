@@ -7,18 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 
-// Image components for Gems and Bombs
-const GemImage = () => (
-  <img src="/images/diamond.png" alt="Diamond" className="w-12 h-12" />
-);
-
-const BombImage = () => (
-  <img src="/images/bomb.png" alt="Bomb" className="w-12 h-12" />
-);
-
-const DarkerGemImage = () => (
-  <img src="/images/diamond.png" alt="Diamond" className="w-12 h-12 opacity-80" />
-);
+// Import SVG components for Gems and Bombs
+import { DiamondSVG, DarkerDiamondSVG } from '@/assets/images/diamond';
+import { BombSVG } from '@/assets/images/bomb';
 
 const MINE_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
 const TOTAL_TILES = 25;
