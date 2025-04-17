@@ -11,18 +11,18 @@ import Hilo from './Hilo';
 export const GAMES = [
   {
     id: 1,
-    name: 'KENO',
-    slug: 'keno',
+    name: 'PLINKO',
+    slug: 'plinko',
     type: 'STAKE ORIGINALS',
-    description: 'Select numbers and win',
-    color: 'bg-blue-500',
-    iconType: 'keno',
-    component: Dice, // Temporarily using Dice component
+    description: 'Drop balls and win multipliers',
+    color: 'bg-green-500',
+    iconType: 'plinko',
+    component: Plinko,
     minBet: 0.00000001,
     maxBet: 100,
-    rtp: 97,
-    maxMultiplier: 100.00,
-    activePlayers: 6253
+    rtp: 99,
+    maxMultiplier: 1000.00,
+    activePlayers: 7253
   },
   {
     id: 2,
@@ -143,6 +143,21 @@ export const GAMES = [
     rtp: 99,
     maxMultiplier: 1000,
     activePlayers: 3021
+  },
+  {
+    id: 10,
+    name: 'KENO',
+    slug: 'keno',
+    type: 'STAKE ORIGINALS',
+    description: 'Select numbers and win',
+    color: 'bg-blue-500',
+    iconType: 'keno',
+    component: Dice, // Temporarily using Dice component
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 100.00,
+    activePlayers: 6253
   }
 ];
 

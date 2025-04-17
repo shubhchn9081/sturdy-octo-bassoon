@@ -52,20 +52,25 @@ export function generatePlinkoPath(
   serverSeed: string, 
   clientSeed: string, 
   nonce: number, 
-  rows: number
+  rows: number,
+  pathCount: number = rows
 ): number[] {
   const path: number[] = [];
-  let position = 0;
+  // Start at the center position
+  let position = Math.floor(rows / 2);
   
-  for (let i = 0; i < rows; i++) {
+  for (let i = 0; i < pathCount; i++) {
     // Generate a new random for each row
     const combinedSeed = `${serverSeed}-${clientSeed}-${nonce}-${i}`;
     const hash = CryptoJS.SHA256(combinedSeed).toString(CryptoJS.enc.Hex);
     const randomBit = parseInt(hash.charAt(0), 16) % 2; // 0 or 1
     
-    if (randomBit === 1) {
-      position += 1;
-    }
+    // Move either left (-1) or right (+1)
+    const direction = randomBit === 1 ? 1 : -1;
+    position += direction;
+    
+    // Ensure we don't go out of bounds
+    position = Math.max(0, Math.min(rows, position));
     
     path.push(position);
   }

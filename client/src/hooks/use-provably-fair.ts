@@ -58,7 +58,7 @@ export function useProvablyFair(gameType: string) {
         return generateCrashResult(serverSeed, clientSeed, nonce);
         
       case "plinko": 
-        return (rows: number) => generatePlinkoPath(serverSeed, clientSeed, nonce, rows);
+        return (rows: number, pathCount?: number) => generatePlinkoPath(serverSeed, clientSeed, nonce, rows, pathCount);
         
       case "mines":
         return (totalSquares: number, mineCount: number) => 

@@ -102,7 +102,9 @@ const PlinkoGame = () => {
     
     if (typeof result === 'function') {
       // Use provably fair algorithm if available
-      return result(rows + 1);
+      // The provably fair function needs a total slots parameter (rows + 1)
+      // because the bottom row has one more slot than pins in the last row
+      return result(rows + 1, rows);
     } else {
       // Fallback to simple random algorithm for simulation
       const path = [];
