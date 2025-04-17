@@ -11,7 +11,7 @@ import {
 } from "@shared/schema";
 import { GAMES } from "../client/src/games";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -28,7 +28,12 @@ export interface IStorage {
   
   // Bet methods
   getBet(id: number): Promise<Bet | undefined>;
-  createBet(bet: InsertBet & { serverSeed: string; nonce: number; outcome: any; }): Promise<Bet>;
+  createBet(bet: InsertBet & { 
+    serverSeed: string; 
+    nonce: number; 
+    outcome: any;
+    completed?: boolean;
+  }): Promise<Bet>;
   updateBet(id: number, bet: Bet): Promise<Bet>;
   getBetHistory(userId: number, gameId?: number): Promise<Bet[]>;
 }
@@ -123,6 +128,22 @@ export class MemStorage implements IStorage {
     return Array.from(this.games.values());
   }
   
+  async createGame(insertGame: InsertGame): Promise<Game> {
+    // Get highest ID to increment
+    const gameIds = Array.from(this.games.keys());
+    const nextId = gameIds.length > 0 ? Math.max(...gameIds) + 1 : 1;
+    
+    const game: Game = {
+      ...insertGame,
+      id: nextId,
+      activePlayers: insertGame.activePlayers || 0,
+      imageUrl: insertGame.imageUrl || null,
+    };
+    
+    this.games.set(nextId, game);
+    return game;
+  }
+  
   async updateGameImage(id: number, imageUrl: string): Promise<Game | undefined> {
     const game = this.games.get(id);
     if (!game) return undefined;
@@ -205,6 +226,14 @@ export class DatabaseStorage implements IStorage {
   async getAllGames(): Promise<Game[]> {
     return await db.select().from(games);
   }
+  
+  async createGame(insertGame: InsertGame): Promise<Game> {
+    const [game] = await db
+      .insert(games)
+      .values(insertGame)
+      .returning();
+    return game;
+  }
 
   async updateGameImage(id: number, imageUrl: string): Promise<Game | undefined> {
     const [game] = await db
@@ -238,14 +267,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBetHistory(userId: number, gameId?: number): Promise<Bet[]> {
-    let query = db.select().from(bets).where(eq(bets.userId, userId))
-      .orderBy(desc(bets.createdAt));
-    
     if (gameId) {
-      query = query.where(eq(bets.gameId, gameId));
+      return await db.select()
+        .from(bets)
+        .where(
+          and(
+            eq(bets.userId, userId),
+            eq(bets.gameId, gameId)
+          )
+        )
+        .orderBy(desc(bets.createdAt));
+    } else {
+      return await db.select()
+        .from(bets)
+        .where(eq(bets.userId, userId))
+        .orderBy(desc(bets.createdAt));
     }
-    
-    return await query;
   }
 }
 
