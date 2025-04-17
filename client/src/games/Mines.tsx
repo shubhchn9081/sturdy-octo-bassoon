@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 
 // SVG Components for Gems and Bombs
 const GemSVG = () => (
-  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-11 h-11">
     <path d="M18 0L27 9L18 36L9 9L18 0Z" fill="#7bfa4c" />
     <path d="M18 0L27 9L36 9L18 0Z" fill="#66d340" />
     <path d="M18 0L0 9L9 9L18 0Z" fill="#66d340" />
@@ -19,7 +19,7 @@ const GemSVG = () => (
 );
 
 const BombSVG = () => (
-  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-11 h-11">
     <circle cx="18" cy="18" r="18" fill="#ff4747" />
     <path d="M18 7L20 16H16L18 7Z" fill="white" />
     <circle cx="18" cy="22" r="6" fill="white" />
@@ -28,7 +28,7 @@ const BombSVG = () => (
 );
 
 const DarkerGemSVG = () => (
-  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-11 h-11">
     <path d="M18 0L27 9L18 36L9 9L18 0Z" fill="#56b136" />
     <path d="M18 0L27 9L36 9L18 0Z" fill="#448f2b" />
     <path d="M18 0L0 9L9 9L18 0Z" fill="#448f2b" />
@@ -53,8 +53,8 @@ const MinesGame = () => {
   const [gameMode, setGameMode] = useState<GameMode>('manual');
   const [gameState, setGameState] = useState<GameState>('idle');
   const [betAmount, setBetAmount] = useState('0.00000001');
-  const [mineCount, setMineCount] = useState(3);
-  const [gemCount, setGemCount] = useState(22);
+  const [mineCount, setMineCount] = useState(20);
+  const [gemCount, setGemCount] = useState(5);
   const [tiles, setTiles] = useState<TileStatus[]>(Array(TOTAL_TILES).fill('hidden'));
   const [minePositions, setMinePositions] = useState<number[]>([]);
   const [revealedPositions, setRevealedPositions] = useState<number[]>([]);
@@ -133,7 +133,7 @@ const MinesGame = () => {
       setMinePositions(mines);
     } else {
       // Fallback to a simple random algorithm if getGameResult doesn't return a function
-      const mines = [];
+      const mines: number[] = [];
       while (mines.length < mineCount) {
         const mine = Math.floor(Math.random() * TOTAL_TILES);
         if (!mines.includes(mine)) {
@@ -211,7 +211,7 @@ const MinesGame = () => {
     if (gameState !== 'active') return;
     
     // Find all hidden tiles that haven't been revealed yet
-    const availableTiles = [];
+    const availableTiles: number[] = [];
     for (let i = 0; i < TOTAL_TILES; i++) {
       if (!revealedPositions.includes(i)) {
         availableTiles.push(i);
@@ -415,11 +415,11 @@ const MinesGame = () => {
         <button
           key={index}
           className={`
-            relative h-16 w-full rounded-md cursor-pointer flex items-center justify-center transition-colors
-            ${status === 'hidden' ? 'bg-[#243442] hover:bg-[#2a3c4c]' : ''}
-            ${status === 'revealed' ? 'bg-[#243442]' : ''}
-            ${status === 'mine' ? 'bg-[#243442]' : ''}
-            ${status === 'gem' ? 'bg-[#243442]' : ''}
+            relative h-[70px] w-full rounded-md cursor-pointer flex items-center justify-center transition-colors
+            ${status === 'hidden' ? 'bg-[#1a2c38] hover:bg-[#223543]' : ''}
+            ${status === 'revealed' ? 'bg-[#1a2c38]' : ''}
+            ${status === 'mine' ? 'bg-[#1a2c38]' : ''}
+            ${status === 'gem' ? 'bg-[#1a2c38]' : ''}
           `}
           onClick={() => handleTileClick(index)}
           disabled={gameState !== 'active' || revealedPositions.includes(index)}
