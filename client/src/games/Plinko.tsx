@@ -209,17 +209,18 @@ const PlinkoGame = () => {
       return updated.slice(-4);
     });
     
-    // Gradually fade out all pin highlights
+    // Gradually fade out all pin highlights - slower fade for more visible effect
     const fadeInterval = setInterval(() => {
       setHitPins(prev => {
-        // Reduce intensity of all pins by 15% each interval
+        // Reduce intensity more gradually (only 7% each interval instead of 15%)
+        // This makes the pin glow effects last longer and be more noticeable
         const updated = prev.map(pinInfo => ({
           ...pinInfo,
-          intensity: pinInfo.intensity * 0.85
+          intensity: pinInfo.intensity * 0.93
         }));
         
-        // Remove pins that are no longer visible (intensity < 0.1)
-        const stillVisible = updated.filter(pinInfo => pinInfo.intensity >= 0.1);
+        // Remove pins that are no longer visible - lower threshold for longer effect
+        const stillVisible = updated.filter(pinInfo => pinInfo.intensity >= 0.05);
         
         // If all pins have faded, clear the interval
         if (stillVisible.length === 0) {
@@ -228,29 +229,33 @@ const PlinkoGame = () => {
         
         return stillVisible;
       });
-    }, 50);
+    }, 40); // Slightly faster interval (40ms vs 50ms) for smoother animation
   };
 
   // Generate grid of dots for the plinko board - with proper 3-pin start
   const renderPlinkoGrid = () => {
     const grid = [];
     
-    // Helper function to calculate pin highlight effect
+    // Helper function to calculate pin highlight effect - enhanced for more visible impact
     const getPinHighlightStyle = (row: number, pin: number) => {
       // Find if this pin is being hit
       const pinInfo = hitPins.find(p => p.row === row && p.pin === pin);
       
       if (pinInfo) {
-        // Calculate scale based on intensity (1.0 = maximum scale of 2.0)
-        const scale = 1 + pinInfo.intensity;
-        // Calculate glow color intensity based on pin intensity
+        // Calculate scale based on intensity - larger maximum scale (1.0 = max scale of 2.5)
+        const scale = 1 + (pinInfo.intensity * 1.5);
+        
+        // Calculate glow color and intensity for more vibrant effect
         const glowIntensity = Math.floor(pinInfo.intensity * 255);
         
+        // Create a more visible "shock wave" effect when pins are hit
         return {
           transform: `scale(${scale})`,
-          boxShadow: `0 0 ${Math.floor(pinInfo.intensity * 8)}px ${Math.floor(pinInfo.intensity * 3)}px rgba(255, 255, 255, ${pinInfo.intensity})`,
-          backgroundColor: `rgba(255, ${155 + glowIntensity}, ${glowIntensity}, ${0.8 + pinInfo.intensity * 0.2})`,
-          zIndex: 5
+          boxShadow: `0 0 ${Math.floor(pinInfo.intensity * 12)}px ${Math.floor(pinInfo.intensity * 6)}px rgba(255, 180, 0, ${pinInfo.intensity})`,
+          backgroundColor: `rgba(255, ${155 + glowIntensity}, 0, ${0.9 + pinInfo.intensity * 0.1})`,
+          // Create bright orange/yellow flash effect that matches the ball
+          border: pinInfo.intensity > 0.7 ? '1px solid rgba(255, 255, 200, 0.8)' : 'none',
+          zIndex: 10
         };
       }
       
@@ -333,13 +338,13 @@ const PlinkoGame = () => {
       // Animate the ball dropping with improved physics and realistic timing
       const animateBall = async () => {
         // Physics constants
-        // Ultimate slow animation settings - we're now focusing on realistic visuals over physics
+        // More realistic physics-focused animation with better smoothness
         const GRAVITY = 9.8;               // Gravitational constant (m/s²) - standard value
-        const INITIAL_VELOCITY = 0;        // Starting velocity (m/s)
+        const INITIAL_VELOCITY = 0.2;      // Starting velocity (m/s) - slight initial push
         const DISTANCE_BETWEEN_ROWS = 21;  // Pixel distance between rows
         const PIXEL_TO_METER_RATIO = 100;  // Conversion ratio (pixels per meter)
-        const FRICTION_COEFFICIENT = 0.55; // Much higher friction to drastically slow down the ball (from 0.75)
-        const TIME_SCALING = 15.0;         // Extreme time scaling for super slow animation (from 9.0)
+        const FRICTION_COEFFICIENT = 0.85; // More realistic friction - higher value means less slowdown
+        const TIME_SCALING = 3.5;          // Moderate time scaling for natural speed
         
         // Start with a slight pause before dropping
         await new Promise(resolve => setTimeout(resolve, 350));
@@ -372,10 +377,10 @@ const PlinkoGame = () => {
           // Higher TIME_SCALING makes the animation slower
           const timeToFall = (distance / currentVelocity) * 1000 * TIME_SCALING;
           
-          // Use extreme delay values for an ultra-slow animation
-          // This prioritizes the visual experience over physics realism
-          // Minimum 500ms, maximum 1200ms between each row
-          const delay = Math.max(500, Math.min(1200, timeToFall));
+          // Use realistic delay values that prioritize smoothness
+          // Faster animation that feels more like real-world physics
+          // Min 120ms (faster), max 300ms (much faster than before)
+          const delay = Math.max(120, Math.min(300, timeToFall));
           
           if (i % 5 === 0) {
             console.log(`Row ${i+1} - Fall speed: ${currentVelocity.toFixed(2)} m/s, Delay: ${delay.toFixed(0)}ms`);
@@ -417,8 +422,8 @@ const PlinkoGame = () => {
                 return updated;
               });
               
-              // Short delay to see the nudge effect
-              await new Promise(resolve => setTimeout(resolve, 80));
+              // No delay needed here - the physics-based nudge is enough
+              // The short pause is removed to make animation more fluid
             }
           }
           
@@ -437,9 +442,8 @@ const PlinkoGame = () => {
             return updated;
           });
           
-          // Simple delay between each move - no complex secondary animation
-          // This creates a more predictable and less resource-intensive animation
-          await new Promise(resolve => setTimeout(resolve, 100)); // Extra small pause for visual effect
+          // No extra delay - we're prioritizing smooth motion over additional pauses
+          // This makes the animation flow naturally with physics-based timing only
         }
         
         // Set final result
