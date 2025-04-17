@@ -184,11 +184,11 @@ const DiceGame = () => {
               </div>
               
               {/* Slider */}
-              <div className="relative h-12 rounded-full overflow-hidden bg-[#121A20] mb-16">
+              <div className="relative h-12 mb-16">
                 {/* Track Background (Grey border) */}
-                <div className="absolute inset-0 rounded-full bg-[#2A3740] p-1">
+                <div className="absolute inset-0 rounded-[28px] bg-[#2A3740] p-[6px] shadow-[inset_0_0_3px_rgba(0,0,0,0.3)]">
                   {/* Inside track */}
-                  <div className="relative w-full h-full rounded-full overflow-hidden">
+                  <div className="relative w-full h-full rounded-full overflow-hidden bg-[#101820]">
                     {/* Red section */}
                     <div 
                       className="absolute left-0 top-0 bottom-0 bg-[#FF5359]"
@@ -205,13 +205,13 @@ const DiceGame = () => {
                 
                 {/* Slider thumb */}
                 <div 
-                  className="absolute top-0 bottom-0 w-12 h-12 z-10 flex items-center justify-center"
-                  style={{ left: `${target}%`, transform: 'translateX(-50%)' }}
+                  className="absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
+                  style={{ left: `${target}%`, transform: 'translate(-50%, -50%)' }}
                 >
-                  <div className="w-12 h-12 rounded-md bg-[#3D94F4] flex flex-col items-center justify-center gap-1 shadow-lg">
-                    <div className="w-5 h-[2px] bg-[#2D6EB8]"></div>
-                    <div className="w-5 h-[2px] bg-[#2D6EB8]"></div>
-                    <div className="w-5 h-[2px] bg-[#2D6EB8]"></div>
+                  <div className="w-12 h-12 bg-[#3D94F4] flex flex-col items-center justify-center gap-[5px] shadow-[0_2px_6px_rgba(0,0,0,0.4)] rounded-[5px]">
+                    <div className="w-5 h-[1px] bg-[#2D6EB8]"></div>
+                    <div className="w-5 h-[1px] bg-[#2D6EB8]"></div>
+                    <div className="w-5 h-[1px] bg-[#2D6EB8]"></div>
                   </div>
                 </div>
                 
