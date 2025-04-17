@@ -9,37 +9,29 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
-const ROW_OPTIONS = [8, 12, 16];
+const ROW_OPTIONS = [8, 12, 16]; // From screenshot
 
-// Different multiplier tables based on risk level and exact values from screenshot
+// Multiplier tables based on screenshot from Stake.com
 const MULTIPLIER_TABLES = {
-  Low: [1.1, 1.4, 1.5, 1, 1.5, 3, 5, 9, 13, 9, 5, 3, 1.5, 1, 1.5, 1.4, 1.1],
-  Medium: [0.3, 0.5, 0.9, 1, 1.5, 2, 4, 10, 16, 10, 4, 2, 1.5, 1, 0.9, 0.5, 0.3],
-  High: [0.1, 0.3, 0.5, 0.8, 1.7, 3, 5, 11, 23, 11, 5, 3, 1.7, 0.8, 0.5, 0.3, 0.1]
+  Low: [5, 3, 1.5, 1, 0.7, 0.5, 0.3, 0.2, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 3, 5],
+  Medium: [10, 5, 3, 1.5, 1, 0.7, 0.5, 0.3, 0.3, 0.5, 0.7, 1, 1.5, 3, 5, 10],
+  High: [110, 41, 10, 5, 2, 1.5, 1, 0.5, 0.5, 1, 1.5, 2, 5, 10, 41, 110]
 };
 
-// Colors for multipliers based on the screenshot
+// Colors for multipliers based on screenshot exactly
 const MULTIPLIER_COLORS: Record<string, string> = {
-  '0.1': 'bg-red-600', 
+  '0.2': 'bg-red-600', 
   '0.3': 'bg-red-500',
-  '0.5': 'bg-orange-600',
-  '0.8': 'bg-orange-500',
-  '0.9': 'bg-orange-500',
-  '1': 'bg-yellow-600',
-  '1.1': 'bg-red-600',
-  '1.4': 'bg-red-500',
+  '0.5': 'bg-orange-500',
+  '0.7': 'bg-amber-500',
+  '1': 'bg-amber-500',
   '1.5': 'bg-yellow-500',
-  '1.7': 'bg-yellow-500',
-  '2': 'bg-yellow-400',
-  '3': 'bg-yellow-400',
-  '4': 'bg-orange-400',
-  '5': 'bg-green-500',
-  '9': 'bg-green-600',
-  '10': 'bg-green-600',
-  '11': 'bg-green-600',
-  '13': 'bg-green-600',
-  '16': 'bg-green-600',
-  '23': 'bg-green-600'
+  '2': 'bg-green-500',
+  '3': 'bg-green-500',
+  '5': 'bg-emerald-500',
+  '10': 'bg-sky-500',
+  '41': 'bg-blue-500',
+  '110': 'bg-purple-500'
 };
 
 type BallState = {
@@ -121,12 +113,12 @@ const PlinkoGame = () => {
     }
   };
   
-  // Generate grid of dots for the plinko board
+  // Generate grid of dots for the plinko board - exactly matching screenshot
   const renderPlinkoGrid = () => {
     const grid = [];
     
-    // Generate rows of pins (dots)
-    for (let r = 0; r < rows; r++) {
+    // Generate rows of pins (dots) - fixed at 16 rows to match screenshot
+    for (let r = 0; r < 16; r++) {
       const pins = [];
       const pinsInRow = r + 1;
       
@@ -140,12 +132,12 @@ const PlinkoGame = () => {
         );
       }
       
-      // Add row to grid
+      // Add row to grid - gap matches the screenshot spacing
       grid.push(
         <div 
           key={`row-${r}`} 
           className="flex justify-center"
-          style={{ gap: '28px' }}
+          style={{ gap: '21px' }}
         >
           {pins}
         </div>
@@ -228,24 +220,27 @@ const PlinkoGame = () => {
     }
   };
   
-  // Renders the manual controls
+  // Renders the manual controls - exactly matching screenshot
   const renderManualControls = () => (
     <div className="space-y-4">
       <div>
         <label className="block text-xs text-muted-foreground mb-1">Bet Amount</label>
-        <div className="flex items-center space-x-1 mb-2">
-          <Input
-            type="text"
-            value={betAmount}
-            onChange={(e) => handleBetAmountChange(e.target.value)}
-            className="bg-[#243442] border-none text-white h-8 text-sm"
-            disabled={playing}
-          />
+        <div className="flex items-center space-x-1 mb-1">
+          <div className="relative flex-1">
+            <Input
+              type="text"
+              value={betAmount}
+              onChange={(e) => handleBetAmountChange(e.target.value)}
+              className="bg-[#243442] border-none text-white h-9 text-sm pr-8 w-full"
+              disabled={playing}
+            />
+            <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-amber-500">⊙</span>
+          </div>
           <Button 
             onClick={handleHalfBet} 
             variant="outline" 
             size="sm" 
-            className="bg-transparent border-[#243442] text-white h-8 px-2"
+            className="bg-transparent border border-[#243442] text-white h-9 px-2 min-w-[40px]"
             disabled={playing}
           >
             ½
@@ -254,7 +249,7 @@ const PlinkoGame = () => {
             onClick={handleDoubleBet} 
             variant="outline" 
             size="sm" 
-            className="bg-transparent border-[#243442] text-white h-8 px-2"
+            className="bg-transparent border border-[#243442] text-white h-9 px-2 min-w-[40px]"
             disabled={playing}
           >
             2×
@@ -271,7 +266,7 @@ const PlinkoGame = () => {
           onValueChange={handleRiskChange}
           disabled={playing}
         >
-          <SelectTrigger className="w-full bg-[#243442] border-none text-white h-8 text-sm">
+          <SelectTrigger className="w-full bg-[#243442] border-none text-white h-9 text-sm">
             <SelectValue placeholder="Select risk level" />
           </SelectTrigger>
           <SelectContent>
@@ -291,7 +286,7 @@ const PlinkoGame = () => {
           onValueChange={handleRowsChange}
           disabled={playing}
         >
-          <SelectTrigger className="w-full bg-[#243442] border-none text-white h-8 text-sm">
+          <SelectTrigger className="w-full bg-[#243442] border-none text-white h-9 text-sm">
             <SelectValue placeholder="Select rows" />
           </SelectTrigger>
           <SelectContent>
@@ -304,9 +299,9 @@ const PlinkoGame = () => {
         </Select>
       </div>
       
-      {/* Bet Button */}
+      {/* Bet Button - matching screenshot */}
       <Button
-        className="w-full bg-[#7bfa4c] hover:bg-[#6ae43d] text-black font-medium h-10"
+        className="w-full bg-[#7bfa4c] hover:bg-[#6ae43d] text-black font-semibold h-12 mt-2"
         onClick={handleBet}
         disabled={playing}
       >
@@ -324,19 +319,19 @@ const PlinkoGame = () => {
   
   return (
     <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]">
-      {/* Side Panel */}
-      <div className="w-full lg:w-[320px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
+      {/* Side Panel - exact width from screenshot */}
+      <div className="w-full lg:w-[240px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
         <Tabs defaultValue="Manual" className="w-full" onValueChange={(v) => setGameMode(v)}>
-          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-4 h-9 overflow-hidden rounded-md p-0">
+          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-4 h-10 overflow-hidden rounded-none p-0">
             <TabsTrigger 
               value="Manual" 
-              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
+              className="h-full rounded-none text-sm data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
             >
               Manual
             </TabsTrigger>
             <TabsTrigger 
               value="Auto" 
-              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
+              className="h-full rounded-none text-sm data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
             >
               Auto
             </TabsTrigger>
@@ -352,16 +347,16 @@ const PlinkoGame = () => {
         </Tabs>
       </div>
       
-      {/* Game Area */}
-      <div className="flex-1 p-4 flex justify-center items-center overflow-auto">
-        <div className="max-w-2xl w-full">
+      {/* Game Area - matches screenshot layout */}
+      <div className="flex-1 flex justify-center items-center overflow-auto bg-[#0F212E]">
+        <div className="w-full flex justify-center items-center">
           {/* Plinko Board */}
           <div 
             ref={boardRef} 
-            className="relative flex flex-col space-y-4"
+            className="relative flex flex-col space-y-3 py-4"
           >
             {/* Pins Grid */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {renderPlinkoGrid()}
             </div>
             
@@ -372,8 +367,8 @@ const PlinkoGame = () => {
                 className="absolute top-0 left-1/2 w-4 h-4 bg-white rounded-full z-10"
                 initial={{ translateX: "-50%", translateY: 0 }}
                 animate={{
-                  translateX: `calc(-50% + ${(ball.position - rows/2) * 28}px)`,
-                  translateY: ball.row * 28 // Adjust based on your row spacing
+                  translateX: `calc(-50% + ${(ball.position - rows/2) * 21}px)`, // Match the gap spacing from grid
+                  translateY: ball.row * 21 // Match the row spacing from grid
                 }}
                 transition={{ 
                   type: "spring", 
@@ -383,13 +378,13 @@ const PlinkoGame = () => {
               />
             ))}
             
-            {/* Multiplier Buckets */}
-            <div className="flex justify-between mt-4">
+            {/* Multiplier Buckets - matches screenshot exactly */}
+            <div className="flex justify-between mt-6">
               {multipliers.map((multi, idx) => (
                 <div 
                   key={`multi-${idx}`} 
                   className={`${MULTIPLIER_COLORS[multi.toString()] || 'bg-blue-500'} 
-                              text-white text-xs font-bold px-2 py-1 rounded text-center min-w-[40px]`}
+                              text-white text-xs font-semibold py-1 px-1.5 rounded text-center min-w-[28px] mx-0.5`}
                 >
                   {multi}x
                 </div>
