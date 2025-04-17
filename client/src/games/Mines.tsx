@@ -339,11 +339,11 @@ const MinesGame = () => {
   
   const getTileContent = (index: number, status: TileStatus) => {
     if (status === 'revealed') {
-      return <GemImage />;
+      return <DiamondSVG />;
     } else if (status === 'mine') {
-      return <BombImage />;
+      return <BombSVG />;
     } else if (status === 'gem') {
-      return <DarkerGemImage />;
+      return <DarkerDiamondSVG />;
     } else if (selectedTile === index) {
       return (
         <div className="absolute inset-0 border-2 border-[#7bfa4c] rounded-md animate-pulse"></div>
