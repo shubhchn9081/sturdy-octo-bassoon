@@ -2,8 +2,40 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { insertBetSchema, insertUserSchema } from "@shared/schema";
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
+
+// Configure multer storage
+const storage_config = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage_config,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png|gif|webp/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    
+    cb(new Error("Error: File upload only supports image files"));
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // prefix all routes with /api
@@ -58,6 +90,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(game);
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Game image upload endpoint
+  app.post('/api/games/:id/upload-image', upload.single('image'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const game = await storage.getGame(id);
+      
+      if (!game) {
+        return res.status(404).json({ message: 'Game not found' });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file uploaded' });
+      }
+      
+      // Create the URL for the image
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      // If there's an existing image, delete it
+      if (game.imageUrl) {
+        const oldImagePath = path.join(process.cwd(), 'public', game.imageUrl);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+      
+      // Update the game with the new image URL
+      const updatedGame = await storage.updateGameImage(id, imageUrl);
+      
+      res.json({ 
+        success: true, 
+        game: updatedGame,
+        imageUrl
+      });
+    } catch (error) {
+      console.error('Image upload error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
   });
   

@@ -115,7 +115,7 @@ export default function AdminPage() {
     <div className="container py-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Admin Panel</h1>
-        <Button variant="outline" onClick={() => setLocation("/")}>
+        <Button variant="outline" onClick={() => navigate("/")}>
           Back to Games
         </Button>
       </div>

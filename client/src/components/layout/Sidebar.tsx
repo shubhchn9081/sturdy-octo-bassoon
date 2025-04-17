@@ -18,7 +18,8 @@ import {
   Diamond,
   BarChart2,
   CircleDollarSign,
-  ChevronRight
+  ChevronRight,
+  Settings
 } from 'lucide-react';
 
 type SidebarLinkProps = {
