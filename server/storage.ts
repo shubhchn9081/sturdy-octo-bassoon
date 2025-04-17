@@ -9,6 +9,8 @@ import {
   type InsertBet 
 } from "@shared/schema";
 import { GAMES } from "../client/src/games";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -20,6 +22,7 @@ export interface IStorage {
   // Game methods
   getGame(id: number): Promise<Game | undefined>;
   getAllGames(): Promise<Game[]>;
+  updateGameImage(id: number, imageUrl: string): Promise<Game | undefined>;
   
   // Bet methods
   getBet(id: number): Promise<Bet | undefined>;
@@ -70,7 +73,8 @@ export class MemStorage implements IStorage {
         rtp: game.rtp || 99,
         maxMultiplier: game.maxMultiplier || 1000,
         minBet: game.minBet || 0.00000001,
-        maxBet: game.maxBet || 100
+        maxBet: game.maxBet || 100,
+        imageUrl: null
       };
       this.games.set(gameRecord.id, gameRecord);
     });
@@ -117,6 +121,15 @@ export class MemStorage implements IStorage {
     return Array.from(this.games.values());
   }
   
+  async updateGameImage(id: number, imageUrl: string): Promise<Game | undefined> {
+    const game = this.games.get(id);
+    if (!game) return undefined;
+    
+    const updatedGame = { ...game, imageUrl };
+    this.games.set(id, updatedGame);
+    return updatedGame;
+  }
+  
   // Bet methods
   async getBet(id: number): Promise<Bet | undefined> {
     return this.bets.get(id);
@@ -154,4 +167,88 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUserBalance(id: number, newBalance: number): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ balance: newBalance })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getGame(id: number): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    return game || undefined;
+  }
+
+  async getAllGames(): Promise<Game[]> {
+    return await db.select().from(games);
+  }
+
+  async updateGameImage(id: number, imageUrl: string): Promise<Game | undefined> {
+    const [game] = await db
+      .update(games)
+      .set({ imageUrl })
+      .where(eq(games.id, id))
+      .returning();
+    return game || undefined;
+  }
+
+  async getBet(id: number): Promise<Bet | undefined> {
+    const [bet] = await db.select().from(bets).where(eq(bets.id, id));
+    return bet || undefined;
+  }
+
+  async createBet(bet: InsertBet & { serverSeed: string; nonce: number; outcome: any; }): Promise<Bet> {
+    const [newBet] = await db
+      .insert(bets)
+      .values(bet)
+      .returning();
+    return newBet;
+  }
+
+  async updateBet(id: number, bet: Bet): Promise<Bet> {
+    const [updatedBet] = await db
+      .update(bets)
+      .set(bet)
+      .where(eq(bets.id, id))
+      .returning();
+    return updatedBet;
+  }
+
+  async getBetHistory(userId: number, gameId?: number): Promise<Bet[]> {
+    let query = db.select().from(bets).where(eq(bets.userId, userId))
+      .orderBy(desc(bets.createdAt));
+    
+    if (gameId) {
+      query = query.where(eq(bets.gameId, gameId));
+    }
+    
+    return await query;
+  }
+}
+
+// Create an instance of MemStorage as a fallback in case the DB setup isn't complete
+const memStorage = new MemStorage();
+
+// Use DatabaseStorage if we have a DB connection, otherwise use MemStorage
+export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : memStorage;

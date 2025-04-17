@@ -25,6 +25,7 @@ export const games = pgTable("games", {
   maxMultiplier: real("max_multiplier").notNull(),
   minBet: real("min_bet").notNull(),
   maxBet: real("max_bet").notNull(),
+  imageUrl: text("image_url"), // URL to custom image uploaded by admin
 });
 
 export const bets = pgTable("bets", {
