@@ -26,11 +26,12 @@ type SidebarLinkProps = {
   icon: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  active?: boolean;
 };
 
-const SidebarLink = ({ href, icon, children, className }: SidebarLinkProps) => {
+const SidebarLink = ({ href, icon, children, className, active: forceActive }: SidebarLinkProps) => {
   const [location] = useLocation();
-  const active = location === href;
+  const active = forceActive || location === href;
   
   return (
     <div 
@@ -61,12 +62,17 @@ const Sidebar = () => {
           <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
         </div>
         
-        <div className="mb-6">
+        <div className="flex space-x-2 mb-6">
           <div 
-            className="bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold py-3 px-4 rounded-md text-center cursor-pointer text-lg shadow-md"
+            className="flex-1 bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg"
             onClick={() => window.location.href = '/'}
           >
             CASINO
+          </div>
+          <div 
+            className="flex-1 bg-[#243442] text-white font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg"
+          >
+            SPORTS
           </div>
         </div>
         
@@ -90,7 +96,7 @@ const Sidebar = () => {
             <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-2">
               Games
             </h3>
-            <SidebarLink href="/originals" icon={<Zap className="h-5 w-5" />}>
+            <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
               Stake Originals
             </SidebarLink>
             <SidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />}>
