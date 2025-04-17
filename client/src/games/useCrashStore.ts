@@ -50,7 +50,7 @@ interface CrashStore {
 }
 
 // Constants for the game
-const TIME_SCALE = 60; // X-axis scale for time - higher number = slower growth
+const TIME_SCALE = 30; // X-axis scale for time - lower number = slower horizontal growth (half speed)
 const HEIGHT_SCALE = 150; // Y-axis scale for multiplier
 
 // Helper functions
@@ -101,9 +101,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // Using a steeper curve to match the reference UI
-    // This creates a more dramatic visual increase like in Stake.com
-    return Math.pow(1.0032, elapsed * 1000);
+    // Much slower growth rate to exactly match Stake.com pace
+    // Using a significantly reduced multiplier to slow the game progression
+    return Math.pow(1.0004, elapsed * 1000);
   };
   
   // Cashout AI players
@@ -348,7 +348,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
             dataPoints: newDataPoints
           });
         }
-      }, 200); // Slowed down by 100% to match Stake.com's pace
+      }, 500); // Slowed down by 400% to match Stake.com's exact pace
     }
   };
 });
