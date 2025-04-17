@@ -4,6 +4,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Game from "@/pages/game";
 import Originals from "@/pages/originals";
+import Admin from "@/pages/admin";
 import Layout from "@/components/layout/Layout";
 
 function Router() {
@@ -13,6 +14,7 @@ function Router() {
       <Route path="/games/:gameSlug" component={Game} />
       <Route path="/casino/games/:gameSlug" component={Game} />
       <Route path="/originals" component={Originals} />
+      <Route path="/admin" component={Admin} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

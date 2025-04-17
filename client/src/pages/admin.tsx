@@ -9,7 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 type Game = {
   id: number;
@@ -25,7 +25,7 @@ type Game = {
 };
 
 export default function AdminPage() {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -55,11 +55,14 @@ export default function AdminPage() {
   // Upload image mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await apiRequest(`/api/games/${selectedGame?.id}/upload-image`, {
+      const response = await fetch(`/api/games/${selectedGame?.id}/upload-image`, {
         method: 'POST',
         body: formData,
       });
-      return response;
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -112,7 +115,7 @@ export default function AdminPage() {
     <div className="container py-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Admin Panel</h1>
-        <Button variant="outline" onClick={() => navigate("/")}>
+        <Button variant="outline" onClick={() => setLocation("/")}>
           Back to Games
         </Button>
       </div>
