@@ -50,8 +50,8 @@ interface CrashStore {
 }
 
 // Constants for the game
-const TIME_SCALE = 30; // X-axis scale for time - lower number = slower horizontal growth (half speed)
-const HEIGHT_SCALE = 150; // Y-axis scale for multiplier
+const TIME_SCALE = 50; // Higher TIME_SCALE makes it move more horizontally
+const HEIGHT_SCALE = 100; // Lower HEIGHT_SCALE makes the vertical growth less steep
 
 // Helper functions
 function generateCrashPoint(): number {
@@ -101,9 +101,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // Much slower growth rate to exactly match Stake.com pace
-    // Using a significantly reduced multiplier to slow the game progression
-    return Math.pow(1.0004, elapsed * 1000);
+    // Much slower growth rate to exactly match Stake.com pace - flatter more gradual slope
+    // Using a significantly reduced multiplier to create the exact slant shown in screenshot
+    return Math.pow(1.0002, elapsed * 1000);
   };
   
   // Cashout AI players
@@ -296,10 +296,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         // Calculate new data point for graph - matching exact trajectory from reference
         const x = elapsed * TIME_SCALE;
         
-        // Linear relationship between multiplier and height (as seen in the reference)
-        // This creates the exact same trajectory as in the Stake.com screenshot
-        // Each 1.0 in multiplier corresponds to a specific height segment
-        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.85;
+        // More gradual sloped relationship between multiplier and height to match reference
+        // This creates a trajectory that matches the screenshot
+        // Using a flatter curve with a reduced slope to match the reference
+        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.6; // Reduced factor for flatter trajectory
         
         const newDataPoints = [...dataPoints, { x, y }];
         
