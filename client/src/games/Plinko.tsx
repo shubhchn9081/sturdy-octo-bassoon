@@ -170,11 +170,18 @@ const PlinkoGame = () => {
       
       setBalls([newBall]);
       
-      // Animate the ball dropping
+      // Animate the ball dropping with improved physics and realistic timing
       const animateBall = async () => {
+        // Use graduated timing for more realistic physics
+        // Ball accelerates as it moves down the pins
+        const baseDelay = 120; // Base delay in ms
+        
         for (let i = 0; i < path.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          // Calculate delay based on row - ball moves faster as it falls
+          const delay = Math.max(60, baseDelay - (i * 3)); 
+          await new Promise(resolve => setTimeout(resolve, delay));
           
+          // Update the ball position with easing
           setBalls(prev => {
             const updated = [...prev];
             if (updated.length > 0) {
@@ -193,6 +200,7 @@ const PlinkoGame = () => {
         const finalPosition = path[path.length - 1];
         const finalMultiplier = multipliers[finalPosition];
         
+        // Update ball state to show it's done
         setBalls(prev => {
           const updated = [...prev];
           if (updated.length > 0) {
@@ -205,7 +213,26 @@ const PlinkoGame = () => {
           return updated;
         });
         
+        // Set and display the result
         setResult(finalMultiplier);
+        
+        // Let the ball sit for a moment after landing
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Fade out the ball after landing
+        setBalls(prev => {
+          const updated = [...prev];
+          if (updated.length > 0) {
+            updated[0] = {
+              ...updated[0],
+              done: true,
+              finalMultiplier,
+              // This will trigger a transition in the ball's opacity
+              position: -999 // Move it offscreen to fade out
+            };
+          }
+          return updated;
+        });
       };
       
       await animateBall();
@@ -213,10 +240,12 @@ const PlinkoGame = () => {
     } catch (error) {
       console.error('Error playing Plinko:', error);
     } finally {
+      // Longer delay before resetting to allow animations to complete
       setTimeout(() => {
         setPlaying(false);
         setBalls([]);
-      }, 3000);
+        // Don't clear the result after game is over
+      }, 1500);
     }
   };
   
@@ -307,6 +336,30 @@ const PlinkoGame = () => {
       >
         {playing ? 'Rolling...' : 'Bet'}
       </Button>
+
+      {/* Results Display Panel */}
+      {result !== null && (
+        <div className={`mt-6 p-3 rounded-md ${
+          result >= 1 ? 'bg-green-900/30 border border-green-500/50' : 'bg-red-900/30 border border-red-500/50'
+        }`}>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium">Result:</span>
+            <span className={`text-lg font-bold ${
+              result >= 1 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {result}x
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">Profit:</span>
+            <span className={`text-lg font-bold ${
+              result >= 1 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {(parseFloat(betAmount) * result).toFixed(8)} ⊙
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
   
@@ -360,35 +413,62 @@ const PlinkoGame = () => {
               {renderPlinkoGrid()}
             </div>
             
-            {/* Ball Animation */}
+            {/* Ball Animation - improved with transitions and fade out */}
             {balls.map((ball, index) => (
               <motion.div
                 key={`ball-${index}`}
-                className="absolute top-0 left-1/2 w-4 h-4 bg-white rounded-full z-10"
-                initial={{ translateX: "-50%", translateY: 0 }}
+                className="absolute top-0 left-1/2 w-4 h-4 bg-white rounded-full z-10 shadow-lg"
+                initial={{ translateX: "-50%", translateY: 0, opacity: 1 }}
                 animate={{
-                  translateX: `calc(-50% + ${(ball.position - rows/2) * 21}px)`, // Match the gap spacing from grid
-                  translateY: ball.row * 21 // Match the row spacing from grid
+                  translateX: ball.position === -999 
+                    ? `-50%` // Final position offscreen
+                    : `calc(-50% + ${(ball.position - rows/2) * 21}px)`, // Normal movement
+                  translateY: ball.position === -999 
+                    ? ball.row * 21 // Stay in same row before fading
+                    : ball.row * 21, // Match the grid spacing
+                  opacity: ball.position === -999 ? 0 : 1, // Fade out when position is -999
+                  scale: ball.done ? 1.2 : 1 // Slight impact animation when done
                 }}
                 transition={{ 
                   type: "spring", 
                   stiffness: 300,
-                  damping: 20
+                  damping: 20,
+                  opacity: { duration: 0.5 }, // Slow fade out
+                  scale: { duration: 0.3 } // Quick impact scaling
                 }}
               />
             ))}
             
-            {/* Multiplier Buckets - matches screenshot exactly */}
+            {/* Multiplier Buckets - with animation for winning multiplier */}
             <div className="flex justify-between mt-6">
-              {multipliers.map((multi, idx) => (
-                <div 
-                  key={`multi-${idx}`} 
-                  className={`${MULTIPLIER_COLORS[multi.toString()] || 'bg-blue-500'} 
-                              text-white text-xs font-semibold py-1 px-1.5 rounded text-center min-w-[28px] mx-0.5`}
-                >
-                  {multi}x
-                </div>
-              ))}
+              {multipliers.map((multi, idx) => {
+                // Check if this is the winning multiplier
+                const isWinningMultiplier = result === multi && balls.length > 0 && balls[0].done;
+                
+                return (
+                  <motion.div 
+                    key={`multi-${idx}`} 
+                    className={`${MULTIPLIER_COLORS[multi.toString()] || 'bg-blue-500'} 
+                                text-white text-xs font-semibold py-1 px-1.5 rounded text-center min-w-[28px] mx-0.5
+                                ${isWinningMultiplier ? 'relative z-20' : ''}`}
+                    animate={isWinningMultiplier ? {
+                      scale: [1, 1.2, 1],
+                      boxShadow: [
+                        '0 0 0 rgba(255, 255, 255, 0)',
+                        '0 0 20px rgba(255, 255, 255, 0.5)',
+                        '0 0 0 rgba(255, 255, 255, 0)'
+                      ]
+                    } : {}}
+                    transition={isWinningMultiplier ? { 
+                      duration: 1.5, 
+                      repeat: 2,
+                      repeatType: 'loop'
+                    } : {}}
+                  >
+                    {multi}x
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
