@@ -2,11 +2,12 @@ import React from 'react';
 
 // Use SVG components directly
 export const DiamondImage = () => (
-  <svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="50,5 95,50 50,95 5,50" fill="#3db9d3" stroke="#ffffff" strokeWidth="2" />
-    <polygon points="50,15 85,50 50,85 15,50" fill="#25a6c4" />
-    <polygon points="50,25 75,50 50,75 25,50" fill="#7fecff" />
-  </svg>
+  <img 
+    src="/images/games/green-diamond.png"
+    alt="Diamond"
+    width="48"
+    height="48"
+  />
 );
 
 export const BombImage = () => (
@@ -20,9 +21,10 @@ export const BombImage = () => (
 );
 
 export const DarkerDiamondImage = () => (
-  <svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="50,5 95,50 50,95 5,50" fill="#2a7f91" stroke="#ffffff" strokeWidth="2" />
-    <polygon points="50,15 85,50 50,85 15,50" fill="#1a6a7a" />
-    <polygon points="50,25 75,50 50,75 25,50" fill="#3eaec4" />
-  </svg>
+  <img 
+    src="/images/games/darker-green-diamond.png"
+    alt="Darker Diamond"
+    width="48"
+    height="48"
+  />
 );
