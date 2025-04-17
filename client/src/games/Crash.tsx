@@ -73,7 +73,21 @@ const CrashGame: React.FC = () => {
     console.warn("UserContext not available, using default values");
   }
   
-  const { serverSeed, clientSeed, nonce, regenerateServerSeed } = useProvablyFair('crash');
+  // Handle provably fair context possibly missing
+  let serverSeed = '';
+  let clientSeed = '';
+  let nonce = 0;
+  let regenerateServerSeed = () => {};
+  
+  try {
+    const provablyFairContext = useProvablyFair('crash');
+    serverSeed = provablyFairContext.serverSeed;
+    clientSeed = provablyFairContext.clientSeed;
+    nonce = provablyFairContext.nonce;
+    regenerateServerSeed = provablyFairContext.regenerateServerSeed;
+  } catch (error) {
+    console.warn("ProvablyFair context not available, using default values");
+  }
   
   // Game Refs and States
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
