@@ -348,7 +348,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
             dataPoints: newDataPoints
           });
         }
-      }, 100);
+      }, 200); // Slowed down by 100% to match Stake.com's pace
     }
   };
 });
