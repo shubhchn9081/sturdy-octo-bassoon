@@ -1,13 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { GAMES } from '@/games';
 import GameCard from '@/components/games/GameCard';
 import Layout from '@/components/layout/Layout';
 import { formatNumber } from '@/lib/utils';
 import { ListFilter, Trophy, Zap } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+type Game = {
+  id: number;
+  name: string;
+  slug: string;
+  type: string;
+  activePlayers: number;
+  rtp: number;
+  maxMultiplier: number;
+  minBet: number;
+  maxBet: number;
+  imageUrl: string | null;
+};
 
 const OriginalsPage = () => {
+  const { data: apiGames = [], isLoading } = useQuery({
+    queryKey: ['/api/games'],
+    queryFn: () => apiRequest('/api/games', { method: 'GET' })
+  });
+  
+  // Combine API game data (mainly for imageUrl) with our static game data for other props
+  const combinedGames = GAMES.map(game => {
+    const apiGame = Array.isArray(apiGames) ? 
+      apiGames.find((g: Game) => g.id === game.id) : 
+      undefined;
+    return {
+      ...game,
+      imageUrl: apiGame?.imageUrl || null
+    };
+  });
+  
   // Filter only Stake Originals games
-  const originalsGames = GAMES.filter(game => game.type === 'STAKE ORIGINALS');
+  const originalsGames = combinedGames.filter(game => game.type === 'STAKE ORIGINALS');
   
   // Get featured games (first 4 games)
   const featuredGames = originalsGames.slice(0, 4);
@@ -49,6 +80,7 @@ const OriginalsPage = () => {
               color={game.color}
               iconType={game.iconType}
               multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${formatNumber(game.maxMultiplier)}x` : undefined}
+              imageUrl={game.imageUrl}
             />
           ))}
         </div>
@@ -78,6 +110,7 @@ const OriginalsPage = () => {
               color={game.color}
               iconType={game.iconType}
               multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${formatNumber(game.maxMultiplier)}x` : undefined}
+              imageUrl={game.imageUrl}
             />
           ))}
         </div>

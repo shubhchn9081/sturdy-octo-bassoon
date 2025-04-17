@@ -142,6 +142,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Game image upload endpoint
+  // Serve uploaded images directly
+  app.use('/uploads', (req, res, next) => {
+    const filePath = path.join(process.cwd(), 'public', 'uploads', path.basename(req.path));
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      next();
+    }
+  });
+
   app.post('/api/games/:id/upload-image', upload.single('image'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);

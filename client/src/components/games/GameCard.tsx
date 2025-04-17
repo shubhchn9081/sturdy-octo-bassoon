@@ -12,6 +12,7 @@ type GameCardProps = {
   iconType: string;
   multiplier?: string;
   className?: string;
+  imageUrl?: string | null;
 };
 
 const GameCard = ({ 
@@ -23,17 +24,28 @@ const GameCard = ({
   color = 'bg-blue-600',
   iconType = 'default',
   multiplier,
-  className 
+  className,
+  imageUrl
 }: GameCardProps) => {
   
   // Function to get image url for each game
   const getBackgroundStyle = () => {
-    // Check if we have an image for this game
-    const imageUrl = getGameImage();
-    
+    // First check if we have a custom uploaded image
     if (imageUrl) {
       return {
         backgroundImage: `url(${imageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      };
+    }
+    
+    // Next check if we have a default image for this game
+    const defaultImage = getGameImage();
+    
+    if (defaultImage) {
+      return {
+        backgroundImage: `url(${defaultImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
