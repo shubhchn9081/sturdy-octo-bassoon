@@ -12,13 +12,15 @@ const RISK_LEVELS = ['Low', 'Medium', 'High'];
 const ROW_OPTIONS = [8, 12, 16]; // From screenshot
 
 // Multiplier tables based on screenshot from Stake.com
+// Updated for 19-slot bottom row with 136 pegs total
 const MULTIPLIER_TABLES = {
-  Low: [5, 3, 1.5, 1, 0.7, 0.5, 0.3, 0.2, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 3, 5],
-  Medium: [10, 5, 3, 1.5, 1, 0.7, 0.5, 0.3, 0.3, 0.5, 0.7, 1, 1.5, 3, 5, 10],
-  High: [110, 41, 10, 5, 2, 1.5, 1, 0.5, 0.5, 1, 1.5, 2, 5, 10, 41, 110]
+  Low: [5, 3, 2, 1.5, 1, 0.7, 0.5, 0.3, 0.2, 0.2, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2, 3, 5],
+  Medium: [10, 5, 3, 2, 1.5, 1, 0.7, 0.5, 0.3, 0.3, 0.3, 0.5, 0.7, 1, 1.5, 2, 3, 5, 10],
+  High: [110, 41, 20, 10, 5, 2, 1.5, 1, 0.5, 0.3, 0.5, 1, 1.5, 2, 5, 10, 20, 41, 110]
 };
 
 // Colors for multipliers based on screenshot exactly
+// Updated for all multipliers in our 19-slot distribution
 const MULTIPLIER_COLORS: Record<string, string> = {
   '0.2': 'bg-red-600', 
   '0.3': 'bg-red-500',
@@ -30,6 +32,7 @@ const MULTIPLIER_COLORS: Record<string, string> = {
   '3': 'bg-green-500',
   '5': 'bg-emerald-500',
   '10': 'bg-sky-500',
+  '20': 'bg-blue-400',
   '41': 'bg-blue-500',
   '110': 'bg-purple-500'
 };
@@ -108,8 +111,10 @@ const PlinkoGame = () => {
         const direction = rawPath[i] > currentPosition ? 1 : (rawPath[i] < currentPosition ? -1 : 0);
         currentPosition += direction;
         
-        // Ensure we don't go out of bounds
-        const pinsInCurrentRow = i + 3; // First row has 3 pins, then 4, 5, etc.
+        // Ensure we don't go out of bounds - use our pin distribution
+        // Use pinDistribution defined in renderPlinkoGrid
+        const pinDistribution = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 19]; // 136 total
+        const pinsInCurrentRow = i < pinDistribution.length ? pinDistribution[i] : pinDistribution[pinDistribution.length - 1];
         currentPosition = Math.max(0, Math.min(currentPosition, pinsInCurrentRow - 1));
         
         adjustedPath.push(currentPosition);
@@ -125,8 +130,10 @@ const PlinkoGame = () => {
         const direction = Math.random() > 0.5 ? 1 : -1;
         currentPosition += direction;
         
-        // Ensure we don't go out of bounds - each row has (i+3) pins
-        const pinsInCurrentRow = i + 3; // First row has 3 pins, then 4, 5, etc.
+        // Ensure we don't go out of bounds - use our pin distribution
+        // Use pinDistribution defined in renderPlinkoGrid
+        const pinDistribution = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 19]; // 136 total
+        const pinsInCurrentRow = i < pinDistribution.length ? pinDistribution[i] : pinDistribution[pinDistribution.length - 1];
         currentPosition = Math.max(0, Math.min(currentPosition, pinsInCurrentRow - 1));
         
         path.push(currentPosition);
