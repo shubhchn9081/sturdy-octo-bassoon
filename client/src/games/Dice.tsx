@@ -202,11 +202,11 @@ const DiceGame = () => {
                   className="absolute top-0 bottom-0 w-10 h-10 z-10 flex items-center justify-center"
                   style={{ left: `${target}%`, transform: 'translateX(-50%)' }}
                 >
-                  <img 
-                    src="/slider-toggle.png" 
-                    alt="slider toggle" 
-                    className="w-10 h-10 object-contain"
-                  />
+                  <div className="w-10 h-10 rounded-xl bg-[#3D94F4] flex flex-col items-center justify-center gap-1 shadow-lg">
+                    <div className="w-4 h-[2px] bg-[#2D6EB8]"></div>
+                    <div className="w-4 h-[2px] bg-[#2D6EB8]"></div>
+                    <div className="w-4 h-[2px] bg-[#2D6EB8]"></div>
+                  </div>
                 </div>
                 
                 {/* Hidden interactive slider */}
