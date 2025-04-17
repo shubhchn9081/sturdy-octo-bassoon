@@ -88,6 +88,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Games routes
+  app.get('/api/games', async (req, res) => {
+    try {
+      const games = await storage.getAllGames();
+      res.json(games);
+    } catch (error) {
+      console.error('Error fetching games:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   // User routes
   app.get('/api/user', async (req, res) => {
     try {
@@ -117,14 +128,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Game routes
-  app.get('/api/games', async (req, res) => {
-    try {
-      const games = await storage.getAllGames();
-      res.json(games);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error' });
-    }
-  });
   
   // Initialize database with games (dev only)
   app.post('/api/initialize-games', async (req, res) => {
