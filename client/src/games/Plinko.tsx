@@ -1,40 +1,62 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { formatCrypto } from '@/lib/utils';
-import GameLayout, { GameControls } from '@/components/games/GameLayout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
 import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
 const ROW_OPTIONS = [8, 12, 16];
 
-// Different multiplier tables based on risk level
+// Different multiplier tables based on risk level and exact values from screenshot
 const MULTIPLIER_TABLES = {
-  Low: [1, 1.1, 1.3, 1.5, 2, 3, 5, 9, 5, 3, 2, 1.5, 1.3, 1.1, 1],
-  Medium: [0.5, 0.8, 1, 1.5, 2, 5, 15, 45, 15, 5, 2, 1.5, 1, 0.8, 0.5],
-  High: [0.2, 0.3, 0.5, 1, 2, 5, 10, 100, 10, 5, 2, 1, 0.5, 0.3, 0.2]
+  Low: [1.1, 1.4, 1.5, 1, 1.5, 3, 5, 9, 13, 9, 5, 3, 1.5, 1, 1.5, 1.4, 1.1],
+  Medium: [0.3, 0.5, 0.9, 1, 1.5, 2, 4, 10, 16, 10, 4, 2, 1.5, 1, 0.9, 0.5, 0.3],
+  High: [0.1, 0.3, 0.5, 0.8, 1.7, 3, 5, 11, 23, 11, 5, 3, 1.7, 0.8, 0.5, 0.3, 0.1]
 };
 
-const MULTIPLIER_COLORS = [
-  'bg-red-600', 'bg-red-500', 'bg-red-400',  // Left side reds
-  'bg-orange-500', 'bg-yellow-500', 'bg-yellow-400',  // Left-center yellows
-  'bg-green-400', 'bg-green-500', 'bg-green-600',  // Center greens
-  'bg-green-400', 'bg-yellow-400', 'bg-yellow-500',  // Right-center yellows
-  'bg-red-400', 'bg-red-500', 'bg-red-600'  // Right side reds
-];
+// Colors for multipliers based on the screenshot
+const MULTIPLIER_COLORS: Record<string, string> = {
+  '0.1': 'bg-red-600', 
+  '0.3': 'bg-red-500',
+  '0.5': 'bg-orange-600',
+  '0.8': 'bg-orange-500',
+  '0.9': 'bg-orange-500',
+  '1': 'bg-yellow-600',
+  '1.1': 'bg-red-600',
+  '1.4': 'bg-red-500',
+  '1.5': 'bg-yellow-500',
+  '1.7': 'bg-yellow-500',
+  '2': 'bg-yellow-400',
+  '3': 'bg-yellow-400',
+  '4': 'bg-orange-400',
+  '5': 'bg-green-500',
+  '9': 'bg-green-600',
+  '10': 'bg-green-600',
+  '11': 'bg-green-600',
+  '13': 'bg-green-600',
+  '16': 'bg-green-600',
+  '23': 'bg-green-600'
+};
 
 type BallState = {
   position: number;
   row: number;
   done: boolean;
   finalMultiplier: number | null;
+  path: number[];
+  currentStep: number;
 };
 
 const PlinkoGame = () => {
   const { getGameResult } = useProvablyFair('plinko');
   const { balance, placeBet } = useBalance();
+  const boardRef = useRef<HTMLDivElement>(null);
   
+  const [gameMode, setGameMode] = useState('Manual');
   const [betAmount, setBetAmount] = useState('0.00000001');
   const [risk, setRisk] = useState('Medium');
   const [rows, setRows] = useState(16);
@@ -42,63 +64,96 @@ const PlinkoGame = () => {
   const [playing, setPlaying] = useState(false);
   const [result, setResult] = useState<number | null>(null);
   
+  // Calculate the multipliers based on risk level
   const multipliers = useMemo(() => {
     return MULTIPLIER_TABLES[risk as keyof typeof MULTIPLIER_TABLES] || MULTIPLIER_TABLES.Medium;
   }, [risk]);
   
   const handleBetAmountChange = (value: string) => {
+    if (playing) return;
     setBetAmount(value);
   };
   
   const handleHalfBet = () => {
+    if (playing) return;
     const amount = parseFloat(betAmount) || 0;
-    setBetAmount(formatCrypto(amount / 2));
+    setBetAmount((amount / 2).toFixed(8));
   };
   
   const handleDoubleBet = () => {
+    if (playing) return;
     const amount = parseFloat(betAmount) || 0;
-    setBetAmount(formatCrypto(amount * 2));
+    setBetAmount((amount * 2).toFixed(8));
   };
   
   const handleRiskChange = (value: string) => {
+    if (playing) return;
     setRisk(value);
   };
   
   const handleRowsChange = (value: string) => {
+    if (playing) return;
     setRows(parseInt(value));
+  };
+  
+  // Function to generate a provably fair path
+  const generatePath = (rows: number): number[] => {
+    const result = getGameResult();
+    
+    if (typeof result === 'function') {
+      // Use provably fair algorithm if available
+      return result(rows + 1);
+    } else {
+      // Fallback to simple random algorithm for simulation
+      const path = [];
+      let currentPosition = Math.floor((rows + 1) / 2); // Start at center
+      
+      for (let i = 0; i < rows; i++) {
+        const direction = Math.random() > 0.5 ? 1 : -1;
+        currentPosition += direction;
+        currentPosition = Math.max(0, Math.min(rows, currentPosition));
+        path.push(currentPosition);
+      }
+      
+      return path;
+    }
   };
   
   // Generate grid of dots for the plinko board
   const renderPlinkoGrid = () => {
-    const dots = [];
+    const grid = [];
     
-    for (let row = 0; row < rows; row++) {
-      const dotsInRow = row + 1;
-      const rowDots = [];
+    // Generate rows of pins (dots)
+    for (let r = 0; r < rows; r++) {
+      const pins = [];
+      const pinsInRow = r + 1;
       
-      for (let i = 0; i < dotsInRow; i++) {
-        rowDots.push(
+      // Add pins (dots) to each row
+      for (let p = 0; p < pinsInRow; p++) {
+        pins.push(
           <div 
-            key={`dot-${row}-${i}`} 
+            key={`pin-${r}-${p}`} 
             className="w-2 h-2 bg-white rounded-full"
           />
         );
       }
       
-      dots.push(
+      // Add row to grid
+      grid.push(
         <div 
-          key={`row-${row}`} 
-          className="flex justify-center" 
-          style={{ gap: `${Math.max(2, 20 - row)}px` }}
+          key={`row-${r}`} 
+          className="flex justify-center"
+          style={{ gap: '28px' }}
         >
-          {rowDots}
+          {pins}
         </div>
       );
     }
     
-    return dots;
+    return grid;
   };
   
+  // Handle the bet action
   const handleBet = async () => {
     if (playing) return;
     
@@ -106,58 +161,60 @@ const PlinkoGame = () => {
     setResult(null);
     
     try {
-      // Generate path using provably fair algorithm
-      const path = getGameResult()(rows) as number[];
+      // Generate the ball path using provably fair algorithm
+      const path = generatePath(rows);
       
-      // Create a new ball
+      // Create a new ball with its path
       const newBall: BallState = {
         position: 0,
         row: 0,
         done: false,
-        finalMultiplier: null
+        finalMultiplier: null,
+        path,
+        currentStep: 0
       };
       
       setBalls([newBall]);
       
       // Animate the ball dropping
-      for (let i = 0; i < path.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 300));
+      const animateBall = async () => {
+        for (let i = 0; i < path.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          setBalls(prev => {
+            const updated = [...prev];
+            if (updated.length > 0) {
+              updated[0] = {
+                ...updated[0],
+                position: path[i],
+                row: i + 1,
+                currentStep: i
+              };
+            }
+            return updated;
+          });
+        }
+        
+        // Set final result
+        const finalPosition = path[path.length - 1];
+        const finalMultiplier = multipliers[finalPosition];
         
         setBalls(prev => {
           const updated = [...prev];
-          updated[0] = {
-            ...updated[0],
-            position: path[i],
-            row: i + 1
-          };
+          if (updated.length > 0) {
+            updated[0] = {
+              ...updated[0],
+              done: true,
+              finalMultiplier
+            };
+          }
           return updated;
         });
-      }
+        
+        setResult(finalMultiplier);
+      };
       
-      // Calculate the final multiplier
-      const finalPosition = path[path.length - 1];
-      const adjustedPosition = Math.min(finalPosition, multipliers.length - 1);
-      const finalMultiplier = multipliers[adjustedPosition];
-      
-      setBalls(prev => {
-        const updated = [...prev];
-        updated[0] = {
-          ...updated[0],
-          done: true,
-          finalMultiplier
-        };
-        return updated;
-      });
-      
-      setResult(finalMultiplier);
-      
-      // In a real app, this would call the API
-      // placeBet.mutate({
-      //   amount: parseFloat(betAmount),
-      //   gameId: 3, // Plinko game id
-      //   clientSeed: 'seed',
-      //   options: { risk, rows }
-      // });
+      await animateBall();
       
     } catch (error) {
       console.error('Error playing Plinko:', error);
@@ -165,76 +222,54 @@ const PlinkoGame = () => {
       setTimeout(() => {
         setPlaying(false);
         setBalls([]);
-      }, 2000);
+      }, 3000);
     }
   };
   
-  // Game visualization panel
-  const gamePanel = (
-    <div className="flex justify-center">
-      <div className="relative w-full max-w-md">
-        {/* Plinko Board */}
-        <div className="space-y-2 mb-4">
-          {renderPlinkoGrid()}
-        </div>
-        
-        {/* Active balls */}
-        {balls.map((ball, index) => (
-          <motion.div
-            key={`ball-${index}`}
-            className="absolute top-0 left-1/2 w-4 h-4 bg-white rounded-full shadow-lg z-10"
-            initial={{ translateX: "-50%", translateY: 0 }}
-            animate={{
-              translateX: `calc(-50% + ${ball.position * 12}px)`,
-              translateY: ball.row * 24
-            }}
-            transition={{ type: "tween", duration: 0.3 }}
+  // Renders the manual controls
+  const renderManualControls = () => (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-xs text-muted-foreground mb-1">Bet Amount</label>
+        <div className="flex items-center space-x-1 mb-2">
+          <Input
+            type="text"
+            value={betAmount}
+            onChange={(e) => handleBetAmountChange(e.target.value)}
+            className="bg-[#243442] border-none text-white h-8 text-sm"
+            disabled={playing}
           />
-        ))}
-        
-        {/* Result display */}
-        {result !== null && (
-          <div className="text-center mb-6 p-3 rounded-lg bg-green-500/20 text-green-400">
-            <div className="text-2xl font-bold">
-              {result.toFixed(2)}x - {(parseFloat(betAmount) * result).toFixed(8)}
-            </div>
-          </div>
-        )}
-        
-        {/* Plinko Multipliers */}
-        <div className="flex justify-between">
-          {multipliers.map((multi, idx) => (
-            <div 
-              key={`multi-${idx}`} 
-              className={`${MULTIPLIER_COLORS[idx]} text-white text-xs font-bold px-2 py-1 rounded`}
-            >
-              {multi}x
-            </div>
-          ))}
+          <Button 
+            onClick={handleHalfBet} 
+            variant="outline" 
+            size="sm" 
+            className="bg-transparent border-[#243442] text-white h-8 px-2"
+            disabled={playing}
+          >
+            ½
+          </Button>
+          <Button 
+            onClick={handleDoubleBet} 
+            variant="outline" 
+            size="sm" 
+            className="bg-transparent border-[#243442] text-white h-8 px-2"
+            disabled={playing}
+          >
+            2×
+          </Button>
         </div>
+        
+        <div className="text-xs text-right text-gray-400 mt-1">$0.00</div>
       </div>
-    </div>
-  );
-  
-  // Game controls panel
-  const controlsPanel = (
-    <GameControls
-      betAmount={betAmount}
-      onBetAmountChange={handleBetAmountChange}
-      onHalfBet={handleHalfBet}
-      onDoubleBet={handleDoubleBet}
-      onBet={handleBet}
-      betButtonText={playing ? 'Rolling...' : 'Bet'}
-      betButtonDisabled={playing}
-    >
-      <div className="mb-4">
-        <label className="block text-muted-foreground mb-2">Risk</label>
+      
+      <div>
+        <label className="block text-xs text-muted-foreground mb-1">Risk</label>
         <Select 
           value={risk} 
           onValueChange={handleRiskChange}
           disabled={playing}
         >
-          <SelectTrigger className="w-full bg-panel-bg">
+          <SelectTrigger className="w-full bg-[#243442] border-none text-white h-8 text-sm">
             <SelectValue placeholder="Select risk level" />
           </SelectTrigger>
           <SelectContent>
@@ -247,14 +282,14 @@ const PlinkoGame = () => {
         </Select>
       </div>
       
-      <div className="mb-4">
-        <label className="block text-muted-foreground mb-2">Rows</label>
+      <div>
+        <label className="block text-xs text-muted-foreground mb-1">Rows</label>
         <Select 
           value={rows.toString()} 
           onValueChange={handleRowsChange}
           disabled={playing}
         >
-          <SelectTrigger className="w-full bg-panel-bg">
+          <SelectTrigger className="w-full bg-[#243442] border-none text-white h-8 text-sm">
             <SelectValue placeholder="Select rows" />
           </SelectTrigger>
           <SelectContent>
@@ -266,15 +301,102 @@ const PlinkoGame = () => {
           </SelectContent>
         </Select>
       </div>
-    </GameControls>
+      
+      {/* Bet Button */}
+      <Button
+        className="w-full bg-[#7bfa4c] hover:bg-[#6ae43d] text-black font-medium h-10"
+        onClick={handleBet}
+        disabled={playing}
+      >
+        {playing ? 'Rolling...' : 'Bet'}
+      </Button>
+    </div>
+  );
+  
+  // Renders the auto controls
+  const renderAutoControls = () => (
+    <div className="space-y-4">
+      <div className="text-sm text-muted-foreground">Auto mode is coming soon</div>
+    </div>
   );
   
   return (
-    <GameLayout
-      title="Plinko"
-      controlsPanel={controlsPanel}
-      gamePanel={gamePanel}
-    />
+    <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]">
+      {/* Side Panel */}
+      <div className="w-full lg:w-[320px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
+        <Tabs defaultValue="Manual" className="w-full" onValueChange={(v) => setGameMode(v)}>
+          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-4 h-9 overflow-hidden rounded-md p-0">
+            <TabsTrigger 
+              value="Manual" 
+              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
+            >
+              Manual
+            </TabsTrigger>
+            <TabsTrigger 
+              value="Auto" 
+              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
+            >
+              Auto
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="Manual" className="mt-0">
+            {renderManualControls()}
+          </TabsContent>
+          
+          <TabsContent value="Auto" className="mt-0">
+            {renderAutoControls()}
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      {/* Game Area */}
+      <div className="flex-1 p-4 flex justify-center items-center overflow-auto">
+        <div className="max-w-2xl w-full">
+          {/* Plinko Board */}
+          <div 
+            ref={boardRef} 
+            className="relative flex flex-col space-y-4"
+          >
+            {/* Pins Grid */}
+            <div className="space-y-4">
+              {renderPlinkoGrid()}
+            </div>
+            
+            {/* Ball Animation */}
+            {balls.map((ball, index) => (
+              <motion.div
+                key={`ball-${index}`}
+                className="absolute top-0 left-1/2 w-4 h-4 bg-white rounded-full z-10"
+                initial={{ translateX: "-50%", translateY: 0 }}
+                animate={{
+                  translateX: `calc(-50% + ${(ball.position - rows/2) * 28}px)`,
+                  translateY: ball.row * 28 // Adjust based on your row spacing
+                }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 300,
+                  damping: 20
+                }}
+              />
+            ))}
+            
+            {/* Multiplier Buckets */}
+            <div className="flex justify-between mt-4">
+              {multipliers.map((multi, idx) => (
+                <div 
+                  key={`multi-${idx}`} 
+                  className={`${MULTIPLIER_COLORS[multi.toString()] || 'bg-blue-500'} 
+                              text-white text-xs font-bold px-2 py-1 rounded text-center min-w-[40px]`}
+                >
+                  {multi}x
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
