@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Use PNG images from the public folder
+// Use PNG images directly with relative URLs
 export const DiamondImage = () => (
   <img 
     src="/images/games/diamond.png"
