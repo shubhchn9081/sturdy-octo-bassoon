@@ -175,7 +175,7 @@ const DiceGame = () => {
           <div className="bg-[#172B3A] rounded-lg h-full flex flex-col p-5">
             <div className="flex-1 flex flex-col">
               {/* Slider scale numbers */}
-              <div className="flex justify-between text-[#7F8990] text-xs mb-1">
+              <div className="flex justify-between text-[#7F8990] text-xs">
                 <span>0</span>
                 <span>25</span>
                 <span>50</span>
@@ -184,28 +184,34 @@ const DiceGame = () => {
               </div>
               
               {/* Slider */}
-              <div className="relative h-10 rounded-full overflow-hidden bg-[#121A20] mb-6">
-                {/* Red section */}
-                <div 
-                  className="absolute left-0 top-0 bottom-0 bg-[#FF5359]"
-                  style={{ width: `${target}%` }}
-                ></div>
-                
-                {/* Green section */}
-                <div 
-                  className="absolute right-0 top-0 bottom-0 bg-[#00E700]"
-                  style={{ width: `${100 - target}%` }}
-                ></div>
+              <div className="relative h-12 rounded-full overflow-hidden bg-[#121A20] mb-16">
+                {/* Track Background (Grey border) */}
+                <div className="absolute inset-0 rounded-full bg-[#2A3740] p-1">
+                  {/* Inside track */}
+                  <div className="relative w-full h-full rounded-full overflow-hidden">
+                    {/* Red section */}
+                    <div 
+                      className="absolute left-0 top-0 bottom-0 bg-[#FF5359]"
+                      style={{ width: `${target}%` }}
+                    ></div>
+                    
+                    {/* Green section */}
+                    <div 
+                      className="absolute right-0 top-0 bottom-0 bg-[#00E700]"
+                      style={{ width: `${100 - target}%` }}
+                    ></div>
+                  </div>
+                </div>
                 
                 {/* Slider thumb */}
                 <div 
-                  className="absolute top-0 bottom-0 w-10 h-10 z-10 flex items-center justify-center"
+                  className="absolute top-0 bottom-0 w-12 h-12 z-10 flex items-center justify-center"
                   style={{ left: `${target}%`, transform: 'translateX(-50%)' }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#3D94F4] flex flex-col items-center justify-center gap-1 shadow-lg">
-                    <div className="w-4 h-[2px] bg-[#2D6EB8]"></div>
-                    <div className="w-4 h-[2px] bg-[#2D6EB8]"></div>
-                    <div className="w-4 h-[2px] bg-[#2D6EB8]"></div>
+                  <div className="w-12 h-12 rounded-md bg-[#3D94F4] flex flex-col items-center justify-center gap-1 shadow-lg">
+                    <div className="w-5 h-[2px] bg-[#2D6EB8]"></div>
+                    <div className="w-5 h-[2px] bg-[#2D6EB8]"></div>
+                    <div className="w-5 h-[2px] bg-[#2D6EB8]"></div>
                   </div>
                 </div>
                 
@@ -232,25 +238,25 @@ const DiceGame = () => {
               <div className="flex-grow"></div>
               
               {/* Stats Panel */}
-              <div className="bg-[#121A20] rounded-lg p-4">
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-xs text-[#7F8990] mb-1">Multiplier</div>
-                    <div className="text-white flex items-center justify-center">
-                      <span>{multiplier.toFixed(4)}</span>
-                      <span className="text-[#7F8990] ml-0.5">×</span>
+              <div className="bg-[#121A20] rounded-lg p-4 mt-auto">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <div className="text-[#7F8990] mb-3 text-sm">Multiplier</div>
+                    <div className="bg-[#0F212E] flex items-center justify-between rounded p-3 h-12">
+                      <span className="text-white font-medium">{multiplier.toFixed(4)}</span>
+                      <span className="text-[#7F8990] ml-0.5 text-xl">×</span>
                     </div>
                   </div>
                   
-                  <div 
-                    className="text-center cursor-pointer"
-                    onClick={handleRollModeChange}
-                  >
-                    <div className="text-xs text-[#7F8990] mb-1">Roll {rollMode === 'over' ? 'Over' : 'Under'}</div>
-                    <div className="text-white flex items-center justify-center">
-                      <span>{target.toFixed(2)}</span>
-                      <button className="ml-1 text-[#7F8990] hover:text-white">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div>
+                    <div className="text-[#7F8990] mb-3 text-sm">Roll Over</div>
+                    <div 
+                      className="bg-[#0F212E] flex items-center justify-between rounded p-3 h-12 cursor-pointer"
+                      onClick={handleRollModeChange}
+                    >
+                      <span className="text-white font-medium">{target.toFixed(2)}</span>
+                      <button className="text-[#7F8990] hover:text-white">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M21 2v6h-6"></path>
                           <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
                           <path d="M3 12a9 9 0 0 0 15 6.7L21 16"></path>
@@ -260,11 +266,11 @@ const DiceGame = () => {
                     </div>
                   </div>
                   
-                  <div className="text-center">
-                    <div className="text-xs text-[#7F8990] mb-1">Win Chance</div>
-                    <div className="text-white flex items-center justify-center">
-                      <span>{winChance.toFixed(4)}</span>
-                      <span className="text-[#7F8990] ml-0.5">%</span>
+                  <div>
+                    <div className="text-[#7F8990] mb-3 text-sm">Win Chance</div>
+                    <div className="bg-[#0F212E] flex items-center justify-between rounded p-3 h-12">
+                      <span className="text-white font-medium">{winChance.toFixed(4)}</span>
+                      <span className="text-[#7F8990] ml-0.5 text-xl">%</span>
                     </div>
                   </div>
                 </div>
