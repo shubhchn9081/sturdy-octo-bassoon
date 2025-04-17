@@ -11,6 +11,8 @@ import BlueSamurai from '@/games/BlueSamurai';
 import Pump from '@/games/Pump';
 import Hilo from '@/games/Hilo';
 
+type Game = typeof GAMES[0];
+
 const GameComponents: Record<string, React.ComponentType> = {
   dice: Dice,
   mines: Mines,
@@ -24,12 +26,16 @@ const GameComponents: Record<string, React.ComponentType> = {
 };
 
 const GamePage = () => {
-  const [match, params] = useRoute<{ gameSlug: string }>('/games/:gameSlug');
+  const [normalMatch, normalParams] = useRoute<{ gameSlug: string }>('/games/:gameSlug');
+  const [casinoMatch, casinoParams] = useRoute<{ gameSlug: string }>('/casino/games/:gameSlug');
+  
+  const match = normalMatch || casinoMatch;
+  const params = normalMatch ? normalParams : casinoParams;
   const [_, setLocation] = useLocation();
-  const [currentGame, setCurrentGame] = useState(null);
+  const [currentGame, setCurrentGame] = useState<Game | null>(null);
   
   useEffect(() => {
-    if (!match) return;
+    if (!match || !params) return;
     
     const game = getGameBySlug(params.gameSlug);
     if (!game) {
@@ -46,9 +52,9 @@ const GamePage = () => {
     return () => {
       document.title = 'Stake.com';
     };
-  }, [match, params.gameSlug, setLocation]);
+  }, [match, params, setLocation]);
   
-  if (!match) {
+  if (!match || !params) {
     return null;
   }
   
@@ -72,11 +78,7 @@ const GamePage = () => {
     );
   }
   
-  return (
-    <div className="container mx-auto p-6">
-      <GameComponent />
-    </div>
-  );
+  return <GameComponent />;
 };
 
 export default GamePage;

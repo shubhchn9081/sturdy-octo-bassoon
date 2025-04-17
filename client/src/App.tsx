@@ -10,6 +10,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/games/:gameSlug" component={Game} />
+      <Route path="/casino/games/:gameSlug" component={Game} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
