@@ -104,10 +104,10 @@ const CrashGame: React.FC = () => {
       ctx.fillText(marker.label, CANVAS_WIDTH - 5, CANVAS_HEIGHT - y - 2);
     });
     
-    // Add enhanced shadow effect for better visibility
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-    ctx.shadowBlur = 20;
-    ctx.shadowOffsetY = 8;
+    // Add extreme glow effect for maximum visibility
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 0; // No offset for a pure glow effect
     
     // Begin drawing the main crash line
     ctx.beginPath();
@@ -142,10 +142,10 @@ const CrashGame: React.FC = () => {
       // Draw graph endpoint circle
       const lastPoint = dataPoints[dataPoints.length - 1];
       
-      // Add enhanced shadow effect for circle
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-      ctx.shadowBlur = 20;
-      ctx.shadowOffsetY = 8;
+      // Add extreme glow effect for circle as well
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+      ctx.shadowBlur = 30;
+      ctx.shadowOffsetY = 0; // No offset for a pure glow effect
       
       ctx.beginPath();
       ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 15, 0, Math.PI * 2); // Larger circle (15px radius)

@@ -51,7 +51,7 @@ interface CrashStore {
 
 // Constants for the game
 const TIME_SCALE = 80; // Much higher TIME_SCALE for extreme horizontal stretching
-const HEIGHT_SCALE = 100; // Increased HEIGHT_SCALE for better visibility
+const HEIGHT_SCALE = 200; // Dramatically increased HEIGHT_SCALE for immediate visibility
 
 // Helper functions
 function generateCrashPoint(): number {
@@ -101,9 +101,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // Slightly increased growth rate for better visibility while maintaining gradual slope
-    // Still extremely gradual but should be more visible on the graph
-    return Math.pow(1.0003, elapsed * 1000);
+    // Much higher growth rate for significantly better early visibility
+    // This will make the graph line start to rise faster immediately
+    return Math.pow(1.001, elapsed * 1000);
   };
   
   // Cashout AI players
@@ -296,10 +296,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         // Calculate new data point for graph - matching exact trajectory from reference
         const x = elapsed * TIME_SCALE;
         
-        // Slightly increased vertical scaling for better visibility
-        // Still maintaining the gradual slope but more pronounced
-        // This creates a trajectory that's more visible while still resembling the reference
-        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.8; // Increased scaling factor for better visibility
+        // Dramatically increased vertical scaling for immediate visibility from 1.00x
+        // Creates a much more noticeable trajectory from the very start
+        // Sacrificing exact reference matching for better visibility
+        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 1.5; // Maximum scaling factor for immediate visibility
         
         const newDataPoints = [...dataPoints, { x, y }];
         
