@@ -7,22 +7,30 @@ const CANVAS_WIDTH = 700;
 const CANVAS_HEIGHT = 400;
 const MAX_VISIBLE_TIME = 12; // Maximum visible time in seconds
 const TIME_SCALE = CANVAS_WIDTH / MAX_VISIBLE_TIME;
-const HEIGHT_SCALE = CANVAS_HEIGHT / 2.3;
+const HEIGHT_SCALE = CANVAS_HEIGHT / 4; // Lower value to make line less steep
 
-// Multiplier quicktabs
+// Y-axis multiplier markers (must match the reference)
+const MULTIPLIER_MARKERS = [
+  { value: 1.0, label: '1.0×' },
+  { value: 1.3, label: '1.3×' },
+  { value: 1.5, label: '1.5×' },
+  { value: 1.8, label: '1.8×' },
+  { value: 2.0, label: '2.0×' },
+  { value: 2.3, label: '2.3×' },
+];
+
+// Multiplier quicktabs (matching the Stake.com values exactly)
 const MULTIPLIER_QUICKTABS = [
-  { value: 2.07, label: '2.07x', color: 'bg-green-500' },
-  { value: 1.71, label: '1.71x', color: 'bg-green-500' },
-  { value: 1.97, label: '1.97x', color: 'bg-green-500' },
-  { value: 5.25, label: '5.25x', color: 'bg-green-500' },
-  { value: 1.37, label: '1.37x', color: 'bg-green-500' },
-  { value: 8.34, label: '8.34x', color: 'bg-green-500' },
-  { value: 1.03, label: '1.03x', color: 'bg-green-500' },
-  { value: 3.26, label: '3.26x', color: 'bg-green-500' }, 
-  { value: 20.24, label: '20.24x', color: 'bg-green-500' },
-  { value: 12.03, label: '12.03x', color: 'bg-green-500' },
-  { value: 1.14, label: '1.14x', color: 'bg-green-500' },
-  { value: 1.88, label: '1.88x', color: 'bg-green-500' },
+  { value: 1.71, label: '1.71x', color: 'bg-[#5BE12C]' },
+  { value: 1.97, label: '1.97x', color: 'bg-[#5BE12C]' },
+  { value: 5.25, label: '5.25x', color: 'bg-[#5BE12C]' },
+  { value: 1.37, label: '1.37x', color: 'bg-[#5BE12C]' },
+  { value: 8.34, label: '8.34x', color: 'bg-[#5BE12C]' },
+  { value: 1.03, label: '1.03x', color: 'bg-[#5BE12C]' },
+  { value: 3.26, label: '3.26x', color: 'bg-[#5BE12C]' }, 
+  { value: 20.24, label: '20.24x', color: 'bg-[#5BE12C]' },
+  { value: 12.03, label: '12.03x', color: 'bg-[#5BE12C]' },
+  { value: 1.14, label: '1.14x', color: 'bg-[#5BE12C]' },
 ];
 
 const CrashGame: React.FC = () => {
@@ -70,20 +78,31 @@ const CrashGame: React.FC = () => {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
     
-    // Horizontal grid lines
-    [1.0, 1.2, 1.3, 1.5, 1.7, 1.8, 2.0, 2.3].forEach(mult => {
-      const y = (Math.log(mult) / Math.log(1.0024 * 100)) * HEIGHT_SCALE;
+    // Horizontal grid lines for multipliers
+    MULTIPLIER_MARKERS.forEach(marker => {
+      // Calculate y position based on multiplier - using same formula as in the store
+      const y = (marker.value - 1.0) * HEIGHT_SCALE * 0.85;
       ctx.moveTo(0, CANVAS_HEIGHT - y);
       ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT - y);
     });
     
-    // Vertical grid lines (time markers)
-    for (let i = 2; i <= MAX_VISIBLE_TIME; i += 2) {
+    // Vertical grid lines (time markers) - showing 3s, 6s, 9s, 12s
+    for (let i = 3; i <= MAX_VISIBLE_TIME; i += 3) {
       const x = i * TIME_SCALE;
       ctx.moveTo(x, 0);
       ctx.lineTo(x, CANVAS_HEIGHT);
     }
     ctx.stroke();
+    
+    // Draw multiplier indicators on the right side (as seen in the reference)
+    ctx.textAlign = 'right';
+    ctx.font = '11px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    MULTIPLIER_MARKERS.forEach(marker => {
+      const y = Math.log(marker.value) * HEIGHT_SCALE * 0.6;
+      // Draw label on right side
+      ctx.fillText(marker.label, CANVAS_WIDTH - 5, CANVAS_HEIGHT - y - 2);
+    });
     
     // Begin drawing the main crash line
     ctx.beginPath();
@@ -137,12 +156,12 @@ const CrashGame: React.FC = () => {
       ctx.fillText(time, x, CANVAS_HEIGHT - 10);
     });
     
-    // Draw multiplier markers on y-axis
+    // Draw multiplier markers on y-axis (left side)
     ctx.textAlign = 'left';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    [1.0, 1.2, 1.3, 1.5, 1.7, 1.8, 2.0, 2.3].forEach(mult => {
-      const y = (Math.log(mult) / Math.log(1.0024 * 100)) * HEIGHT_SCALE;
-      ctx.fillText(`${mult.toFixed(1)}x`, 5, CANVAS_HEIGHT - y);
+    MULTIPLIER_MARKERS.forEach(marker => {
+      const y = Math.log(marker.value) * HEIGHT_SCALE * 0.6;
+      ctx.fillText(marker.label, 5, CANVAS_HEIGHT - y);
     });
     
   }, [dataPoints]);

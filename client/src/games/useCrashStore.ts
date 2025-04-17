@@ -101,8 +101,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // Using the formula: 1.0024^(elapsed*1000)
-    return Math.pow(1.0024, elapsed * 1000);
+    // Using a steeper curve to match the reference UI
+    // This creates a more dramatic visual increase like in Stake.com
+    return Math.pow(1.0032, elapsed * 1000);
   };
   
   // Cashout AI players
@@ -292,9 +293,14 @@ export const useCrashStore = create<CrashStore>((set, get) => {
           get().cashOut();
         }
         
-        // Calculate new data point for graph
+        // Calculate new data point for graph - matching exact trajectory from reference
         const x = elapsed * TIME_SCALE;
-        const y = (Math.log(newMultiplier) / Math.log(1.0024 * 100)) * HEIGHT_SCALE;
+        
+        // Linear relationship between multiplier and height (as seen in the reference)
+        // This creates the exact same trajectory as in the Stake.com screenshot
+        // Each 1.0 in multiplier corresponds to a specific height segment
+        const y = (newMultiplier - 1.0) * HEIGHT_SCALE * 0.85;
+        
         const newDataPoints = [...dataPoints, { x, y }];
         
         // Random AI cashouts
