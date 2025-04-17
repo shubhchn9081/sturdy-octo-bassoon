@@ -35,7 +35,7 @@ const SidebarLink = ({ href, icon, children, className }: SidebarLinkProps) => {
   return (
     <div 
       className={cn(
-        "flex items-center px-4 py-2 text-[#a3bfcd] rounded-md hover:bg-[#243442] group transition-colors cursor-pointer",
+        "flex items-center px-4 py-2 text-white font-semibold rounded-md hover:bg-[#243442] group transition-colors cursor-pointer",
         active && "bg-[#243442] text-white",
         className
       )}
