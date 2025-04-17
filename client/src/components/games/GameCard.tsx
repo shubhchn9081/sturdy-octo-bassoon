@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { Dices } from 'lucide-react';
 
@@ -83,7 +82,7 @@ const GameCard = ({
         
         {hasImage ? (
           <div className="w-24 h-24 flex items-center justify-center">
-            <img src={gameImages[iconType]} alt={name} className="max-w-full max-h-full" />
+            <img src={gameImage} alt={name} className="max-w-full max-h-full" />
           </div>
         ) : (
           <Dices className="h-16 w-16 text-white" />
