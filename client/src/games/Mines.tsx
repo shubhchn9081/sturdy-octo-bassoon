@@ -443,7 +443,7 @@ const MinesGame = () => {
             ${status === 'gem' ? 'bg-[#1a2c38]' : ''}
           `}
           onClick={() => handleTileClick(index)}
-          disabled={!gameState || gameState.isGameOver || (gameState.revealed && gameState.revealed[index])}
+          disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
         >
           {getTileContent(index, status)}
         </button>
