@@ -279,12 +279,13 @@ const PlinkoGame = () => {
       // Animate the ball dropping with improved physics and realistic timing
       const animateBall = async () => {
         // Physics constants
+        // Drastically slower animation parameters - much higher values for extreme slowness
         const GRAVITY = 9.8;               // Gravitational constant (m/s²)
         const INITIAL_VELOCITY = 0;        // Starting velocity (m/s)
         const DISTANCE_BETWEEN_ROWS = 21;  // Pixel distance between rows
         const PIXEL_TO_METER_RATIO = 100;  // Conversion ratio (pixels per meter)
-        const FRICTION_COEFFICIENT = 0.82; // Friction coefficient (slowdown factor) - increased friction
-        const TIME_SCALING = 4.5;          // Time scaling factor (higher = slower animation) - increased for slower ball
+        const FRICTION_COEFFICIENT = 0.75; // Higher friction to slow down more (decreased from 0.82)
+        const TIME_SCALING = 9.0;          // Doubled scaling factor for much slower animation (increased from 4.5)
         
         // Start with a slight pause before dropping
         await new Promise(resolve => setTimeout(resolve, 350));
@@ -317,8 +318,9 @@ const PlinkoGame = () => {
           // Higher TIME_SCALING makes the animation slower
           const timeToFall = (distance / currentVelocity) * 1000 * TIME_SCALING;
           
-          // Ensure minimum and maximum delay times
-          const delay = Math.max(100, Math.min(300, timeToFall));
+          // Use a much higher minimum delay (300ms) and maximum (800ms) for significantly slower animation
+          // This ensures we have very slow, consistent movement regardless of physics calculations
+          const delay = Math.max(300, Math.min(800, timeToFall));
           
           if (i % 5 === 0) {
             console.log(`Row ${i+1} - Fall speed: ${currentVelocity.toFixed(2)} m/s, Delay: ${delay.toFixed(0)}ms`);
@@ -342,23 +344,14 @@ const PlinkoGame = () => {
             }, 100);
           }
           
-          // Update the ball position with easing and bluffing
+          // Update the ball position with a simplified animation approach
+          // Removed the complex bluffing effect to improve performance
           setBalls(prev => {
             const updated = [...prev];
             if (updated.length > 0) {
-              // Add some "bluffing" to the ball trajectory
-              // We'll show an intermediate position where the ball appears to bounce
-              // off the peg in a slightly exaggerated way before settling
-              
-              // Calculate bluff position with enhanced realistic physics
-              const bluffPosition = i > 0 ? 
-                // More exaggerated direction change for realistic bouncing (increased from 0.4 to 0.65)
-                path[i] + (path[i] - path[i-1]) * 0.65 : 
-                path[i];
-              
               updated[0] = {
                 ...updated[0],
-                position: bluffPosition, // Slightly overshoot for bounce effect
+                position: path[i], // Direct position without bluffing
                 row: i + 1,
                 currentStep: i
               };
@@ -366,23 +359,9 @@ const PlinkoGame = () => {
             return updated;
           });
           
-          // Add a small delay and then adjust to the actual position
-          // This creates the "bounce and settle" effect
-          if (i > 0) {
-            await new Promise(resolve => setTimeout(resolve, 110)); // Increased from 70ms for more pronounced bounce effect
-            
-            // Correct the position after the bluff bounce
-            setBalls(prev => {
-              const updated = [...prev];
-              if (updated.length > 0) {
-                updated[0] = {
-                  ...updated[0],
-                  position: path[i], // Actual final position
-                };
-              }
-              return updated;
-            });
-          }
+          // Simple delay between each move - no complex secondary animation
+          // This creates a more predictable and less resource-intensive animation
+          await new Promise(resolve => setTimeout(resolve, 100)); // Extra small pause for visual effect
         }
         
         // Set final result
@@ -619,12 +598,10 @@ const PlinkoGame = () => {
                   scale: ball.done ? 1.2 : 1 // Slight impact animation when done
                 }}
                 transition={{ 
-                  type: "spring", 
-                  stiffness: 180, // Lower stiffness for more bounce (was 300)
-                  damping: 15,    // Lower damping for more oscillation (was 20)
-                  mass: 1.2,      // Add more mass for heavier feeling ball
-                  velocity: 10,   // Add initial velocity for more dynamic movement
-                  bounce: 0.5,    // Add bounce factor for more realism
+                  // Simplified transition with fewer properties for better performance
+                  type: "tween", // Changed from "spring" to "tween" for smoother performance
+                  duration: 0.3, // Short duration for responsive movement
+                  ease: "easeOut", // Simple easing function
                   opacity: { duration: 0.5 }, // Slow fade out
                   scale: { duration: 0.3 } // Quick impact scaling
                 }}
