@@ -136,6 +136,9 @@ const PlinkoGame = () => {
     }
   };
   
+  // State to track which pin was most recently hit for impact effect
+  const [lastHitPin, setLastHitPin] = useState<{row: number, pin: number} | null>(null);
+
   // Generate grid of dots for the plinko board - with proper 3-pin start
   const renderPlinkoGrid = () => {
     const grid = [];
@@ -151,7 +154,9 @@ const PlinkoGame = () => {
         {[0, 1, 2].map(p => (
           <div 
             key={`pin-0-${p}`} 
-            className="w-2 h-2 bg-white rounded-full"
+            className={`w-2 h-2 bg-white rounded-full transition-all duration-150
+                       ${lastHitPin && lastHitPin.row === 0 && lastHitPin.pin === p 
+                         ? 'scale-[1.7] opacity-80' : ''}`}
           />
         ))}
       </div>
@@ -168,7 +173,9 @@ const PlinkoGame = () => {
         pins.push(
           <div 
             key={`pin-${r}-${p}`} 
-            className="w-2 h-2 bg-white rounded-full"
+            className={`w-2 h-2 bg-white rounded-full transition-all duration-150
+                       ${lastHitPin && lastHitPin.row === r && lastHitPin.pin === p 
+                         ? 'scale-[1.7] opacity-80' : ''}`}
           />
         );
       }
@@ -213,28 +220,75 @@ const PlinkoGame = () => {
       
       // Animate the ball dropping with improved physics and realistic timing
       const animateBall = async () => {
-        // Use graduated timing for more realistic physics
-        // Ball accelerates as it moves down the pins
-        const baseDelay = 120; // Base delay in ms
+        // Use much slower timing with realistic physics
+        // The first drops are slower, then it gradually accelerates
+        const baseDelay = 220; // Increased base delay for slower animation (was 120)
+        
+        // Start with a slight pause before dropping
+        await new Promise(resolve => setTimeout(resolve, 400));
         
         for (let i = 0; i < path.length; i++) {
-          // Calculate delay based on row - ball moves faster as it falls
-          const delay = Math.max(60, baseDelay - (i * 3)); 
+          // Calculate delay based on row - ball moves gradually faster as it falls
+          // But keep a minimum delay to ensure it's not too fast
+          const delay = Math.max(140, baseDelay - (i * 4)); 
           await new Promise(resolve => setTimeout(resolve, delay));
           
-          // Update the ball position with easing
+          // Show impact on the pin that the ball hits
+          // Calculate which pin is being hit
+          if (i > 0) {
+            // Create a pin impact effect - the current row and position
+            const currentRow = i;
+            const currentPin = path[i];
+            
+            // Set the lastHitPin to create the visual impact effect
+            setLastHitPin({ row: currentRow, pin: currentPin });
+            
+            // Clear the impact effect after a short delay
+            setTimeout(() => {
+              setLastHitPin(null);
+            }, 100);
+          }
+          
+          // Update the ball position with easing and bluffing
           setBalls(prev => {
             const updated = [...prev];
             if (updated.length > 0) {
+              // Add some "bluffing" to the ball trajectory
+              // We'll show an intermediate position where the ball appears to bounce
+              // off the peg in a slightly exaggerated way before settling
+              
+              const bluffPosition = i > 0 ? 
+                // Exaggerate the direction change for more realistic bouncing
+                path[i] + (path[i] - path[i-1]) * 0.4 : 
+                path[i];
+              
               updated[0] = {
                 ...updated[0],
-                position: path[i],
+                position: bluffPosition, // Slightly overshoot for bounce effect
                 row: i + 1,
                 currentStep: i
               };
             }
             return updated;
           });
+          
+          // Add a small delay and then adjust to the actual position
+          // This creates the "bounce and settle" effect
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, 70)); // Longer delay for more effect
+            
+            // Correct the position after the bluff bounce
+            setBalls(prev => {
+              const updated = [...prev];
+              if (updated.length > 0) {
+                updated[0] = {
+                  ...updated[0],
+                  position: path[i], // Actual final position
+                };
+              }
+              return updated;
+            });
+          }
         }
         
         // Set final result
@@ -472,8 +526,11 @@ const PlinkoGame = () => {
                 }}
                 transition={{ 
                   type: "spring", 
-                  stiffness: 300,
-                  damping: 20,
+                  stiffness: 180, // Lower stiffness for more bounce (was 300)
+                  damping: 15,    // Lower damping for more oscillation (was 20)
+                  mass: 1.2,      // Add more mass for heavier feeling ball
+                  velocity: 10,   // Add initial velocity for more dynamic movement
+                  bounce: 0.5,    // Add bounce factor for more realism
                   opacity: { duration: 0.5 }, // Slow fade out
                   scale: { duration: 0.3 } // Quick impact scaling
                 }}
