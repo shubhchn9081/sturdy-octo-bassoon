@@ -140,8 +140,13 @@ const PlinkoGame = () => {
   const [lastHitPin, setLastHitPin] = useState<{row: number, pin: number} | null>(null);
 
   // Generate grid of dots for the plinko board - with proper 3-pin start
+  // Total pegs will be exactly 136 (based on user requirement)
   const renderPlinkoGrid = () => {
     const grid = [];
+    
+    // Define our pin distribution for exactly 136 pins
+    // We'll use 14 rows with a standard progression plus 3 extra pins in the last row
+    const pinDistribution = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 19]; // 136 total
     
     // First row should have 3 pins (matching stake.com and real Plinko)
     // Add the first row with exactly 3 pins
@@ -163,10 +168,11 @@ const PlinkoGame = () => {
     );
     
     // Generate the rest of the rows (starting from the second row)
-    for (let r = 1; r < 16; r++) {
+    // We have 14 rows in total for exactly 136 pins
+    for (let r = 1; r < pinDistribution.length; r++) {
       const pins = [];
-      // Each row increases by 1 pin (starting from 4 in the second row)
-      const pinsInRow = r + 3; 
+      // Use our pre-calculated pin distribution
+      const pinsInRow = pinDistribution[r];
       
       // Add pins (dots) to each row
       for (let p = 0; p < pinsInRow; p++) {
