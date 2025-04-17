@@ -1,0 +1,127 @@
+Here's a **detailed game logic engine** to replicate the **Mines game** from Stake, based on your screenshots. This includes the core mechanics, game flow, and randomness control — **exactly like Stake's logic**.
+
+---
+
+### 🎮 **Mines Game Logic Engine (Backend)**
+
+#### **Core Game Parameters**
+```js
+const GRID_SIZE = 5; // 5x5 grid
+const TOTAL_CELLS = GRID_SIZE * GRID_SIZE; // 25
+```
+
+---
+
+### ✅ **Step 1: Start a Game**
+```js
+function startGame(betAmount, numberOfMines) {
+  const minePositions = generateMinePositions(numberOfMines);
+  const revealed = Array(TOTAL_CELLS).fill(false);
+  const gameState = {
+    betAmount,
+    numberOfMines,
+    minePositions, // e.g. [0, 6, 12]
+    revealed,
+    isGameOver: false,
+    isWon: false,
+    diamondsCollected: 0,
+    multiplier: 1,
+  };
+  return gameState;
+}
+```
+
+---
+
+### 💣 **Step 2: Generate Random Mine Positions**
+```js
+function generateMinePositions(numberOfMines) {
+  const positions = new Set();
+  while (positions.size < numberOfMines) {
+    const randomPos = Math.floor(Math.random() * TOTAL_CELLS);
+    positions.add(randomPos);
+  }
+  return [...positions];
+}
+```
+
+---
+
+### 💎 **Step 3: Reveal a Cell**
+```js
+function revealCell(gameState, cellIndex) {
+  if (gameState.isGameOver || gameState.revealed[cellIndex]) return gameState;
+
+  gameState.revealed[cellIndex] = true;
+
+  if (gameState.minePositions.includes(cellIndex)) {
+    gameState.isGameOver = true;
+    gameState.isWon = false;
+  } else {
+    gameState.diamondsCollected++;
+    gameState.multiplier = calculateMultiplier(gameState.diamondsCollected, gameState.numberOfMines);
+  }
+
+  return gameState;
+}
+```
+
+---
+
+### 💰 **Step 4: Cash Out (Optional)**
+```js
+function cashOut(gameState) {
+  if (gameState.isGameOver) return 0;
+  gameState.isGameOver = true;
+  gameState.isWon = true;
+  return +(gameState.betAmount * gameState.multiplier).toFixed(8);
+}
+```
+
+---
+
+### 📈 **Step 5: Multiplier Logic (like Stake)**
+```js
+function calculateMultiplier(diamonds, mines) {
+  // Adjust this logic to simulate Stake's payout chart
+  const oddsLeft = TOTAL_CELLS - diamonds;
+  const mineChance = mines / oddsLeft;
+  const safeChance = 1 - mineChance;
+  const payout = 1 * Math.pow(1 / safeChance, diamonds);
+  return +payout.toFixed(4); // round to 4 decimal places
+}
+```
+
+---
+
+### 🔄 **Game Flow Summary**
+1. User sets **bet amount** and **number of mines (1–24)**.
+2. A **5x5 grid** is generated with random mines.
+3. User **clicks on a tile**:
+   - If it's a diamond, multiplier increases.
+   - If it's a mine, the game ends.
+4. User can **cash out anytime** to secure current multiplier reward.
+
+---
+
+### 🧠 Admin Side Controls (Optional)
+You can add backend logic to:
+- Limit cashout to simulate house edge
+- Adjust mine placements based on profit strategies (e.g., dynamic RTP)
+- Track session volatility
+
+---
+
+### 🧪 Testing Simulation
+You can test the game in Replit or Node using this simulation:
+```js
+let game = startGame(0.001, 5);
+game = revealCell(game, 3);
+game = revealCell(game, 6);
+console.log(game);
+console.log("Cash Out Value:", cashOut(game));
+```
+
+---
+
+Want me to give you a **React + Tailwind frontend code** too just like the Stake UI?

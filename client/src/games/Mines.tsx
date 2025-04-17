@@ -8,186 +8,219 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 
 // Import SVG components for Gems and Bombs
-import { DiamondSVG, DarkerDiamondSVG } from '@/assets/images/diamond';
-import { BombSVG } from '@/assets/images/bomb';
+// Import the actual PNG images from public folder
+// These are actual PNGs instead of SVG components
+import { BombImage, DiamondImage, DarkerDiamondImage } from '@/assets/minesImages';
 
 const MINE_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-const TOTAL_TILES = 25;
-const GRID_ROWS = 5;
-const GRID_COLS = 5;
+const GRID_SIZE = 5;
+const TOTAL_CELLS = GRID_SIZE * GRID_SIZE; // 25 cells
 
 type TileStatus = 'hidden' | 'revealed' | 'mine' | 'gem' | 'selected';
 type GameMode = 'manual' | 'auto';
-type GameState = 'idle' | 'active' | 'won' | 'lost';
+
+// Define game state interface based on the new logic
+interface GameStateType {
+  betAmount: number;
+  numberOfMines: number;
+  minePositions: number[];
+  revealed: boolean[];
+  isGameOver: boolean;
+  isWon: boolean;
+  diamondsCollected: number;
+  multiplier: number;
+}
 
 const MinesGame = () => {
   const { getGameResult } = useProvablyFair('mines');
   const { balance, placeBet } = useBalance();
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
-  const [gameState, setGameState] = useState<GameState>('idle');
-  const [betAmount, setBetAmount] = useState('0.00000001');
+  const [betAmountStr, setBetAmountStr] = useState('0.00000001');
   const [mineCount, setMineCount] = useState(20);
-  const [gemCount, setGemCount] = useState(5);
-  const [tiles, setTiles] = useState<TileStatus[]>(Array(TOTAL_TILES).fill('hidden'));
-  const [minePositions, setMinePositions] = useState<number[]>([]);
-  const [revealedPositions, setRevealedPositions] = useState<number[]>([]);
-  const [multiplier, setMultiplier] = useState(1.00);
-  const [totalProfit, setTotalProfit] = useState(0);
+  const [tiles, setTiles] = useState<TileStatus[]>(Array(TOTAL_CELLS).fill('hidden'));
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
-  const [showCashout, setShowCashout] = useState(false);
+
+  // New game state with the logic from the provided code
+  const [gameState, setGameState] = useState<GameStateType | null>(null);
   
-  // Update gem count when mine count changes
-  useEffect(() => {
-    setGemCount(TOTAL_TILES - mineCount);
-  }, [mineCount]);
+  // Calculate gem count
+  const gemCount = TOTAL_CELLS - mineCount;
   
-  // Calculate multiplier when revealed positions or mine count changes
-  useEffect(() => {
-    if (revealedPositions.length === 0) {
-      setMultiplier(1.00);
-      setTotalProfit(0);
-      return;
-    }
-    
-    // Calculate multiplier based on revealed safe tiles
-    const safeSquares = TOTAL_TILES - mineCount;
-    const revealed = revealedPositions.length;
-    
-    // This formula is approximate - real Stake.com may use a different one
-    const multi = parseFloat(((safeSquares / (safeSquares - revealed)) * 0.97).toFixed(2));
-    setMultiplier(multi);
-    
-    // Calculate total profit
-    const amount = parseFloat(betAmount) || 0;
-    const profit = calculateProfit(amount, multi);
-    setTotalProfit(profit);
-    
-    // Show cashout if we've revealed at least one gem
-    setShowCashout(gameState === 'active' && revealed > 0);
-    
-  }, [revealedPositions, mineCount, betAmount, gameState]);
+  // Calculate total profit
+  const totalProfit = gameState 
+    ? calculateProfit(gameState.betAmount, gameState.multiplier) 
+    : 0;
+
+  // Show cashout if game is active and we've revealed at least one diamond
+  const showCashout = gameState && !gameState.isGameOver && gameState.diamondsCollected > 0;
   
   const handleBetAmountChange = (value: string) => {
-    if (gameState === 'active') return;
-    setBetAmount(value);
+    if (gameState && !gameState.isGameOver) return;
+    setBetAmountStr(value);
   };
   
   const handleHalfBet = () => {
-    if (gameState === 'active') return;
-    const amount = parseFloat(betAmount) || 0;
-    setBetAmount((amount / 2).toFixed(8));
+    if (gameState && !gameState.isGameOver) return;
+    const amount = parseFloat(betAmountStr) || 0;
+    setBetAmountStr((amount / 2).toFixed(8));
   };
   
   const handleDoubleBet = () => {
-    if (gameState === 'active') return;
-    const amount = parseFloat(betAmount) || 0;
-    setBetAmount((amount * 2).toFixed(8));
+    if (gameState && !gameState.isGameOver) return;
+    const amount = parseFloat(betAmountStr) || 0;
+    setBetAmountStr((amount * 2).toFixed(8));
   };
   
   const handleMineCountChange = (value: string) => {
-    if (gameState === 'active') return;
+    if (gameState && !gameState.isGameOver) return;
     setMineCount(parseInt(value));
   };
-  
-  const placeBetAndStart = async () => {
-    if (gameState === 'active') return;
-    
-    // Reset game state
-    setTiles(Array(TOTAL_TILES).fill('hidden'));
-    setRevealedPositions([]);
-    setSelectedTile(null);
-    setGameState('active');
-    
-    // Generate mine positions using provably fair algorithm
+
+  // Generate mine positions using provably fair algorithm or fallback
+  function generateMinePositions(numberOfMines: number): number[] {
     const result = getGameResult();
     if (typeof result === 'function') {
-      // Generate random mine positions using provably fair algorithm
-      const mines = result(TOTAL_TILES, mineCount);
-      setMinePositions(mines);
+      // Use provably fair algorithm if available
+      return result(TOTAL_CELLS, numberOfMines);
     } else {
-      // Fallback to a simple random algorithm if getGameResult doesn't return a function
-      const mines: number[] = [];
-      while (mines.length < mineCount) {
-        const mine = Math.floor(Math.random() * TOTAL_TILES);
-        if (!mines.includes(mine)) {
-          mines.push(mine);
-        }
+      // Fallback to simple random algorithm
+      const positions = new Set<number>();
+      while (positions.size < numberOfMines) {
+        const randomPos = Math.floor(Math.random() * TOTAL_CELLS);
+        positions.add(randomPos);
       }
-      setMinePositions(mines);
+      return [...positions];
     }
+  }
+
+  // Calculate multiplier using the provided formula
+  function calculateMultiplier(diamonds: number, mines: number): number {
+    if (diamonds === 0) return 1;
+    const oddsLeft = TOTAL_CELLS - diamonds;
+    const mineChance = mines / oddsLeft;
+    const safeChance = 1 - mineChance;
+    const payout = 1 * Math.pow(1 / safeChance, diamonds);
+    return +payout.toFixed(4); // Round to 4 decimal places like Stake
+  }
+  
+  // Start a new game
+  const startGame = () => {
+    if (gameState && !gameState.isGameOver) return;
+    
+    const betAmount = parseFloat(betAmountStr) || 0.00000001;
+    const minePositions = generateMinePositions(mineCount);
+    
+    // Create new game state
+    const newGameState: GameStateType = {
+      betAmount,
+      numberOfMines: mineCount,
+      minePositions,
+      revealed: Array(TOTAL_CELLS).fill(false),
+      isGameOver: false,
+      isWon: false,
+      diamondsCollected: 0,
+      multiplier: 1,
+    };
+    
+    setGameState(newGameState);
+    setTiles(Array(TOTAL_CELLS).fill('hidden'));
+    setSelectedTile(null);
     
     // In a real app, this would call the API to place a bet
     // const response = await placeBet.mutateAsync({
-    //   amount: parseFloat(betAmount),
+    //   amount: betAmount,
     //   gameId: 2, // Mines game id
     //   clientSeed: 'seed',
     //   options: { mineCount }
     // });
-    // setCurrBetId(response.data.betId);
   };
   
-  const handleTileClick = (index: number) => {
-    // If game not active or already clicked, do nothing
-    if (gameState !== 'active' || revealedPositions.includes(index)) return;
+  // Reveal a cell
+  const revealCell = (cellIndex: number) => {
+    if (!gameState || gameState.isGameOver || gameState.revealed[cellIndex]) return;
     
-    // If in "random tile" selection mode, just select the tile
-    if (selectedTile !== null) {
-      setSelectedTile(null); // Clear selection
-    }
+    // Create copy of current game state
+    const updatedGameState = { ...gameState };
+    updatedGameState.revealed = [...gameState.revealed];
     
-    const newRevealedPositions = [...revealedPositions, index];
-    setRevealedPositions(newRevealedPositions);
-    
-    const newTiles = [...tiles];
+    // Mark cell as revealed
+    updatedGameState.revealed[cellIndex] = true;
     
     // Check if clicked on a mine
-    if (minePositions.includes(index)) {
-      // Game over - reveal all mines
-      minePositions.forEach(pos => {
+    if (gameState.minePositions.includes(cellIndex)) {
+      updatedGameState.isGameOver = true;
+      updatedGameState.isWon = false;
+      
+      // Update tiles display
+      const newTiles = [...tiles];
+      
+      // Reveal all mines
+      gameState.minePositions.forEach(pos => {
         newTiles[pos] = 'mine';
       });
-      // Also reveal all safe tiles
-      for (let i = 0; i < TOTAL_TILES; i++) {
-        if (!minePositions.includes(i) && !revealedPositions.includes(i)) {
+      
+      // Reveal all gems that weren't clicked
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        if (!gameState.minePositions.includes(i) && !updatedGameState.revealed[i]) {
           newTiles[i] = 'gem';
         }
       }
-      setTiles(newTiles);
-      setGameState('lost');
       
-      // In a real app, this would call the API to complete the bet
-      // completeBet.mutate({
-      //   betId: currBetId!,
-      //   outcome: { minePositions, revealedPositions: newRevealedPositions, win: false }
-      // });
+      setTiles(newTiles);
     } else {
-      // Reveal gem
-      newTiles[index] = 'revealed';
+      // Clicked on a diamond
+      updatedGameState.diamondsCollected++;
+      updatedGameState.multiplier = calculateMultiplier(
+        updatedGameState.diamondsCollected,
+        updatedGameState.numberOfMines
+      );
+      
+      // Update tiles display
+      const newTiles = [...tiles];
+      newTiles[cellIndex] = 'revealed';
       setTiles(newTiles);
       
-      // Check if all non-mine tiles are revealed
-      const safeSquares = TOTAL_TILES - mineCount;
-      if (newRevealedPositions.length === safeSquares) {
-        // Player won by revealing all safe tiles
-        setGameState('won');
-        
-        // In a real app, this would call the API to complete the bet
-        // completeBet.mutate({
-        //   betId: currBetId!,
-        //   outcome: { minePositions, revealedPositions: newRevealedPositions, win: true }
-        // });
+      // Check if all diamonds are collected
+      if (updatedGameState.diamondsCollected === TOTAL_CELLS - updatedGameState.numberOfMines) {
+        updatedGameState.isGameOver = true;
+        updatedGameState.isWon = true;
       }
     }
+    
+    setGameState(updatedGameState);
+    
+    // In a real app, this would call the API to complete the bet
+    // if (updatedGameState.isGameOver) {
+    //   completeBet.mutate({
+    //     betId: currBetId!,
+    //     outcome: { 
+    //       minePositions: updatedGameState.minePositions, 
+    //       revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
+    //       win: updatedGameState.isWon 
+    //     }
+    //   });
+    // }
   };
   
+  // Handle tile click
+  const handleTileClick = (index: number) => {
+    // If in "random tile" selection mode, just clear the selection
+    if (selectedTile !== null) {
+      setSelectedTile(null);
+    }
+    
+    revealCell(index);
+  };
+  
+  // Select a random tile
   const selectRandomTile = () => {
-    if (gameState !== 'active') return;
+    if (!gameState || gameState.isGameOver) return;
     
     // Find all hidden tiles that haven't been revealed yet
     const availableTiles: number[] = [];
-    for (let i = 0; i < TOTAL_TILES; i++) {
-      if (!revealedPositions.includes(i)) {
+    for (let i = 0; i < TOTAL_CELLS; i++) {
+      if (!gameState.revealed[i]) {
         availableTiles.push(i);
       }
     }
@@ -198,32 +231,44 @@ const MinesGame = () => {
     }
   };
   
+  // Cash out and end the game
   const cashout = () => {
-    if (gameState !== 'active' || revealedPositions.length === 0) return;
+    if (!gameState || gameState.isGameOver || gameState.diamondsCollected === 0) return;
+    
+    // Create copy of current game state
+    const updatedGameState = { ...gameState };
+    updatedGameState.isGameOver = true;
+    updatedGameState.isWon = true;
     
     // Reveal all tiles for visual effect
     const newTiles = [...tiles];
     
     // Reveal all mines
-    minePositions.forEach(pos => {
+    gameState.minePositions.forEach(pos => {
       newTiles[pos] = 'mine';
     });
     
-    // Reveal all gems
-    for (let i = 0; i < TOTAL_TILES; i++) {
-      if (!minePositions.includes(i) && !revealedPositions.includes(i)) {
+    // Reveal all gems that weren't clicked
+    for (let i = 0; i < TOTAL_CELLS; i++) {
+      if (!gameState.minePositions.includes(i) && !gameState.revealed[i]) {
         newTiles[i] = 'gem';
       }
     }
     
     setTiles(newTiles);
-    setGameState('won');
+    setGameState(updatedGameState);
     
     // In a real app, this would call the API to complete the bet
     // completeBet.mutate({
     //   betId: currBetId!,
-    //   outcome: { minePositions, revealedPositions, win: true }
+    //   outcome: { 
+    //     minePositions: updatedGameState.minePositions, 
+    //     revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
+    //     win: true 
+    //   }
     // });
+    
+    return calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
   };
 
   const renderManualControls = () => (
@@ -233,17 +278,17 @@ const MinesGame = () => {
         <div className="flex items-center space-x-1 mb-2">
           <Input
             type="text"
-            value={betAmount}
+            value={betAmountStr}
             onChange={(e) => handleBetAmountChange(e.target.value)}
             className="bg-[#243442] border-none text-white h-8 text-sm"
-            disabled={gameState === 'active'}
+            disabled={gameState && !gameState.isGameOver}
           />
           <Button 
             onClick={handleHalfBet} 
             variant="outline" 
             size="sm" 
             className="bg-transparent border-[#243442] text-white h-8 px-2"
-            disabled={gameState === 'active'}
+            disabled={gameState && !gameState.isGameOver}
           >
             ½
           </Button>
@@ -252,7 +297,7 @@ const MinesGame = () => {
             variant="outline" 
             size="sm" 
             className="bg-transparent border-[#243442] text-white h-8 px-2"
-            disabled={gameState === 'active'}
+            disabled={gameState && !gameState.isGameOver}
           >
             2×
           </Button>
@@ -267,7 +312,7 @@ const MinesGame = () => {
           <Select 
             value={mineCount.toString()} 
             onValueChange={handleMineCountChange}
-            disabled={gameState === 'active'}
+            disabled={gameState && !gameState.isGameOver}
           >
             <SelectTrigger className="w-full bg-[#243442] border-none text-white h-8 text-sm">
               <SelectValue placeholder="Select" />
@@ -291,9 +336,11 @@ const MinesGame = () => {
       </div>
       
       {/* Total Profit */}
-      {gameState === 'active' && revealedPositions.length > 0 ? (
+      {gameState && !gameState.isGameOver && gameState.diamondsCollected > 0 ? (
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Total profit ({multiplier.toFixed(2)}x)</div>
+          <div className="text-xs text-muted-foreground mb-1">
+            Total profit ({gameState.multiplier.toFixed(2)}x)
+          </div>
           <div className="h-8 bg-[#243442] rounded flex items-center justify-between px-3 text-sm">
             <span>{formatCrypto(totalProfit)}</span>
             <span className="text-amber-400">₿</span>
@@ -302,7 +349,7 @@ const MinesGame = () => {
       ) : null}
       
       {/* Pick Random Tile Button (only shown during active game) */}
-      {gameState === 'active' && (
+      {gameState && !gameState.isGameOver && (
         <Button 
           className="w-full bg-[#243442] hover:bg-[#2a3c4c] text-white h-10"
           onClick={selectRandomTile}
@@ -322,8 +369,8 @@ const MinesGame = () => {
       ) : (
         <Button 
           className="w-full bg-[#7bfa4c] hover:bg-[#6ae43d] text-black font-semibold h-12"
-          onClick={placeBetAndStart}
-          disabled={gameState === 'active'}
+          onClick={startGame}
+          disabled={gameState && !gameState.isGameOver}
         >
           Bet
         </Button>
@@ -339,11 +386,11 @@ const MinesGame = () => {
   
   const getTileContent = (index: number, status: TileStatus) => {
     if (status === 'revealed') {
-      return <DiamondSVG />;
+      return <DiamondImage />;
     } else if (status === 'mine') {
-      return <BombSVG />;
+      return <BombImage />;
     } else if (status === 'gem') {
-      return <DarkerDiamondSVG />;
+      return <DarkerDiamondImage />;
     } else if (selectedTile === index) {
       return (
         <div className="absolute inset-0 border-2 border-[#7bfa4c] rounded-md animate-pulse"></div>
@@ -354,7 +401,7 @@ const MinesGame = () => {
   
   // Custom multiplier overlay display
   const renderMultiplierOverlay = () => {
-    if (gameState === 'active' && revealedPositions.length > 0) {
+    if (gameState && !gameState.isGameOver && gameState.diamondsCollected > 0) {
       const centerIndex = 12; // Middle of the 5x5 grid
       return (
         <div 
@@ -366,13 +413,13 @@ const MinesGame = () => {
                       bg-[#7bfa4c] bg-opacity-20 border-2 border-[#7bfa4c] rounded-md
                       flex flex-col items-center justify-center p-4 w-32 h-32`}
             style={{
-              gridRowStart: Math.floor(centerIndex / 5) + 1,
-              gridColumnStart: (centerIndex % 5) + 1,
+              gridRowStart: Math.floor(centerIndex / GRID_SIZE) + 1,
+              gridColumnStart: (centerIndex % GRID_SIZE) + 1,
             }}
           >
-            <div className="text-xl font-bold text-[#7bfa4c]">{multiplier.toFixed(2)}x</div>
+            <div className="text-xl font-bold text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</div>
             <div className="text-sm text-white flex items-center">
-              {formatCrypto(parseFloat(betAmount) || 0)}
+              {formatCrypto(gameState.betAmount)}
               <span className="text-amber-400 ml-1">₿</span>
             </div>
           </div>
@@ -396,7 +443,7 @@ const MinesGame = () => {
             ${status === 'gem' ? 'bg-[#1a2c38]' : ''}
           `}
           onClick={() => handleTileClick(index)}
-          disabled={gameState !== 'active' || revealedPositions.includes(index)}
+          disabled={!gameState || gameState.isGameOver || (gameState.revealed && gameState.revealed[index])}
         >
           {getTileContent(index, status)}
         </button>
