@@ -5,6 +5,7 @@ import Home from "@/pages/home";
 import Game from "@/pages/game";
 import Originals from "@/pages/originals";
 import Admin from "@/pages/admin";
+import InitDb from "@/pages/InitDb";
 import Layout from "@/components/layout/Layout";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/casino/games/:gameSlug" component={Game} />
       <Route path="/originals" component={Originals} />
       <Route path="/admin" component={Admin} />
+      <Route path="/init-db" component={InitDb} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

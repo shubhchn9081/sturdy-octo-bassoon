@@ -126,6 +126,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Initialize database with games (dev only)
+  app.post('/api/initialize-games', async (req, res) => {
+    try {
+      // Import GAMES array from client
+      const { GAMES } = require('../client/src/games');
+      
+      // Check if games already exist
+      const existingGames = await storage.getAllGames();
+      
+      if (existingGames.length > 0) {
+        return res.json({ 
+          message: 'Games already initialized', 
+          count: existingGames.length,
+          games: existingGames
+        });
+      }
+      
+      // Initialize games from frontend list
+      const createdGames = [];
+      for (const game of GAMES) {
+        const gameRecord = await storage.createGame({
+          name: game.name,
+          slug: game.slug,
+          type: game.type,
+          activePlayers: game.activePlayers || Math.floor(Math.random() * 10000),
+          rtp: game.rtp || 99,
+          maxMultiplier: game.maxMultiplier || 1000,
+          minBet: game.minBet || 0.00000001,
+          maxBet: game.maxBet || 100,
+          imageUrl: null
+        });
+        createdGames.push(gameRecord);
+      }
+      
+      res.json({ 
+        message: 'Games initialized successfully', 
+        count: createdGames.length,
+        games: createdGames
+      });
+    } catch (error) {
+      console.error('Error initializing games:', error);
+      res.status(500).json({ 
+        message: 'Failed to initialize games', 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
   app.get('/api/games/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
