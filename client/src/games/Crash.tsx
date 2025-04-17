@@ -104,10 +104,15 @@ const CrashGame: React.FC = () => {
       ctx.fillText(marker.label, CANVAS_WIDTH - 5, CANVAS_HEIGHT - y - 2);
     });
     
+    // Add shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetY = 5;
+    
     // Begin drawing the main crash line
     ctx.beginPath();
     ctx.strokeStyle = '#ffffff'; // White line as shown in the new screenshot
-    ctx.lineWidth = 7; // Bolder line to match the screenshot
+    ctx.lineWidth = 10; // Extra bold line as requested
     
     // Start at the bottom-left of the chart
     ctx.moveTo(0, CANVAS_HEIGHT);
@@ -120,6 +125,11 @@ const CrashGame: React.FC = () => {
     // Stroke the line
     ctx.stroke();
     
+    // Reset shadow properties
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    
     // Fill the area under the graph
     if (dataPoints.length > 0) {
       ctx.lineTo(dataPoints[dataPoints.length - 1].x, CANVAS_HEIGHT);
@@ -130,6 +140,11 @@ const CrashGame: React.FC = () => {
       // Draw graph endpoint circle
       const lastPoint = dataPoints[dataPoints.length - 1];
       
+      // Add shadow effect for circle
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetY = 5;
+      
       ctx.beginPath();
       ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 9, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
@@ -137,6 +152,11 @@ const CrashGame: React.FC = () => {
       ctx.lineWidth = 2;
       ctx.fill();
       ctx.stroke(); // Add stroke to make the circle more visible
+      
+      // Reset shadow properties again
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
     }
     
     // Draw time markers
