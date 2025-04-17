@@ -72,29 +72,32 @@ const GameCard = ({
   const hasImage = gameImage !== null;
 
   return (
-    <div className={cn("game-card block cursor-pointer", className)} onClick={() => window.location.href = `/games/${slug}`}>
-      <div className={cn("p-4 flex flex-col items-center justify-center h-40 relative", color)}>
+    <div 
+      className={cn("game-card block cursor-pointer overflow-hidden rounded-md transition-transform hover:scale-[1.02]", className)} 
+      onClick={() => window.location.href = `/games/${slug}`}
+    >
+      <div className={cn("p-4 flex flex-col items-center justify-center h-44 relative", color)}>
         {multiplier && (
-          <div className="absolute top-2 right-2 bg-yellow-500 text-xs px-2 py-1 rounded-bl text-white font-bold">
+          <div className="absolute top-2 right-2 bg-yellow-500 text-xs px-2 py-1 rounded-sm text-black font-bold">
             {multiplier}
           </div>
         )}
         
         {hasImage ? (
-          <div className="w-24 h-24 flex items-center justify-center">
+          <div className="w-28 h-28 flex items-center justify-center">
             <img src={gameImage} alt={name} className="max-w-full max-h-full" />
           </div>
         ) : (
-          <Dices className="h-16 w-16 text-white" />
+          <Dices className="h-20 w-20 text-white" />
         )}
         
-        <h3 className="text-2xl font-bold text-white mt-2">{name}</h3>
+        <h3 className="text-xl font-bold text-white mt-3">{name}</h3>
       </div>
-      <div className="bg-panel-bg px-3 py-2 text-xs text-muted-foreground uppercase">
+      <div className="bg-[#172B3A] px-3 py-2 text-xs text-[#546d7a] uppercase font-semibold tracking-wide">
         {type}
       </div>
-      <div className="bg-secondary px-3 py-1 text-xs text-green-400 flex items-center">
-        <span className="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+      <div className="bg-[#0F212E] px-3 py-1.5 text-xs text-green-400 flex items-center">
+        <span className="w-2 h-2 bg-green-400 rounded-full mr-1.5"></span>
         {activePlayers.toLocaleString()} playing
       </div>
     </div>

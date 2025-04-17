@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { GAMES, getGameBySlug } from '@/games';
+import Layout from '@/components/layout/Layout';
 import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
 import Plinko from '@/games/Plinko';
@@ -63,22 +64,28 @@ const GamePage = () => {
   
   if (!GameComponent) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="bg-secondary rounded-lg p-6 text-center">
-          <h1 className="text-2xl mb-4">Game Not Found</h1>
-          <p>The game you're looking for does not exist or is not available.</p>
-          <button 
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
-            onClick={() => setLocation('/')}
-          >
-            Back to Home
-          </button>
+      <Layout>
+        <div className="container mx-auto p-6">
+          <div className="bg-secondary rounded-lg p-6 text-center">
+            <h1 className="text-2xl mb-4">Game Not Found</h1>
+            <p>The game you're looking for does not exist or is not available.</p>
+            <button 
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+              onClick={() => setLocation('/')}
+            >
+              Back to Home
+            </button>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
   
-  return <GameComponent />;
+  return (
+    <Layout>
+      <GameComponent />
+    </Layout>
+  );
 };
 
 export default GamePage;
