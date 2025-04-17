@@ -11,6 +11,21 @@ import Hilo from './Hilo';
 export const GAMES = [
   {
     id: 1,
+    name: 'CRASH',
+    slug: 'crash',
+    type: 'STAKE ORIGINALS',
+    description: 'Bet and cash out before it crashes',
+    color: 'bg-orange-500',
+    iconType: 'crash',
+    component: Crash,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: 1000.00,
+    activePlayers: 9876
+  },
+  {
+    id: 2,
     name: 'PLINKO',
     slug: 'plinko',
     type: 'STAKE ORIGINALS',
@@ -25,7 +40,7 @@ export const GAMES = [
     activePlayers: 7253
   },
   {
-    id: 2,
+    id: 3,
     name: 'LIMBO',
     slug: 'limbo',
     type: 'STAKE ORIGINALS',
@@ -40,7 +55,7 @@ export const GAMES = [
     activePlayers: 10890
   },
   {
-    id: 3,
+    id: 4,
     name: 'MINES',
     slug: 'mines',
     type: 'STAKE ORIGINALS',
@@ -55,7 +70,7 @@ export const GAMES = [
     activePlayers: 3569
   },
   {
-    id: 4,
+    id: 5,
     name: 'DICE',
     slug: 'dice',
     type: 'STAKE ORIGINALS',
@@ -70,7 +85,7 @@ export const GAMES = [
     activePlayers: 3705
   },
   {
-    id: 5,
+    id: 6,
     name: 'VIDEO POKER',
     slug: 'video-poker',
     type: 'STAKE ORIGINALS',
@@ -85,7 +100,7 @@ export const GAMES = [
     activePlayers: 6399
   },
   {
-    id: 6,
+    id: 7,
     name: 'DRAGON TOWER',
     slug: 'dragon-tower',
     type: 'STAKE ORIGINALS',
@@ -100,7 +115,7 @@ export const GAMES = [
     activePlayers: 2532
   },
   {
-    id: 7,
+    id: 8,
     name: 'BLUE SAMURAI',
     slug: 'blue-samurai',
     type: 'STAKE EXCLUSIVES',
