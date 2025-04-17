@@ -83,7 +83,9 @@ const GamePage = () => {
   
   return (
     <Layout>
-      <GameComponent />
+      <div className="w-full h-full">
+        <GameComponent />
+      </div>
     </Layout>
   );
 };

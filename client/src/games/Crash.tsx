@@ -47,9 +47,32 @@ const MULTIPLIER_QUICKTABS = [
   { value: 10.0, label: '10x', color: 'bg-[#5BE12C]' }
 ];
 
+// Define a default bet amount for cases where context isn't available
+const DEFAULT_BET_AMOUNT = 0.001;
+
 const CrashGame: React.FC = () => {
-  const { betAmount, setBetAmount } = useGame();
-  const { user } = useUser();
+  // Use try/catch to handle missing context
+  let gameContext;
+  let betAmount = DEFAULT_BET_AMOUNT;
+  let setBetAmount = (amount: number) => {};
+  
+  try {
+    gameContext = useGame();
+    betAmount = gameContext.betAmount;
+    setBetAmount = gameContext.setBetAmount;
+  } catch (error) {
+    console.warn("GameContext not available, using default values");
+  }
+  
+  // Handle user context possibly missing
+  let user = null;
+  try {
+    const userContext = useUser();
+    user = userContext.user;
+  } catch (error) {
+    console.warn("UserContext not available, using default values");
+  }
+  
   const { serverSeed, clientSeed, nonce, regenerateServerSeed } = useProvablyFair('crash');
   
   // Game Refs and States
