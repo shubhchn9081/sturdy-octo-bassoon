@@ -58,7 +58,7 @@ const Sidebar = () => {
           className="flex items-center justify-center mb-6 cursor-pointer"
           onClick={() => window.location.href = '/'}
         >
-          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10" />
+          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
         </div>
         
         <div className="flex space-x-2 mb-6">

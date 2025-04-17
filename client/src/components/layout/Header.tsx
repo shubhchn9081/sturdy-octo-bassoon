@@ -29,7 +29,7 @@ const Header = () => {
         </div>
         
         <div className="flex items-center cursor-pointer" onClick={() => window.location.href = '/'}>
-          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10" />
+          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
         </div>
         
         <div className="flex items-center space-x-4">

@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="bg-[#0F212E] py-6 px-6 text-[#7F8990] text-sm border-t border-[#172B3A]">
       <div className="flex justify-center mb-4">
-        <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10" />
+        <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
       </div>
       <div className="text-center mb-4">
         <p>© 2025 Stake.com | All Rights Reserved.</p>

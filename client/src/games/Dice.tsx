@@ -279,7 +279,7 @@ const DiceGame = () => {
               {/* Bottom toolbar */}
               <div className="flex justify-between items-center mt-4">
                 <div>
-                  <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-6 opacity-30" />
+                  <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10 opacity-30" />
                 </div>
                 <div className="text-xs text-[#7F8990]">
                   <span className="cursor-pointer hover:text-white">Fairness</span>
