@@ -99,25 +99,35 @@ const Keno: React.FC = () => {
     if (isPlaying) return;
     
     setSelectedNumbers(prev => {
+      // Create a copy of the current selections array
+      const newSelections = [...prev];
+      
       // If already selected, remove it
-      if (prev.includes(num)) {
-        return prev.filter(n => n !== num);
+      const index = newSelections.indexOf(num);
+      if (index !== -1) {
+        newSelections.splice(index, 1);
+        return newSelections;
       }
       
       // If max selections reached, don't add
-      if (prev.length >= MAX_SELECTIONS) {
-        return prev;
+      if (newSelections.length >= MAX_SELECTIONS) {
+        console.log(`Max selections (${MAX_SELECTIONS}) reached`);
+        return newSelections;
       }
       
       // Add number to selections
-      return [...prev, num];
+      return [...newSelections, num];
     });
   };
   
-  // Clear all selected numbers
+  // Clear all selected numbers and reset the game state
   const clearSelections = () => {
     if (isPlaying) return;
+    console.log("Clearing game state");
     setSelectedNumbers([]);
+    setDrawnNumbers([]);
+    setMatchedNumbers([]);
+    setResult(null);
   };
   
   // Auto pick random numbers
@@ -349,7 +359,7 @@ const Keno: React.FC = () => {
             </button>
             <button 
               onClick={clearSelections}
-              className="flex-1 py-2 bg-[#0F212E] rounded text-center"
+              className="flex-1 py-2 bg-[#0F212E] hover:bg-[#1D3446] text-yellow-200 rounded text-center font-medium transition-colors"
               disabled={isPlaying}
             >
               Clear Table
