@@ -27,33 +27,33 @@ const GameCard = ({
   className,
   imageUrl
 }: GameCardProps) => {
-  // Function to get gradient class based on game type
-  const getGradientClass = () => {
+  // Function to get gradient style based on game type
+  const getGradientStyle = () => {
     switch (name) {
       case 'MINES':
-        return 'from-blue-500 to-blue-800';
+        return { background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)' };
       case 'DICE':
-        return 'from-pink-400 to-red-500';
+        return { background: 'linear-gradient(135deg, #f472b6 0%, #ef4444 100%)' };
       case 'PLINKO':
-        return 'from-purple-400 to-yellow-400';
+        return { background: 'linear-gradient(135deg, #a78bfa 0%, #facc15 100%)' };
       case 'LIMBO':
-        return 'from-yellow-400 to-orange-500';
+        return { background: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)' };
       case 'PUMP':
-        return 'from-red-400 to-pink-500';
+        return { background: 'linear-gradient(135deg, #f87171 0%, #ec4899 100%)' };
       case 'CRASH':
-        return 'from-blue-300 to-yellow-400';
+        return { background: 'linear-gradient(135deg, #60a5fa 0%, #facc15 100%)' };
       case 'KENO':
-        return 'from-green-400 to-blue-500';
+        return { background: 'linear-gradient(135deg, #10b981 0%, #2563eb 100%)' };
       case 'DRAGON TOWER':
-        return 'from-orange-400 to-red-600';
+        return { background: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)' };
       case 'HILO':
-        return 'from-green-400 to-emerald-700';
+        return { background: 'linear-gradient(135deg, #22c55e 0%, #065f46 100%)' };
       case 'VIDEO POKER':
-        return 'from-red-500 to-red-800';
+        return { background: 'linear-gradient(135deg, #ef4444 0%, #7f1d1d 100%)' };
       case 'BLUE SAMURAI':
-        return 'from-blue-400 to-indigo-700';
+        return { background: 'linear-gradient(135deg, #3b82f6 0%, #4338ca 100%)' };
       default:
-        return 'from-blue-500 to-blue-800';
+        return { background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)' };
     }
   };
   
@@ -200,12 +200,9 @@ const GameCard = ({
     }
   };
 
-  // Get the gradient class for this game
-  const gradientClass = getGradientClass();
-  
   // Get image source and icon
   const imageSource = getImageSource();
-  const gameIcon = getGameIcon();
+  const gradientStyle = getGradientStyle();
   
   // Generic fallback image for all games
   const fallbackImageUrl = 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990258/game-fallback_vwu7dc.jpg';
@@ -213,17 +210,18 @@ const GameCard = ({
   return (
     <div 
       className={cn(
-        "game-card w-[124px] h-[160px] rounded-xl shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-105 transition-transform duration-200 ease-in-out",
+        "game-card w-[124px] h-[160px] rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out",
         className
       )}
       onClick={() => window.location.href = `/games/${slug}`}
     >
       {/* Main card content */}
-      <div className={`flex-1 flex flex-col items-center justify-between px-3 py-4 ${
-        imageSource 
-          ? 'bg-gradient-to-br from-slate-900/80 to-slate-900/90 relative' 
-          : `bg-gradient-to-br ${gradientClass}`
-      }`}>
+      <div className="flex-1 relative">
+        {/* Background gradient or image */}
+        <div 
+          className="absolute inset-0 w-full h-full" 
+          style={!imageSource ? gradientStyle : undefined}
+        ></div>
         
         {/* Background image if available */}
         {imageSource && (
@@ -231,23 +229,19 @@ const GameCard = ({
             src={imageSource}
             fallbackSrc={fallbackImageUrl}
             alt={`${name} game background`}
-            className="absolute inset-0 w-full h-full object-cover -z-10"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         )}
         
-        {/* Game icon */}
-        {gameIcon}
-        
-        {/* Game title */}
-        <div className="text-center z-10">
-          <h3 className="text-white text-[14px] font-bold leading-none">{name}</h3>
-          <p className="text-gray-300 text-[11px] mt-1 tracking-wide">STAKE ORIGINALS</p>
+        {/* Game name shown centered and at bottom */}
+        <div className="absolute inset-x-0 bottom-0 px-3 py-2 flex items-center justify-center">
+          <h3 className="text-white text-[18px] font-bold tracking-wide drop-shadow-md uppercase text-center">{name}</h3>
         </div>
       </div>
       
       {/* Player count */}
       <div className="bg-[#0F212E] px-2 py-1 text-[11px] text-green-400 flex items-center justify-center">
-        <div className="w-2 h-2 rounded-full bg-green-400 mr-1"></div>
+        <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></div>
         {activePlayers.toLocaleString()} playing
       </div>
     </div>

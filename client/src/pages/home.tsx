@@ -123,20 +123,19 @@ const HomePage = () => {
           </div>
           
           {/* Game Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+          <div className="flex flex-wrap gap-4 justify-center md:justify-start">
             {filteredGames.map((game) => (
-              <div key={game.id} className="flex justify-center">
-                <GameCard
-                  id={game.id}
-                  name={game.name}
-                  slug={game.slug}
-                  type={game.type}
-                  activePlayers={game.activePlayers}
-                  color={game.color}
-                  iconType={game.iconType}
-                  multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${game.maxMultiplier.toFixed(2)}x` : undefined}
-                />
-              </div>
+              <GameCard
+                key={game.id}
+                id={game.id}
+                name={game.name}
+                slug={game.slug}
+                type={game.type}
+                activePlayers={game.activePlayers}
+                color={game.color}
+                iconType={game.iconType}
+                multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${game.maxMultiplier.toFixed(2)}x` : undefined}
+              />
             ))}
           </div>
         </div>
