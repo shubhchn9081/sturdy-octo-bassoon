@@ -169,10 +169,15 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
       password: formData.password,
       dateOfBirth: values.dateOfBirth,
       language: formData.language,
-      confirmPassword: formData.password, // Required by the schema but not sent to API
+      confirmPassword: formData.password, // Required by validation schema
     };
     
     registerMutation.mutate(registerData);
+    
+    // After registration attempt, check for success and close modal if successful
+    if (!registerMutation.isError) {
+      handleClose();
+    }
   }
 
   // Handle dialog close
@@ -321,6 +326,21 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
                 onClick={switchToRegister}
               >
                 Register an Account
+              </Button>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-[#243442]">
+              <Button 
+                type="button"
+                variant="outline" 
+                className="w-full border-[#243442] hover:bg-[#243442] text-white"
+                onClick={() => {
+                  loginForm.setValue('username', 'demo_user');
+                  loginForm.setValue('password', 'hashed_password');
+                  loginMutation.mutate({ username: 'demo_user', password: 'hashed_password' });
+                }}
+              >
+                Demo Login (For Development)
               </Button>
             </div>
           </form>
