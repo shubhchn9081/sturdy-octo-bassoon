@@ -352,14 +352,14 @@ const Keno: React.FC = () => {
           <div className="mb-4 flex gap-2">
             <button 
               onClick={autoPick}
-              className="flex-1 py-2 bg-[#0F212E] rounded text-center"
+              className="flex-1 py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium shadow-sm"
               disabled={isPlaying}
             >
               Auto Pick
             </button>
             <button 
               onClick={clearSelections}
-              className="flex-1 py-2 bg-[#0F212E] hover:bg-[#1D3446] text-yellow-200 rounded text-center font-medium transition-colors"
+              className="flex-1 py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium shadow-sm"
               disabled={isPlaying}
             >
               Clear Table
@@ -369,7 +369,7 @@ const Keno: React.FC = () => {
           {/* Bet Button */}
           <div className="mb-4">
             <Button 
-              className="w-full py-3 text-base font-medium bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md"
+              className="w-full py-3 text-base font-bold bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md shadow-md"
               onClick={placeBetAction}
               disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
             >
@@ -403,7 +403,21 @@ const Keno: React.FC = () => {
         {/* Right Side - Game Area */}
         <div className="w-full md:w-3/4 p-4 flex flex-col h-full">
           {/* Keno Grid */}
-          <div className="flex-grow bg-[#0E1C27] rounded-lg flex items-center justify-center p-2">
+          <div className="flex-grow bg-[#0E1C27] rounded-lg flex items-center justify-center p-2 relative">
+            {/* Win Overlay - Only shown when winning */}
+            {result?.won && (
+              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                <div className="bg-[#5BE12C] text-black font-bold text-4xl py-4 px-10 rounded-md shadow-lg border-2 border-black flex flex-col items-center">
+                  <div className="flex items-center">
+                    {result.multiplier.toFixed(2)}x
+                  </div>
+                  <div className="text-xl flex items-center mt-1">
+                    <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(8) : '0.00000000'}</span> 
+                    <span className="text-sm ml-1">₿</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="w-full max-w-4xl">
               {/* Main Number Grid - 5x8 layout */}
               <div className="grid grid-cols-8 gap-2 mb-4">
@@ -412,25 +426,39 @@ const Keno: React.FC = () => {
                   const isDrawn = drawnNumbers.includes(num);
                   const isMatched = isDrawn && isSelected;
                   
-                  // Colors based on screenshots
+                  // Colors based on screenshots - reproducing exact styles
                   let bgColor = 'bg-[#172B3A]'; // Default dark blue
                   let textColor = 'text-white';
                   
-                  if (isMatched) {
-                    bgColor = 'bg-[#5BE12C]'; // Green for matched
+                  if (isSelected && !isDrawn) {
+                    // Purple for selected but not yet drawn
+                    bgColor = 'bg-[#9333EA]';
+                  } else if (isMatched) {
+                    // Green with black text for matched (selected and drawn)
+                    bgColor = 'bg-[#5BE12C]';
                     textColor = 'text-black';
                   } else if (isDrawn) {
-                    bgColor = 'bg-[#FF3B3B]'; // Red for drawn but not selected
-                  } else if (isSelected) {
-                    bgColor = 'bg-[#9333EA]'; // Purple for selected
+                    // For drawn but not selected, show it as red text on dark bg
+                    bgColor = 'bg-[#172B3A]';
+                    textColor = 'text-[#FF3B3B]';
                   }
+                  
+                  // Add border styling if it's selected (with purple border)
+                  const borderClass = isSelected ? 
+                    'border-2 border-[#9333EA]' : 
+                    '';
+                  
+                  // Add a subtle glow effect for matched numbers
+                  const glowClass = isMatched ? 
+                    'shadow-[0_0_15px_rgba(91,225,44,0.7)]' : 
+                    '';
                   
                   return (
                     <button
                       key={num}
                       className={`
                         aspect-square rounded-md flex items-center justify-center text-lg font-bold transition-all
-                        ${bgColor} ${textColor}
+                        ${bgColor} ${textColor} ${borderClass} ${glowClass}
                         ${isPlaying ? 'cursor-not-allowed' : 'cursor-pointer'}
                         transform transition-transform duration-200
                         ${isDrawn ? 'scale-105' : ''}
