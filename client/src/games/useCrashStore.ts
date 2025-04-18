@@ -107,17 +107,26 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // New calculation for much flatter growth - closely matching Aviator/Stake Crash
-    // Uses a very slow linear growth initially, then accelerating exponentially
-    // This creates the signature flat start with increasing steepness
+    // Using the ideal Stake-style formula with logarithmic time-based exponential growth:
+    // t = time in seconds
+    // baseMultiplier = starting value (1.00x)
+    // growthRate = smoothness control (typically between 0.05 to 0.15)
+    const baseMultiplier = 1.0;
+    const growthRate = 0.12; // This produces a moderate curve similar to Stake
     
-    // Slow initial linear growth with very gradual acceleration
-    const baseMultiplier = 1 + (elapsed * 0.15); // Very slow linear growth
+    // Math.exp() gives a natural exponential curve, not too sharp
+    return baseMultiplier * Math.exp(growthRate * elapsed);
     
-    // Add extremely small exponential component that increases over time
-    const expComponent = Math.pow(elapsed * 0.2, 1.2) * 0.05;
-    
-    return baseMultiplier + expComponent;
+    // This produces multipliers like:
+    // Seconds (t)   Multiplier
+    // 1s            1.127
+    // 2s            1.271
+    // 3s            1.432
+    // 4s            1.611
+    // 5s            1.822
+    // 6s            2.057
+    // 7s            2.320
+    // 8s            2.614
   };
   
   // Cashout AI players

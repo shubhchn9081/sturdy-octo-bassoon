@@ -69,7 +69,7 @@ const CrashFinal: React.FC = () => {
     // Create the white lightning bolt curve that matches the screenshot exactly
     
     // Set up canvas with offset for multiplier scale
-    const leftMargin = 100; // Space for the multiplier scale
+    const leftMargin = 120; // More space for the multiplier scale
     const startX = leftMargin;
     const startY = CANVAS_HEIGHT;
     const usableWidth = CANVAS_WIDTH - leftMargin - 50; // Width minus margins
@@ -81,9 +81,11 @@ const CrashFinal: React.FC = () => {
     
     // Horizontal grid lines (multiplier levels)
     MULTIPLIER_MARKERS.forEach(marker => {
-      // Calculate y position based on multiplier
-      const yPercentage = (marker.value - 1) / 5; // Scale to 0-1 range based on max multiplier of ~6
-      const y = CANVAS_HEIGHT - (yPercentage * CANVAS_HEIGHT * 0.8);
+      // Calculate y position based on multiplier values exactly as in screenshot
+      // Using a logarithmic scale to match the exponential curve
+      const value = marker.value;
+      const logValue = Math.log(value) / Math.log(5); // Normalize to log base 5
+      const y = CANVAS_HEIGHT - (logValue * CANVAS_HEIGHT * 0.7);
       
       ctx.moveTo(leftMargin, y);
       ctx.lineTo(CANVAS_WIDTH, y);
@@ -105,44 +107,51 @@ const CrashFinal: React.FC = () => {
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     
-    // Calculate curve length based on current multiplier
-    const progress = Math.min(currentMultiplier, 15) / 15; // Scale to 0-1, max at multiplier 15
-    const curveLength = progress * usableWidth;
-    
-    // Generate curve points - specifically to match Aviator curve
-    // Uses a flat power curve (x^0.3) that rises extremely gradually
+    // Generate curve points using the same logarithmic growth as our multiplier function
+    // This ensures perfect match between what we draw and how we calculate
     const points = [];
+    const maxTime = 10; // Simulate 10 seconds of growth
+    const baseMultiplier = 1.0;
+    const growthRate = 0.12; // Same as in useCrashStore.ts
+    
+    // Calculate how far along the current time we are (0-1)
+    // where 1 means we've reached the crash point
+    const maxMultiplier = 5.0; // For visual scaling
+    const currentProgress = (currentMultiplier - 1) / (maxMultiplier - 1);
+    const simulatedTimeMax = Math.min(maxTime * currentProgress, maxTime);
+    
+    // Generate 100 points along the curve
     for (let i = 0; i <= 100; i++) {
-      const xPercent = i / 100;
-      const x = startX + (xPercent * curveLength);
+      const t = (i / 100) * simulatedTimeMax;
+      const multiplier = baseMultiplier * Math.exp(growthRate * t);
       
-      // Extremely flat curve function to match exactly what's in the screenshot
-      // The key is to use a very flat power curve with an exponent < 1
-      const yOffset = Math.pow(xPercent, 0.3) * 0.8; // Power curve with very small exponent for flatness
-      const y = CANVAS_HEIGHT - (yOffset * CANVAS_HEIGHT);
+      // X position is based on percentage along the width
+      const x = startX + (i / 100) * usableWidth * currentProgress;
       
-      points.push({ x, y });
+      // Y position uses logarithmic scale to match the multiplier exactly
+      const logValue = multiplier <= 1 ? 0 : Math.log(multiplier) / Math.log(maxMultiplier);
+      const y = CANVAS_HEIGHT - (logValue * CANVAS_HEIGHT * 0.7);
+      
+      points.push({ x, y, multiplier });
     }
     
     // Draw curve with extreme thickness and white color for visibility
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     
-    // Use bezier curves for smoother line
-    for (let i = 0; i < points.length - 1; i++) {
-      const curr = points[i];
-      const next = points[i + 1];
-      ctx.lineTo(curr.x, curr.y);
-    }
+    // Use line segments for the curve
+    points.forEach(point => {
+      ctx.lineTo(point.x, point.y);
+    });
     
     // Style the line with extreme thickness and white color
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 20; // Extra thick line for visibility
+    ctx.lineWidth = 10; // Thinner line for more accurate look
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
     
-    // Fill the area under the curve
+    // Fill the area under the curve with orange, exactly like in screenshot
     if (points.length > 0) {
       const lastPoint = points[points.length - 1];
       ctx.lineTo(lastPoint.x, CANVAS_HEIGHT);
@@ -152,10 +161,14 @@ const CrashFinal: React.FC = () => {
       
       // Draw the end point circle with glow
       ctx.beginPath();
-      ctx.arc(lastPoint.x, lastPoint.y, 20, 0, Math.PI * 2); // Larger circle (20px radius)
+      ctx.arc(lastPoint.x, lastPoint.y, 12, 0, Math.PI * 2); // Smaller 12px radius for more accurate look
       ctx.fillStyle = '#ffffff';
       ctx.fill();
-      ctx.lineWidth = 3;
+      
+      // Add extra glow to the circle
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+      ctx.shadowBlur = 20;
+      ctx.lineWidth = 2;
       ctx.strokeStyle = '#ffffff';
       ctx.stroke();
     }
@@ -165,18 +178,21 @@ const CrashFinal: React.FC = () => {
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
     
-    // Add highlighted multiplier value based on current position
-    const highlightedMarker = MULTIPLIER_MARKERS.find(m => m.value >= currentMultiplier) || 
-                              MULTIPLIER_MARKERS[MULTIPLIER_MARKERS.length - 1];
-    
-    if (highlightedMarker) {
-      const yPercentage = (highlightedMarker.value - 1) / 5;
-      const y = CANVAS_HEIGHT - (yPercentage * CANVAS_HEIGHT * 0.8);
+    // Add highlighted multiplier on the side scale based on current position
+    if (currentMultiplier > 1) {
+      // Find the closest marker
+      const highlightedMarker = MULTIPLIER_MARKERS.find(m => m.value >= currentMultiplier) || 
+                               MULTIPLIER_MARKERS[MULTIPLIER_MARKERS.length - 1];
       
-      ctx.fillStyle = '#5BE12C'; // Green highlight
-      ctx.beginPath();
-      ctx.arc(leftMargin - 10, y, 5, 0, Math.PI * 2);
-      ctx.fill();
+      if (highlightedMarker) {
+        const logValue = Math.log(highlightedMarker.value) / Math.log(5);
+        const y = CANVAS_HEIGHT - (logValue * CANVAS_HEIGHT * 0.7);
+        
+        ctx.fillStyle = '#5BE12C'; // Green highlight
+        ctx.beginPath();
+        ctx.arc(leftMargin - 10, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     
   }, [gameState, currentMultiplier]);
@@ -373,19 +389,38 @@ const CrashFinal: React.FC = () => {
         <div className="flex-1 p-4 flex flex-col">
           {/* Game Canvas */}
           <div className="relative mb-4 bg-[#0E1C27] rounded-lg overflow-hidden w-full h-full min-h-[720px]">
-            {/* Multiplier scale on the left side */}
+            {/* Multiplier scale on the left side - exact match to screenshot */}
             <div className="absolute left-4 inset-y-0 w-16 flex flex-col justify-between py-8 z-10">
               <div className="flex flex-col-reverse h-full justify-between">
-                {MULTIPLIER_MARKERS.map((marker, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <div className="bg-[#11232F] text-white px-4 py-2 rounded text-center">
-                      {marker.label}
+                {MULTIPLIER_MARKERS.map((marker, index) => {
+                  // Get the y-position based on logarithmic scale to match the curve
+                  const value = marker.value;
+                  const logValue = Math.log(value) / Math.log(5); // Normalize to log base 5
+                  const yPercent = logValue * 100 * 0.7;
+                  
+                  // Calculate the position relative to the canvas height
+                  const positionStyle = {
+                    position: 'absolute',
+                    bottom: `${yPercent}%`,
+                    left: 0,
+                    transform: 'translateY(50%)',
+                    display: 'flex',
+                    flexDirection: 'column' as 'column',
+                    alignItems: 'center',
+                    width: '100%'
+                  };
+                  
+                  return (
+                    <div key={index} style={positionStyle}>
+                      <div className="bg-[#11232F] text-white px-4 py-2 rounded text-center">
+                        {marker.label}
+                      </div>
+                      {index !== 0 && (
+                        <div className="h-12 w-0.5 bg-gray-600"></div>
+                      )}
                     </div>
-                    {index !== 0 && (
-                      <div className="h-12 w-0.5 bg-gray-600"></div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             
