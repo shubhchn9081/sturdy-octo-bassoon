@@ -43,18 +43,24 @@ const LimboFinal: React.FC = () => {
   const autoBetIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentBetIdRef = useRef<number | null>(null);
   
-  // Quick multiplier options
+  // Quick multiplier options with dynamic highlighting for profitable options
+  const isProfitable = (multiplier: number) => {
+    // Profitable multipliers generally have better expected value
+    // In this game, higher multipliers (2.0+) are considered more profitable
+    return multiplier >= 2.0;
+  };
+  
   const quickMultipliers = [
-    { value: 1.00, label: "1.00x" },
-    { value: 1.25, label: "1.25x" },
-    { value: 1.07, label: "1.07x" },
-    { value: 1.56, label: "1.56x" },
-    { value: 12.13, label: "12.13x", highlight: true },
-    { value: 2.00, label: "2.00x" },
-    { value: 1.19, label: "1.19x" },
-    { value: 4.12, label: "4.12x" },
-    { value: 1.25, label: "1.25x" },
-    { value: 2.89, label: "2.89x" }
+    { value: 1.00, label: "1.00x", highlight: isProfitable(1.00) },
+    { value: 1.25, label: "1.25x", highlight: isProfitable(1.25) },
+    { value: 1.07, label: "1.07x", highlight: isProfitable(1.07) },
+    { value: 1.56, label: "1.56x", highlight: isProfitable(1.56) },
+    { value: 12.13, label: "12.13x", highlight: isProfitable(12.13) },
+    { value: 2.00, label: "2.00x", highlight: isProfitable(2.00) },
+    { value: 1.19, label: "1.19x", highlight: isProfitable(1.19) },
+    { value: 4.12, label: "4.12x", highlight: isProfitable(4.12) },
+    { value: 1.25, label: "1.25x", highlight: isProfitable(1.25) },
+    { value: 2.89, label: "2.89x", highlight: isProfitable(2.89) }
   ];
   
   // Format number with up to 8 decimal places
@@ -375,31 +381,7 @@ const LimboFinal: React.FC = () => {
               </div>
             )}
             
-            {/* History Display (Top Right) */}
-            <div className="absolute top-4 right-4 bg-[#172B3A] rounded-lg p-3 w-48">
-              <div className="text-sm text-gray-400 mb-2 font-medium">History</div>
-              <div className="grid grid-cols-5 gap-2">
-                {betHistory.slice(0, 5).map((bet, i) => (
-                  <div 
-                    key={i} 
-                    className={`
-                      text-xs font-bold rounded-full w-8 h-8 flex items-center justify-center
-                      ${bet.won ? 'bg-[#5BE12C] text-black' : 'bg-[#FF3B3B] text-white'}
-                    `}
-                  >
-                    {bet.multiplier.toFixed(2)}
-                  </div>
-                ))}
-                {/* Add placeholder circles if less than 5 history items */}
-                {Array.from({ length: Math.max(0, 5 - betHistory.length) }).map((_, i) => (
-                  <div 
-                    key={`placeholder-${i}`} 
-                    className="text-xs font-bold rounded-full w-8 h-8 flex items-center justify-center bg-[#0F212E]"
-                  />
-                ))}
-              </div>
-            </div>
-            
+
             {/* Center Multiplier Display */}
             <div className="text-center">
               <div className={`text-9xl font-bold ${getMultiplierColor()}`}>
