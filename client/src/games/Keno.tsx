@@ -350,26 +350,42 @@ const Keno: React.FC = () => {
           
           {/* Quick buttons */}
           <div className="mb-4 flex gap-2">
-            <button 
-              onClick={autoPick}
-              className="flex-1 py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium shadow-sm"
-              disabled={isPlaying}
-            >
-              Auto Pick
-            </button>
-            <button 
-              onClick={clearSelections}
-              className="flex-1 py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium shadow-sm"
-              disabled={isPlaying}
-            >
-              Clear Table
-            </button>
+            {/* Auto Pick Button with 3D effect */}
+            <div className="flex-1 relative">
+              {/* Shadow for 3D effect */}
+              <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+              
+              <button 
+                onClick={autoPick}
+                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium relative z-10"
+                disabled={isPlaying}
+              >
+                Auto Pick
+              </button>
+            </div>
+            
+            {/* Clear Table Button with 3D effect */}
+            <div className="flex-1 relative">
+              {/* Shadow for 3D effect */}
+              <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+              
+              <button 
+                onClick={clearSelections}
+                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium relative z-10"
+                disabled={isPlaying}
+              >
+                Clear Table
+              </button>
+            </div>
           </div>
           
-          {/* Bet Button */}
-          <div className="mb-4">
+          {/* Bet Button with 3D effect */}
+          <div className="mb-4 relative">
+            {/* 3D shadow effect, darker for emphasis */}
+            <div className="absolute inset-0 bg-[#277312]/70 rounded-md transform translate-y-2"></div>
+            
             <Button 
-              className="w-full py-3 text-base font-bold bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md shadow-md"
+              className="w-full py-3 text-base font-bold bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md relative z-10"
               onClick={placeBetAction}
               disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
             >
@@ -438,8 +454,9 @@ const Keno: React.FC = () => {
                     bgColor = 'bg-[#9333EA]';
                   } else if (isMatched) {
                     // Green with black text for matched (selected and drawn)
+                    // Using a special gem-like styled button for matches
                     bgColor = 'bg-[#5BE12C]';
-                    textColor = 'text-black';
+                    textColor = 'text-[#2A8617]';
                   } else if (isDrawn) {
                     // For drawn but not selected, show it as red text on dark bg
                     bgColor = 'bg-[#172B3A]';
@@ -447,7 +464,7 @@ const Keno: React.FC = () => {
                   }
                   
                   // Add border styling if it's selected (with purple border)
-                  const borderClass = isSelected ? 
+                  const borderClass = isSelected && !isMatched ? 
                     'border-2 border-[#9333EA]' : 
                     '';
                   
@@ -455,75 +472,95 @@ const Keno: React.FC = () => {
                   const glowClass = isMatched ? 
                     'shadow-[0_0_15px_rgba(91,225,44,0.7)]' : 
                     '';
+                    
+                  // Special gem styling for matched numbers
+                  const specialMatchedClass = isMatched ? 
+                    `relative before:absolute before:inset-0 before:bg-[#5BE12C] before:opacity-70 before:transform before:rotate-45 before:rounded-md before:z-0` : 
+                    '';
+                  
+                  // Purple background for selected numbers
+                  const purpleBgClass = isSelected && !isMatched ? 
+                    'bg-gradient-to-br from-[#9333EA] to-[#762DC5]' : 
+                    '';
+                  
+                  // Purple border for matched numbers
+                  const purpleBorderClass = isMatched ? 
+                    'border-4 border-[#9333EA] bg-[#3DCC20]' : 
+                    '';
                   
                   return (
-                    <button
+                    <div
                       key={num}
-                      className={`
-                        aspect-square rounded-md flex items-center justify-center text-lg font-bold transition-all
-                        ${bgColor} ${textColor} ${borderClass} ${glowClass}
-                        ${isPlaying ? 'cursor-not-allowed' : 'cursor-pointer'}
-                        transform transition-transform duration-200
-                        ${isDrawn ? 'scale-105' : ''}
-                        hover:opacity-90
-                      `}
-                      onClick={() => toggleNumberSelection(num)}
-                      disabled={isPlaying}
+                      className={`relative ${isMatched ? 'scale-110 z-10' : ''}`}
                     >
-                      {num}
-                    </button>
+                      {/* The shadow/3D effect box behind the button */}
+                      <div className={`
+                        absolute inset-0 bg-black/30 rounded-md transform translate-y-1
+                        ${isSelected ? 'translate-y-2' : 'translate-y-1'}
+                      `}></div>
+                      
+                      {/* Main button */}
+                      <button
+                        className={`
+                          aspect-square rounded-md flex items-center justify-center text-lg font-bold transition-all
+                          ${isMatched ? purpleBorderClass : bgColor} 
+                          ${textColor} ${borderClass} ${glowClass} ${purpleBgClass}
+                          ${isPlaying ? 'cursor-not-allowed' : 'cursor-pointer'}
+                          transform transition-transform duration-200
+                          hover:opacity-90 relative z-10
+                          ${isMatched ? 'bg-gradient-to-br from-[#5BE12C] to-[#3DA61F] shadow-inner' : ''}
+                        `}
+                        onClick={() => toggleNumberSelection(num)}
+                        disabled={isPlaying}
+                      >
+                        {num}
+                      </button>
+                    </div>
                   );
                 })}
               </div>
               
               {/* Multiplier Displays */}
               <div className="grid grid-cols-6 gap-2 mb-2">
-                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
-                  <span className="text-sm">0.00x</span>
-                </div>
-                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
-                  <span className="text-sm">0.00x</span>
-                </div>
-                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
-                  <span className={`text-sm ${result?.multiplier === 1.40 ? 'text-[#5BE12C] font-bold' : ''}`}>1.40x</span>
-                </div>
-                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
-                  <span className={`text-sm ${result?.multiplier === 4.00 ? 'text-[#5BE12C] font-bold' : ''}`}>4.00x</span>
-                </div>
-                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
-                  <span className={`text-sm ${result?.multiplier === 14.00 ? 'text-[#5BE12C] font-bold' : ''}`}>14.00x</span>
-                </div>
-                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
-                  <span className={`text-sm ${result?.multiplier === 390.00 ? 'text-[#5BE12C] font-bold' : ''}`}>390.00x</span>
-                </div>
+                {/* Creating 3D effect for all multiplier buttons */}
+                {[0.00, 0.00, 1.40, 4.00, 14.00, 390.00].map((multiplier, index) => (
+                  <div key={index} className="relative">
+                    {/* 3D shadow effect */}
+                    <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+                    
+                    {/* Main button */}
+                    <div className={`
+                      aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center
+                      relative z-10
+                      ${result?.multiplier === multiplier ? 'border-2 border-[#5BE12C]' : ''}
+                    `}>
+                      <span className={`text-sm ${result?.multiplier === multiplier ? 'text-[#5BE12C] font-bold' : ''}`}>
+                        {multiplier.toFixed(2)}x
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
               
               {/* Hits Counter */}
               <div className="grid grid-cols-6 gap-2">
-                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
-                  <span className="text-xs text-gray-400">0x</span>
-                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 0 ? 'bg-white' : 'bg-[#172B3A]'}`}></div>
-                </div>
-                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
-                  <span className="text-xs text-gray-400">1x</span>
-                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 1 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
-                </div>
-                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
-                  <span className="text-xs text-gray-400">2x</span>
-                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 2 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
-                </div>
-                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
-                  <span className="text-xs text-gray-400">3x</span>
-                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 3 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
-                </div>
-                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
-                  <span className="text-xs text-gray-400">4x</span>
-                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 4 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
-                </div>
-                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
-                  <span className="text-xs text-gray-400">5x</span>
-                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 5 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
-                </div>
+                {/* Adding 3D effect to hit counter buttons */}
+                {[0, 1, 2, 3, 4, 5].map((hits) => (
+                  <div key={hits} className="relative">
+                    {/* 3D shadow effect */}
+                    <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+                    
+                    {/* Main button */}
+                    <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center relative z-10">
+                      <span className="text-xs text-gray-400">{hits}x</span>
+                      <div className={`w-3 h-3 ml-1 rounded-full 
+                        ${matchedNumbers.length === hits ? 
+                          (hits === 0 ? 'bg-white' : 'bg-[#5BE12C]') : 
+                          'bg-[#172B3A]'}
+                      `}></div>
+                    </div>
+                  </div>
+                ))}
               </div>
               
               {/* Selection info */}
