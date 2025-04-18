@@ -25,6 +25,14 @@ const WheelGame: React.FC = () => {
     High: [0.0, 0.0, 1.5, 3.0, 5.0, 10.0]
   };
 
+  const [rotation, setRotation] = useState<number>(0);
+  const [isSpinning, setIsSpinning] = useState<boolean>(false);
+  const [result, setResult] = useState<number | null>(null);
+  const animationRef = useRef<number>();
+  const spinStartTimeRef = useRef<number>(0);
+  const spinDurationRef = useRef<number>(5000); // 5 seconds
+  const finalRotationRef = useRef<number>(0);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -32,36 +40,131 @@ const WheelGame: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    drawWheel(ctx, canvas.width, segments);
-  }, [segments]);
+    drawWheel(ctx, canvas.width, segments, rotation);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [segments, rotation]);
 
-  const drawWheel = (ctx: CanvasRenderingContext2D, canvasWidth: number, segmentCount: number) => {
+  const drawWheel = (ctx: CanvasRenderingContext2D, canvasWidth: number, segmentCount: number, rotationAngle: number) => {
     const radius = canvasWidth / 2;
     const anglePerSegment = (2 * Math.PI) / segmentCount;
     
     ctx.clearRect(0, 0, canvasWidth, canvasWidth);
     
+    // Save context to restore later
+    ctx.save();
+    
+    // Move to center of canvas
+    ctx.translate(radius, radius);
+    
+    // Rotate the entire wheel
+    ctx.rotate(rotationAngle);
+    
     // Draw wheel segments
     for (let i = 0; i < segmentCount; i++) {
       const angle = i * anglePerSegment;
       ctx.beginPath();
-      ctx.moveTo(radius, radius);
-      ctx.arc(radius, radius, radius, angle, angle + anglePerSegment);
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, radius, angle, angle + anglePerSegment);
       ctx.fillStyle = colors[i % colors.length];
       ctx.fill();
       ctx.strokeStyle = "#0f1a24";
       ctx.lineWidth = 2;
       ctx.stroke();
+      
+      // Add segment value
+      ctx.save();
+      ctx.rotate(angle + anglePerSegment / 2);
+      ctx.translate(radius * 0.7, 0);
+      ctx.rotate(Math.PI / 2);
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 14px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(`${(i % 6) + 1}`, 0, 0);
+      ctx.restore();
     }
-
+    
+    // Restore context
+    ctx.restore();
+    
+    // Draw center hub
+    ctx.beginPath();
+    ctx.arc(radius, radius, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = "#333";
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
     // Draw pointer
     ctx.beginPath();
-    ctx.moveTo(radius - 10, 0);
-    ctx.lineTo(radius + 10, 0);
-    ctx.lineTo(radius, 30);
+    ctx.moveTo(radius, radius - 150);
+    ctx.lineTo(radius - 10, radius - 130);
+    ctx.lineTo(radius + 10, radius - 130);
     ctx.closePath();
     ctx.fillStyle = "red";
     ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  };
+  
+  const spinWheel = () => {
+    if (isSpinning) return;
+    
+    setIsSpinning(true);
+    setResult(null);
+    
+    // Determine final rotation based on a random result
+    const randomSegment = Math.floor(Math.random() * segments);
+    const anglePerSegment = (2 * Math.PI) / segments;
+    const segmentAngle = randomSegment * anglePerSegment;
+    
+    // Make the wheel spin at least 5 full rotations plus the segment angle
+    const minRotations = 5;
+    const finalRotation = (Math.PI * 2 * minRotations) + segmentAngle;
+    
+    // Store start time and final rotation
+    spinStartTimeRef.current = performance.now();
+    finalRotationRef.current = finalRotation;
+    
+    // Start animation
+    animateSpinning();
+  };
+  
+  const animateSpinning = () => {
+    const currentTime = performance.now();
+    const elapsedTime = currentTime - spinStartTimeRef.current;
+    const progress = Math.min(elapsedTime / spinDurationRef.current, 1);
+    
+    // Easing function for slowing down
+    const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5);
+    const easedProgress = easeOutQuint(progress);
+    
+    // Calculate current rotation
+    const currentRotation = easedProgress * finalRotationRef.current;
+    setRotation(currentRotation);
+    
+    if (progress < 1) {
+      // Continue animation
+      animationRef.current = requestAnimationFrame(animateSpinning);
+    } else {
+      // Animation complete
+      setIsSpinning(false);
+      
+      // Determine which segment landed on
+      const anglePerSegment = (2 * Math.PI) / segments;
+      const normalizedRotation = finalRotationRef.current % (Math.PI * 2);
+      const resultSegment = Math.floor(normalizedRotation / anglePerSegment) % segments;
+      const multiplierIndex = resultSegment % 6;
+      
+      // Set result
+      setResult(multipliers[risk][multiplierIndex]);
+    }
   };
 
   const handleBet = () => {
@@ -70,14 +173,13 @@ const WheelGame: React.FC = () => {
       return;
     }
     
-    // Implement actual betting logic here
-    alert(`Placed bet of ${betAmount} with ${risk} risk and ${segments} segments`);
+    if (isSpinning) {
+      alert('Wheel is currently spinning!');
+      return;
+    }
     
-    // For a real implementation, we would:
-    // 1. Send bet data to server
-    // 2. Get result
-    // 3. Animate wheel spinning to result
-    // 4. Display outcome
+    // Start wheel spinning animation
+    spinWheel();
   };
 
   const handleHalfBet = () => {
@@ -161,12 +263,26 @@ const WheelGame: React.FC = () => {
       
       {/* Game board */}
       <div className="flex-1 flex flex-col items-center justify-center p-5">
+        {/* Result display */}
+        {result !== null && (
+          <div className={`mb-4 text-2xl font-bold ${result === 0 ? 'text-red-500' : 'text-green-400'}`}>
+            {result === 0 ? 'BUST!' : `${result.toFixed(2)}x WIN!`}
+          </div>
+        )}
+      
         <canvas 
           ref={canvasRef} 
           width={400} 
           height={400} 
           className="bg-[#1c2d3a] rounded-full shadow-lg"
         />
+        
+        {/* Spinning indicator */}
+        {isSpinning && (
+          <div className="mt-4 text-lg text-yellow-400 animate-pulse">
+            Wheel spinning...
+          </div>
+        )}
         
         {/* Multipliers */}
         <div className="flex gap-4 mt-5 bg-[#101d2b] p-3 rounded-lg">

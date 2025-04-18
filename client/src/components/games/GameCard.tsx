@@ -74,7 +74,7 @@ const GameCard = ({
       case 'KENO':
         return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990621/102cf3d7c840018b939cd787bf013e080b996d80e604f3008f21dddf1f1aa201_phwj9c.jpg';
       case 'WHEEL':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744994041/14a07f57ad5198ffadd4e0d4386245f4e017d030-1080x1080_twb6yn.png';
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744994352/e0a4131a16c28a1c1516958c93ec90c6f0f1bb00f41de87f72f6800c535b9c6f_fl9nyv.jpg';
       default:
         break;
     }
