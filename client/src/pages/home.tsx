@@ -123,7 +123,7 @@ const HomePage = () => {
           </div>
           
           {/* Game Cards */}
-          <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
             {filteredGames.map((game) => (
               <GameCard
                 key={game.id}
