@@ -86,29 +86,19 @@ const CrashFinal: React.FC = () => {
     // Different marker sets for mobile vs desktop
     const markers = isMobile ? 
       [1.0, 1.4, 1.9, 2.3, 2.8, 3.2] : 
-      [1.0, 20.1, 39.2, 58.3, 77.4, 96.5]; // Exact multipliers from screenshot
+      MULTIPLIER_MARKERS.map(m => m.value);
       
     // Horizontal grid lines (multiplier levels)
     markers.forEach(value => {
       // Calculate y position based on multiplier values
-      // Different calculation logic for desktop vs mobile
-      let y;
-      if (isMobile) {
-        const logValue = Math.log(value) / Math.log(5);
-        y = CANVAS_HEIGHT - (logValue * CANVAS_HEIGHT * 0.7);
-      } else {
-        // For desktop, we want to match the screenshot exactly
-        // The values in the screenshot are spread evenly
-        const index = markers.indexOf(value);
-        const totalMarkers = markers.length;
-        y = CANVAS_HEIGHT - ((index / (totalMarkers - 1)) * CANVAS_HEIGHT * 0.8);
-      }
+      const logValue = Math.log(value) / Math.log(5); // Normalize to log base 5
+      const y = CANVAS_HEIGHT - (logValue * CANVAS_HEIGHT * 0.7);
       
       ctx.moveTo(leftMargin, y);
       ctx.lineTo(CANVAS_WIDTH, y);
     });
     
-    // Vertical grid lines (time markers)
+    // Vertical grid lines (time markers) - mobile has specific time markers
     if (isMobile) {
       // Mobile has time markers at 4s, 8s, 12s, 17s
       const timeMarkers = [4, 8, 12, 17];
@@ -120,15 +110,11 @@ const CrashFinal: React.FC = () => {
         ctx.lineTo(x, CANVAS_HEIGHT);
       });
     } else {
-      // Desktop time markers from screenshot - 16s, 31s, 47s, 63s
-      const timeMarkers = [16, 31, 47, 63];
-      const maxTime = 76; // Max time of 76s from screenshot
-      
-      timeMarkers.forEach(time => {
-        const x = leftMargin + (time / maxTime) * usableWidth;
+      // Desktop version - regular grid
+      for (let x = leftMargin + 100; x < CANVAS_WIDTH; x += 100) {
         ctx.moveTo(x, 0);
         ctx.lineTo(x, CANVAS_HEIGHT);
-      });
+      }
     }
     
     ctx.stroke();
@@ -144,15 +130,13 @@ const CrashFinal: React.FC = () => {
     
     // Generate curve points using logarithmic growth
     const points = [];
-    const maxTime = isMobile ? 17 : 76; // Match the desktop time as shown in screenshot
+    const maxTime = isMobile ? 17 : 10; // Mobile has longer time span
     const baseMultiplier = 1.0;
-    const growthRate = isMobile ? 0.12 : 0.06; // Slower growth rate for desktop to reach 96.21x
+    const growthRate = 0.12; // Same growth rate for consistent gameplay
     
-    // Calculate curve progress and max multiplier
-    const maxMultiplier = isMobile ? 5.0 : 96.21; // Match the desktop multiplier in screenshot
-    const currentProgress = isMobile
-      ? (currentMultiplier - 1) / (5.0 - 1) // Mobile scale
-      : (currentMultiplier - 1) / (96.21 - 1); // Desktop scale
+    // Calculate curve progress
+    const maxMultiplier = 5.0;
+    const currentProgress = (currentMultiplier - 1) / (maxMultiplier - 1);
     const simulatedTimeMax = Math.min(maxTime * currentProgress, maxTime);
     
     // Generate points along the curve
@@ -345,7 +329,7 @@ const CrashFinal: React.FC = () => {
   };
   
   return (
-    <div className="flex flex-col h-full w-full bg-[#111d29] text-white overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-[#0F212E] text-white overflow-hidden">
       {/* Mobile/Desktop Responsive Layout */}
       <div className="flex flex-col md:flex-row w-full h-full">
         
@@ -364,23 +348,8 @@ const CrashFinal: React.FC = () => {
             ))}
           </div>
           
-          {/* Desktop Preset Multiplier Buttons - Exact match to screenshot */}
-          <div className="hidden md:flex flex-wrap gap-1 mb-4">
-            <button className="px-3 py-1 rounded bg-[#1e2835] text-white text-xs whitespace-nowrap">1.10x</button>
-            <button className="px-3 py-1 rounded bg-[#69de36] text-black text-xs whitespace-nowrap">3.41x</button>
-            <button className="px-3 py-1 rounded bg-[#1e2835] text-white text-xs whitespace-nowrap">1.01x</button>
-            <button className="px-3 py-1 rounded bg-[#1e2835] text-white text-xs whitespace-nowrap">1.97x</button>
-            <button className="px-3 py-1 rounded bg-[#1e2835] text-white text-xs whitespace-nowrap">1.78x</button>
-            <button className="px-3 py-1 rounded bg-[#69de36] text-black text-xs whitespace-nowrap">2.06x</button>
-            <button className="px-3 py-1 rounded bg-[#69de36] text-black text-xs whitespace-nowrap">5.11x</button>
-            <button className="px-3 py-1 rounded bg-[#1e2835] text-white text-xs whitespace-nowrap">1.50x</button>
-            <button className="px-3 py-1 rounded bg-[#1e2835] text-white text-xs whitespace-nowrap">1.48x</button>
-            <button className="px-3 py-1 rounded bg-[#69de36] text-black text-xs whitespace-nowrap">2.57x</button>
-            <span className="text-gray-400 text-xs flex items-center ml-1">← You</span>
-          </div>
-          
           {/* Game Canvas - Main game display */}
-          <div className="relative bg-[#0E1C27] rounded-lg overflow-hidden w-full h-[400px] md:h-[400px]">
+          <div className="relative bg-[#0E1C27] rounded-lg overflow-hidden w-full h-[400px] md:h-[600px]">
             {/* Mobile Multiplier scale on left - exactly as in screenshot */}
             <div className="absolute left-0 inset-y-0 w-12 z-10 pointer-events-none">
               {/* Only show specific markers on mobile that match the screenshot */}
@@ -403,7 +372,7 @@ const CrashFinal: React.FC = () => {
                 return (
                   <div 
                     key={index} 
-                    className="absolute flex items-center md:hidden"
+                    className="absolute flex items-center"
                     style={{
                       bottom: `${heightPercent}%`,
                       left: 0,
@@ -417,31 +386,6 @@ const CrashFinal: React.FC = () => {
                   </div>
                 );
               })}
-              
-              {/* Desktop vertical markers - match exactly to screenshot */}
-              {[
-                { value: 96.5, label: '96.5x', bottom: '95%' },
-                { value: 77.4, label: '77.4x', bottom: '80%' },
-                { value: 58.3, label: '58.3x', bottom: '65%' },
-                { value: 39.2, label: '39.2x', bottom: '50%' },
-                { value: 20.1, label: '20.1x', bottom: '35%' },
-                { value: 1.0, label: '1.0x', bottom: '20%' }
-              ].map((marker, index) => {
-                return (
-                  <div 
-                    key={`desktop-${index}`} 
-                    className="absolute items-center hidden md:flex"
-                    style={{
-                      bottom: marker.bottom,
-                      left: 0
-                    }}
-                  >
-                    <div className="text-white px-1 py-1 text-xs whitespace-nowrap">
-                      {marker.label}
-                    </div>
-                  </div>
-                );
-              })}
             </div>
             
             {/* Time markers at bottom - mobile only */}
@@ -451,17 +395,6 @@ const CrashFinal: React.FC = () => {
                 <span>8s</span>
                 <span>12s</span>
                 <span>17s</span>
-              </div>
-            </div>
-            
-            {/* Desktop Time markers at bottom - exact match to screenshot */}
-            <div className="absolute bottom-2 inset-x-0 h-6 z-10 pointer-events-none hidden md:block">
-              <div className="flex justify-between px-24 text-xs text-gray-400">
-                <span>16s</span>
-                <span>31s</span>
-                <span>47s</span>
-                <span>63s</span>
-                <div className="whitespace-nowrap">Total 76s</div>
               </div>
             </div>
             
@@ -496,7 +429,7 @@ const CrashFinal: React.FC = () => {
             {/* Current multiplier display */}
             {gameState === 'running' && (
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <div className="text-6xl md:text-7xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
+                <div className="text-6xl md:text-9xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
               </div>
             )}
             
@@ -505,46 +438,44 @@ const CrashFinal: React.FC = () => {
               <span>Network Status:</span>
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
             </div>
-            
-            {/* Desktop Network Status - Bottom right position */}
-            <div className="absolute bottom-2 right-2 text-xs text-gray-400 hidden md:flex items-center gap-1">
-              <span>Network Status</span>
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            </div>
           </div>
           
-          {/* Mobile Active Bets - Shown on mobile only */}
-          <div className="mt-4 md:hidden">
-            <h3 className="text-sm font-semibold mb-2 text-gray-300">Active Bets</h3>
-            <div className="h-[200px] overflow-y-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-gray-400">
-                    <th className="text-left pb-2">User</th>
-                    <th className="text-right pb-2">Mult</th>
-                    <th className="text-right pb-2">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeBets
-                    .filter(bet => !bet.isHidden)
-                    .map((bet, i) => (
-                    <tr key={i} className="border-t border-gray-800">
-                      <td className="py-2">{bet.username}</td>
-                      <td className="text-right py-2">
-                        {bet.status === 'won' ? (
-                          <span className="text-green-500">{bet.cashoutMultiplier?.toFixed(2)}x</span>
-                        ) : bet.status === 'lost' ? (
-                          <span className="text-red-500">BUST</span>
-                        ) : (
-                          '-'
-                        )}
-                      </td>
-                      <td className="text-right py-2">{formatAmount(bet.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Desktop Only: Quick Multiplier Buttons */}
+          <div className="hidden md:flex flex-wrap gap-2 mb-4 mt-4 -mx-1 px-1">
+            {MULTIPLIER_QUICKTABS.map((level, i) => (
+              <button
+                key={i}
+                className={`px-3 py-1 rounded-md ${level.color} text-black text-xs font-semibold`}
+                onClick={() => setAutoCashoutValue(level.value)}
+              >
+                {level.label}
+              </button>
+            ))}
+          </div>
+          
+          {/* Desktop Only: Recent Games */}
+          <div className="hidden md:block bg-[#11232F] p-3 rounded mb-4">
+            <h3 className="text-sm font-semibold mb-2">Recent Games</h3>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {[2.31, 1.02, 4.56, 1.68, 10.21, 1.08, 3.45, 7.89, 1.54, 2.01].map((value, i) => (
+                <div 
+                  key={i}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold ${
+                    value < 1.2 ? 'bg-[#FF3B3B]' : 
+                    value < 2 ? 'bg-[#FF6B00]' :
+                    value < 5 ? 'bg-[#FFC107]' : 'bg-[#5BE12C]'
+                  } ${value < 2 ? 'text-white' : 'text-black'}`}
+                >
+                  {value.toFixed(2)}x
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-end text-xs text-gray-400 mt-2">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span>Network Status</span>
+              </div>
             </div>
           </div>
         </div>
@@ -623,6 +554,41 @@ const CrashFinal: React.FC = () => {
             </div>
           </div>
           
+          {/* Mobile Active Bets */}
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold mb-2 text-gray-300">Active Bets</h3>
+            <div className="h-[200px] overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-gray-400">
+                    <th className="text-left pb-2">User</th>
+                    <th className="text-right pb-2">Mult</th>
+                    <th className="text-right pb-2">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeBets
+                    .filter(bet => !bet.isHidden)
+                    .map((bet, i) => (
+                    <tr key={i} className="border-t border-gray-800">
+                      <td className="py-2">{bet.username}</td>
+                      <td className="text-right py-2">
+                        {bet.status === 'won' ? (
+                          <span className="text-green-500">{bet.cashoutMultiplier?.toFixed(2)}x</span>
+                        ) : bet.status === 'lost' ? (
+                          <span className="text-red-500">BUST</span>
+                        ) : (
+                          '-'
+                        )}
+                      </td>
+                      <td className="text-right py-2">{formatAmount(bet.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
           {/* Mobile Navigation - exact match to screenshot */}
           <div className="fixed bottom-0 inset-x-0 bg-[#0e1c27] flex justify-between border-t border-gray-800 md:hidden py-2">
             <button className="flex-1 flex flex-col items-center justify-center gap-1">
@@ -648,12 +614,12 @@ const CrashFinal: React.FC = () => {
           </div>
         </div>
         
-        {/* Desktop Controls - Right sidebar - Exact match to screenshot */}
+        {/* Desktop Controls - Right sidebar */}
         <div className="hidden md:flex md:flex-col md:w-[260px] p-4 bg-[#11232F]">
           {/* Game Mode Toggle */}
           <div className="flex rounded-md overflow-hidden mb-4">
             <button 
-              className={`flex-1 py-2 text-center bg-[#1e2835]`}
+              className={`flex-1 py-2 text-center bg-[#0F212E]`}
             >
               Manual
             </button>
@@ -666,49 +632,49 @@ const CrashFinal: React.FC = () => {
           
           {/* Bet Amount */}
           <div className="mb-4">
-            <label className="block text-sm mb-1 text-gray-400">Bet Amount</label>
-            <div className="text-gray-400 text-xs absolute right-6 mt-1">$0.00</div>
+            <label className="block text-sm mb-1">Bet Amount</label>
             <div className="flex items-center mb-2">
               <input 
                 type="number" 
-                className="w-full bg-[#1e2835] border-none rounded p-2 text-white"
+                className="w-full bg-[#0F212E] border-none rounded p-2 text-white"
                 value={betAmount}
                 onChange={(e) => setBetAmount(Number(e.target.value))}
                 disabled={hasPlacedBet || gameState === 'running'}
               />
+              <span className="ml-2">$0.00</span>
             </div>
             
             {/* Quick Amount Buttons */}
-            <div className="flex mt-2">
-              <button className="bg-[#1e2835] px-2 py-1 rounded text-xs">½</button>
-              <button className="bg-[#1e2835] px-2 py-1 rounded text-xs ml-auto">2×</button>
+            <div className="flex gap-1">
+              <button className="bg-[#0F212E] px-2 py-1 rounded text-xs">½</button>
+              <button className="bg-[#0F212E] px-2 py-1 rounded text-xs">2×</button>
             </div>
           </div>
           
           {/* Cashout At */}
           <div className="mb-4">
-            <label className="block text-sm mb-1 text-gray-400">Cashout At</label>
+            <label className="block text-sm mb-1">Cashout At</label>
             <div className="relative mb-2">
               <input 
                 type="number" 
                 step="0.01"
-                className="w-full bg-[#1e2835] border-none rounded p-2 text-white"
+                className="w-full bg-[#0F212E] border-none rounded p-2 text-white"
                 value={autoCashoutValue || 2.00}
                 onChange={(e) => setAutoCashoutValue(Number(e.target.value))}
                 disabled={hasPlacedBet && !hasCashedOut && gameState === 'running'}
               />
-              <div className="absolute right-0 top-0 h-full flex flex-col">
+              <div className="absolute right-2 top-2 flex">
                 <button 
-                  className="bg-[#1e2835] h-1/2 px-2 flex items-center justify-center"
-                  onClick={() => setAutoCashoutValue((autoCashoutValue || 2.00) + 0.01)}
-                >
-                  ▲
-                </button>
-                <button 
-                  className="bg-[#1e2835] h-1/2 px-2 flex items-center justify-center"
+                  className="bg-transparent px-1"
                   onClick={() => setAutoCashoutValue(Math.max(1.01, (autoCashoutValue || 2.00) - 0.01))}
                 >
                   ▼
+                </button>
+                <button 
+                  className="bg-transparent px-1"
+                  onClick={() => setAutoCashoutValue((autoCashoutValue || 2.00) + 0.01)}
+                >
+                  ▲
                 </button>
               </div>
             </div>
@@ -716,15 +682,15 @@ const CrashFinal: React.FC = () => {
           
           {/* Profit on Win */}
           <div className="mb-4">
-            <label className="block text-sm mb-1 text-gray-400">Profit on Win</label>
-            <div className="text-gray-400 text-xs absolute right-6 mt-1">$0.00</div>
+            <label className="block text-sm mb-1">Profit on Win</label>
             <div className="flex items-center mb-4">
               <input 
                 type="number" 
-                className="w-full bg-[#1e2835] border-none rounded p-2 text-white"
+                className="w-full bg-[#0F212E] border-none rounded p-2 text-white"
                 value={calculateProfit()}
                 readOnly
               />
+              <span className="ml-2">$0.00</span>
             </div>
           </div>
           
@@ -732,17 +698,17 @@ const CrashFinal: React.FC = () => {
           <div className="mb-4">
             {gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
               <Button 
-                className="w-full py-3 bg-[#FF6B00] hover:bg-[#FF8F3F] rounded-md"
+                className="w-full py-4 text-lg bg-[#FF6B00] hover:bg-[#FF8F3F] rounded-md"
                 onClick={cashOut}
               >
                 Cash Out @ {currentMultiplier.toFixed(2)}x
               </Button>
             ) : (
               <Button 
-                className={`w-full py-3 ${
+                className={`w-full py-4 text-lg ${
                   gameState === 'waiting' 
                     ? 'bg-[#5BE12C] hover:bg-[#4CC124] text-black'
-                    : 'bg-[#1e2835] text-gray-400 cursor-not-allowed'
+                    : 'bg-[#34505E] text-gray-300 cursor-not-allowed'
                 } rounded-md`}
                 onClick={placeBet}
                 disabled={gameState !== 'waiting' || hasPlacedBet}
@@ -754,103 +720,39 @@ const CrashFinal: React.FC = () => {
             )}
           </div>
           
-          {/* Total players count - from screenshot */}
-          <div className="flex items-center mb-2 text-xs text-gray-400">
-            <span className="mr-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-            </span>
-            882
-            <span className="ml-auto flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#f5b03a" stroke="none">
-                <circle cx="12" cy="12" r="10"></circle>
-              </svg>
-              <span className="ml-1">0.08183262</span>
-            </span>
-          </div>
-          
-          {/* Active Bets - Exact match to screenshot */}
-          <div className="bg-[#1e2835] p-3 rounded mb-2">
-            <div className="h-[300px] overflow-y-auto">
+          {/* Active Bets */}
+          <div className="bg-[#0F212E] p-3 rounded">
+            <h3 className="text-sm font-semibold mb-2">Active Bets</h3>
+            <div className="h-[150px] overflow-y-auto">
               <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-gray-400">
+                    <th className="text-left pb-1">User</th>
+                    <th className="text-right pb-1">Bet</th>
+                    <th className="text-right pb-1">Mult</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {[
-                    { username: 'Hidden', mult: '-', crypto: 'btc', amount: '₿150,000.00' },
-                    { username: 'Hidden', mult: '-', crypto: 'eth', amount: '189.000000' },
-                    { username: 'Hidden', mult: '-', crypto: 'usdt', amount: '766.66398...' },
-                    { username: 'Chicsa115', mult: '-', crypto: 'doge', amount: '80.000000...' },
-                    { username: 'Hidden', mult: '-', crypto: 'trx', amount: '163.39791...' },
-                    { username: 'Hidden', mult: '-', crypto: 'trx', amount: '150.00000...' },
-                    { username: 'Rohan9981', mult: '-', crypto: 'ltc', amount: '₹10,000.00' },
-                    { username: 'Dayananda9', mult: '-', crypto: 'ltc', amount: '₹8,750.00' },
-                    { username: 'Hidden', mult: '-', crypto: 'trx', amount: '100.00000...' },
-                    { username: 'jasw4040', mult: '-', crypto: 'ltc', amount: '₹8,000.00' }
-                  ].map((bet, i) => (
+                  {activeBets
+                    .filter(bet => !bet.isHidden)
+                    .map((bet, i) => (
                     <tr key={i} className="border-t border-gray-800">
-                      <td className="py-1 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" className="mr-1" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        {bet.username}
-                      </td>
+                      <td className="py-1">{bet.username}</td>
+                      <td className="text-right py-1">{formatAmount(bet.amount)}</td>
                       <td className="text-right py-1">
-                        {bet.mult === '-' ? (
-                          <span className="text-gray-400">-</span>
+                        {bet.status === 'won' ? (
+                          <span className="text-green-500">{bet.cashoutMultiplier?.toFixed(2)}x</span>
+                        ) : bet.status === 'lost' ? (
+                          <span className="text-red-500">BUST</span>
                         ) : (
-                          <span className="text-green-500">{bet.mult}x</span>
+                          '-'
                         )}
-                      </td>
-                      <td className="text-right py-1">
-                        <span className={`
-                          ${bet.crypto === 'btc' ? 'text-yellow-400' : ''}
-                          ${bet.crypto === 'eth' ? 'text-blue-400' : ''}
-                          ${bet.crypto === 'usdt' ? 'text-green-400' : ''}
-                          ${bet.crypto === 'trx' ? 'text-green-400' : ''}
-                          ${bet.crypto === 'doge' ? 'text-yellow-400' : ''}
-                          ${bet.crypto === 'ltc' ? 'text-yellow-400' : ''}
-                        `}>
-                          {bet.amount}
-                        </span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
-          
-          {/* Bottom navigation icons - Exact match to screenshot */}
-          <div className="flex items-center justify-between mt-auto text-gray-500">
-            <button className="p-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-              </svg>
-            </button>
-            <button className="p-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="21" x2="9" y2="9"></line>
-              </svg>
-            </button>
-            <button className="p-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </button>
-            <button className="p-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-              </svg>
-            </button>
           </div>
         </div>
       </div>
