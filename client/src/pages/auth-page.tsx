@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Redirect } from "wouter";
+import { Redirect, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -30,6 +30,7 @@ const RegisterSchema = z.object({
 const AuthPage = () => {
   const { user, loginMutation, registerMutation } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
+  const [_, navigate] = useLocation();
 
   const loginForm = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -51,12 +52,20 @@ const AuthPage = () => {
   });
 
   const onLoginSubmit = (data: z.infer<typeof LoginSchema>) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
   const onRegisterSubmit = (data: z.infer<typeof RegisterSchema>) => {
     const { confirmPassword, ...registerData } = data;
-    registerMutation.mutate(registerData);
+    registerMutation.mutate(registerData, {
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
   useEffect(() => {
