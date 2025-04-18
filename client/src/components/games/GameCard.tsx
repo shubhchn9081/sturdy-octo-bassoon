@@ -199,11 +199,14 @@ const GameCard = ({
     >
       <div 
         className="relative h-48 flex flex-col items-center justify-end"
-        style={backgroundStyle}
+        style={{
+          backgroundImage: `url('/images/games/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e.jpeg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
-        {gameIcon}
-        
-        <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
+        {/* No game icon or text displayed */}
       </div>
       <div className="bg-[#0F212E] px-3 py-1.5 text-xs text-green-400 flex items-center justify-center">
         <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
