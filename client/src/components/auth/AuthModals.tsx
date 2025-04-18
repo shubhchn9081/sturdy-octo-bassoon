@@ -9,6 +9,7 @@ import { Eye, EyeOff, Facebook, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { insertUserSchema } from '@shared/schema';
 
 // Social login icons
 const GoogleIcon = () => (
@@ -34,12 +35,36 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// Registration has multiple steps, so we'll define schemas for each step
+// Registration schemas for multi-step form
 const languageSchema = z.object({
   language: z.string().min(1, "Please select a language"),
 });
 
+// Step 2 registration schema - account details
+const accountSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+// Step 3 registration schema - personal details
+const personalSchema = z.object({
+  dateOfBirth: z.date({
+    required_error: "Date of birth is required",
+    invalid_type_error: "That's not a date!",
+  }),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions",
+  }),
+});
+
 type LanguageFormValues = z.infer<typeof languageSchema>;
+type AccountFormValues = z.infer<typeof accountSchema>;
+type PersonalFormValues = z.infer<typeof personalSchema>;
 
 export type AuthModalType = 'login' | 'register' | null;
 
@@ -48,22 +73,31 @@ type AuthModalsProps = {
   onOpenChange: (open: AuthModalType) => void;
 };
 
-// Available languages
+// Available languages for registration
 const languages = [
   { value: 'English', label: 'English' },
   { value: 'Spanish', label: 'Español' },
   { value: 'Portuguese', label: 'Português' },
   { value: 'German', label: 'Deutsch' },
   { value: 'French', label: 'Français' },
-  { value: 'Japanese', label: 'Japanese' },
-  { value: 'Chinese', label: 'Chinese' },
+  { value: 'Japanese', label: '日本語' },
+  { value: 'Chinese', label: '中文' },
 ];
 
 const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
-  const { loginMutation } = useAuth();
+  const { loginMutation, registerMutation } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [registrationStep, setRegistrationStep] = useState(1);
-  const [language, setLanguage] = useState('English');
+  
+  // Registration form state
+  const [formData, setFormData] = useState({
+    language: 'English',
+    email: '',
+    username: '',
+    password: '',
+    dateOfBirth: new Date(),
+  });
 
   // Login form setup
   const loginForm = useForm<LoginFormValues>({
@@ -74,7 +108,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     },
   });
 
-  // Language form setup
+  // Language form setup (Step 1)
   const languageForm = useForm<LanguageFormValues>({
     resolver: zodResolver(languageSchema),
     defaultValues: {
@@ -82,18 +116,63 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     },
   });
 
+  // Account form setup (Step 2)
+  const accountForm = useForm<AccountFormValues>({
+    resolver: zodResolver(accountSchema),
+    defaultValues: {
+      email: '',
+      username: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  // Personal details form setup (Step 3)
+  const personalForm = useForm<PersonalFormValues>({
+    resolver: zodResolver(personalSchema),
+    defaultValues: {
+      dateOfBirth: new Date(),
+      acceptTerms: false,
+    },
+  });
+
   // Handle login form submission
   function onLoginSubmit(values: LoginFormValues) {
     loginMutation.mutate(values);
-    if (!loginMutation.isError) {
-      onOpenChange(null);
-    }
   }
 
   // Handle language selection (step 1 of registration)
   function onLanguageSubmit(values: LanguageFormValues) {
-    setLanguage(values.language);
+    setFormData({
+      ...formData,
+      language: values.language,
+    });
     setRegistrationStep(2);
+  }
+
+  // Handle account details submission (step 2 of registration)
+  function onAccountSubmit(values: AccountFormValues) {
+    setFormData({
+      ...formData,
+      email: values.email,
+      username: values.username,
+      password: values.password,
+    });
+    setRegistrationStep(3);
+  }
+
+  // Handle personal details submission (step 3 of registration)
+  function onPersonalSubmit(values: PersonalFormValues) {
+    const registerData = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      dateOfBirth: values.dateOfBirth,
+      language: formData.language,
+      confirmPassword: formData.password, // Required by the schema but not sent to API
+    };
+    
+    registerMutation.mutate(registerData);
   }
 
   // Handle dialog close
@@ -101,6 +180,8 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     // Reset form states
     loginForm.reset();
     languageForm.reset();
+    accountForm.reset();
+    personalForm.reset();
     setRegistrationStep(1);
     onOpenChange(null);
   };
@@ -270,6 +351,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
             </Button>
           </DialogHeader>
 
+          {/* Step 1: Language Selection */}
           {registrationStep === 1 && (
             <>
               <div className="mb-4">
@@ -287,7 +369,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
                 </div>
                 <h2 className="text-xl font-semibold mb-2">Select Your Preferred Language</h2>
                 <p className="text-gray-400 text-sm">
-                  Stake is available is several languages. Feel free to personalise your language across our site from the options below.
+                  Stake is available in several languages. Feel free to personalize your language across our site from the options below.
                 </p>
               </div>
 
@@ -326,6 +408,196 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
                     onClick={switchToLogin}
                   >
                     Sign in
+                  </Button>
+                </div>
+              </form>
+            </>
+          )}
+
+          {/* Step 2: Account Details */}
+          {registrationStep === 2 && (
+            <>
+              <div className="mb-4">
+                <div className="relative pt-1">
+                  <div className="flex mb-2 items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold inline-block text-white">
+                        Step 2 / 3
+                      </span>
+                    </div>
+                  </div>
+                  <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-[#0B1A25]">
+                    <div style={{ width: "66%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#3498db]"></div>
+                  </div>
+                </div>
+                <h2 className="text-xl font-semibold mb-2">Create Your Account</h2>
+                <p className="text-gray-400 text-sm">
+                  Enter your details to create your Stake account and start betting.
+                </p>
+              </div>
+
+              <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm text-gray-300">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    className="bg-[#0B1A25] border-[#243442] focus:border-[#3498db] text-white"
+                    {...accountForm.register('email')}
+                  />
+                  {accountForm.formState.errors.email && (
+                    <p className="text-[#ff4757] text-xs">{accountForm.formState.errors.email.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="reg-username" className="text-sm text-gray-300">Username *</Label>
+                  <Input
+                    id="reg-username"
+                    className="bg-[#0B1A25] border-[#243442] focus:border-[#3498db] text-white"
+                    {...accountForm.register('username')}
+                  />
+                  {accountForm.formState.errors.username && (
+                    <p className="text-[#ff4757] text-xs">{accountForm.formState.errors.username.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 relative">
+                  <Label htmlFor="reg-password" className="text-sm text-gray-300">Password *</Label>
+                  <div className="relative">
+                    <Input
+                      id="reg-password"
+                      type={showPassword ? "text" : "password"}
+                      className="bg-[#0B1A25] border-[#243442] focus:border-[#3498db] text-white pr-10"
+                      {...accountForm.register('password')}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {accountForm.formState.errors.password && (
+                    <p className="text-[#ff4757] text-xs">{accountForm.formState.errors.password.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 relative">
+                  <Label htmlFor="confirm-password" className="text-sm text-gray-300">Confirm Password *</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      className="bg-[#0B1A25] border-[#243442] focus:border-[#3498db] text-white pr-10"
+                      {...accountForm.register('confirmPassword')}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {accountForm.formState.errors.confirmPassword && (
+                    <p className="text-[#ff4757] text-xs">{accountForm.formState.errors.confirmPassword.message}</p>
+                  )}
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className="border-[#243442] hover:bg-[#243442] text-white"
+                    onClick={() => setRegistrationStep(1)}
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="bg-[#3498db] hover:bg-[#2980b9] text-white"
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </form>
+            </>
+          )}
+
+          {/* Step 3: Final Registration Details */}
+          {registrationStep === 3 && (
+            <>
+              <div className="mb-4">
+                <div className="relative pt-1">
+                  <div className="flex mb-2 items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold inline-block text-white">
+                        Step 3 / 3
+                      </span>
+                    </div>
+                  </div>
+                  <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-[#0B1A25]">
+                    <div style={{ width: "100%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#3498db]"></div>
+                  </div>
+                </div>
+                <h2 className="text-xl font-semibold mb-2">Complete Your Profile</h2>
+                <p className="text-gray-400 text-sm">
+                  Just a few more details and you're all set.
+                </p>
+              </div>
+
+              <form onSubmit={personalForm.handleSubmit(onPersonalSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dob" className="text-sm text-gray-300">Date of Birth *</Label>
+                  <Input
+                    id="dob"
+                    type="date"
+                    className="bg-[#0B1A25] border-[#243442] focus:border-[#3498db] text-white"
+                    {...personalForm.register('dateOfBirth', {
+                      valueAsDate: true,
+                    })}
+                  />
+                  {personalForm.formState.errors.dateOfBirth && (
+                    <p className="text-[#ff4757] text-xs">{personalForm.formState.errors.dateOfBirth.message}</p>
+                  )}
+                </div>
+
+                <div className="flex items-start pt-2">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="terms"
+                      type="checkbox"
+                      className="w-4 h-4 border-[#243442] rounded bg-[#0B1A25] focus:ring-[#3498db]"
+                      {...personalForm.register('acceptTerms')}
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <Label htmlFor="terms" className="text-gray-300">
+                      I confirm I am 18+ years of age and accept the <a href="#" className="text-[#3498db]">Terms & Conditions</a>
+                    </Label>
+                    {personalForm.formState.errors.acceptTerms && (
+                      <p className="text-[#ff4757] text-xs">{personalForm.formState.errors.acceptTerms.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className="border-[#243442] hover:bg-[#243442] text-white"
+                    onClick={() => setRegistrationStep(2)}
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="bg-[#3498db] hover:bg-[#2980b9] text-white"
+                    disabled={registerMutation.isPending}
+                  >
+                    {registerMutation.isPending ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </div>
               </form>
