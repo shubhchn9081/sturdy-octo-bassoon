@@ -64,7 +64,7 @@ async function apiRequest(method: string, url: string, data?: any) {
 
 // Function to get data from an endpoint with error handling
 function getQueryFn(options: { on401: 'throw' | 'returnNull' } = { on401: 'throw' }) {
-  return async ({ queryKey }: { queryKey: string[] }) => {
+  return async ({ queryKey }: any) => {
     const [endpoint] = queryKey;
     try {
       const response = await fetch(endpoint, {
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
   } = useQuery<User | null>({
     queryKey: ['/api/user'],
-    queryFn: getQueryFn({ on401: 'returnNull' }),
+    queryFn: getQueryFn({ on401: 'returnNull' }) as any,
   });
 
   const loginMutation = useMutation({

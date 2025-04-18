@@ -54,6 +54,7 @@ export const insertBetSchema = createInsertSchema(bets).pick({
   gameId: true,
   amount: true,
   clientSeed: true,
+  completed: true,
 });
 
 export const insertGameSchema = createInsertSchema(games).pick({
