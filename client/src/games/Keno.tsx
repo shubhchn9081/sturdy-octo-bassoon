@@ -1,0 +1,524 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
+import { useProvablyFair } from '@/hooks/use-provably-fair';
+import { useBalance } from '@/hooks/use-balance';
+
+// Component for Keno game based on the reference screenshots and logic
+const Keno: React.FC = () => {
+  // Game state
+  const [gameMode, setGameMode] = useState<'Manual' | 'Auto'>('Manual');
+  const [betAmount, setBetAmount] = useState<number>(0.00000001);
+  const [betAmountDisplay, setBetAmountDisplay] = useState<string>("0.00000000");
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+  const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
+  const [matchedNumbers, setMatchedNumbers] = useState<number[]>([]);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [result, setResult] = useState<{ won: boolean; multiplier: number; payout: number } | null>(null);
+  const [betHistory, setBetHistory] = useState<Array<{multiplier: number, won: boolean}>>([]);
+  
+  // Maximum numbers player can select
+  const MAX_SELECTIONS = 10;
+  // Total numbers on the board
+  const TOTAL_NUMBERS = 40;
+  // Numbers drawn each round
+  const NUMBERS_DRAWN = 10;
+  
+  // Hooks for actual game logic
+  const { getGameResult } = useProvablyFair('keno');
+  const { balance, placeBet, completeBet } = useBalance();
+  
+  // Fixed game info for Keno
+  const gameInfo = {
+    id: 5,
+    name: "KENO",
+    slug: "keno",
+    type: "STAKE ORIGINALS",
+    description: "Select numbers and win big",
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97
+  };
+  
+  // Ref for autobet interval and current bet ID
+  const autoBetIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const currentBetIdRef = React.useRef<number | null>(null);
+  
+  // Format number with up to 8 decimal places
+  const formatNumber = (num: number): string => {
+    return num.toFixed(8).replace(/\.?0+$/, '');
+  };
+  
+  // Update displayed bet amount when changed
+  useEffect(() => {
+    setBetAmountDisplay(betAmount.toFixed(8));
+  }, [betAmount]);
+  
+  // Clean up autobet on unmount
+  useEffect(() => {
+    return () => {
+      if (autoBetIntervalRef.current) {
+        clearInterval(autoBetIntervalRef.current);
+      }
+    };
+  }, []);
+  
+  // Handle bet amount changes
+  const handleBetAmountChange = (value: string) => {
+    const newAmount = parseFloat(value);
+    if (!isNaN(newAmount) && newAmount >= 0) {
+      setBetAmount(newAmount);
+      setBetAmountDisplay(value);
+    } else if (value === '' || value === '0') {
+      setBetAmount(0);
+      setBetAmountDisplay(value);
+    }
+  };
+  
+  // Half bet amount
+  const halfBet = () => {
+    const newAmount = betAmount / 2;
+    setBetAmount(newAmount);
+    setBetAmountDisplay(newAmount.toFixed(8));
+  };
+  
+  // Double bet amount
+  const doubleBet = () => {
+    const newAmount = betAmount * 2;
+    setBetAmount(newAmount);
+    setBetAmountDisplay(newAmount.toFixed(8));
+  };
+  
+  // Generate client seed
+  const generateClientSeed = () => {
+    return Math.random().toString(36).substring(2, 15);
+  };
+  
+  // Toggle number selection
+  const toggleNumberSelection = (num: number) => {
+    if (isPlaying) return;
+    
+    setSelectedNumbers(prev => {
+      // If already selected, remove it
+      if (prev.includes(num)) {
+        return prev.filter(n => n !== num);
+      }
+      
+      // If max selections reached, don't add
+      if (prev.length >= MAX_SELECTIONS) {
+        return prev;
+      }
+      
+      // Add number to selections
+      return [...prev, num];
+    });
+  };
+  
+  // Clear all selected numbers
+  const clearSelections = () => {
+    if (isPlaying) return;
+    setSelectedNumbers([]);
+  };
+  
+  // Auto pick random numbers
+  const autoPick = () => {
+    if (isPlaying) return;
+    
+    // Generate an array of random numbers between 1 and TOTAL_NUMBERS
+    const count = Math.min(5, MAX_SELECTIONS); // Auto pick 5 numbers by default
+    const numbers: number[] = [];
+    
+    while (numbers.length < count) {
+      const num = Math.floor(Math.random() * TOTAL_NUMBERS) + 1;
+      if (!numbers.includes(num)) {
+        numbers.push(num);
+      }
+    }
+    
+    setSelectedNumbers(numbers);
+  };
+  
+  // Get payout multiplier based on matches and selections
+  const getPayoutMultiplier = (selected: number, matched: number): number => {
+    // Payout table based on number of selections and matches
+    const payoutTable: Record<number, number[]> = {
+      1: [0, 3.8],
+      2: [0, 1, 5.7],
+      3: [0, 0, 2.1, 48],
+      4: [0, 0, 1, 5, 90],
+      5: [0, 0, 0.5, 3, 14, 200],
+      6: [0, 0, 0.5, 1.5, 3, 40, 500],
+      7: [0, 0, 0.5, 1, 2, 7, 30, 700],
+      8: [0, 0, 0.5, 0.8, 2, 5, 20, 80, 1000],
+      9: [0, 0, 0.5, 0.8, 1.5, 3, 10, 30, 300, 4000],
+      10: [0, 0, 0, 0.5, 1.5, 3, 5, 20, 100, 500, 5000],
+    };
+    
+    // Default to zero if not in the table
+    if (!payoutTable[selected] || matched >= payoutTable[selected].length) {
+      return 0;
+    }
+    
+    return payoutTable[selected][matched];
+  };
+  
+  // Handle bet placement (Manual mode)
+  const placeBetAction = async () => {
+    if (isPlaying || selectedNumbers.length === 0) return;
+    
+    try {
+      setIsPlaying(true);
+      setDrawnNumbers([]);
+      setMatchedNumbers([]);
+      setResult(null);
+      
+      // Generate a client seed
+      const clientSeed = generateClientSeed();
+      
+      // Attempt to place bet with API, but don't block the demo on API errors
+      try {
+        await placeBet.mutateAsync({
+          gameId: gameInfo.id,
+          clientSeed,
+          amount: betAmount,
+          options: {
+            selectedNumbers
+          }
+        });
+      } catch (apiError) {
+        console.log("API error (continuing with demo)", apiError);
+      }
+      
+      // Set a mock response for the demo
+      const response = { betId: Math.floor(Math.random() * 10000) };
+      
+      // Store the bet ID from the response
+      if (response && typeof response === 'object' && 'betId' in response) {
+        currentBetIdRef.current = response.betId as number;
+      }
+      
+      // For Keno, we'll just generate random numbers
+      // We're not directly using getGameResult() since we need a specific format
+      // This is for demo purposes - in production this would come from a provably fair system
+      
+      // Draw 10 random numbers from 1-40 (for demo)
+      const drawn: number[] = [];
+      while (drawn.length < NUMBERS_DRAWN) {
+        const num = Math.floor(Math.random() * TOTAL_NUMBERS) + 1;
+        if (!drawn.includes(num)) {
+          drawn.push(num);
+        }
+      }
+      
+      // Simulate the drawing of numbers with animation
+      const drawAnimation = () => {
+        const drawnSoFar: number[] = [];
+        
+        const interval = setInterval(() => {
+          if (drawnSoFar.length >= NUMBERS_DRAWN) {
+            clearInterval(interval);
+            
+            // Calculate matches
+            const matches = selectedNumbers.filter(num => drawn.includes(num));
+            setMatchedNumbers(matches);
+            
+            // Calculate payout
+            const multiplier = getPayoutMultiplier(selectedNumbers.length, matches.length);
+            const payout = betAmount * multiplier;
+            const won = payout > 0;
+            
+            // Set result
+            setResult({
+              won,
+              multiplier,
+              payout
+            });
+            
+            // Add to history
+            setBetHistory(prev => [
+              { 
+                multiplier, 
+                won
+              }, 
+              ...prev.slice(0, 9)
+            ]);
+            
+            // Complete the bet
+            if (currentBetIdRef.current) {
+              try {
+                completeBet.mutate({
+                  betId: currentBetIdRef.current,
+                  outcome: {
+                    selectedNumbers,
+                    drawnNumbers: drawn,
+                    matches: matches.length,
+                    multiplier,
+                    win: won
+                  }
+                });
+              } catch (error) {
+                console.log("API error completing bet (demo continues)", error);
+              }
+              currentBetIdRef.current = null;
+            }
+            
+            // Game round complete
+            setTimeout(() => {
+              setIsPlaying(false);
+            }, 1000);
+            
+            return;
+          }
+          
+          const nextNumber = drawn[drawnSoFar.length];
+          drawnSoFar.push(nextNumber);
+          setDrawnNumbers([...drawnSoFar]);
+        }, 200); // Draw a new number every 200ms
+      };
+      
+      // Start animation after a short delay
+      setTimeout(drawAnimation, 500);
+      
+    } catch (error) {
+      console.error('Error placing bet:', error);
+      setIsPlaying(false);
+    }
+  };
+  
+  return (
+    <div className="flex flex-col h-screen w-full bg-[#0F212E] text-white overflow-hidden">
+      {/* Main Game Container */}
+      <div className="flex flex-col md:flex-row h-full">
+        {/* Left Side - Controls */}
+        <div className="w-full md:w-1/4 p-4 bg-[#172B3A]">
+          {/* Game Mode Tabs */}
+          <div className="flex rounded-md overflow-hidden mb-4 bg-[#0F212E]">
+            <button 
+              className={`flex-1 py-2 text-center ${gameMode === 'Manual' ? 'bg-[#172B3A]' : ''}`}
+              onClick={() => setGameMode('Manual')}
+            >
+              Manual
+            </button>
+            <button 
+              className={`flex-1 py-2 text-center ${gameMode === 'Auto' ? 'bg-[#172B3A]' : ''}`}
+              onClick={() => setGameMode('Auto')}
+            >
+              Auto
+            </button>
+          </div>
+          
+          {/* Bet Amount */}
+          <div className="mb-4">
+            <div className="text-sm text-gray-400 mb-1">Bet Amount</div>
+            <div className="bg-[#0F212E] p-2 rounded mb-2 relative">
+              <div className="flex items-center">
+                <span className="text-white">$0.00</span>
+              </div>
+              <input 
+                type="text" 
+                value={betAmountDisplay}
+                onChange={(e) => handleBetAmountChange(e.target.value)}
+                className="w-full bg-transparent border-none text-white outline-none"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex">
+                <button onClick={halfBet} className="px-2 text-gray-400 hover:text-white">½</button>
+                <button onClick={doubleBet} className="px-2 text-gray-400 hover:text-white">2×</button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Risk Level */}
+          <div className="mb-4">
+            <div className="text-sm text-gray-400 mb-1">Risk</div>
+            <div className="bg-[#0F212E] p-2 rounded flex items-center">
+              <span className="text-white">Medium</span>
+              <div className="ml-auto">
+                <span className="text-gray-400">▼</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Quick buttons */}
+          <div className="mb-4 flex gap-2">
+            <button 
+              onClick={autoPick}
+              className="flex-1 py-2 bg-[#0F212E] rounded text-center"
+              disabled={isPlaying}
+            >
+              Auto Pick
+            </button>
+            <button 
+              onClick={clearSelections}
+              className="flex-1 py-2 bg-[#0F212E] rounded text-center"
+              disabled={isPlaying}
+            >
+              Clear Table
+            </button>
+          </div>
+          
+          {/* Bet Button */}
+          <div className="mb-4">
+            <Button 
+              className="w-full py-3 text-base font-medium bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md"
+              onClick={placeBetAction}
+              disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
+            >
+              {isPlaying ? 'Drawing...' : 'Bet'}
+            </Button>
+          </div>
+          
+          {/* Results */}
+          {result && (
+            <div className="mb-4 p-3 rounded bg-[#0F212E]">
+              <div className="text-sm text-gray-400 mb-1">Result</div>
+              <div className={`text-lg font-bold ${result.won ? 'text-[#5BE12C]' : 'text-[#FF3B3B]'}`}>
+                {result.won ? 'WIN!' : 'LOSS'}
+              </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-sm text-gray-400">Matches:</span>
+                <span className="text-sm">{matchedNumbers.length}/{selectedNumbers.length}</span>
+              </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-sm text-gray-400">Multiplier:</span>
+                <span className="text-sm">{result.multiplier}x</span>
+              </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-sm text-gray-400">Payout:</span>
+                <span className="text-sm">{result.payout.toFixed(8)}</span>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Right Side - Game Area */}
+        <div className="w-full md:w-3/4 p-4 flex flex-col h-full">
+          {/* Keno Grid */}
+          <div className="flex-grow bg-[#0E1C27] rounded-lg flex items-center justify-center p-2">
+            <div className="w-full max-w-4xl">
+              {/* Main Number Grid - 5x8 layout */}
+              <div className="grid grid-cols-8 gap-2 mb-4">
+                {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
+                  const isSelected = selectedNumbers.includes(num);
+                  const isDrawn = drawnNumbers.includes(num);
+                  const isMatched = isDrawn && isSelected;
+                  
+                  // Colors based on screenshots
+                  let bgColor = 'bg-[#172B3A]'; // Default dark blue
+                  let textColor = 'text-white';
+                  
+                  if (isMatched) {
+                    bgColor = 'bg-[#5BE12C]'; // Green for matched
+                    textColor = 'text-black';
+                  } else if (isDrawn) {
+                    bgColor = 'bg-[#FF3B3B]'; // Red for drawn but not selected
+                  } else if (isSelected) {
+                    bgColor = 'bg-[#9333EA]'; // Purple for selected
+                  }
+                  
+                  return (
+                    <button
+                      key={num}
+                      className={`
+                        aspect-square rounded-md flex items-center justify-center text-lg font-bold transition-all
+                        ${bgColor} ${textColor}
+                        ${isPlaying ? 'cursor-not-allowed' : 'cursor-pointer'}
+                        transform transition-transform duration-200
+                        ${isDrawn ? 'scale-105' : ''}
+                        hover:opacity-90
+                      `}
+                      onClick={() => toggleNumberSelection(num)}
+                      disabled={isPlaying}
+                    >
+                      {num}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {/* Multiplier Displays */}
+              <div className="grid grid-cols-6 gap-2 mb-2">
+                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
+                  <span className="text-sm">0.00x</span>
+                </div>
+                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
+                  <span className="text-sm">0.00x</span>
+                </div>
+                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
+                  <span className={`text-sm ${result?.multiplier === 1.40 ? 'text-[#5BE12C] font-bold' : ''}`}>1.40x</span>
+                </div>
+                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
+                  <span className={`text-sm ${result?.multiplier === 4.00 ? 'text-[#5BE12C] font-bold' : ''}`}>4.00x</span>
+                </div>
+                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
+                  <span className={`text-sm ${result?.multiplier === 14.00 ? 'text-[#5BE12C] font-bold' : ''}`}>14.00x</span>
+                </div>
+                <div className="aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center">
+                  <span className={`text-sm ${result?.multiplier === 390.00 ? 'text-[#5BE12C] font-bold' : ''}`}>390.00x</span>
+                </div>
+              </div>
+              
+              {/* Hits Counter */}
+              <div className="grid grid-cols-6 gap-2">
+                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
+                  <span className="text-xs text-gray-400">0x</span>
+                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 0 ? 'bg-white' : 'bg-[#172B3A]'}`}></div>
+                </div>
+                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
+                  <span className="text-xs text-gray-400">1x</span>
+                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 1 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
+                </div>
+                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
+                  <span className="text-xs text-gray-400">2x</span>
+                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 2 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
+                </div>
+                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
+                  <span className="text-xs text-gray-400">3x</span>
+                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 3 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
+                </div>
+                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
+                  <span className="text-xs text-gray-400">4x</span>
+                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 4 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
+                </div>
+                <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
+                  <span className="text-xs text-gray-400">5x</span>
+                  <div className={`w-3 h-3 ml-1 rounded-full ${matchedNumbers.length === 5 ? 'bg-[#5BE12C]' : 'bg-[#172B3A]'}`}></div>
+                </div>
+              </div>
+              
+              {/* Selection info */}
+              <div className="mt-4 text-center text-gray-400 text-sm">
+                Select 1-{MAX_SELECTIONS} numbers to play • {selectedNumbers.length} selected
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Navigation (hidden on desktop) */}
+      <div className="fixed bottom-0 inset-x-0 bg-[#0E1C27] flex justify-between border-t border-gray-800 md:hidden py-2">
+        <button className="flex-1 flex flex-col items-center justify-center gap-1">
+          <BrowseIcon />
+          <span className="text-xs text-gray-400">Browse</span>
+        </button>
+        <button className="flex-1 flex flex-col items-center justify-center gap-1">
+          <CasinoIcon />
+          <span className="text-xs text-white">Casino</span>
+        </button>
+        <button className="flex-1 flex flex-col items-center justify-center gap-1">
+          <BetsIcon />
+          <span className="text-xs text-gray-400">Bets</span>
+        </button>
+        <button className="flex-1 flex flex-col items-center justify-center gap-1">
+          <SportsIcon />
+          <span className="text-xs text-gray-400">Sports</span>
+        </button>
+        <button className="flex-1 flex flex-col items-center justify-center gap-1">
+          <ChatIcon />
+          <span className="text-xs text-gray-400">Chat</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Keno;
