@@ -73,6 +73,8 @@ const GameCard = ({
         return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990621/30688668d7d2d48d472edd0f1e2bca0758e7ec51cbab8c04d8b7f157848640e0_ec0wxi.jpg';
       case 'KENO':
         return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990621/102cf3d7c840018b939cd787bf013e080b996d80e604f3008f21dddf1f1aa201_phwj9c.jpg';
+      case 'WHEEL':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744994041/14a07f57ad5198ffadd4e0d4386245f4e017d030-1080x1080_twb6yn.png';
       default:
         break;
     }
@@ -171,6 +173,19 @@ const GameCard = ({
                   <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      case 'WHEEL':
+        return (
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full border-4 border-yellow-500 relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
+                </div>
+              </div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-red-500"></div>
             </div>
           </div>
         );

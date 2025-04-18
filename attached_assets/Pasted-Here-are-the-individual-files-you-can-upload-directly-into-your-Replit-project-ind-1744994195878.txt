@@ -1,0 +1,211 @@
+Here are the individual files you can upload directly into your **Replit** project:
+
+---
+
+### ✅ `index.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stake Wheel Clone</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="tab-switch">
+        <button class="active">Manual</button>
+        <button>Auto</button>
+      </div>
+      <div class="input-group">
+        <label>Bet Amount</label>
+        <input type="number" placeholder="0.00000000" />
+        <div class="quick-buttons">
+          <button>½</button>
+          <button>2×</button>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Risk</label>
+        <select>
+          <option>Low</option>
+          <option selected>Medium</option>
+          <option>High</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Segments</label>
+        <select>
+          <option>10</option>
+          <option>20</option>
+          <option selected>30</option>
+          <option>40</option>
+        </select>
+      </div>
+      <button class="bet-button">Bet</button>
+    </div>
+    <div class="game-board">
+      <canvas id="wheelCanvas" width="400" height="400"></canvas>
+      <div class="multipliers">
+        <span>0.00x</span>
+        <span>1.50x</span>
+        <span>1.70x</span>
+        <span>2.00x</span>
+        <span>3.00x</span>
+        <span>4.00x</span>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+```
+
+---
+
+### ✅ `style.css`
+```css
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #0f1a24;
+  color: white;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 300px;
+  background: #1e2a38;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tab-switch {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tab-switch button {
+  width: 48%;
+  padding: 10px;
+  background: #2f3e51;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.tab-switch button.active {
+  background: #101d2b;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group input, .input-group select {
+  padding: 10px;
+  background: #101d2b;
+  border: none;
+  color: white;
+  border-radius: 5px;
+}
+
+.quick-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.quick-buttons button {
+  flex: 1;
+  padding: 5px;
+  background: #2f3e51;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.bet-button {
+  background: #2ce02c;
+  padding: 15px;
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game-board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+canvas {
+  background: #1c2d3a;
+  border-radius: 50%;
+}
+
+.multipliers {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  background: #101d2b;
+  padding: 10px;
+  border-radius: 10px;
+}
+```
+
+---
+
+### ✅ `script.js`
+```js
+const canvas = document.getElementById("wheelCanvas");
+const ctx = canvas.getContext("2d");
+const radius = canvas.width / 2;
+const colors = ['#28c76f', '#f1c40f', '#9b59b6', '#3498db', '#e67e22', '#ecf0f1'];
+const segments = 30;
+const anglePerSegment = (2 * Math.PI) / segments;
+
+function drawWheel() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < segments; i++) {
+    const angle = i * anglePerSegment;
+    ctx.beginPath();
+    ctx.moveTo(radius, radius);
+    ctx.arc(radius, radius, radius, angle, angle + anglePerSegment);
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+    ctx.strokeStyle = "#0f1a24";
+    ctx.stroke();
+  }
+
+  // Pointer
+  ctx.beginPath();
+  ctx.moveTo(radius - 10, 0);
+  ctx.lineTo(radius + 10, 0);
+  ctx.lineTo(radius, 30);
+  ctx.closePath();
+  ctx.fillStyle = "red";
+  ctx.fill();
+}
+
+drawWheel();
+```
+
+---
+
+Upload these 3 files to your Replit project.
+
+Want spinning logic, segment outcomes, or backend? Just say “next step” and I’ll build that for you.

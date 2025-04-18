@@ -8,6 +8,7 @@ import BlueSamurai from './BlueSamurai';
 import Pump from './Pump';
 import Hilo from './Hilo';
 import Keno from './Keno';
+import Wheel from './Wheel';
 
 export const GAMES = [
   {
@@ -174,6 +175,21 @@ export const GAMES = [
     rtp: 97,
     maxMultiplier: 390.00,
     activePlayers: 6253
+  },
+  {
+    id: 12,
+    name: 'WHEEL',
+    slug: 'wheel',
+    type: 'STAKE ORIGINALS',
+    description: 'Spin the wheel and win multipliers',
+    color: 'bg-yellow-500',
+    iconType: 'wheel',
+    component: Wheel,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 10.00,
+    activePlayers: 3298
   }
 ];
 
@@ -195,5 +211,6 @@ export default {
   BlueSamurai,
   Pump,
   Hilo,
-  Keno
+  Keno,
+  Wheel
 };
