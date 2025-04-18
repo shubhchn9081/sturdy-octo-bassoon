@@ -375,6 +375,31 @@ const LimboFinal: React.FC = () => {
               </div>
             )}
             
+            {/* History Display (Top Right) */}
+            <div className="absolute top-4 right-4 bg-[#172B3A] rounded-lg p-3 w-48">
+              <div className="text-sm text-gray-400 mb-2 font-medium">History</div>
+              <div className="grid grid-cols-5 gap-2">
+                {betHistory.slice(0, 5).map((bet, i) => (
+                  <div 
+                    key={i} 
+                    className={`
+                      text-xs font-bold rounded-full w-8 h-8 flex items-center justify-center
+                      ${bet.won ? 'bg-[#5BE12C] text-black' : 'bg-[#FF3B3B] text-white'}
+                    `}
+                  >
+                    {bet.multiplier.toFixed(2)}
+                  </div>
+                ))}
+                {/* Add placeholder circles if less than 5 history items */}
+                {Array.from({ length: Math.max(0, 5 - betHistory.length) }).map((_, i) => (
+                  <div 
+                    key={`placeholder-${i}`} 
+                    className="text-xs font-bold rounded-full w-8 h-8 flex items-center justify-center bg-[#0F212E]"
+                  />
+                ))}
+              </div>
+            </div>
+            
             {/* Center Multiplier Display */}
             <div className="text-center">
               <div className={`text-9xl font-bold ${getMultiplierColor()}`}>
