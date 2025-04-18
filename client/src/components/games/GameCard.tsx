@@ -34,7 +34,7 @@ const GameCard = ({
   const getImageSource = () => {
     // For Crash game, use the specific image without any text
     if (name === 'CRASH') {
-      return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
+      return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990544/crash-card_pmi8rw.jpg';
     }
     
     // First check if we have a custom uploaded image
@@ -199,13 +199,13 @@ const GameCard = ({
   return (
     <div 
       className={cn(
-        "game-card block cursor-pointer overflow-hidden rounded-md transition-transform hover:translate-y-[-2px]",
-        isCrashGame ? "w-[255px]" : "",
+        "game-card block cursor-pointer overflow-hidden rounded-xl transition-transform hover:translate-y-[-2px] shadow-lg",
+        isCrashGame ? "w-[156px]" : "",
         className
       )} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div className={cn("relative", isCrashGame ? "h-[310px]" : "h-48")}>
+      <div className={cn("relative", isCrashGame ? "h-[220px]" : "h-48")}>
         {/* Game background image with fallback */}
         {imageSource ? (
           <ImageWithFallback
@@ -222,15 +222,20 @@ const GameCard = ({
         <div className="absolute inset-0 flex flex-col items-center justify-end">
           {gameIcon}
           
-          {/* Only show game name for non-CRASH games */}
+          {/* Show game name in big bold text - only for non-Crash games */}
           {!isCrashGame && (
-            <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
+            <h3 className="text-2xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
           )}
         </div>
       </div>
-      <div className="bg-[#0F212E] px-3 py-1.5 text-xs text-green-400 flex items-center justify-center">
+      {/* Player count */}
+      <div className="bg-[#0F212E] px-2 py-1 text-xs text-green-400 flex items-center justify-center">
         <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
         {activePlayers.toLocaleString()} playing
+      </div>
+      {/* Stake originals footer */}
+      <div className="bg-[#0A1824] px-2 py-1 text-[10px] text-gray-400 uppercase flex items-center justify-center">
+        Stake Originals
       </div>
     </div>
   );
