@@ -269,7 +269,7 @@ const LimboFinal: React.FC = () => {
     } catch (error) {
       console.error('Error placing bet:', error);
     }
-  }, [selectedGame, betAmount, targetMultiplier, onWinIncrease, onLossIncrease, placeBet, getGameResult, animateMultiplier, completeBet]);
+  }, [betAmount, targetMultiplier, onWinIncrease, onLossIncrease, placeBet, getGameResult, animateMultiplier, completeBet, gameInfo]);
   
   // Start/stop autobet
   const toggleAutobet = () => {

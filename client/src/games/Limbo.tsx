@@ -27,7 +27,19 @@ const LimboGame: React.FC = () => {
   // Hooks for actual game logic
   const { getGameResult } = useProvablyFair('limbo');
   const { balance, placeBet, completeBet } = useBalance();
+  
+  // Use game from context, but create a fallback for easier testing
   const { selectedGame } = useGame();
+  const gameInfo = selectedGame || {
+    id: 3,
+    name: "LIMBO",
+    slug: "limbo",
+    type: "STAKE ORIGINALS",
+    description: "Target a multiplier and win big",
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99
+  };
   
   // Ref for autobet interval
   const autoBetIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -146,13 +158,13 @@ const LimboGame: React.FC = () => {
   
   // Handle single bet (Manual mode)
   const handleManualBet = async () => {
-    if (isAnimating || !selectedGame) return;
+    if (isAnimating) return;
     
     try {
       // Place the bet
       const clientSeed = generateClientSeed();
       const response = await placeBet.mutateAsync({
-        gameId: selectedGame.id,
+        gameId: gameInfo.id,
         clientSeed,
         amount: betAmount,
         options: {
@@ -200,13 +212,11 @@ const LimboGame: React.FC = () => {
   
   // Handle auto betting
   const handleAutoBet = useCallback(async () => {
-    if (!selectedGame) return;
-    
     try {
       // Place the bet
       const clientSeed = generateClientSeed();
       const response = await placeBet.mutateAsync({
-        gameId: selectedGame.id,
+        gameId: gameInfo.id,
         clientSeed,
         amount: betAmount,
         options: {
@@ -259,7 +269,7 @@ const LimboGame: React.FC = () => {
     } catch (error) {
       console.error('Error placing bet:', error);
     }
-  }, [selectedGame, betAmount, targetMultiplier, onWinIncrease, onLossIncrease, placeBet, getGameResult, animateMultiplier, completeBet]);
+  }, [betAmount, targetMultiplier, onWinIncrease, onLossIncrease, placeBet, getGameResult, animateMultiplier, completeBet, gameInfo]);
   
   // Start/stop autobet
   const toggleAutobet = () => {
