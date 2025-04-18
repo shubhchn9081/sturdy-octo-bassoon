@@ -3,20 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
-type BetMode = 'manual' | 'auto';
 
 const WheelGame: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [betAmount, setBetAmount] = useState<number>(0);
+  const [betAmount, setBetAmount] = useState<string>('0.00000000');
   const [risk, setRisk] = useState<RiskLevel>('Medium');
   const [segments, setSegments] = useState<number>(30);
-  const [betMode, setBetMode] = useState<BetMode>('manual');
+  const [activeTab, setActiveTab] = useState<'Manual' | 'Auto'>('Manual');
   
-  // Define colors for wheel segments
-  const colors = ['#28c76f', '#f1c40f', '#9b59b6', '#3498db', '#e67e22', '#ecf0f1'];
+  // Define colors for wheel segments - match the exact colors in the screenshot
+  const colors = ['#4cd964', '#ffcc00', '#5856d6', '#5ac8fa', '#ff9500', '#ffffff', '#4cd964', '#ffcc00'];
   
   // Multipliers based on risk level
   const multipliers = {
@@ -55,6 +53,12 @@ const WheelGame: React.FC = () => {
     
     ctx.clearRect(0, 0, canvasWidth, canvasWidth);
     
+    // Draw dark circle background first
+    ctx.beginPath();
+    ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#1c2d3a";
+    ctx.fill();
+    
     // Save context to restore later
     ctx.save();
     
@@ -64,53 +68,53 @@ const WheelGame: React.FC = () => {
     // Rotate the entire wheel
     ctx.rotate(rotationAngle);
     
-    // Draw wheel segments
+    // Draw inner dark circle
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.6, 0, 2 * Math.PI);
+    ctx.fillStyle = "#172B3A";
+    ctx.fill();
+    
+    // Draw wheel segments (only the outer ring)
     for (let i = 0; i < segmentCount; i++) {
       const angle = i * anglePerSegment;
+      const colorIndex = i % colors.length;
+      
+      ctx.beginPath();
+      ctx.moveTo(radius * 0.65, 0);
+      ctx.arc(0, 0, radius * 0.95, angle, angle + anglePerSegment);
+      ctx.arc(0, 0, radius * 0.65, angle + anglePerSegment, angle, true);
+      ctx.closePath();
+      
+      ctx.fillStyle = colors[colorIndex];
+      ctx.fill();
+      
+      // Add thin gray separators
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.arc(0, 0, radius, angle, angle + anglePerSegment);
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.fill();
-      ctx.strokeStyle = "#0f1a24";
+      ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+      ctx.strokeStyle = "#2A3B4C";
       ctx.lineWidth = 2;
       ctx.stroke();
-      
-      // Add segment value
-      ctx.save();
-      ctx.rotate(angle + anglePerSegment / 2);
-      ctx.translate(radius * 0.7, 0);
-      ctx.rotate(Math.PI / 2);
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 14px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText(`${(i % 6) + 1}`, 0, 0);
-      ctx.restore();
     }
     
     // Restore context
     ctx.restore();
     
-    // Draw center hub
+    // Draw inner circle
     ctx.beginPath();
-    ctx.arc(radius, radius, 20, 0, 2 * Math.PI);
-    ctx.fillStyle = "#333";
+    ctx.arc(radius, radius, radius * 0.65, 0, 2 * Math.PI);
+    ctx.fillStyle = "#172B3A";
     ctx.fill();
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 2;
-    ctx.stroke();
     
     // Draw pointer
+    const pointerHeight = 30;
     ctx.beginPath();
-    ctx.moveTo(radius, radius - 150);
-    ctx.lineTo(radius - 10, radius - 130);
-    ctx.lineTo(radius + 10, radius - 130);
+    ctx.moveTo(radius, radius - radius * 0.95);
+    ctx.lineTo(radius - 15, radius - radius * 0.95 - pointerHeight);
+    ctx.lineTo(radius + 15, radius - radius * 0.95 - pointerHeight);
     ctx.closePath();
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "#FF3B30";
     ctx.fill();
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 1;
-    ctx.stroke();
   };
   
   const spinWheel = () => {
@@ -168,7 +172,7 @@ const WheelGame: React.FC = () => {
   };
 
   const handleBet = () => {
-    if (betAmount <= 0) {
+    if (parseFloat(betAmount) <= 0) {
       alert('Please enter a valid bet amount');
       return;
     }
@@ -183,82 +187,115 @@ const WheelGame: React.FC = () => {
   };
 
   const handleHalfBet = () => {
-    setBetAmount(prevAmount => prevAmount / 2);
+    const currentAmount = parseFloat(betAmount);
+    if (!isNaN(currentAmount)) {
+      setBetAmount((currentAmount / 2).toString());
+    }
   };
 
   const handleDoubleBet = () => {
-    setBetAmount(prevAmount => prevAmount * 2);
+    const currentAmount = parseFloat(betAmount);
+    if (!isNaN(currentAmount)) {
+      setBetAmount((currentAmount * 2).toString());
+    }
   };
 
   return (
     <div className="flex flex-col md:flex-row h-full bg-[#0f1a24] text-white">
       {/* Sidebar */}
-      <div className="w-full md:w-80 bg-[#1e2a38] p-5 flex flex-col gap-5">
+      <div className="w-full md:w-80 bg-[#172B3A] p-0">
         {/* Tab switch */}
-        <Tabs value={betMode} onValueChange={(value) => setBetMode(value as BetMode)} className="w-full">
-          <TabsList className="w-full grid grid-cols-2 bg-[#2f3e51]">
-            <TabsTrigger value="manual" className="data-[state=active]:bg-[#101d2b]">Manual</TabsTrigger>
-            <TabsTrigger value="auto" className="data-[state=active]:bg-[#101d2b]">Auto</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        
-        {/* Bet amount */}
-        <div className="space-y-2">
-          <Label>Bet Amount</Label>
-          <Input 
-            type="number" 
-            placeholder="0.00000000" 
-            value={betAmount || ''} 
-            onChange={(e) => setBetAmount(parseFloat(e.target.value) || 0)}
-            className="bg-[#101d2b] border-none" 
-          />
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleHalfBet} className="flex-1 bg-[#2f3e51] hover:bg-[#3a4a5e] border-none">½</Button>
-            <Button variant="outline" onClick={handleDoubleBet} className="flex-1 bg-[#2f3e51] hover:bg-[#3a4a5e] border-none">2×</Button>
-          </div>
-        </div>
-        
-        {/* Risk */}
-        <div className="space-y-2">
-          <Label>Risk</Label>
-          <Select value={risk} onValueChange={(value) => setRisk(value as RiskLevel)}>
-            <SelectTrigger className="bg-[#101d2b] border-none">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1e2a38] border-[#2f3e51]">
-              <SelectItem value="Low">Low</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="High">High</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Segments */}
-        <div className="space-y-2">
-          <Label>Segments</Label>
-          <Select 
-            value={segments.toString()} 
-            onValueChange={(value) => setSegments(parseInt(value))}
+        <div className="flex bg-[#172B3A] mb-4">
+          <button 
+            className={`flex-1 py-3 px-4 ${activeTab === 'Manual' ? 'bg-[#172B3A] text-white' : 'bg-[#11212d] text-gray-400'}`}
+            onClick={() => setActiveTab('Manual')}
           >
-            <SelectTrigger className="bg-[#101d2b] border-none">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1e2a38] border-[#2f3e51]">
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="30">30</SelectItem>
-              <SelectItem value="40">40</SelectItem>
-            </SelectContent>
-          </Select>
+            Manual
+          </button>
+          <button 
+            className={`flex-1 py-3 px-4 ${activeTab === 'Auto' ? 'bg-[#172B3A] text-white' : 'bg-[#11212d] text-gray-400'}`}
+            onClick={() => setActiveTab('Auto')}
+          >
+            Auto
+          </button>
         </div>
         
-        {/* Bet button */}
-        <Button 
-          onClick={handleBet} 
-          className="bg-[#2ce02c] text-black hover:bg-[#25c425] mt-auto font-bold"
-        >
-          Bet
-        </Button>
+        <div className="p-4 space-y-4">
+          {/* Bet amount */}
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-400">Bet Amount</span>
+              <span className="text-sm text-gray-400">$0.00</span>
+            </div>
+            <div className="flex">
+              <input 
+                type="text" 
+                value={betAmount} 
+                onChange={(e) => setBetAmount(e.target.value)}
+                className="flex-1 bg-[#0e1822] py-2 px-3 text-white rounded-l border-0 focus:outline-none" 
+              />
+              <div className="bg-[#0e1822] flex items-center px-2 rounded-r">
+                <span className="text-amber-500">⌀</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={handleHalfBet}
+                className="flex-1 bg-[#0e1822] py-1 px-4 rounded text-white hover:bg-[#1a2c3d]"
+              >
+                ½
+              </button>
+              <button 
+                onClick={handleDoubleBet}
+                className="flex-1 bg-[#0e1822] py-1 px-4 rounded text-white hover:bg-[#1a2c3d]"
+              >
+                2×
+              </button>
+            </div>
+          </div>
+          
+          {/* Risk */}
+          <div className="space-y-2">
+            <span className="text-sm text-gray-400">Risk</span>
+            <Select value={risk} onValueChange={(value) => setRisk(value as RiskLevel)}>
+              <SelectTrigger className="w-full bg-[#0e1822] border-0 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0e1822] border-[#2a3642] text-white">
+                <SelectItem value="Low">Low</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="High">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Segments */}
+          <div className="space-y-2">
+            <span className="text-sm text-gray-400">Segments</span>
+            <Select 
+              value={segments.toString()} 
+              onValueChange={(value) => setSegments(parseInt(value))}
+            >
+              <SelectTrigger className="w-full bg-[#0e1822] border-0 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0e1822] border-[#2a3642] text-white">
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="40">40</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Bet button */}
+          <button 
+            onClick={handleBet}
+            className="w-full bg-[#4cd964] text-black py-3 rounded font-semibold hover:bg-[#40c557] transition-colors mt-6"
+          >
+            Bet
+          </button>
+        </div>
       </div>
       
       {/* Game board */}
@@ -274,7 +311,7 @@ const WheelGame: React.FC = () => {
           ref={canvasRef} 
           width={400} 
           height={400} 
-          className="bg-[#1c2d3a] rounded-full shadow-lg"
+          className="rounded-full"
         />
         
         {/* Spinning indicator */}
@@ -285,12 +322,37 @@ const WheelGame: React.FC = () => {
         )}
         
         {/* Multipliers */}
-        <div className="flex gap-4 mt-5 bg-[#101d2b] p-3 rounded-lg">
-          {multipliers[risk].map((multiplier, index) => (
-            <span key={index} className={`text-sm ${multiplier === 0 ? 'text-red-500' : 'text-white'}`}>
-              {multiplier.toFixed(2)}x
-            </span>
-          ))}
+        <div className="flex gap-1 mt-5">
+          {multipliers[risk].map((multiplier, index) => {
+            // Determine color based on multiplier
+            let bgColor = "#1c2d3a"; // Default dark blue
+            let textColor = "white";
+            
+            if (multiplier === 0) {
+              textColor = "white";
+              bgColor = "#FF3B30"; // Red for 0x
+            } else if (multiplier === 1.5) {
+              bgColor = "#4cd964"; // Green
+            } else if (multiplier === 1.7) {
+              bgColor = "#5ac8fa"; // Light blue
+            } else if (multiplier === 2.0) {
+              bgColor = "#5856d6"; // Purple
+            } else if (multiplier === 3.0) {
+              bgColor = "#ffcc00"; // Yellow
+            } else if (multiplier === 4.0) {
+              bgColor = "#ff9500"; // Orange
+            }
+            
+            return (
+              <div 
+                key={index} 
+                className="px-4 py-2 rounded flex items-center justify-center"
+                style={{ backgroundColor: bgColor, color: textColor }}
+              >
+                {multiplier.toFixed(2)}x
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
