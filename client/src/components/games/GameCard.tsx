@@ -222,10 +222,8 @@ const GameCard = ({
         <div className="absolute inset-0 flex flex-col items-center justify-end">
           {gameIcon}
           
-          {/* Show game name - special formatting for CRASH game */}
-          {isCrashGame ? (
-            <h3 className="text-6xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-8 z-10 text-center">CRASH</h3>
-          ) : name !== 'CRASH' && (
+          {/* Only show game name for non-CRASH games */}
+          {!isCrashGame && (
             <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
           )}
         </div>
