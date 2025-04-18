@@ -32,7 +32,7 @@ const GameCard = ({
   const getImageSource = () => {
     // For Crash game, use the specific image without any text
     if (name === 'CRASH') {
-      return 'https://res.cloudinary.com/dbgpqig0z/image/upload/v1713367867/crash-game-image_sgcq8g.jpg';
+      return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
     }
     
     // First check if we have a custom uploaded image
@@ -192,7 +192,7 @@ const GameCard = ({
   const gameIcon = getGameIcon();
   
   // Generic fallback image for all games
-  const fallbackImageUrl = 'https://res.cloudinary.com/dbgpqig0z/image/upload/v1713367990/game-fallback_ahkbd1.jpg';
+  const fallbackImageUrl = 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990258/game-fallback_vwu7dc.jpg';
 
   return (
     <div 
