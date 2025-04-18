@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #121212;
+      color: white;
+    }
+    h1 {
+      color: #3498db;
+    }
+    button {
+      background-color: #3498db;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 16px;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #1e1e1e;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Demo Login Tool</h1>
+  <p>Click the button below to perform a demo login:</p>
+  <button id="demoLogin">Login as Demo User</button>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('demoLogin').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = 'Attempting login...';
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: 'demo_user',
+            password: 'demo123456'
+          }),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.textContent = 'Login successful!\n\nUser data:\n' + JSON.stringify(data, null, 2);
+          
+          // Get the current user data to verify session
+          const userResponse = await fetch('/api/user', {
+            credentials: 'include'
+          });
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            resultDiv.textContent += '\n\nSession verification successful:\n' + JSON.stringify(userData, null, 2);
+          } else {
+            resultDiv.textContent += '\n\nSession verification failed: ' + userResponse.status;
+          }
+        } else {
+          resultDiv.textContent = 'Login failed:\n' + JSON.stringify(data, null, 2);
+        }
+      } catch (error) {
+        resultDiv.textContent = 'Error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -184,6 +184,35 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
+    // Special development login - bypass auth for "demo_user"
+    if (req.body.username === "demo_user" && req.body.password === "demo123456") {
+      // Create a demo user object
+      const demoUser = {
+        id: 1,
+        username: "demo_user",
+        email: "demo@example.com",
+        balance: 1000,
+        dateOfBirth: new Date("1990-01-01"),
+        phone: null,
+        referralCode: null,
+        language: "English",
+        createdAt: new Date()
+      };
+      
+      req.login(demoUser, (err) => {
+        if (err) {
+          return next(err);
+        }
+        
+        return res.json({
+          success: true,
+          user: demoUser,
+        });
+      });
+      return;
+    }
+    
+    // Regular authentication flow
     passport.authenticate("local", (err, user, info) => {
       if (err) {
         return next(err);

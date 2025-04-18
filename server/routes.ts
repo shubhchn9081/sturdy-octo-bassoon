@@ -39,6 +39,11 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve demo login HTML page (for development only)
+  app.get('/demo-login', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public', 'demo-login.html'));
+  });
+  
   // Set up authentication
   setupAuth(app);
   
