@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
-import { Dice, Sparkles, Lock, Mail, User } from "lucide-react";
+import { Sparkles, Lock, Mail, User, Dice5 } from "lucide-react";
 
 const LoginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -78,7 +78,7 @@ const AuthPage = () => {
         <div className="max-w-md">
           <div className="flex items-center space-x-2 mb-8">
             <div className="h-12 w-12 rounded-full bg-[#4cd964] flex items-center justify-center">
-              <Dice className="h-6 w-6 text-[#0f1a24]" />
+              <Dice5 className="h-6 w-6 text-[#0f1a24]" />
             </div>
             <h1 className="text-3xl font-bold">Stake.com</h1>
           </div>

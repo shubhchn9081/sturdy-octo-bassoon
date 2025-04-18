@@ -6,7 +6,9 @@ import Game from "@/pages/game";
 import Originals from "@/pages/originals";
 import Admin from "@/pages/admin";
 import InitDb from "@/pages/InitDb";
-import Layout from "@/components/layout/Layout";
+import AuthPage from "@/pages/auth-page";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   return (
@@ -15,8 +17,9 @@ function Router() {
       <Route path="/games/:gameSlug" component={Game} />
       <Route path="/casino/games/:gameSlug" component={Game} />
       <Route path="/originals" component={Originals} />
-      <Route path="/admin" component={Admin} />
+      <ProtectedRoute path="/admin" component={Admin} />
       <Route path="/init-db" component={InitDb} />
+      <Route path="/auth" component={AuthPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
@@ -25,10 +28,10 @@ function Router() {
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Router />
       <Toaster />
-    </>
+    </AuthProvider>
   );
 }
 
