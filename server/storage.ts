@@ -12,19 +12,11 @@ import {
 import { GAMES } from "../client/src/games";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
-import session from "express-session";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
-import createMemoryStore from "memorystore";
 
 export interface IStorage {
-  // Session management
-  sessionStore: session.Store;
-  
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserBalance(id: number, newBalance: number): Promise<User | undefined>;
   
@@ -53,7 +45,6 @@ export class MemStorage implements IStorage {
   
   private userIdCounter: number;
   private betIdCounter: number;
-  public sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
@@ -62,12 +53,6 @@ export class MemStorage implements IStorage {
     
     this.userIdCounter = 1;
     this.betIdCounter = 1;
-    
-    // Create a memory store for session management
-    const MemoryStore = createMemoryStore(session);
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // Prune expired entries every 24h
-    });
     
     // Initialize with demo data
     this.initializeDemoData();
@@ -78,13 +63,8 @@ export class MemStorage implements IStorage {
     const demoUser: User = {
       id: 1,
       username: "demo_user",
-      email: "demo@example.com",
-      password: "demo123456", // In a real app, this would be hashed
+      password: "hashed_password", // In a real app, this would be hashed
       balance: 1000,
-      dateOfBirth: new Date("1990-01-01"),
-      phone: null,
-      referralCode: null,
-      language: "English",
       createdAt: new Date()
     };
     this.users.set(demoUser.id, demoUser);
@@ -117,25 +97,13 @@ export class MemStorage implements IStorage {
       (user) => user.username === username,
     );
   }
-  
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
-  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const user: User = { 
-      id,
-      username: insertUser.username,
-      email: insertUser.email,
-      password: insertUser.password,
+      ...insertUser, 
+      id, 
       balance: 1000, // Default starting balance
-      dateOfBirth: insertUser.dateOfBirth || new Date(),
-      phone: insertUser.phone || null,
-      referralCode: insertUser.referralCode || null,
-      language: insertUser.language || "English",
       createdAt: new Date()
     };
     this.users.set(id, user);
@@ -223,17 +191,6 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  public sessionStore: session.Store;
-
-  constructor() {
-    // Initialize PostgreSQL session store
-    const PostgresSessionStore = connectPg(session);
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true
-    });
-  }
-
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -241,11 +198,6 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-  
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 

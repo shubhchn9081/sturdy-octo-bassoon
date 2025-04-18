@@ -7,7 +7,6 @@ import path from "path";
 import fs from "fs";
 import { insertBetSchema, insertUserSchema } from "@shared/schema";
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
-import { setupAuth } from "./auth";
 
 // Configure multer storage
 const storage_config = multer.diskStorage({
@@ -39,14 +38,6 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Serve demo login HTML page (for development only)
-  app.get('/demo-login', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'public', 'demo-login.html'));
-  });
-  
-  // Set up authentication
-  setupAuth(app);
-  
   // prefix all routes with /api
 
   // Initialize the database with some game data if none exists
@@ -83,12 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!demoUser) {
         await storage.createUser({
           username: 'demo_user',
-          email: 'demo@example.com',
-          password: 'demo123456', // For demo purposes only
-          dateOfBirth: new Date('1990-01-01'),
-          phone: null,
-          referralCode: null,
-          language: 'English'
+          password: 'hashed_password', // In a real app, this would be properly hashed
         });
       }
       
@@ -113,16 +99,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User routes - handled by auth.ts
-  // The /api/user endpoint is already defined in auth.ts
+  // User routes
+  app.get('/api/user', async (req, res) => {
+    try {
+      // For demo purposes, return a sample user
+      const user = await storage.getUser(1);
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
   
   app.get('/api/user/balance', async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: 'User not authenticated' });
+      const user = await storage.getUser(1);
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
       }
       
-      const user = req.user as Express.User;
       res.json(user.balance);
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
@@ -281,6 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         serverSeed,
         nonce: 1,
+        completed: false,
         outcome: {},
       });
       
