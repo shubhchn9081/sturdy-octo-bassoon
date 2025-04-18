@@ -336,8 +336,8 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
                 className="w-full border-[#243442] hover:bg-[#243442] text-white"
                 onClick={() => {
                   loginForm.setValue('username', 'demo_user');
-                  loginForm.setValue('password', 'hashed_password');
-                  loginMutation.mutate({ username: 'demo_user', password: 'hashed_password' });
+                  loginForm.setValue('password', 'demo123456');
+                  loginMutation.mutate({ username: 'demo_user', password: 'demo123456' });
                 }}
               >
                 Demo Login (For Development)

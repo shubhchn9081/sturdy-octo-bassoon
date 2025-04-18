@@ -79,9 +79,17 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "Invalid username or password" });
         }
         
-        const isValidPassword = await comparePasswords(password, user.password);
-        if (!isValidPassword) {
-          return done(null, false, { message: "Invalid username or password" });
+        // Demo authentication - for demo_user, just check if the password matches directly
+        if (user.username === 'demo_user') {
+          if (password !== user.password) {
+            return done(null, false, { message: "Invalid username or password" });
+          }
+        } else {
+          // For regular users, use password hashing
+          const isValidPassword = await comparePasswords(password, user.password);
+          if (!isValidPassword) {
+            return done(null, false, { message: "Invalid username or password" });
+          }
         }
         
         return done(null, user);

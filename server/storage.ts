@@ -79,7 +79,7 @@ export class MemStorage implements IStorage {
       id: 1,
       username: "demo_user",
       email: "demo@example.com",
-      password: "hashed_password", // In a real app, this would be hashed
+      password: "demo123456", // In a real app, this would be hashed
       balance: 1000,
       dateOfBirth: new Date("1990-01-01"),
       phone: null,
