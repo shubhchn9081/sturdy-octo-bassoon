@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
-import { calculateLimboResult } from '../../server/games/provably-fair'; // Import the function for actual provably fair logic
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
 import { useGame } from '@/context/GameContext';
-import { LimboOutcome } from '@/shared/schema';
 
 // Component for Limbo game based on the reference screenshots
 const LimboFinal: React.FC = () => {
@@ -141,22 +139,31 @@ const LimboFinal: React.FC = () => {
     requestAnimationFrame(animate);
   }, [targetMultiplier]);
   
+  // Generate client seed
+  const generateClientSeed = () => {
+    return Math.random().toString(36).substring(2, 15);
+  };
+  
   // Handle single bet (Manual mode)
   const handleManualBet = async () => {
     if (isAnimating || !selectedGame) return;
     
     try {
       // Place the bet
-      const bet = await placeBet.mutateAsync({
+      const clientSeed = generateClientSeed();
+      const response = await placeBet.mutateAsync({
         gameId: selectedGame.id,
-        userId: 1, // Default user for now
+        clientSeed,
         amount: betAmount,
         options: {
           targetMultiplier
         }
       });
       
-      currentBetIdRef.current = bet.betId;
+      // Store the bet ID from the response
+      if (response && typeof response === 'object' && 'betId' in response) {
+        currentBetIdRef.current = response.betId as number;
+      }
       
       // Generate game result (this would normally come from the server)
       const result = getGameResult() as number;
@@ -166,7 +173,7 @@ const LimboFinal: React.FC = () => {
       animateMultiplier(limboResult);
       
       // Create outcome object
-      const outcome: LimboOutcome = {
+      const outcome = {
         targetMultiplier,
         result: limboResult,
         win: limboResult >= targetMultiplier
@@ -197,18 +204,22 @@ const LimboFinal: React.FC = () => {
     
     try {
       // Place the bet
-      const bet = await placeBet.mutateAsync({
+      const clientSeed = generateClientSeed();
+      const response = await placeBet.mutateAsync({
         gameId: selectedGame.id,
-        userId: 1, // Default user for now
+        clientSeed,
         amount: betAmount,
         options: {
           targetMultiplier
         }
       });
       
-      currentBetIdRef.current = bet.betId;
+      // Store the bet ID from the response
+      if (response && typeof response === 'object' && 'betId' in response) {
+        currentBetIdRef.current = response.betId as number;
+      }
       
-      // Generate game result (this would normally come from the server)
+      // Generate game result
       const result = getGameResult() as number;
       const limboResult = parseFloat(result.toFixed(2));
       
@@ -216,7 +227,7 @@ const LimboFinal: React.FC = () => {
       animateMultiplier(limboResult);
       
       // Create outcome object
-      const outcome: LimboOutcome = {
+      const outcome = {
         targetMultiplier,
         result: limboResult,
         win: limboResult >= targetMultiplier
