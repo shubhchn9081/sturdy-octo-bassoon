@@ -407,13 +407,16 @@ const Keno: React.FC = () => {
             {/* Win Overlay - Only shown when winning */}
             {result?.won && (
               <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                <div className="bg-[#5BE12C] text-black font-bold text-4xl py-4 px-10 rounded-md shadow-lg border-2 border-black flex flex-col items-center">
+                <div className="bg-[#172B3A] text-[#5BE12C] font-bold text-5xl py-4 px-10 rounded-lg shadow-lg border-4 border-[#5BE12C] flex flex-col items-center">
                   <div className="flex items-center">
                     {result.multiplier.toFixed(2)}x
                   </div>
-                  <div className="text-xl flex items-center mt-1">
+                  <div className="h-px w-40 bg-gray-600 my-2"></div>
+                  <div className="text-2xl flex items-center">
                     <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(8) : '0.00000000'}</span> 
-                    <span className="text-sm ml-1">₿</span>
+                    <span className="ml-1">
+                      <span className="inline-flex items-center justify-center w-4 h-4 bg-[#F7931A] rounded-full text-white text-xs">₿</span>
+                    </span>
                   </div>
                 </div>
               </div>
