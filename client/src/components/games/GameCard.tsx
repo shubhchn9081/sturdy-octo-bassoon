@@ -200,12 +200,12 @@ const GameCard = ({
     <div 
       className={cn(
         "game-card block cursor-pointer overflow-hidden rounded-md transition-transform hover:translate-y-[-2px]",
-        isCrashGame ? "w-[328px]" : "",
+        isCrashGame ? "w-[255px]" : "",
         className
       )} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div className={cn("relative", isCrashGame ? "h-[430px]" : "h-48")}>
+      <div className={cn("relative", isCrashGame ? "h-[310px]" : "h-48")}>
         {/* Game background image with fallback */}
         {imageSource ? (
           <ImageWithFallback
@@ -224,7 +224,7 @@ const GameCard = ({
           
           {/* Show game name - special formatting for CRASH game */}
           {isCrashGame ? (
-            <h3 className="text-5xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-6 z-10">CRASH</h3>
+            <h3 className="text-6xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-8 z-10 text-center">CRASH</h3>
           ) : name !== 'CRASH' && (
             <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
           )}
