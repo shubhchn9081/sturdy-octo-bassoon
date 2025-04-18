@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
+import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
 
 // Constants for the game - fixed size to ensure visibility
 const CANVAS_WIDTH = 800;
@@ -588,26 +589,26 @@ const CrashFinal: React.FC = () => {
             </div>
           </div>
           
-          {/* Mobile Navigation */}
-          <div className="fixed bottom-0 inset-x-0 bg-[#0c1923] flex justify-between border-t border-gray-800 md:hidden">
-            <button className="flex-1 flex flex-col items-center py-2">
-              <span className="text-gray-400 text-2xl">🔍</span>
+          {/* Mobile Navigation - exact match to screenshot */}
+          <div className="fixed bottom-0 inset-x-0 bg-[#0e1c27] flex justify-between border-t border-gray-800 md:hidden py-2">
+            <button className="flex-1 flex flex-col items-center justify-center gap-1">
+              <BrowseIcon />
               <span className="text-xs text-gray-400">Browse</span>
             </button>
-            <button className="flex-1 flex flex-col items-center py-2">
-              <span className="text-gray-400 text-2xl">🎰</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-1">
+              <CasinoIcon />
               <span className="text-xs text-white">Casino</span>
             </button>
-            <button className="flex-1 flex flex-col items-center py-2">
-              <span className="text-gray-400 text-2xl">📊</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-1">
+              <BetsIcon />
               <span className="text-xs text-gray-400">Bets</span>
             </button>
-            <button className="flex-1 flex flex-col items-center py-2">
-              <span className="text-gray-400 text-2xl">🏆</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-1">
+              <SportsIcon />
               <span className="text-xs text-gray-400">Sports</span>
             </button>
-            <button className="flex-1 flex flex-col items-center py-2">
-              <span className="text-gray-400 text-2xl">💬</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-1">
+              <ChatIcon />
               <span className="text-xs text-gray-400">Chat</span>
             </button>
           </div>
