@@ -8,7 +8,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   balance: real("balance").notNull().default(1000),
-  dateOfBirth: date("date_of_birth").notNull(),
+  dateOfBirth: timestamp("date_of_birth").notNull(),
   phone: text("phone"),
   referralCode: text("referral_code"),
   language: text("language").default("English"),

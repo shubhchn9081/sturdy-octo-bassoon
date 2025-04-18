@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs";
 import { insertBetSchema, insertUserSchema } from "@shared/schema";
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
+import { setupAuth } from "./auth";
 
 // Configure multer storage
 const storage_config = multer.diskStorage({
@@ -38,6 +39,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+  
   // prefix all routes with /api
 
   // Initialize the database with some game data if none exists
@@ -74,7 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!demoUser) {
         await storage.createUser({
           username: 'demo_user',
+          email: 'demo@example.com',
           password: 'hashed_password', // In a real app, this would be properly hashed
+          dateOfBirth: new Date('1990-01-01'),
+          phone: null,
+          referralCode: null,
+          language: 'English'
         });
       }
       
@@ -279,7 +288,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         serverSeed,
         nonce: 1,
-        completed: false,
         outcome: {},
       });
       
