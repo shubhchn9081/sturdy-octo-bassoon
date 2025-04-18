@@ -11,6 +11,7 @@ import DragonTower from '@/games/DragonTower';
 import BlueSamurai from '@/games/BlueSamurai';
 import Pump from '@/games/Pump';
 import Hilo from '@/games/Hilo';
+import { useGame } from '@/context/GameContext';
 
 type Game = typeof GAMES[0];
 
@@ -35,6 +36,9 @@ const GamePage = () => {
   const [_, setLocation] = useLocation();
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
   
+  // Use the GameContext
+  const { selectGame } = useGame();
+  
   useEffect(() => {
     if (!match || !params) return;
     
@@ -47,13 +51,16 @@ const GamePage = () => {
     // Set the selected game in the local state
     setCurrentGame(game);
     
+    // Set the selected game in the context
+    selectGame(game);
+    
     // Update document title
     document.title = `${game.name} - Stake.com`;
     
     return () => {
       document.title = 'Stake.com';
     };
-  }, [match, params, setLocation]);
+  }, [match, params, setLocation, selectGame]);
   
   if (!match || !params) {
     return null;
@@ -84,7 +91,7 @@ const GamePage = () => {
   return (
     <Layout>
       <div className="w-full h-full">
-        <GameComponent />
+        {currentGame && <GameComponent />}
       </div>
     </Layout>
   );
