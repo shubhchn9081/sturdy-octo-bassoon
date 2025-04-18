@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
 
-// Constants for the game
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 800;
+// Constants for the game - fixed size to ensure visibility
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
 
 // Multiplier markers for the side scale
 const MULTIPLIER_MARKERS = [
@@ -390,38 +390,37 @@ const CrashFinal: React.FC = () => {
           {/* Game Canvas */}
           <div className="relative mb-4 bg-[#0E1C27] rounded-lg overflow-hidden w-full h-full min-h-[720px]">
             {/* Multiplier scale on the left side - exact match to screenshot */}
-            <div className="absolute left-4 inset-y-0 w-16 flex flex-col justify-between py-8 z-10">
-              <div className="flex flex-col-reverse h-full justify-between">
-                {MULTIPLIER_MARKERS.map((marker, index) => {
-                  // Get the y-position based on logarithmic scale to match the curve
-                  const value = marker.value;
-                  const logValue = Math.log(value) / Math.log(5); // Normalize to log base 5
-                  const yPercent = logValue * 100 * 0.7;
-                  
-                  // Calculate the position relative to the canvas height
-                  const positionStyle = {
-                    position: 'absolute',
-                    bottom: `${yPercent}%`,
-                    left: 0,
-                    transform: 'translateY(50%)',
-                    display: 'flex',
-                    flexDirection: 'column' as 'column',
-                    alignItems: 'center',
-                    width: '100%'
-                  };
-                  
-                  return (
-                    <div key={index} style={positionStyle}>
-                      <div className="bg-[#11232F] text-white px-4 py-2 rounded text-center">
-                        {marker.label}
-                      </div>
-                      {index !== 0 && (
-                        <div className="h-12 w-0.5 bg-gray-600"></div>
-                      )}
+            <div className="absolute left-4 inset-y-0 w-20 py-8 z-10 pointer-events-none">
+              {MULTIPLIER_MARKERS.map((marker, index) => {
+                // Calculate position based on logarithmic scale - exactly matching the exponential growth
+                // This mimics the same scale as used in the curve drawing
+                const markerValue = marker.value;
+                const maxMarker = 5.0;
+                
+                // Calculate logarithmic position - identical to curve calculation
+                const logValue = Math.log(markerValue) / Math.log(maxMarker);
+                const heightPercent = logValue * 70; // 70% of height, same as curve
+                
+                // Reverse the markers so 1.0x is at bottom, 5.0x at top
+                return (
+                  <div 
+                    key={index} 
+                    className="absolute flex items-center"
+                    style={{
+                      bottom: `${heightPercent}%`,
+                      left: 0,
+                      transform: 'translateY(50%)'
+                    }}
+                  >
+                    <div className="bg-[#11232F] text-white px-4 py-2 rounded text-center">
+                      {marker.label}
                     </div>
-                  );
-                })}
-              </div>
+                    {index !== 0 && (
+                      <div className="h-10 w-0.5 bg-gray-600 absolute left-1/2 bottom-full"></div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             
             <div className="absolute inset-0 flex items-center justify-center">
@@ -440,10 +439,15 @@ const CrashFinal: React.FC = () => {
               )}
             </div>
             
-            <canvas 
-              ref={canvasRef} 
-              className="w-full h-[800px]"
-            />
+            <div className="w-full flex justify-center items-center py-4">
+              <canvas 
+                ref={canvasRef} 
+                width={CANVAS_WIDTH}
+                height={CANVAS_HEIGHT}
+                style={{ maxWidth: '100%' }}
+                className="border border-[#0c1923] rounded-lg bg-[#0c1923]"
+              />
+            </div>
             
             {/* Current multiplier display */}
             {gameState === 'running' && (
