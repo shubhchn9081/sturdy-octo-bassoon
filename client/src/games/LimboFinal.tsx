@@ -1,9 +1,9 @@
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
 
 // Component for Limbo game based on the reference screenshots
-const LimboGame = () => {
+const LimboFinal: React.FC = () => {
   // Game state
   const [gameMode, setGameMode] = useState<'Manual' | 'Auto'>('Manual');
   const [betAmount, setBetAmount] = useState<number>(0);
@@ -322,4 +322,4 @@ const LimboGame = () => {
   );
 };
 
-export default LimboGame;
+export default LimboFinal;

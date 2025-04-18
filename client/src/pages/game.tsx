@@ -6,7 +6,7 @@ import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
 import Plinko from '@/games/Plinko';
 import Crash from '@/games/CrashFinal';
-import Limbo from '@/games/Limbo';
+import Limbo from '@/games/LimboFinal';
 import DragonTower from '@/games/DragonTower';
 import BlueSamurai from '@/games/BlueSamurai';
 import Pump from '@/games/Pump';
