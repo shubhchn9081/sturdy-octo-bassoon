@@ -21,6 +21,7 @@ const RegisterSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  dateOfBirth: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -45,6 +46,7 @@ const AuthPage = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      dateOfBirth: new Date().toISOString().split('T')[0],
     },
   });
 
@@ -264,6 +266,23 @@ const AuthPage = () => {
                                 {...field} 
                               />
                             </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="dateOfBirth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date of Birth</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="date" 
+                              className="bg-[#0e1822] border-[#253849]" 
+                              {...field} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

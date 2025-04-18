@@ -9,7 +9,18 @@ import { User } from "@shared/schema";
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    // Define our custom User interface for Express session
+    interface User {
+      id: number;
+      username: string;
+      email: string;
+      balance: number;
+      dateOfBirth: Date;
+      phone: string | null;
+      referralCode: string | null;
+      language: string | null;
+      createdAt: Date;
+    }
   }
 }
 
@@ -61,7 +72,7 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user: Express.User, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
