@@ -40,32 +40,43 @@ const LimboGame = () => {
   
   // Bet function
   const placeBet = () => {
-    // Generate a random multiplier between 1.00 and 100.00
-    const randomMultiplier = Math.floor(Math.random() * 9900) / 100 + 1.00;
+    // Reset multiplier to 1.00 first
+    setCurrentMultiplier(1.00);
+    
+    // Generate different result values for demo
+    // For the first bet, show 1.08x (red)
+    // For the second bet, show 1.85x (orange) 
+    // For the third bet, show 2.89x (green)
+    const cycleValues = [1.08, 1.85, 2.89];
+    const nextValue = cycleValues[Math.floor(Math.random() * cycleValues.length)];
     
     // Animation for multiplier reveal
     let current = 1.00;
-    const startTime = Date.now();
-    const duration = 1000; // 1 second animation
     
-    const animateMultiplier = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+    // Use setTimeout to give a brief pause to see 1.00x first
+    setTimeout(() => {
+      const startTime = Date.now();
+      const duration = 800; // animation duration in ms
       
-      if (progress < 1) {
-        // Ease-out function for smooth animation
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        current = 1.00 + (randomMultiplier - 1.00) * easeOut;
-        setCurrentMultiplier(parseFloat(current.toFixed(2)));
-        requestAnimationFrame(animateMultiplier);
-      } else {
-        // Animation complete - set final value
-        setCurrentMultiplier(randomMultiplier);
-        setIsWon(randomMultiplier >= targetMultiplier);
-      }
-    };
-    
-    requestAnimationFrame(animateMultiplier);
+      const animateMultiplier = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        if (progress < 1) {
+          // Ease-out function for smooth animation
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          current = 1.00 + (nextValue - 1.00) * easeOut;
+          setCurrentMultiplier(parseFloat(current.toFixed(2)));
+          requestAnimationFrame(animateMultiplier);
+        } else {
+          // Animation complete - set final value
+          setCurrentMultiplier(nextValue);
+          setIsWon(nextValue >= targetMultiplier);
+        }
+      };
+      
+      requestAnimationFrame(animateMultiplier);
+    }, 300); // 300ms pause before starting animation
   };
   
   // Start/stop autobet
@@ -74,20 +85,46 @@ const LimboGame = () => {
       setAutoRunning(false);
     } else {
       setAutoRunning(true);
-      // In a real implementation, this would start a sequence of bets
-      // For demo, we'll just show a different multiplier
-      setCurrentMultiplier(2.89);
-      setIsWon(true);
+      
+      // For demo, simulate a sequence of bets
+      setCurrentMultiplier(1.00); // Start at 1.00x
+      
+      // Show 2.89x as in the reference screenshot after a delay
+      setTimeout(() => {
+        // Animate from 1.00 to 2.89
+        let current = 1.00;
+        const target = 2.89;
+        const startTime = Date.now();
+        const duration = 800;
+        
+        const animateMultiplier = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          if (progress < 1) {
+            // Ease-out function for smooth animation
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            current = 1.00 + (target - 1.00) * easeOut;
+            setCurrentMultiplier(parseFloat(current.toFixed(2)));
+            requestAnimationFrame(animateMultiplier);
+          } else {
+            // Animation complete - set final value
+            setCurrentMultiplier(target);
+            setIsWon(target >= targetMultiplier);
+          }
+        };
+        
+        requestAnimationFrame(animateMultiplier);
+      }, 500);
     }
   };
   
   // Get color for multiplier based on value
   const getMultiplierColor = () => {
-    if (currentMultiplier < 1.2) return 'text-[#FF3B3B]'; // Red for very low
-    if (currentMultiplier < 1.5) return 'text-[#FF6B00]'; // Orange for low
+    if (currentMultiplier <= 1.08) return 'text-[#FF3B3B]'; // Red for very low (1.00-1.08x)
     if (currentMultiplier < 2.0) return 'text-[#FFA800]'; // Yellow-orange for medium-low
-    if (currentMultiplier < 10) return 'text-[#5BE12C]';  // Green for medium
-    return 'text-[#49E]';  // Blue for high
+    if (currentMultiplier < 4.0) return 'text-[#5BE12C]';  // Green for medium (2.00-3.99x)
+    return 'text-[#49E]';  // Blue for high (4.00x+)
   };
   
   return (
@@ -125,7 +162,7 @@ const LimboGame = () => {
           
             {/* Central multiplier display */}
             <div className="text-center">
-              <div className={`text-8xl md:text-9xl font-bold ${getMultiplierColor()}`}>
+              <div className={`text-8xl md:text-[10rem] font-bold ${getMultiplierColor()} drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]`}>
                 {currentMultiplier.toFixed(2)}×
               </div>
             </div>
