@@ -32,9 +32,9 @@ const GameCard = ({
   
   // Function to get image url for each game
   const getImageSource = () => {
-    // For Crash game, use the specific image without any text
+    // For Crash game, use a gradient background with blue colors
     if (name === 'CRASH') {
-      return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990544/crash-card_pmi8rw.jpg';
+      return '/images/games/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e.jpeg';
     }
     
     // First check if we have a custom uploaded image
@@ -232,10 +232,6 @@ const GameCard = ({
       <div className="bg-[#0F212E] px-2 py-1 text-xs text-green-400 flex items-center justify-center">
         <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
         {activePlayers.toLocaleString()} playing
-      </div>
-      {/* Stake originals footer */}
-      <div className="bg-[#0A1824] px-2 py-1 text-[10px] text-gray-400 uppercase flex items-center justify-center">
-        Stake Originals
       </div>
     </div>
   );
