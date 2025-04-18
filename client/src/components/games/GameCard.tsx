@@ -27,8 +27,35 @@ const GameCard = ({
   className,
   imageUrl
 }: GameCardProps) => {
-  // Check if this is the Crash game to set special dimensions
-  const isCrashGame = name === 'CRASH';
+  // Function to get gradient class based on game type
+  const getGradientClass = () => {
+    switch (name) {
+      case 'MINES':
+        return 'from-blue-500 to-blue-800';
+      case 'DICE':
+        return 'from-pink-400 to-red-500';
+      case 'PLINKO':
+        return 'from-purple-400 to-yellow-400';
+      case 'LIMBO':
+        return 'from-yellow-400 to-orange-500';
+      case 'PUMP':
+        return 'from-red-400 to-pink-500';
+      case 'CRASH':
+        return 'from-blue-300 to-yellow-400';
+      case 'KENO':
+        return 'from-green-400 to-blue-500';
+      case 'DRAGON TOWER':
+        return 'from-orange-400 to-red-600';
+      case 'HILO':
+        return 'from-green-400 to-emerald-700';
+      case 'VIDEO POKER':
+        return 'from-red-500 to-red-800';
+      case 'BLUE SAMURAI':
+        return 'from-blue-400 to-indigo-700';
+      default:
+        return 'from-blue-500 to-blue-800';
+    }
+  };
   
   // Function to get image url for each game
   const getImageSource = () => {
@@ -44,13 +71,6 @@ const GameCard = ({
     
     // Next check if we have a default image for this game
     return getGameImage() || '';
-  };
-  
-  // Function to get fallback image (generic background with color)
-  const getFallbackStyle = () => {
-    return {
-      background: color
-    };
   };
 
   // Function to get image url based on the game
@@ -83,70 +103,59 @@ const GameCard = ({
   
   // Get game icon based on game type
   const getGameIcon = () => {
-    // Don't show any icon for Crash game
-    if (name === 'CRASH') {
-      return null;
-    }
-    
     switch (name) {
       case 'KENO':
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 flex items-center justify-center">
-              <div className="grid grid-cols-3 grid-rows-2 gap-1">
-                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">8</div>
-                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">9</div>
-                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">10</div>
-                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">11</div>
-                <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-blue-500 font-bold">12</div>
-                <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-bold">13</div>
-              </div>
+          <div className="w-12 h-12 mb-2">
+            <div className="grid grid-cols-3 grid-rows-2 gap-1 scale-75">
+              <div className="w-4 h-4 bg-white/20 rounded-sm flex items-center justify-center text-white font-bold text-xs">8</div>
+              <div className="w-4 h-4 bg-white/20 rounded-sm flex items-center justify-center text-white font-bold text-xs">9</div>
+              <div className="w-4 h-4 bg-white/20 rounded-sm flex items-center justify-center text-white font-bold text-xs">10</div>
+              <div className="w-4 h-4 bg-white/20 rounded-sm flex items-center justify-center text-white font-bold text-xs">11</div>
+              <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center text-blue-500 font-bold text-xs">12</div>
+              <div className="w-4 h-4 bg-white/20 rounded-sm flex items-center justify-center text-white font-bold text-xs">13</div>
             </div>
           </div>
         );
       case 'LIMBO':
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 flex items-center justify-center">
-              <div className="w-16 h-16 bg-white rounded-lg rotate-45 flex items-center justify-center">
-                <span className="text-orange-400 font-bold text-lg -rotate-45">×</span>
-              </div>
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="w-8 h-8 bg-white rounded-sm rotate-45 flex items-center justify-center">
+              <span className="text-orange-400 font-bold text-lg -rotate-45">×</span>
             </div>
           </div>
         );
       case 'MINES':
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 flex items-center justify-center">
-              <div className="w-16 h-16 bg-green-400 rounded-lg flex items-center justify-center">
-                <div className="w-8 h-8 bg-white rounded-lg"></div>
-              </div>
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="w-8 h-8 bg-green-400 rounded-sm flex items-center justify-center">
+              <div className="w-5 h-5 bg-white rounded-sm"></div>
             </div>
           </div>
         );
       case 'DICE':
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 flex items-center justify-center gap-2">
-              <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center rotate-12">
-                <div className="grid grid-cols-3 grid-rows-3 gap-1">
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
-                  <div className="w-2 h-2 bg-black rounded-full"></div>
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="relative">
+              <div className="w-8 h-8 bg-white rounded-sm flex items-center justify-center rotate-12 absolute -left-2">
+                <div className="grid grid-cols-3 grid-rows-3 gap-0.5 scale-75">
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
                 </div>
               </div>
-              <div className="w-12 h-12 bg-red-400 rounded-lg flex items-center justify-center -rotate-12 -ml-4 -mt-3">
-                <div className="grid grid-cols-2 grid-rows-2 gap-1">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-6 h-6 bg-red-400 rounded-sm flex items-center justify-center -rotate-12 absolute right-0 top-1 z-10">
+                <div className="grid grid-cols-2 grid-rows-2 gap-0.5 scale-75">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                 </div>
               </div>
             </div>
@@ -154,42 +163,47 @@ const GameCard = ({
         );
       case 'VIDEO POKER':
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex gap-1">
-              <div className="w-10 h-14 bg-white rounded-md flex items-center justify-center shadow-md">
-                <div className="text-red-600 text-lg font-bold">A</div>
-                <div className="text-red-600 text-xs">♦</div>
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="flex gap-0.5 scale-75">
+              <div className="w-5 h-7 bg-white rounded-sm flex flex-col items-center justify-center shadow-sm">
+                <div className="text-red-600 text-xs font-bold">A</div>
+                <div className="text-red-600 text-[8px]">♦</div>
               </div>
-              <div className="w-10 h-14 bg-white rounded-md flex items-center justify-center shadow-md">
-                <div className="text-black text-lg font-bold">A</div>
-                <div className="text-black text-xs">♠</div>
+              <div className="w-5 h-7 bg-white rounded-sm flex flex-col items-center justify-center shadow-sm">
+                <div className="text-black text-xs font-bold">A</div>
+                <div className="text-black text-[8px]">♠</div>
               </div>
-              <div className="w-10 h-14 bg-white rounded-md flex items-center justify-center shadow-md">
-                <div className="text-red-600 text-lg font-bold">A</div>
-                <div className="text-red-600 text-xs">♥</div>
+              <div className="w-5 h-7 bg-white rounded-sm flex flex-col items-center justify-center shadow-sm">
+                <div className="text-red-600 text-xs font-bold">A</div>
+                <div className="text-red-600 text-[8px]">♥</div>
               </div>
             </div>
           </div>
         );
       case 'DRAGON TOWER':
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 flex items-center justify-center">
-              <div className="w-16 h-16 flex flex-col items-center justify-center">
-                <div className="w-0 h-0 border-l-[25px] border-r-[25px] border-b-[40px] border-l-transparent border-r-transparent border-b-orange-400"></div>
-                <div className="w-12 h-6 bg-yellow-500 -mt-3 rounded-b-md"></div>
-              </div>
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="w-8 h-8 flex flex-col items-center justify-center">
+              <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-b-[20px] border-l-transparent border-r-transparent border-b-orange-400"></div>
+              <div className="w-6 h-3 bg-yellow-500 -mt-1 rounded-b-sm"></div>
             </div>
           </div>
         );
-      default:
+      case 'CRASH':
         return null;
+      default:
+        return (
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="w-8 h-8 bg-white/30 rounded-full"></div>
+          </div>
+        );
     }
   };
 
-  // Create a fallback color background that will be used if no image is found
-  const fallbackStyle = getFallbackStyle();
+  // Get the gradient class for this game
+  const gradientClass = getGradientClass();
   
+  // Get image source and icon
   const imageSource = getImageSource();
   const gameIcon = getGameIcon();
   
@@ -199,35 +213,41 @@ const GameCard = ({
   return (
     <div 
       className={cn(
-        "game-card block cursor-pointer overflow-hidden rounded-xl transition-transform hover:translate-y-[-2px] shadow-lg w-full",
+        "game-card w-[124px] h-[160px] rounded-xl shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-105 transition-transform duration-200 ease-in-out",
         className
-      )} 
+      )}
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div className="relative h-[140px]">
-        {/* Game background image with fallback */}
-        {imageSource ? (
+      {/* Main card content */}
+      <div className={`flex-1 flex flex-col items-center justify-between px-3 py-4 ${
+        imageSource 
+          ? 'bg-gradient-to-br from-slate-900/80 to-slate-900/90 relative' 
+          : `bg-gradient-to-br ${gradientClass}`
+      }`}>
+        
+        {/* Background image if available */}
+        {imageSource && (
           <ImageWithFallback
             src={imageSource}
             fallbackSrc={fallbackImageUrl}
             alt={`${name} game background`}
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full object-cover -z-10"
           />
-        ) : (
-          <div className="absolute inset-0 w-full h-full" style={fallbackStyle}></div>
         )}
         
-        {/* Game icon overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-end">
-          {gameIcon}
-          
-          {/* Show game name in big bold text */}
-          <h3 className="text-xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
+        {/* Game icon */}
+        {gameIcon}
+        
+        {/* Game title */}
+        <div className="text-center z-10">
+          <h3 className="text-white text-[14px] font-bold leading-none">{name}</h3>
+          <p className="text-gray-300 text-[11px] mt-1 tracking-wide">STAKE ORIGINALS</p>
         </div>
       </div>
+      
       {/* Player count */}
-      <div className="bg-[#0F212E] px-2 py-1 text-xs text-green-400 flex items-center justify-center">
-        <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
+      <div className="bg-[#0F212E] px-2 py-1 text-[11px] text-green-400 flex items-center justify-center">
+        <div className="w-2 h-2 rounded-full bg-green-400 mr-1"></div>
         {activePlayers.toLocaleString()} playing
       </div>
     </div>
