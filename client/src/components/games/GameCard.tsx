@@ -59,9 +59,22 @@ const GameCard = ({
   
   // Function to get image url for each game
   const getImageSource = () => {
-    // For Crash game, use the specific image without any text
-    if (name === 'CRASH') {
-      return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
+    // For games with Cloudinary images
+    switch (name) {
+      case 'CRASH':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
+      case 'PLINKO':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990620/5cbb2498c956527e6584c6af216489b85bbb7a909c7d3c4e131a3be9bd1cc6bf_wlazjb.jpg';
+      case 'LIMBO':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990620/11caec5df20098884ae9071848e1951b8b34e5ec84a7241f2e7c5afd4b323dfd_iitvtz.jpg';
+      case 'MINES':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990620/15a51a2ae2895872ae2b600fa6fe8d7f8d32c9814766b66ddea2b288d04ba89c_uj47yo.jpg';
+      case 'DICE':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990621/30688668d7d2d48d472edd0f1e2bca0758e7ec51cbab8c04d8b7f157848640e0_ec0wxi.jpg';
+      case 'KENO':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990621/102cf3d7c840018b939cd787bf013e080b996d80e604f3008f21dddf1f1aa201_phwj9c.jpg';
+      default:
+        break;
     }
     
     // First check if we have a custom uploaded image
@@ -233,12 +246,7 @@ const GameCard = ({
           />
         )}
         
-        {/* Game name shown centered and at bottom (except for CRASH) */}
-        {name !== 'CRASH' && (
-          <div className="absolute inset-x-0 bottom-0 px-3 py-2 flex items-center justify-center">
-            <h3 className="text-white text-[18px] font-bold tracking-wide drop-shadow-md uppercase text-center">{name}</h3>
-          </div>
-        )}
+        {/* No text labels as images already have text embedded */}
       </div>
       
       {/* Player count */}
