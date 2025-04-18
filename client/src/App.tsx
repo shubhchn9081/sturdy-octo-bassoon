@@ -9,20 +9,46 @@ import InitDb from "@/pages/InitDb";
 import AuthPage from "@/pages/auth-page";
 import Layout from "@/components/layout/Layout";
 import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
+import AuthCheck from "@/components/layout/AuthCheck";
 
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={Home} />
-      <ProtectedRoute path="/games/:gameSlug" component={Game} />
-      <ProtectedRoute path="/casino/games/:gameSlug" component={Game} />
-      <ProtectedRoute path="/originals" component={Originals} />
-      <ProtectedRoute path="/admin" component={Admin} />
-      <Route path="/init-db" component={InitDb} />
-      <Route path="/auth" component={AuthPage} />
+      <Route path="/">
+        <AuthCheck>
+          <Home />
+        </AuthCheck>
+      </Route>
+      <Route path="/games/:gameSlug">
+        <AuthCheck>
+          <Game />
+        </AuthCheck>
+      </Route>
+      <Route path="/casino/games/:gameSlug">
+        <AuthCheck>
+          <Game />
+        </AuthCheck>
+      </Route>
+      <Route path="/originals">
+        <AuthCheck>
+          <Originals />
+        </AuthCheck>
+      </Route>
+      <Route path="/admin">
+        <AuthCheck>
+          <Admin />
+        </AuthCheck>
+      </Route>
+      <Route path="/init-db">
+        <InitDb />
+      </Route>
+      <Route path="/auth">
+        <AuthPage />
+      </Route>
       {/* Fallback to 404 */}
-      <Route component={NotFound} />
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }

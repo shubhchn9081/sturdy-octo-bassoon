@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -6,14 +7,29 @@ import {
   Search, 
   User, 
   Bell, 
-  Wallet as WalletIcon
+  Wallet as WalletIcon,
+  LogOut,
+  LogIn
 } from 'lucide-react';
-
+import { useAuth } from '../../hooks/use-auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
-  // Temporary value until we fix context providers
-  const balance = "1.00000000";
+  const { user, logoutMutation } = useAuth();
+  const [, navigate] = useLocation();
+  
+  // Use authenticated user balance or default
+  const balance = user ? user.balance.toFixed(8) : "0.00000000";
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
   
   return (
     <header className="bg-[#0F212E] border-b border-[#172B3A] sticky top-0 z-10">
@@ -28,7 +44,7 @@ const Header = () => {
           </Button>
         </div>
         
-        <div className="flex items-center cursor-pointer" onClick={() => window.location.href = '/'}>
+        <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
           <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
         </div>
         
@@ -50,9 +66,32 @@ const Header = () => {
               <Search className="h-5 w-5" />
             </Button>
             
-            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
-              <User className="h-5 w-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-[#172B3A] border-[#243442] text-white">
+                {user ? (
+                  <>
+                    <DropdownMenuItem className="focus:bg-[#243442] cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>{user.username}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="focus:bg-[#243442] cursor-pointer">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={() => navigate('/auth')} className="focus:bg-[#243442] cursor-pointer">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    <span>Sign in</span>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
               <Bell className="h-5 w-5" />
@@ -73,18 +112,36 @@ const Header = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="block p-2 bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/'}>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => navigate('/')}>
               Home
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/originals'}>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => navigate('/originals')}>
               Stake Originals
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/slots'}>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => navigate('/slots')}>
               Slots
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/live-casino'}>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => navigate('/live-casino')}>
               Live Casino
             </div>
+            <div className="border-t border-[#243442] my-2"></div>
+            {user ? (
+              <>
+                <div className="flex items-center p-2 hover:bg-[#172B3A] rounded-md">
+                  <User className="h-4 w-4 mr-2" />
+                  <span>{user.username}</span>
+                </div>
+                <div className="flex items-center p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span>Log out</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => navigate('/auth')}>
+                <LogIn className="h-4 w-4 mr-2" />
+                <span>Sign in</span>
+              </div>
+            )}
           </div>
         </div>
       )}
