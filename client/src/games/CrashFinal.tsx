@@ -6,6 +6,18 @@ import { useCrashGame } from './useCrashStore';
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
 
+// Multiplier markers for the side scale
+const MULTIPLIER_MARKERS = [
+  { value: 1.0, label: '1.0×' },
+  { value: 1.4, label: '1.4×' },
+  { value: 1.9, label: '1.9×' },
+  { value: 2.3, label: '2.3×' },
+  { value: 2.7, label: '2.7×' },
+  { value: 3.1, label: '3.1×' },
+  { value: 4.0, label: '4.0×' },
+  { value: 5.0, label: '5.0×' },
+];
+
 // Multiplier quick-select levels
 const MULTIPLIER_QUICKTABS = [
   { value: 1.71, label: '1.71x', color: 'bg-[#5BE12C]' },
@@ -54,82 +66,93 @@ const CrashFinal: React.FC = () => {
     // Only draw if we're in running or crashed state
     if (gameState !== 'running' && gameState !== 'crashed') return;
     
-    // Create the white arc curve that matches the screenshot
-    // This is a static curve shape based on a quadratic curve
+    // Create the white lightning bolt curve that matches the screenshot exactly
     
-    // Start at bottom left
-    const startX = 0;
+    // Set up canvas with offset for multiplier scale
+    const leftMargin = 100; // Space for the multiplier scale
+    const startX = leftMargin;
     const startY = CANVAS_HEIGHT;
+    const usableWidth = CANVAS_WIDTH - leftMargin - 50; // Width minus margins
     
     // Draw background grid
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
     
-    // Horizontal grid lines
-    for (let y = CANVAS_HEIGHT - 100; y > 0; y -= 100) {
-      ctx.moveTo(0, y);
+    // Horizontal grid lines (multiplier levels)
+    MULTIPLIER_MARKERS.forEach(marker => {
+      // Calculate y position based on multiplier
+      const yPercentage = (marker.value - 1) / 5; // Scale to 0-1 range based on max multiplier of ~6
+      const y = CANVAS_HEIGHT - (yPercentage * CANVAS_HEIGHT * 0.8);
+      
+      ctx.moveTo(leftMargin, y);
       ctx.lineTo(CANVAS_WIDTH, y);
-    }
+    });
     
-    // Vertical grid lines
-    for (let x = 100; x < CANVAS_WIDTH; x += 100) {
+    // Vertical grid lines (time markers)
+    for (let x = leftMargin + 100; x < CANVAS_WIDTH; x += 100) {
       ctx.moveTo(x, 0);
       ctx.lineTo(x, CANVAS_HEIGHT);
     }
     ctx.stroke();
     
-    // Apply glow effect
+    // Apply extreme glow effect for visibility
     ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
     ctx.shadowBlur = 20;
     ctx.shadowOffsetY = 0;
     
-    // Draw the curve path
+    // Start new path for the curve
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     
-    // Calculate the current point along the curve
-    // Use simple physics to create a parabola-like curve
-    const progressPercent = currentMultiplier / 10; // Scale to 0-1 range
-    const curveLength = Math.min(progressPercent * CANVAS_WIDTH, CANVAS_WIDTH - 100);
+    // Calculate curve length based on current multiplier
+    const progress = Math.min(currentMultiplier, 15) / 15; // Scale to 0-1, max at multiplier 15
+    const curveLength = progress * usableWidth;
     
-    // Generate points along a curved path - specifically matching screenshot
+    // Generate curve points - specifically to match Aviator curve
+    // Uses a flat power curve (x^0.3) that rises extremely gradually
     const points = [];
-    for (let x = 0; x <= curveLength; x += 20) {
-      // Quadratic equation to create a flattened curve
-      // y = ax² + bx + c where a is very small for a flat curve
-      const normalizedX = x / CANVAS_WIDTH;
-      const y = CANVAS_HEIGHT - (normalizedX * normalizedX * 50 + normalizedX * 80);
+    for (let i = 0; i <= 100; i++) {
+      const xPercent = i / 100;
+      const x = startX + (xPercent * curveLength);
+      
+      // Extremely flat curve function to match exactly what's in the screenshot
+      // The key is to use a very flat power curve with an exponent < 1
+      const yOffset = Math.pow(xPercent, 0.3) * 0.8; // Power curve with very small exponent for flatness
+      const y = CANVAS_HEIGHT - (yOffset * CANVAS_HEIGHT);
+      
       points.push({ x, y });
     }
     
-    // Draw the path
+    // Draw curve with extreme thickness and white color for visibility
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     
-    // Draw lines between points
-    points.forEach(point => {
-      ctx.lineTo(point.x, point.y);
-    });
+    // Use bezier curves for smoother line
+    for (let i = 0; i < points.length - 1; i++) {
+      const curr = points[i];
+      const next = points[i + 1];
+      ctx.lineTo(curr.x, curr.y);
+    }
     
-    // Style the line
+    // Style the line with extreme thickness and white color
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 15;
+    ctx.lineWidth = 20; // Extra thick line for visibility
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
     
     // Fill the area under the curve
     if (points.length > 0) {
-      ctx.lineTo(points[points.length - 1].x, CANVAS_HEIGHT);
+      const lastPoint = points[points.length - 1];
+      ctx.lineTo(lastPoint.x, CANVAS_HEIGHT);
       ctx.lineTo(startX, startY);
       ctx.fillStyle = '#ff9d02';
       ctx.fill();
       
-      // Draw the end point circle
-      const lastPoint = points[points.length - 1];
+      // Draw the end point circle with glow
       ctx.beginPath();
-      ctx.arc(lastPoint.x, lastPoint.y, 15, 0, Math.PI * 2);
+      ctx.arc(lastPoint.x, lastPoint.y, 20, 0, Math.PI * 2); // Larger circle (20px radius)
       ctx.fillStyle = '#ffffff';
       ctx.fill();
       ctx.lineWidth = 3;
@@ -141,6 +164,20 @@ const CrashFinal: React.FC = () => {
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
+    
+    // Add highlighted multiplier value based on current position
+    const highlightedMarker = MULTIPLIER_MARKERS.find(m => m.value >= currentMultiplier) || 
+                              MULTIPLIER_MARKERS[MULTIPLIER_MARKERS.length - 1];
+    
+    if (highlightedMarker) {
+      const yPercentage = (highlightedMarker.value - 1) / 5;
+      const y = CANVAS_HEIGHT - (yPercentage * CANVAS_HEIGHT * 0.8);
+      
+      ctx.fillStyle = '#5BE12C'; // Green highlight
+      ctx.beginPath();
+      ctx.arc(leftMargin - 10, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
     
   }, [gameState, currentMultiplier]);
   
@@ -336,6 +373,22 @@ const CrashFinal: React.FC = () => {
         <div className="flex-1 p-4 flex flex-col">
           {/* Game Canvas */}
           <div className="relative mb-4 bg-[#0E1C27] rounded-lg overflow-hidden w-full h-full min-h-[720px]">
+            {/* Multiplier scale on the left side */}
+            <div className="absolute left-4 inset-y-0 w-16 flex flex-col justify-between py-8 z-10">
+              <div className="flex flex-col-reverse h-full justify-between">
+                {MULTIPLIER_MARKERS.map((marker, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <div className="bg-[#11232F] text-white px-4 py-2 rounded text-center">
+                      {marker.label}
+                    </div>
+                    {index !== 0 && (
+                      <div className="h-12 w-0.5 bg-gray-600"></div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
             <div className="absolute inset-0 flex items-center justify-center">
               {gameState === 'waiting' && (
                 <div className="text-center">

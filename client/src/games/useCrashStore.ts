@@ -50,27 +50,33 @@ interface CrashStore {
 }
 
 // Constants for the game
-const TIME_SCALE = 1000; // Maximum TIME_SCALE (1000% more) for extreme horizontal stretching
-const HEIGHT_SCALE = 200; // Dramatically increased HEIGHT_SCALE for immediate visibility
+const TIME_SCALE = 2000; // Even more extreme horizontal stretching for flatter curve
+const HEIGHT_SCALE = 50; // Reduced vertical scaling for ultra-flat trajectory
 
 // Helper functions
 function generateCrashPoint(): number {
-  // Generate more varied crash points to make the game interesting
+  // Generate crash points with distribution matching reference
   const r = Math.random();
   
-  // Distribution of crash points similar to real crash games
-  if (r < 0.15) {
-    // Early crash (1.00x to 2.00x) - ~15% chance
-    return 1.00 + Math.random();
+  // Distribution of crash points similar to real Stake.com crash games
+  if (r < 0.20) {
+    // Very early crash (1.00x to 1.50x) - 20% chance
+    return 1.00 + (Math.random() * 0.5);
+  } else if (r < 0.40) {
+    // Early crash (1.50x to 2.00x) - 20% chance
+    return 1.50 + (Math.random() * 0.5);
   } else if (r < 0.70) {
-    // Medium crash (2.00x to 5.00x) - ~55% chance 
-    return 2.00 + (Math.random() * 3);
+    // Medium crash (2.00x to 4.00x) - 30% chance 
+    return 2.00 + (Math.random() * 2);
   } else if (r < 0.90) {
-    // Higher crash (5.00x to 20.00x) - ~20% chance
-    return 5.00 + (Math.random() * 15);
+    // Higher crash (4.00x to 10.00x) - 20% chance
+    return 4.00 + (Math.random() * 6);
+  } else if (r < 0.98) {
+    // Very high crash (10.00x to 50.00x) - 8% chance
+    return 10.00 + (Math.random() * 40);
   } else {
-    // Rare high crash (20.00x to 100.00x) - ~10% chance
-    return 20.00 + (Math.random() * 80);
+    // Extreme rare crash (50.00x to 250.00x) - 2% chance
+    return 50.00 + (Math.random() * 200);
   }
 }
 
@@ -101,9 +107,17 @@ export const useCrashStore = create<CrashStore>((set, get) => {
   
   // Function to calculate multiplier based on elapsed time
   const getLiveMultiplier = (elapsed: number): number => {
-    // More moderate growth rate for a slanted rise while still maintaining visibility
-    // This creates a more gradual slant that's still visible
-    return Math.pow(1.0005, elapsed * 1000);
+    // New calculation for much flatter growth - closely matching Aviator/Stake Crash
+    // Uses a very slow linear growth initially, then accelerating exponentially
+    // This creates the signature flat start with increasing steepness
+    
+    // Slow initial linear growth with very gradual acceleration
+    const baseMultiplier = 1 + (elapsed * 0.15); // Very slow linear growth
+    
+    // Add extremely small exponential component that increases over time
+    const expComponent = Math.pow(elapsed * 0.2, 1.2) * 0.05;
+    
+    return baseMultiplier + expComponent;
   };
   
   // Cashout AI players
