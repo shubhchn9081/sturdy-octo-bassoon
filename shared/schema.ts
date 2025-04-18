@@ -1,18 +1,28 @@
-import { pgTable, text, serial, integer, boolean, real, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, real, timestamp, jsonb, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
   balance: real("balance").notNull().default(1000),
+  dateOfBirth: date("date_of_birth").notNull(),
+  phone: text("phone"),
+  referralCode: text("referral_code"),
+  language: text("language").default("English"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
+  email: true,
   password: true,
+  dateOfBirth: true,
+  phone: true,
+  referralCode: true,
+  language: true,
 });
 
 export const games = pgTable("games", {
