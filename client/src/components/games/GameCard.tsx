@@ -32,9 +32,9 @@ const GameCard = ({
   
   // Function to get image url for each game
   const getImageSource = () => {
-    // For Crash game, use a gradient background with blue colors
+    // For Crash game, use the specific image without any text
     if (name === 'CRASH') {
-      return '/images/games/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e.jpeg';
+      return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
     }
     
     // First check if we have a custom uploaded image
@@ -200,12 +200,12 @@ const GameCard = ({
     <div 
       className={cn(
         "game-card block cursor-pointer overflow-hidden rounded-xl transition-transform hover:translate-y-[-2px] shadow-lg",
-        isCrashGame ? "w-[156px]" : "",
+        isCrashGame ? "w-[255px]" : "",
         className
       )} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div className={cn("relative", isCrashGame ? "h-[220px]" : "h-48")}>
+      <div className={cn("relative", isCrashGame ? "h-[294px]" : "h-48")}>
         {/* Game background image with fallback */}
         {imageSource ? (
           <ImageWithFallback
