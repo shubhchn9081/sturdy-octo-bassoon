@@ -40,7 +40,7 @@ export interface IStorage {
   getBetHistory(userId: number, gameId?: number): Promise<Bet[]>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Store interface from express-session
 }
 
 import createMemoryStore from "memorystore";
@@ -57,7 +57,7 @@ export class MemStorage implements IStorage {
   
   private userIdCounter: number;
   private betIdCounter: number;
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Express session store
 
   constructor() {
     this.users = new Map();
@@ -80,8 +80,13 @@ export class MemStorage implements IStorage {
     const demoUser: User = {
       id: 1,
       username: "demo_user",
+      email: "demo@example.com",
       password: "hashed_password", // In a real app, this would be hashed
       balance: 1000,
+      dateOfBirth: new Date('1990-01-01'),
+      phone: null,
+      referralCode: null,
+      language: null,
       createdAt: new Date()
     };
     this.users.set(demoUser.id, demoUser);
@@ -121,6 +126,9 @@ export class MemStorage implements IStorage {
       ...insertUser, 
       id, 
       balance: 1000, // Default starting balance
+      phone: insertUser.phone || null,
+      referralCode: insertUser.referralCode || null,
+      language: insertUser.language || null,
       createdAt: new Date()
     };
     this.users.set(id, user);
@@ -208,7 +216,7 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Express session store
   
   constructor() {
     this.sessionStore = new PostgresSessionStore({

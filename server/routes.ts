@@ -78,7 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!demoUser) {
         await storage.createUser({
           username: 'demo_user',
+          email: 'demo@example.com',
           password: 'hashed_password', // In a real app, this would be properly hashed
+          dateOfBirth: new Date('1990-01-01'),
+          phone: null,
+          referralCode: null,
+          language: null
         });
       }
       
