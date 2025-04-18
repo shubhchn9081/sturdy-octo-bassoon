@@ -126,7 +126,7 @@ const CrashFinal: React.FC = () => {
     // Calculate curve progress
     const maxMultiplier = 5.0;
     const currentProgress = (currentMultiplier - 1) / (maxMultiplier - 1);
-    const simulatedTimeMax = Math.min(maxTime * currentProgress, maxTime);
+    const simulatedTimeMax = Math.min(curveMaxTime * currentProgress, curveMaxTime);
     
     // Generate points along the curve
     for (let i = 0; i <= 100; i++) {
