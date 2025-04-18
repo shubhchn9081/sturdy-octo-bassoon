@@ -1,11 +1,12 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express, Request, Response, NextFunction } from "express";
+import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User as SelectUser, insertUserSchema } from "@shared/schema";
+import { z } from "zod";
 
 declare global {
   namespace Express {
@@ -28,52 +29,73 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-export function setupAuth(app: Express) {
-  // Generate a random session secret if not provided
-  if (!process.env.SESSION_SECRET) {
-    process.env.SESSION_SECRET = randomBytes(32).toString("hex");
-    console.log("Warning: Using randomly generated SESSION_SECRET. For production, set a stable SESSION_SECRET in environment.");
-  }
+// Add validation for the registration form
+const registerSchema = insertUserSchema.extend({
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
+export function setupAuth(app: Express) {
+  // Session setup - secure in production
+  const isProduction = process.env.NODE_ENV === "production";
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "dev-secret-key-change-in-prod",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     }
   };
 
-  app.set("trust proxy", 1);
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  }
+  
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Configure passport to use local strategy
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy({
+      usernameField: 'username', // can be either username or email
+    }, async (username, password, done) => {
       try {
-        // Try to find the user by username first
-        let user = await storage.getUserByUsername(username);
+        // Check if input is an email
+        const isEmail = username.includes('@');
         
-        // If not found, try by email if the username looks like an email
-        if (!user && username.includes('@')) {
-          user = await storage.getUserByEmail(username);
-        }
-        
-        if (!user || !(await comparePasswords(password, user.password))) {
+        // Attempt to find user by username or email
+        const user = isEmail 
+          ? await storage.getUserByEmail(username)
+          : await storage.getUserByUsername(username);
+          
+        if (!user) {
           return done(null, false, { message: "Invalid username or password" });
-        } else {
-          return done(null, user);
         }
+        
+        const isValidPassword = await comparePasswords(password, user.password);
+        if (!isValidPassword) {
+          return done(null, false, { message: "Invalid username or password" });
+        }
+        
+        return done(null, user);
       } catch (err) {
         return done(err);
       }
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  // Serialize and deserialize user
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
@@ -83,95 +105,127 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Register endpoint
-  app.post("/api/register", async (req, res, next) => {
+  // Authentication routes
+  app.post("/api/register", async (req, res) => {
     try {
-      // Check if user exists
-      const existingByUsername = await storage.getUserByUsername(req.body.username);
-      if (existingByUsername) {
-        return res.status(400).json({ message: "Username already exists" });
+      // Validate the request body
+      const validationResult = registerSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: validationResult.error.errors,
+        });
       }
       
-      const existingByEmail = await storage.getUserByEmail(req.body.email);
-      if (existingByEmail) {
-        return res.status(400).json({ message: "Email already exists" });
+      const userData = validationResult.data;
+      
+      // Check if username already exists
+      const existingUsername = await storage.getUserByUsername(userData.username);
+      if (existingUsername) {
+        return res.status(400).json({
+          success: false,
+          message: "Username already exists",
+        });
       }
       
-      // Hash password
-      const hashedPassword = await hashPassword(req.body.password);
+      // Check if email already exists
+      const existingEmail = await storage.getUserByEmail(userData.email);
+      if (existingEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already in use",
+        });
+      }
       
-      // Create user
+      // Hash the password
+      const hashedPassword = await hashPassword(userData.password);
+      
+      // Create the user without the confirm password field
+      const { confirmPassword, ...userDataToSave } = userData;
+      
       const user = await storage.createUser({
-        ...req.body,
+        ...userDataToSave,
         password: hashedPassword,
       });
-
+      
       // Log the user in
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          return res.status(500).json({
+            success: false,
+            message: "Error logging in after registration",
+          });
+        }
         
-        // Return the user without sensitive data
+        // Return the user without the password
         const { password, ...userWithoutPassword } = user;
-        res.status(201).json(userWithoutPassword);
+        return res.status(201).json({
+          success: true,
+          user: userWithoutPassword,
+        });
       });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      console.error("Registration error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred during registration",
+      });
     }
   });
 
-  // Login endpoint
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: { message?: string } | undefined) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: info?.message || "Authentication failed" });
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
       
-      req.login(user, (loginErr) => {
-        if (loginErr) return next(loginErr);
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: info?.message || "Invalid credentials",
+        });
+      }
+      
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
         
-        // Return the user without sensitive data
+        // Return the user without the password
         const { password, ...userWithoutPassword } = user;
-        res.status(200).json(userWithoutPassword);
+        return res.json({
+          success: true,
+          user: userWithoutPassword,
+        });
       });
     })(req, res, next);
   });
 
-  // Logout endpoint
-  app.post("/api/logout", (req, res, next) => {
+  app.post("/api/logout", (req, res) => {
     req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: "Error during logout",
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: "Logged out successfully",
+      });
     });
   });
 
-  // Get current user endpoint
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "User not found" });
     }
     
-    // Return the user without sensitive data
-    const { password, ...userWithoutPassword } = req.user as SelectUser;
+    // Return the user without the password
+    const { password, ...userWithoutPassword } = req.user as Express.User;
     res.json(userWithoutPassword);
-  });
-
-  // Check username/email availability
-  app.get("/api/check-availability", async (req, res, next) => {
-    try {
-      const { username, email } = req.query;
-      
-      if (username) {
-        const user = await storage.getUserByUsername(username as string);
-        return res.json({ available: !user });
-      }
-      
-      if (email) {
-        const user = await storage.getUserByEmail(email as string);
-        return res.json({ available: !user });
-      }
-      
-      res.status(400).json({ message: "Username or email parameter is required" });
-    } catch (err) {
-      next(err);
-    }
   });
 }

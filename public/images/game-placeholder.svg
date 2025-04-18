@@ -1,0 +1,8 @@
+<svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="160" rx="4" fill="#142634"/>
+  <path d="M100 60C111.046 60 120 68.9543 120 80C120 91.0457 111.046 100 100 100C88.9543 100 80 91.0457 80 80C80 68.9543 88.9543 60 100 60Z" stroke="#3498DB" stroke-width="4"/>
+  <rect x="86" y="74" width="8" height="16" rx="1" fill="#3498DB"/>
+  <rect x="96" y="70" width="8" height="20" rx="1" fill="#3498DB"/>
+  <rect x="106" y="77" width="8" height="13" rx="1" fill="#3498DB"/>
+  <text x="100" y="120" font-family="Arial" font-size="12" fill="white" text-anchor="middle">STAKE ORIGINAL</text>
+</svg>

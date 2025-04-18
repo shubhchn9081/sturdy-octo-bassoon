@@ -1,21 +1,17 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import Header from './Header';
-import Sidebar from './Sidebar';
 import Footer from './Footer';
 
 type LayoutProps = {
-  children: ReactNode;
+  children: React.ReactNode;
 };
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <Header />
-        {children}
-        <Footer />
-      </div>
+    <div className="min-h-screen flex flex-col bg-[#0A1823] text-white">
+      <Header />
+      <main className="flex-grow">{children}</main>
+      <Footer />
     </div>
   );
 };

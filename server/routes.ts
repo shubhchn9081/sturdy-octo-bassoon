@@ -108,28 +108,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User routes
-  app.get('/api/user', async (req, res) => {
-    try {
-      // For demo purposes, return a sample user
-      const user = await storage.getUser(1);
-      if (!user) {
-        return res.status(401).json({ message: 'User not found' });
-      }
-      
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error' });
-    }
-  });
+  // User routes - handled by auth.ts
+  // The /api/user endpoint is already defined in auth.ts
   
   app.get('/api/user/balance', async (req, res) => {
     try {
-      const user = await storage.getUser(1);
-      if (!user) {
-        return res.status(401).json({ message: 'User not found' });
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'User not authenticated' });
       }
       
+      const user = req.user as Express.User;
       res.json(user.balance);
     } catch (error) {
       res.status(500).json({ message: 'Server error' });

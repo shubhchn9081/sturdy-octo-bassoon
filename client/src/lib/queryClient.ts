@@ -1,57 +1,66 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 
-async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
-  }
+interface ApiRequestInit extends RequestInit {
+  on401?: "returnNull" | "throw";
 }
 
 export async function apiRequest(
   method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
+  path: string,
+  body?: any,
+  options?: ApiRequestInit,
+) {
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+
+  const requestOptions: RequestInit = {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers,
     credentials: "include",
-  });
+    ...options,
+  };
 
-  await throwIfResNotOk(res);
-  return res;
-}
+  if (body) {
+    requestOptions.body = JSON.stringify(body);
+  }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
+  const response = await fetch(path, requestOptions);
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+  if (response.status === 401) {
+    if (options?.on401 === "returnNull") {
       return null;
     }
+    throw new Error("Unauthorized");
+  }
 
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.message || errorData.error || "Something went wrong",
+    );
+  }
+
+  return response;
+}
+
+export const getQueryFn = (options?: ApiRequestInit) => async ({ queryKey }: { queryKey: unknown[] }) => {
+  const [url] = queryKey as [string, ...unknown[]];
+
+  try {
+    const response = await apiRequest("GET", url, undefined, options);
+    if (response === null) return null;
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching ${url}:`, error);
+    throw error;
+  }
+};
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
+      staleTime: 60 * 1000, // 1 minute
+      retry: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    },
-    mutations: {
-      retry: false,
     },
   },
 });

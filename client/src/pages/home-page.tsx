@@ -3,9 +3,10 @@ import HeroSection from '@/components/home/HeroSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { Game } from '@shared/schema';
 
 const HomePage = () => {
-  const { data: games, isLoading } = useQuery({
+  const { data: games, isLoading } = useQuery<Game[]>({
     queryKey: ['/api/games'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -26,7 +27,7 @@ const HomePage = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
             {games && games.length > 0 ? (
-              games.map((game: any) => (
+              games.map((game) => (
                 <Card key={game.id} className="bg-[#142634] border-[#243442] overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-xl">
                   <div className="aspect-[5/4] relative">
                     <img
@@ -38,7 +39,7 @@ const HomePage = () => {
                   <CardHeader className="p-3">
                     <CardTitle className="text-sm text-white truncate">{game.name}</CardTitle>
                     <CardDescription className="text-xs text-gray-400">
-                      {game.provider || 'Stake Original'}
+                      {game.type === 'stake_original' ? 'Stake Original' : game.type}
                     </CardDescription>
                   </CardHeader>
                 </Card>
