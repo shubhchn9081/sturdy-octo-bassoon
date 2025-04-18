@@ -1,0 +1,149 @@
+Thanks for the screenshot! Let’s break down everything you see and everything behind-the-scenes in this **Wheel game on Stake**, based on this exact interface and gameplay:
+
+---
+
+## 🎡 WHEEL GAME (Stake Originals) – Full Breakdown
+
+---
+
+### 🔍 GAME OBJECTIVE
+
+The player places a bet and the wheel spins. If the pointer lands on a segment with the multiplier you selected, you win that multiplier times your bet.
+
+---
+
+## 🧠 GAME MECHANICS
+
+### 🎯 Segment Structure (Visual)
+
+- The wheel is divided into **segments** — here, you selected **30 segments**.
+- Each segment is **color-coded**, representing a **specific multiplier**.
+- Multiplier values shown in your interface:
+  - **0.00x** (Loss)
+  - **1.50x**
+  - **1.70x**
+  - **2.00x**
+  - **3.00x**
+  - **4.00x**
+
+#### Example:
+From the image, it looks like the following **color-multiplier mapping** might exist (approximated):
+- 🟨 Yellow – 2.00x  
+- 🟩 Green – 1.50x  
+- 🟧 Orange – 4.00x  
+- 🟪 Purple – 3.00x  
+- ⚪ White – 1.70x  
+- 🔵 Blue/Dark – 0.00x (Lose)
+
+The **pointer on top** shows the result after spin ends.
+
+---
+
+### 🧮 Game Result & Logic
+
+#### RNG-based Spin (Backend):
+```python
+import random
+
+segments = [
+    {"multiplier": 0.0, "count": 18},  # 60% lose segments
+    {"multiplier": 1.5, "count": 6},   # 20%
+    {"multiplier": 1.7, "count": 2},   # 6.67%
+    {"multiplier": 2.0, "count": 2},   # 6.67%
+    {"multiplier": 3.0, "count": 1},   # 3.33%
+    {"multiplier": 4.0, "count": 1},   # 3.33%
+]
+
+# Build wheel
+wheel = []
+for segment in segments:
+    wheel += [segment["multiplier"]] * segment["count"]
+
+# Spin result
+result = random.choice(wheel)
+```
+
+#### 🧾 Winnings:
+```python
+if result == user_selected_multiplier:
+    winnings = bet_amount * result
+else:
+    winnings = 0
+```
+
+Note: This version seems to **not require a specific multiplier bet**, but just spins and pays based on the landed segment. The multiplier payout is determined by the result, **not a user prediction** like Limbo or Dice.
+
+---
+
+## 🎛️ UI COMPONENTS EXPLAINED
+
+| Element | Function |
+|--------|----------|
+| 🎯 **Manual/Auto** | Choose between single bet or auto-betting |
+| 💰 **Bet Amount** | Enter Bitcoin value to wager |
+| ⚙️ **Risk Selector** | Changes distribution of segments on the wheel:  
+  - **Low Risk:** More low multipliers, fewer 0.00x  
+  - **Medium Risk:** Balanced  
+  - **High Risk:** More 0.00x, fewer high multipliers |
+| 🧩 **Segment Count** | Changes how many segments the wheel has (15, 30, 60...) |
+| ✅ **Bet Button** | Triggers spin animation and game round |
+| 🔄 **Animated Wheel** | Spins and lands on a multiplier segment |
+| 📊 **Result History** | Below the wheel, displays recent results (green = win) |
+| 🔐 **Fairness Button** | At bottom-right, opens provably fair seed & verification logic |
+
+---
+
+### ⚙️ Animation (Frontend Logic)
+
+- Uses easing curve (e.g., easeOutQuad) to slow wheel as it stops.
+- Final **segment index** determines where it stops, and result is visually mapped based on segment angles.
+- Sounds/vibration triggered on:
+  - Spin start
+  - Segment hover during spin
+  - Spin result landing
+
+---
+
+## 🧠 ADVANCED LOGIC VARIATIONS
+
+You can dynamically change:
+- The **number of segments**
+- The **payout distribution**
+- **Visual themes** per risk level
+- Add a **jackpot chance** in rare segments (e.g., 100x)
+
+---
+
+## 🛠️ ADMIN PANEL FUNCTIONS (Backoffice)
+
+| Control | Purpose |
+|--------|---------|
+| Segment Configuration | Define number of segments and multiplier mapping |
+| RTP Setting | Set return-to-player for house edge (usually 98% or 96%) |
+| Fairness Seed Controls | Configure public/private seeds |
+| Max Bet & Min Bet | For controlling user exposure |
+| Risk Profile Logic | Define % allocation of winning/losing segments |
+| Jackpot Frequency | Inject rare segments dynamically (for high payout excitement) |
+
+---
+
+## ✅ SUMMARY
+
+| Category | Detail |
+|---------|--------|
+| 🎮 Game Type | Multiplier-based spin |
+| 🧠 RNG | Segment-based random draw |
+| 🎨 UI | Color-coded segments, spin animation, payout bar |
+| 💰 Payout | Based on landed multiplier |
+| 🧪 Fairness | Seed-based verifiable randomness |
+| ⚙️ Flexibility | Segment control, auto mode, risk tuning |
+
+---
+
+If you'd like, I can:
+- Build this exact game logic in **React + Canvas**
+- Provide backend code (Node.js or Python) for RNG
+- Generate a complete **Replit or Firebase** version with wallet integration
+- Help you create a “Skin” version of this for your own brand
+
+Let me know how you'd like to proceed.

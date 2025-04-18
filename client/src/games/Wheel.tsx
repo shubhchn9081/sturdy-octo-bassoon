@@ -460,7 +460,7 @@ const Wheel: React.FC = () => {
         {/* Right Side - Game Area */}
         <div className="w-full md:w-3/4 p-4 flex flex-col h-full">
           {/* Multiplier Selection */}
-          <div className="flex justify-center gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4 justify-center">
             {wheelConfig.availableMultipliers.map((mult) => (
               <button
                 key={mult}
