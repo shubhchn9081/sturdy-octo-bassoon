@@ -123,31 +123,38 @@ const WheelGame: React.FC = () => {
     setIsSpinning(true);
     setResult(null);
     
-    // Determine final rotation based on a random result
-    const randomSegment = Math.floor(Math.random() * segments);
-    const anglePerSegment = (2 * Math.PI) / segments;
-    const segmentAngle = randomSegment * anglePerSegment;
+    // Choose a random multiplier result
+    const multiplierOptions = multipliers[risk];
+    const randomMultiplierIndex = Math.floor(Math.random() * multiplierOptions.length);
+    const resultMultiplier = multiplierOptions[randomMultiplierIndex];
     
-    // Make the wheel spin at least 5 full rotations plus the segment angle
-    const minRotations = 5;
-    const finalRotation = (Math.PI * 2 * minRotations) + segmentAngle;
+    // Determine final rotation angle
+    const randomSpins = 5 + Math.random() * 3; // Between 5-8 full rotations
+    const finalAngle = randomSpins * 2 * Math.PI;
     
     // Store start time and final rotation
     spinStartTimeRef.current = performance.now();
-    finalRotationRef.current = finalRotation;
+    finalRotationRef.current = finalAngle;
+    spinDurationRef.current = 5000; // 5 seconds spin duration
     
     // Start animation
-    animateSpinning();
+    animateSpinning(resultMultiplier);
   };
   
-  const animateSpinning = () => {
+  const animateSpinning = (finalMultiplier: number) => {
     const currentTime = performance.now();
     const elapsedTime = currentTime - spinStartTimeRef.current;
-    const progress = Math.min(elapsedTime / spinDurationRef.current, 1);
+    const duration = spinDurationRef.current;
+    const progress = Math.min(elapsedTime / duration, 1);
     
     // Easing function for slowing down
-    const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5);
-    const easedProgress = easeOutQuint(progress);
+    const easeOutCubic = (x: number): number => 1 - Math.pow(1 - x, 3);
+    const easeOutExpo = (x: number): number => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+    
+    // Combine easing functions for more natural deceleration
+    const easedProgress = progress < 0.7 
+      ? easeOutCubic(progress / 0.7) * 0.7
+      : 0.7 + easeOutExpo((progress - 0.7) / 0.3) * 0.3;
     
     // Calculate current rotation
     const currentRotation = easedProgress * finalRotationRef.current;
@@ -155,19 +162,19 @@ const WheelGame: React.FC = () => {
     
     if (progress < 1) {
       // Continue animation
-      animationRef.current = requestAnimationFrame(animateSpinning);
+      animationRef.current = requestAnimationFrame(() => animateSpinning(finalMultiplier));
     } else {
       // Animation complete
       setIsSpinning(false);
+      setResult(finalMultiplier);
       
-      // Determine which segment landed on
-      const anglePerSegment = (2 * Math.PI) / segments;
-      const normalizedRotation = finalRotationRef.current % (Math.PI * 2);
-      const resultSegment = Math.floor(normalizedRotation / anglePerSegment) % segments;
-      const multiplierIndex = resultSegment % 6;
-      
-      // Set result
-      setResult(multipliers[risk][multiplierIndex]);
+      // Add a slight bounce at the end
+      setTimeout(() => {
+        setRotation(currentRotation - 0.05);
+        setTimeout(() => {
+          setRotation(currentRotation);
+        }, 100);
+      }, 50);
     }
   };
 
