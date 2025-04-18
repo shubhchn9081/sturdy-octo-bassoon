@@ -233,10 +233,12 @@ const GameCard = ({
           />
         )}
         
-        {/* Game name shown centered and at bottom */}
-        <div className="absolute inset-x-0 bottom-0 px-3 py-2 flex items-center justify-center">
-          <h3 className="text-white text-[18px] font-bold tracking-wide drop-shadow-md uppercase text-center">{name}</h3>
-        </div>
+        {/* Game name shown centered and at bottom (except for CRASH) */}
+        {name !== 'CRASH' && (
+          <div className="absolute inset-x-0 bottom-0 px-3 py-2 flex items-center justify-center">
+            <h3 className="text-white text-[18px] font-bold tracking-wide drop-shadow-md uppercase text-center">{name}</h3>
+          </div>
+        )}
       </div>
       
       {/* Player count */}
