@@ -7,16 +7,14 @@ import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../compo
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
-// Multiplier markers for the side scale
+// Multiplier markers for the side scale - exactly as in the reference image
 const MULTIPLIER_MARKERS = [
   { value: 1.0, label: '1.0×' },
-  { value: 1.4, label: '1.4×' },
-  { value: 1.9, label: '1.9×' },
-  { value: 2.3, label: '2.3×' },
-  { value: 2.7, label: '2.7×' },
-  { value: 3.1, label: '3.1×' },
-  { value: 4.0, label: '4.0×' },
-  { value: 5.0, label: '5.0×' },
+  { value: 1.2, label: '1.2×' },
+  { value: 1.3, label: '1.3×' },
+  { value: 1.5, label: '1.5×' },
+  { value: 1.7, label: '1.7×' },
+  { value: 1.8, label: '1.8×' },
 ];
 
 // Multiplier quick-select levels
@@ -72,50 +70,41 @@ const CrashFinal: React.FC = () => {
     
     // Create the white lightning bolt curve that matches the screenshot exactly
     
-    // Set up canvas with offset for multiplier scale
-    const leftMargin = isMobile ? 50 : 120; // Less margin on mobile
+    // Adjust canvas layout for right-side multiplier scale
+    const leftMargin = 50; // Consistent left margin
+    const rightMargin = 60; // Space for right-side multiplier scale
     const startX = leftMargin;
     const startY = CANVAS_HEIGHT;
-    const usableWidth = CANVAS_WIDTH - leftMargin - 50; // Width minus margins
+    const usableWidth = CANVAS_WIDTH - leftMargin - rightMargin;
     
-    // Draw background grid
+    // Draw background grid - subtle version that matches reference
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; // Very subtle grid lines
     ctx.lineWidth = 1;
     
-    // Different marker sets for mobile vs desktop
-    const markers = isMobile ? 
-      [1.0, 1.4, 1.9, 2.3, 2.8, 3.2] : 
-      MULTIPLIER_MARKERS.map(m => m.value);
-      
-    // Horizontal grid lines (multiplier levels)
-    markers.forEach(value => {
-      // Calculate y position based on multiplier values
-      const logValue = Math.log(value) / Math.log(5); // Normalize to log base 5
-      const y = CANVAS_HEIGHT - (logValue * CANVAS_HEIGHT * 0.7);
-      
-      ctx.moveTo(leftMargin, y);
-      ctx.lineTo(CANVAS_WIDTH, y);
+    // Get marker positions - evenly spaced for visual consistency
+    const markerPositions = MULTIPLIER_MARKERS.map((marker, index) => {
+      return {
+        value: marker.value,
+        y: CANVAS_HEIGHT * (1 - index / (MULTIPLIER_MARKERS.length - 1))
+      };
     });
     
-    // Vertical grid lines (time markers) - mobile has specific time markers
-    if (isMobile) {
-      // Mobile has time markers at 4s, 8s, 12s, 17s
-      const timeMarkers = [4, 8, 12, 17];
-      const maxTime = 17; // Max time on mobile display
-      
-      timeMarkers.forEach(time => {
-        const x = leftMargin + (time / maxTime) * usableWidth;
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, CANVAS_HEIGHT);
-      });
-    } else {
-      // Desktop version - regular grid
-      for (let x = leftMargin + 100; x < CANVAS_WIDTH; x += 100) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, CANVAS_HEIGHT);
-      }
-    }
+    // Horizontal grid lines at multiplier marker positions
+    markerPositions.forEach(marker => {
+      ctx.moveTo(0, marker.y);
+      ctx.lineTo(CANVAS_WIDTH - rightMargin, marker.y);
+    });
+    
+    // Vertical grid lines for time markers
+    const timeMarkers = isMobile ? [4, 8, 12, 17] : [5, 10, 15, 20];
+    const gridMaxTime = isMobile ? 17 : 20;
+    
+    timeMarkers.forEach(time => {
+      const x = leftMargin + (time / gridMaxTime) * usableWidth;
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, CANVAS_HEIGHT);
+    });
     
     ctx.stroke();
     
@@ -130,7 +119,7 @@ const CrashFinal: React.FC = () => {
     
     // Generate curve points using logarithmic growth
     const points = [];
-    const maxTime = isMobile ? 17 : 10; // Mobile has longer time span
+    const curveMaxTime = isMobile ? 17 : 10; // Mobile has longer time span
     const baseMultiplier = 1.0;
     const growthRate = 0.12; // Same growth rate for consistent gameplay
     
@@ -350,39 +339,30 @@ const CrashFinal: React.FC = () => {
           
           {/* Game Canvas - Main game display */}
           <div className="relative bg-[#0E1C27] rounded-lg overflow-hidden w-full h-[400px] md:h-[600px]">
-            {/* Mobile Multiplier scale on left - exactly as in screenshot */}
-            <div className="absolute left-0 inset-y-0 w-12 z-10 pointer-events-none">
-              {/* Only show specific markers on mobile that match the screenshot */}
-              {[
-                { value: 1.0, label: '1.0×' },
-                { value: 1.4, label: '1.4×' },
-                { value: 1.9, label: '1.9×' },
-                { value: 2.3, label: '2.3×' },
-                { value: 2.8, label: '2.8×' },
-                { value: 3.2, label: '3.2×' }
-              ].map((marker, index) => {
-                // Calculate logarithmic position 
-                const markerValue = marker.value;
-                const maxMarker = 5.0;
-                
-                // Calculate logarithmic position for exact match to screenshot
-                const logValue = Math.log(markerValue) / Math.log(maxMarker);
-                const heightPercent = logValue * 70;
+            {/* Multiplier scale on right - exactly as in reference image */}
+            <div className="absolute right-0 inset-y-0 w-24 z-10 pointer-events-none flex flex-col items-center justify-between py-4">
+              <div className="h-full w-0.5 bg-[#1d2d3a]"></div>
+              
+              {MULTIPLIER_MARKERS.map((marker, index) => {
+                // Calculate position for evenly spaced markers
+                const heightPercent = index * (100 / (MULTIPLIER_MARKERS.length - 1));
+                const isFirst = index === 0;
+                const isLast = index === MULTIPLIER_MARKERS.length - 1;
                 
                 return (
                   <div 
                     key={index} 
                     className="absolute flex items-center"
                     style={{
-                      bottom: `${heightPercent}%`,
-                      left: 0,
+                      bottom: `${100 - heightPercent}%`,
+                      right: 0,
                       transform: 'translateY(50%)'
                     }}
                   >
-                    <div className="bg-transparent text-white px-1 py-1 text-xs">
+                    <div className="h-0.5 w-6 bg-[#1d2d3a]"></div>
+                    <div className="bg-[#11232F] text-white px-3 py-2 rounded text-center">
                       {marker.label}
                     </div>
-                    <div className="h-0.5 w-2 bg-gray-600"></div>
                   </div>
                 );
               })}

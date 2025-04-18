@@ -5,7 +5,7 @@ import Layout from '@/components/layout/Layout';
 import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
 import Plinko from '@/games/Plinko';
-import Crash from '@/games/CrashFinal';
+import Crash from '@/games/CrashFinal2';
 import Limbo from '@/games/Limbo';
 import DragonTower from '@/games/DragonTower';
 import BlueSamurai from '@/games/BlueSamurai';
