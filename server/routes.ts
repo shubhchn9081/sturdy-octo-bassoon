@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs";
 import { insertBetSchema, insertUserSchema } from "@shared/schema";
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
+import { setupAuth } from "./auth";
 
 // Configure multer storage
 const storage_config = multer.diskStorage({
@@ -38,6 +39,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+  
   // prefix all routes with /api
 
   // Initialize the database with some game data if none exists
