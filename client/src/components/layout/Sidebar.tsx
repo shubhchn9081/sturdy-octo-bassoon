@@ -19,15 +19,8 @@ import {
   BarChart2,
   CircleDollarSign,
   ChevronRight,
-  Settings,
-  User,
-  Gift,
-  HelpCircle,
-  MessageSquare,
-  Bell,
-  UserCircle
+  Settings
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 type SidebarLinkProps = {
   href: string;
@@ -35,140 +28,79 @@ type SidebarLinkProps = {
   children: React.ReactNode;
   className?: string;
   active?: boolean;
-  badge?: string | number;
-  badgeColor?: string;
 };
 
-const SidebarLink = ({ 
-  href, 
-  icon, 
-  children, 
-  className, 
-  active: forceActive,
-  badge,
-  badgeColor = "bg-blue-600" 
-}: SidebarLinkProps) => {
+const SidebarLink = ({ href, icon, children, className, active: forceActive }: SidebarLinkProps) => {
   const [location] = useLocation();
   const active = forceActive || location === href;
   
   return (
-    <Link href={href}>
-      <div 
-        className={cn(
-          "flex items-center px-4 py-2 text-white font-semibold rounded-md hover:bg-[#243442] group transition-colors cursor-pointer",
-          active && "bg-[#243442] text-white",
-          className
-        )}
-      >
-        <span className={cn("mr-3", active ? "text-white" : "text-[#546d7a] group-hover:text-white")}>
-          {icon}
-        </span>
-        <span>{children}</span>
-        {badge && (
-          <Badge className={`ml-auto ${badgeColor} text-xs`}>
-            {badge}
-          </Badge>
-        )}
-        {active && !badge && <ChevronRight className="ml-auto h-4 w-4 text-[#57FBA2]" />}
-      </div>
-    </Link>
+    <div 
+      className={cn(
+        "flex items-center px-4 py-2 text-white font-semibold rounded-md hover:bg-[#243442] group transition-colors cursor-pointer",
+        active && "bg-[#243442] text-white",
+        className
+      )}
+      onClick={() => window.location.href = href}
+    >
+      <span className="mr-3 text-[#546d7a] group-hover:text-white">
+        {icon}
+      </span>
+      <span>{children}</span>
+      {active && <ChevronRight className="ml-auto h-4 w-4 text-[#57FBA2]" />}
+    </div>
   );
 };
 
 const Sidebar = () => {
-  const [location] = useLocation();
-  
   return (
     <aside className="w-64 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] hidden md:block overflow-y-auto">
       <div className="px-6 py-4">
-        <Link href="/">
-          <div className="flex items-center justify-center mb-6 cursor-pointer">
-            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
-          </div>
-        </Link>
+        <div 
+          className="flex items-center justify-center mb-6 cursor-pointer"
+          onClick={() => window.location.href = '/'}
+        >
+          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+        </div>
         
         <div className="flex space-x-2 mb-6">
-          <Link href="/" className="flex-1">
-            <div className="bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg">
-              CASINO
-            </div>
-          </Link>
-          <div className="flex-1 bg-[#243442] text-white font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg">
+          <div 
+            className="flex-1 bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg"
+            onClick={() => window.location.href = '/'}
+          >
+            CASINO
+          </div>
+          <div 
+            className="flex-1 bg-[#243442] text-white font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg"
+          >
             SPORTS
           </div>
         </div>
         
         <nav className="space-y-1">
-          {/* Main navigation */}
           <div className="mb-4">
-            <SidebarLink href="/" icon={<Home className="h-5 w-5" />} active={location === '/'}>
-              Home
-            </SidebarLink>
-            <SidebarLink href="/profile" icon={<UserCircle className="h-5 w-5" />} active={location === '/profile'}>
-              Profile
-            </SidebarLink>
-            <SidebarLink href="/wallet" icon={<Wallet className="h-5 w-5" />} active={location === '/wallet'}>
-              Wallet
-            </SidebarLink>
-            <SidebarLink 
-              href="/promotions" 
-              icon={<Gift className="h-5 w-5" />} 
-              active={location === '/promotions'} 
-              badge="3" 
-              badgeColor="bg-green-500"
-            >
-              Promotions
-            </SidebarLink>
-            <SidebarLink href="/help" icon={<HelpCircle className="h-5 w-5" />} active={location === '/help'}>
-              Help Center
-            </SidebarLink>
-            <SidebarLink href="/community" icon={<MessageSquare className="h-5 w-5" />} active={location === '/community'}>
-              Community
-            </SidebarLink>
-          </div>
-          
-          {/* Player section */}
-          <div className="pt-4 border-t border-[#243442] mb-4">
-            <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-2">
-              Player
-            </h3>
             <SidebarLink href="/favorites" icon={<Star className="h-5 w-5" />}>
               Favourites
             </SidebarLink>
             <SidebarLink href="/recent" icon={<Clock className="h-5 w-5" />}>
               Recent
             </SidebarLink>
-            <SidebarLink 
-              href="/challenges" 
-              icon={<Trophy className="h-5 w-5" />}
-              badge="5"
-              badgeColor="bg-amber-500"
-            >
+            <SidebarLink href="/challenges" icon={<Trophy className="h-5 w-5" />}>
               Challenges
             </SidebarLink>
-            <SidebarLink href="/bets" icon={<CircleDollarSign className="h-5 w-5" />}>
+            <SidebarLink href="/bets" icon={<Wallet className="h-5 w-5" />}>
               My Bets
             </SidebarLink>
-            <SidebarLink 
-              href="/notifications" 
-              icon={<Bell className="h-5 w-5" />}
-              badge="3"
-              badgeColor="bg-red-500"
-            >
-              Notifications
+            <SidebarLink href="/admin" icon={<Settings className="h-5 w-5" />}>
+              Admin Panel
             </SidebarLink>
           </div>
           
-          {/* Games section */}
           <div className="pt-4 border-t border-[#243442]">
             <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-2">
               Games
             </h3>
-            <SidebarLink 
-              href="/originals" 
-              icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} 
-              active={location === '/originals'}
-            >
+            <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
               Stake Originals
             </SidebarLink>
             <SidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />}>
@@ -203,16 +135,6 @@ const Sidebar = () => {
             </SidebarLink>
             <SidebarLink href="/baccarat" icon={<Star className="h-5 w-5" />}>
               Baccarat
-            </SidebarLink>
-          </div>
-          
-          {/* Admin section - would normally only show for admin users */}
-          <div className="pt-4 border-t border-[#243442] mt-4">
-            <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-2">
-              Admin
-            </h3>
-            <SidebarLink href="/admin" icon={<Settings className="h-5 w-5" />}>
-              Admin Panel
             </SidebarLink>
           </div>
         </nav>

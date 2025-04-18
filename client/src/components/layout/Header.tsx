@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -7,22 +6,9 @@ import {
   Search, 
   User, 
   Bell, 
-  Wallet as WalletIcon,
-  Gift,
-  HelpCircle,
-  MessageSquare,
-  Settings
+  Wallet as WalletIcon
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+
 
 const Header = () => {
   // Temporary value until we fix context providers
@@ -42,10 +28,8 @@ const Header = () => {
           </Button>
         </div>
         
-        <div className="flex items-center cursor-pointer">
-          <Link href="/">
-            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
-          </Link>
+        <div className="flex items-center cursor-pointer" onClick={() => window.location.href = '/'}>
+          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
         </div>
         
         <div className="flex items-center space-x-4">
@@ -57,122 +41,22 @@ const Header = () => {
             </svg>
           </div>
           
-          <Link href="/wallet">
-            <Button className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4 text-sm">
-              Wallet
-            </Button>
-          </Link>
+          <Button className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4 text-sm">
+            Wallet
+          </Button>
           
           <div className="hidden md:flex items-center space-x-1">
-            {/* Search */}
             <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
               <Search className="h-5 w-5" />
             </Button>
             
-            {/* Notifications dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A] relative">
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 bg-red-500 h-4 w-4 flex items-center justify-center p-0 text-[10px]">
-                    3
-                  </Badge>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 bg-[#172B3A] border-[#243442] text-white">
-                <DropdownMenuLabel className="flex justify-between items-center">
-                  <span>Notifications</span>
-                  <Button variant="ghost" size="sm" className="h-6 text-xs hover:bg-[#243442]">
-                    Mark all as read
-                  </Button>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-[#243442]" />
-                {[
-                  { icon: <Gift className="h-4 w-4 text-green-400" />, title: "Bonus Credited", desc: "You received a 50% reload bonus", time: "2 hours ago" },
-                  { icon: <Bell className="h-4 w-4 text-amber-400" />, title: "Weekend Tournament", desc: "The $25,000 weekend tournament starts soon", time: "5 hours ago" },
-                  { icon: <MessageSquare className="h-4 w-4 text-blue-400" />, title: "New Reply", desc: "Someone replied to your forum post", time: "Yesterday" }
-                ].map((item, i) => (
-                  <DropdownMenuItem key={i} className="flex items-start gap-3 py-3 cursor-pointer hover:bg-[#243442]">
-                    <div className="bg-[#0F212E] rounded-full p-2 mt-1">
-                      {item.icon}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{item.title}</p>
-                      <p className="text-xs text-gray-400">{item.desc}</p>
-                      <p className="text-xs text-gray-500 mt-1">{item.time}</p>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator className="bg-[#243442]" />
-                <Link href="/notifications" className="block">
-                  <DropdownMenuItem className="text-center text-blue-400 cursor-pointer hover:bg-[#243442]">
-                    View all notifications
-                  </DropdownMenuItem>
-                </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+              <User className="h-5 w-5" />
+            </Button>
             
-            {/* Profile dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://api.dicebear.com/7.x/micah/svg?seed=stake" />
-                    <AvatarFallback>ST</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-[#172B3A] border-[#243442] text-white">
-                <div className="flex items-center gap-3 p-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src="https://api.dicebear.com/7.x/micah/svg?seed=stake" />
-                    <AvatarFallback>ST</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">Stake_User123</p>
-                    <p className="text-xs text-gray-400">Bronze Level</p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator className="bg-[#243442]" />
-                <Link href="/profile">
-                  <DropdownMenuItem className="cursor-pointer hover:bg-[#243442]">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/wallet">
-                  <DropdownMenuItem className="cursor-pointer hover:bg-[#243442]">
-                    <WalletIcon className="mr-2 h-4 w-4" />
-                    <span>Wallet</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/promotions">
-                  <DropdownMenuItem className="cursor-pointer hover:bg-[#243442]">
-                    <Gift className="mr-2 h-4 w-4" />
-                    <span>Promotions</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/help">
-                  <DropdownMenuItem className="cursor-pointer hover:bg-[#243442]">
-                    <HelpCircle className="mr-2 h-4 w-4" />
-                    <span>Help Center</span>
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuSeparator className="bg-[#243442]" />
-                <DropdownMenuItem className="cursor-pointer hover:bg-[#243442]">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-400 cursor-pointer hover:bg-[#243442]">
-                  <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+              <Bell className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
@@ -189,41 +73,18 @@ const Header = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Link href="/">
-              <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer">
-                Home
-              </div>
-            </Link>
-            <Link href="/originals">
-              <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer">
-                Stake Originals
-              </div>
-            </Link>
-            <Link href="/profile">
-              <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer">
-                Profile
-              </div>
-            </Link>
-            <Link href="/wallet">
-              <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer">
-                Wallet
-              </div>
-            </Link>
-            <Link href="/promotions">
-              <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer">
-                Promotions
-              </div>
-            </Link>
-            <Link href="/help">
-              <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer">
-                Help Center
-              </div>
-            </Link>
-            <Link href="/community">
-              <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer">
-                Community
-              </div>
-            </Link>
+            <div className="block p-2 bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/'}>
+              Home
+            </div>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/originals'}>
+              Stake Originals
+            </div>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/slots'}>
+              Slots
+            </div>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/live-casino'}>
+              Live Casino
+            </div>
           </div>
         </div>
       )}
