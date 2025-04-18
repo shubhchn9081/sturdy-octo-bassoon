@@ -123,7 +123,7 @@ const HomePage = () => {
           </div>
           
           {/* Game Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {filteredGames.map((game) => (
               <GameCard
                 key={game.id}

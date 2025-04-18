@@ -199,13 +199,12 @@ const GameCard = ({
   return (
     <div 
       className={cn(
-        "game-card block cursor-pointer overflow-hidden rounded-xl transition-transform hover:translate-y-[-2px] shadow-lg",
-        isCrashGame ? "w-[255px]" : "",
+        "game-card block cursor-pointer overflow-hidden rounded-xl transition-transform hover:translate-y-[-2px] shadow-lg w-full",
         className
       )} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div className={cn("relative", isCrashGame ? "h-[294px]" : "h-48")}>
+      <div className="relative h-48">
         {/* Game background image with fallback */}
         {imageSource ? (
           <ImageWithFallback
