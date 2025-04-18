@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Dices } from 'lucide-react';
+import ImageWithFallback from '@/components/ui/image-with-fallback';
 
 type GameCardProps = {
   id: number;
@@ -29,40 +29,23 @@ const GameCard = ({
 }: GameCardProps) => {
   
   // Function to get image url for each game
-  const getBackgroundStyle = () => {
+  const getImageSource = () => {
     // For Crash game, use the specific image without any text
     if (name === 'CRASH') {
-      return {
-        backgroundImage: `url('https://res.cloudinary.com/dbgpqig0z/image/upload/v1713367867/crash-game-image_sgcq8g.jpg')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      };
+      return 'https://res.cloudinary.com/dbgpqig0z/image/upload/v1713367867/crash-game-image_sgcq8g.jpg';
     }
     
     // First check if we have a custom uploaded image
     if (imageUrl) {
-      return {
-        backgroundImage: `url(${imageUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      };
+      return imageUrl;
     }
     
     // Next check if we have a default image for this game
-    const defaultImage = getGameImage();
-    
-    if (defaultImage) {
-      return {
-        backgroundImage: `url(${defaultImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      };
-    }
-
-    // Fallback to color
+    return getGameImage() || '';
+  };
+  
+  // Function to get fallback image (generic background with color)
+  const getFallbackStyle = () => {
     return {
       background: color
     };
@@ -202,24 +185,42 @@ const GameCard = ({
     }
   };
 
-  const backgroundStyle = getBackgroundStyle();
+  // Create a fallback color background that will be used if no image is found
+  const fallbackStyle = getFallbackStyle();
+  
+  const imageSource = getImageSource();
   const gameIcon = getGameIcon();
+  
+  // Generic fallback image for all games
+  const fallbackImageUrl = 'https://res.cloudinary.com/dbgpqig0z/image/upload/v1713367990/game-fallback_ahkbd1.jpg';
 
   return (
     <div 
       className={cn("game-card block cursor-pointer overflow-hidden rounded-md transition-transform hover:translate-y-[-2px]", className)} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div 
-        className="relative h-48 flex flex-col items-center justify-end"
-        style={backgroundStyle}
-      >
-        {gameIcon}
+      <div className="relative h-48">
+        {/* Game background image with fallback */}
+        {imageSource ? (
+          <ImageWithFallback
+            src={imageSource}
+            fallbackSrc={fallbackImageUrl}
+            alt={`${name} game background`}
+            className="absolute inset-0 w-full h-full"
+          />
+        ) : (
+          <div className="absolute inset-0 w-full h-full" style={fallbackStyle}></div>
+        )}
         
-        {/* Show game name for all games except Crash */}
-        {name !== 'CRASH' && 
-          <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
-        }
+        {/* Game icon overlay */}
+        <div className="absolute inset-0 flex flex-col items-center justify-end">
+          {gameIcon}
+          
+          {/* Show game name for all games except Crash */}
+          {name !== 'CRASH' && 
+            <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
+          }
+        </div>
       </div>
       <div className="bg-[#0F212E] px-3 py-1.5 text-xs text-green-400 flex items-center justify-center">
         <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
