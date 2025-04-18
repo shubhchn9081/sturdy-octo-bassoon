@@ -11,6 +11,8 @@ import DragonTower from '@/games/DragonTower';
 import BlueSamurai from '@/games/BlueSamurai';
 import Pump from '@/games/Pump';
 import Hilo from '@/games/Hilo';
+import Keno from '@/games/Keno';
+import Wheel from '@/games/Wheel';
 
 type Game = typeof GAMES[0];
 
@@ -24,6 +26,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   'blue-samurai': BlueSamurai,
   pump: Pump,
   hilo: Hilo,
+  keno: Keno,
+  wheel: Wheel,
 };
 
 const GamePage = () => {

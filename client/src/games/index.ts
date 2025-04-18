@@ -7,6 +7,8 @@ import DragonTower from './DragonTower';
 import BlueSamurai from './BlueSamurai';
 import Pump from './Pump';
 import Hilo from './Hilo';
+import Keno from './Keno';
+import Wheel from './Wheel';
 
 export const GAMES = [
   {
@@ -167,12 +169,27 @@ export const GAMES = [
     description: 'Select numbers and win',
     color: 'bg-blue-500',
     iconType: 'keno',
-    component: Dice, // Temporarily using Dice component
+    component: Keno,
     minBet: 0.00000001,
     maxBet: 100,
     rtp: 97,
-    maxMultiplier: 100.00,
+    maxMultiplier: 390.00,
     activePlayers: 6253
+  },
+  {
+    id: 12,
+    name: 'WHEEL',
+    slug: 'wheel',
+    type: 'STAKE ORIGINALS',
+    description: 'Spin the wheel for multipliers',
+    color: 'bg-green-500',
+    iconType: 'wheel',
+    component: Wheel,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 10.00,
+    activePlayers: 5241
   }
 ];
 
@@ -193,5 +210,7 @@ export default {
   DragonTower,
   BlueSamurai,
   Pump,
-  Hilo
+  Hilo,
+  Keno,
+  Wheel
 };
