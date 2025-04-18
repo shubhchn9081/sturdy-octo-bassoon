@@ -352,12 +352,12 @@ const Keno: React.FC = () => {
           <div className="mb-4 flex gap-2">
             {/* Auto Pick Button with 3D effect */}
             <div className="flex-1 relative">
-              {/* Shadow for 3D effect */}
-              <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+              {/* Shadow below button (3D effect) */}
+              <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
               
               <button 
                 onClick={autoPick}
-                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium relative z-10"
+                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
                 disabled={isPlaying}
               >
                 Auto Pick
@@ -366,12 +366,12 @@ const Keno: React.FC = () => {
             
             {/* Clear Table Button with 3D effect */}
             <div className="flex-1 relative">
-              {/* Shadow for 3D effect */}
-              <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+              {/* Shadow below button (3D effect) */}
+              <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
               
               <button 
                 onClick={clearSelections}
-                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium relative z-10"
+                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
                 disabled={isPlaying}
               >
                 Clear Table
@@ -381,11 +381,11 @@ const Keno: React.FC = () => {
           
           {/* Bet Button with 3D effect */}
           <div className="mb-4 relative">
-            {/* 3D shadow effect, darker for emphasis */}
-            <div className="absolute inset-0 bg-[#277312]/70 rounded-md transform translate-y-2"></div>
+            {/* Shadow below button (3D effect) */}
+            <div className="absolute bottom-[-6px] left-0 right-0 h-[6px] bg-[#277312]/70 rounded-b-md"></div>
             
             <Button 
-              className="w-full py-3 text-base font-bold bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md relative z-10"
+              className="w-full py-3 text-base font-bold bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md"
               onClick={placeBetAction}
               disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
             >
@@ -439,7 +439,7 @@ const Keno: React.FC = () => {
             )}
             <div className="w-full max-w-4xl">
               {/* Main Number Grid - 5x8 layout */}
-              <div className="grid grid-cols-8 gap-2 mb-4">
+              <div className="grid grid-cols-8 gap-4 mb-4">
                 {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
                   const isSelected = selectedNumbers.includes(num);
                   const isDrawn = drawnNumbers.includes(num);
@@ -454,7 +454,6 @@ const Keno: React.FC = () => {
                     bgColor = 'bg-[#9333EA]';
                   } else if (isMatched) {
                     // Green with black text for matched (selected and drawn)
-                    // Using a special gem-like styled button for matches
                     bgColor = 'bg-[#5BE12C]';
                     textColor = 'text-[#2A8617]';
                   } else if (isDrawn) {
@@ -463,52 +462,26 @@ const Keno: React.FC = () => {
                     textColor = 'text-[#FF3B3B]';
                   }
                   
-                  // Add border styling if it's selected (with purple border)
-                  const borderClass = isSelected && !isMatched ? 
-                    'border-2 border-[#9333EA]' : 
-                    '';
-                  
-                  // Add a subtle glow effect for matched numbers
-                  const glowClass = isMatched ? 
-                    'shadow-[0_0_15px_rgba(91,225,44,0.7)]' : 
-                    '';
-                    
-                  // Special gem styling for matched numbers
-                  const specialMatchedClass = isMatched ? 
-                    `relative before:absolute before:inset-0 before:bg-[#5BE12C] before:opacity-70 before:transform before:rotate-45 before:rounded-md before:z-0` : 
-                    '';
-                  
-                  // Purple background for selected numbers
-                  const purpleBgClass = isSelected && !isMatched ? 
-                    'bg-gradient-to-br from-[#9333EA] to-[#762DC5]' : 
-                    '';
-                  
-                  // Purple border for matched numbers
-                  const purpleBorderClass = isMatched ? 
-                    'border-4 border-[#9333EA] bg-[#3DCC20]' : 
-                    '';
+                  // Border styling for different states
+                  let borderClass = '';
+                  if (isSelected && !isMatched) {
+                    borderClass = 'border-4 border-[#9333EA]';
+                  } else if (isMatched) {
+                    borderClass = 'border-4 border-[#9333EA]';
+                  }
                   
                   return (
-                    <div
-                      key={num}
-                      className={`relative ${isMatched ? 'scale-110 z-10' : ''}`}
-                    >
-                      {/* The shadow/3D effect box behind the button */}
-                      <div className={`
-                        absolute inset-0 bg-black/30 rounded-md transform translate-y-1
-                        ${isSelected ? 'translate-y-2' : 'translate-y-1'}
-                      `}></div>
+                    <div key={num} className="relative">
+                      {/* Shadow below button (3D effect) */}
+                      <div className="absolute bottom-[-6px] left-0 right-0 h-[6px] bg-black/40 rounded-b-md"></div>
                       
                       {/* Main button */}
                       <button
                         className={`
-                          aspect-square rounded-md flex items-center justify-center text-lg font-bold transition-all
-                          ${isMatched ? purpleBorderClass : bgColor} 
-                          ${textColor} ${borderClass} ${glowClass} ${purpleBgClass}
+                          w-full h-full aspect-square rounded-md flex items-center justify-center text-xl font-bold
+                          ${bgColor} ${textColor} ${borderClass}
                           ${isPlaying ? 'cursor-not-allowed' : 'cursor-pointer'}
-                          transform transition-transform duration-200
-                          hover:opacity-90 relative z-10
-                          ${isMatched ? 'bg-gradient-to-br from-[#5BE12C] to-[#3DA61F] shadow-inner' : ''}
+                          ${isMatched ? 'bg-gradient-to-br from-[#5BE12C] to-[#3DA61F]' : ''}
                         `}
                         onClick={() => toggleNumberSelection(num)}
                         disabled={isPlaying}
@@ -525,13 +498,12 @@ const Keno: React.FC = () => {
                 {/* Creating 3D effect for all multiplier buttons */}
                 {[0.00, 0.00, 1.40, 4.00, 14.00, 390.00].map((multiplier, index) => (
                   <div key={index} className="relative">
-                    {/* 3D shadow effect */}
-                    <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+                    {/* Shadow below button (3D effect) */}
+                    <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
                     
                     {/* Main button */}
                     <div className={`
                       aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center
-                      relative z-10
                       ${result?.multiplier === multiplier ? 'border-2 border-[#5BE12C]' : ''}
                     `}>
                       <span className={`text-sm ${result?.multiplier === multiplier ? 'text-[#5BE12C] font-bold' : ''}`}>
@@ -547,11 +519,11 @@ const Keno: React.FC = () => {
                 {/* Adding 3D effect to hit counter buttons */}
                 {[0, 1, 2, 3, 4, 5].map((hits) => (
                   <div key={hits} className="relative">
-                    {/* 3D shadow effect */}
-                    <div className="absolute inset-0 bg-black/30 rounded-md transform translate-y-1"></div>
+                    {/* Shadow below button (3D effect) */}
+                    <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
                     
                     {/* Main button */}
-                    <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center relative z-10">
+                    <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
                       <span className="text-xs text-gray-400">{hits}x</span>
                       <div className={`w-3 h-3 ml-1 rounded-full 
                         ${matchedNumbers.length === hits ? 
