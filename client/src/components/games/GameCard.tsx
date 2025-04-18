@@ -204,7 +204,7 @@ const GameCard = ({
       )} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div className="relative h-[200px]">
+      <div className="relative h-[140px]">
         {/* Game background image with fallback */}
         {imageSource ? (
           <ImageWithFallback
@@ -222,11 +222,7 @@ const GameCard = ({
           {gameIcon}
           
           {/* Show game name in big bold text */}
-          {!isCrashGame ? (
-            <h3 className="text-2xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
-          ) : (
-            <h3 className="text-5xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">CRASH</h3>
-          )}
+          <h3 className="text-xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
         </div>
       </div>
       {/* Player count */}
