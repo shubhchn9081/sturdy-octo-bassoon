@@ -13,8 +13,6 @@ import { GAMES } from "../client/src/games";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
 
-import session from "express-session";
-
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
@@ -38,17 +36,7 @@ export interface IStorage {
   }): Promise<Bet>;
   updateBet(id: number, bet: Bet): Promise<Bet>;
   getBetHistory(userId: number, gameId?: number): Promise<Bet[]>;
-  
-  // Session store
-  sessionStore: any; // Store interface from express-session
 }
-
-import createMemoryStore from "memorystore";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
-
-const MemoryStore = createMemoryStore(session);
-const PostgresSessionStore = connectPg(session);
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
@@ -57,7 +45,6 @@ export class MemStorage implements IStorage {
   
   private userIdCounter: number;
   private betIdCounter: number;
-  sessionStore: any; // Express session store
 
   constructor() {
     this.users = new Map();
@@ -66,10 +53,6 @@ export class MemStorage implements IStorage {
     
     this.userIdCounter = 1;
     this.betIdCounter = 1;
-    
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
-    });
     
     // Initialize with demo data
     this.initializeDemoData();
@@ -80,13 +63,8 @@ export class MemStorage implements IStorage {
     const demoUser: User = {
       id: 1,
       username: "demo_user",
-      email: "demo@example.com",
       password: "hashed_password", // In a real app, this would be hashed
       balance: 1000,
-      dateOfBirth: new Date('1990-01-01'),
-      phone: null,
-      referralCode: null,
-      language: null,
       createdAt: new Date()
     };
     this.users.set(demoUser.id, demoUser);
@@ -126,9 +104,6 @@ export class MemStorage implements IStorage {
       ...insertUser, 
       id, 
       balance: 1000, // Default starting balance
-      phone: insertUser.phone || null,
-      referralCode: insertUser.referralCode || null,
-      language: insertUser.language || null,
       createdAt: new Date()
     };
     this.users.set(id, user);
@@ -216,14 +191,6 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: any; // Express session store
-  
-  constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true
-    });
-  }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;

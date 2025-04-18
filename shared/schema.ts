@@ -5,20 +5,14 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  email: text("email").notNull(),
   password: text("password").notNull(),
   balance: real("balance").notNull().default(1000),
-  dateOfBirth: timestamp("date_of_birth").notNull(),
-  phone: text("phone"),
-  referralCode: text("referral_code"),
-  language: text("language"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  balance: true,
-  createdAt: true,
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
 });
 
 export const games = pgTable("games", {
@@ -54,7 +48,6 @@ export const insertBetSchema = createInsertSchema(bets).pick({
   gameId: true,
   amount: true,
   clientSeed: true,
-  completed: true,
 });
 
 export const insertGameSchema = createInsertSchema(games).pick({
