@@ -59,7 +59,7 @@ const PromotionCard = ({
         <div className="w-1/2">
           <div 
             className="w-full h-32 rounded bg-center bg-cover" 
-            style={{ backgroundImage: `url(${imageSrc})` }}
+            style={{ backgroundImage: `url(${imageSrc || 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744994041/0dec0a589e3aad3d7130fd0fbb1502d174dca0f9-1080x1080_nth0ar.png'})` }}
           />
         </div>
       </div>
