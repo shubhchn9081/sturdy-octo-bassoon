@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
-import { useGame } from '@/context/GameContext';
 
 // Component for Limbo game based on the reference screenshots
 const LimboGame: React.FC = () => {
@@ -28,9 +27,8 @@ const LimboGame: React.FC = () => {
   const { getGameResult } = useProvablyFair('limbo');
   const { balance, placeBet, completeBet } = useBalance();
   
-  // Use game from context, but create a fallback for easier testing
-  const { selectedGame } = useGame();
-  const gameInfo = selectedGame || {
+  // Fixed game info for Limbo
+  const gameInfo = {
     id: 3,
     name: "LIMBO",
     slug: "limbo",
