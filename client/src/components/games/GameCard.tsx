@@ -33,7 +33,7 @@ const GameCard = ({
     // For Crash game, use the specific image without any text
     if (name === 'CRASH') {
       return {
-        backgroundImage: `url('/images/games/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e.jpeg')`,
+        backgroundImage: `url('https://res.cloudinary.com/dbgpqig0z/image/upload/v1713367867/crash-game-image_sgcq8g.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
