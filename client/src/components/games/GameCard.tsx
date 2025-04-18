@@ -27,6 +27,8 @@ const GameCard = ({
   className,
   imageUrl
 }: GameCardProps) => {
+  // Check if this is the Crash game to set special dimensions
+  const isCrashGame = name === 'CRASH';
   
   // Function to get image url for each game
   const getImageSource = () => {
@@ -196,10 +198,14 @@ const GameCard = ({
 
   return (
     <div 
-      className={cn("game-card block cursor-pointer overflow-hidden rounded-md transition-transform hover:translate-y-[-2px]", className)} 
+      className={cn(
+        "game-card block cursor-pointer overflow-hidden rounded-md transition-transform hover:translate-y-[-2px]",
+        isCrashGame ? "w-[328px]" : "",
+        className
+      )} 
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      <div className="relative h-48">
+      <div className={cn("relative", isCrashGame ? "h-[430px]" : "h-48")}>
         {/* Game background image with fallback */}
         {imageSource ? (
           <ImageWithFallback
@@ -216,10 +222,12 @@ const GameCard = ({
         <div className="absolute inset-0 flex flex-col items-center justify-end">
           {gameIcon}
           
-          {/* Show game name for all games except Crash */}
-          {name !== 'CRASH' && 
+          {/* Show game name - special formatting for CRASH game */}
+          {isCrashGame ? (
+            <h3 className="text-5xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-6 z-10">CRASH</h3>
+          ) : name !== 'CRASH' && (
             <h3 className="text-3xl font-bold text-white uppercase tracking-wide drop-shadow-md mb-3 z-10">{name}</h3>
-          }
+          )}
         </div>
       </div>
       <div className="bg-[#0F212E] px-3 py-1.5 text-xs text-green-400 flex items-center justify-center">
