@@ -10,7 +10,10 @@ import {
   type InsertBet,
   transactions,
   type Transaction,
-  type InsertTransaction
+  type InsertTransaction,
+  gameSettings,
+  type GameSettings,
+  type InsertGameSettings
 } from "@shared/schema";
 import { GAMES } from "../client/src/games";
 import { db } from "./db";
@@ -76,7 +79,14 @@ export class MemStorage implements IStorage {
       id: 1,
       username: "demo_user",
       password: "hashed_password", // In a real app, this would be hashed
-      balance: 1000,
+      isAdmin: true,
+      isBanned: false,
+      balance: {
+        BTC: 0.01,
+        ETH: 0.1,
+        USDT: 1000,
+        INR: 75000
+      },
       createdAt: new Date()
     };
     this.users.set(demoUser.id, demoUser);
@@ -115,16 +125,30 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id, 
-      balance: 1000, // Default starting balance
+      isAdmin: false,
+      isBanned: false,
+      balance: {
+        BTC: 0.01,
+        ETH: 0.1,
+        USDT: 1000,
+        INR: 10000 // Lower amount for regular users
+      },
       createdAt: new Date()
     };
     this.users.set(id, user);
     return user;
   }
   
-  async updateUserBalance(id: number, newBalance: number): Promise<User | undefined> {
+  async updateUserBalance(id: number, currency: string, amount: number): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
+    
+    // Create a new balance object with the updated currency amount
+    const newBalance = { ...user.balance };
+    if (currency in newBalance) {
+      newBalance[currency] += amount;
+      if (newBalance[currency] < 0) newBalance[currency] = 0; // Don't allow negative balances
+    }
     
     const updatedUser = { ...user, balance: newBalance };
     this.users.set(id, updatedUser);

@@ -6,7 +6,14 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  balance: real("balance").notNull().default(1000),
+  isAdmin: boolean("is_admin").default(false).notNull(),
+  isBanned: boolean("is_banned").default(false).notNull(),
+  balance: jsonb("balance").notNull().default({
+    BTC: 0.01,
+    ETH: 0.1,
+    USDT: 1000,
+    INR: 75000
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -151,3 +158,74 @@ export const insertTransactionSchema = createInsertSchema(transactions).pick({
 
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+
+// Admin control tables
+export const gameSettings = pgTable("game_settings", {
+  id: serial("id").primaryKey(),
+  gameId: integer("game_id").notNull().unique(),
+  houseEdge: real("house_edge").notNull().default(1.0), // 1.0 means normal, 2.0 means double house edge
+  forceOutcome: boolean("force_outcome").default(false).notNull(),
+  forcedOutcomeValue: jsonb("forced_outcome_value"), // Game-specific value
+  minBetAmount: real("min_bet_amount").notNull().default(0.00001),
+  maxBetAmount: real("max_bet_amount").notNull().default(1.0),
+  adminPassword: text("admin_password"), // Optional password to protect specific games
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertGameSettingsSchema = createInsertSchema(gameSettings).pick({
+  gameId: true,
+  houseEdge: true,
+  forceOutcome: true,
+  forcedOutcomeValue: true,
+  minBetAmount: true,
+  maxBetAmount: true,
+  adminPassword: true,
+});
+
+export type GameSettings = typeof gameSettings.$inferSelect;
+export type InsertGameSettings = z.infer<typeof insertGameSettingsSchema>;
+
+// Some specific game settings schemas
+export type CrashGameSettings = {
+  crashPoint: number; // Force the game to crash at this point
+  maxCrashPoint: number; // Maximum possible crash point
+};
+
+export type PlinkoGameSettings = {
+  forcedPath: number[]; // Force a specific path
+  forcedMultiplier: number; // Force a specific multiplier result
+};
+
+export type MinesGameSettings = {
+  minePositions: number[]; // Force specific mine positions
+  forceLose: boolean; // Force player to lose on next reveal
+};
+
+export type LimboGameSettings = {
+  forcedMultiplier: number; // Force a specific multiplier
+  maxAllowedMultiplier: number; // Max multiplier allowed (for limiting big wins)
+};
+
+export type DiceGameSettings = {
+  forcedResult: number; // Force a specific dice result (0-100)
+};
+
+// Admin-specific types
+export type AdminAction = {
+  id: number;
+  adminId: number;
+  action: string; 
+  targetId?: number;
+  details: string;
+  timestamp: Date;
+};
+
+export type AdminDashboardStats = {
+  totalUsers: number;
+  activeUsers: number;
+  totalBets: number;
+  totalVolume: number;
+  houseProfit: number;
+  gamesPlayed: {[key: string]: number};
+};
