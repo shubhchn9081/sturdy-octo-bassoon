@@ -34,6 +34,10 @@ const CasesGame: React.FC = () => {
   const loaderRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
+  // References for slot animations
+  const slotContainerRef = useRef<HTMLDivElement>(null);
+  const [isSlotSpinning, setIsSlotSpinning] = useState(false);
+  
   // Initialize random cases
   useEffect(() => {
     initializeCases();
@@ -56,6 +60,41 @@ const CasesGame: React.FC = () => {
     setGameEnded(false);
     setSelectedCase(null);
     setRevealedMultiplier(null);
+  };
+  
+  // Function to animate slot-like spinning
+  const animateSlotMachine = () => {
+    if (!slotContainerRef.current || isSlotSpinning) return;
+    
+    setIsSlotSpinning(true);
+    
+    // Create duplicate elements for infinite loop effect
+    const slotContainer = slotContainerRef.current;
+    const duration = 1.5; // seconds
+    
+    // Clear any previous animations
+    gsap.killTweensOf(slotContainer);
+    
+    // Reset position
+    gsap.set(slotContainer, { x: 0 });
+    
+    // Create the slot machine animation
+    gsap.to(slotContainer, {
+      x: "-50%", // Move half the width to create seamless loop
+      duration: duration,
+      ease: "power1.inOut",
+      repeat: 3, // Repeat a few times
+      onComplete: () => {
+        gsap.to(slotContainer, {
+          x: 0,
+          duration: 0.5,
+          ease: "power3.out",
+          onComplete: () => {
+            setIsSlotSpinning(false);
+          }
+        });
+      }
+    });
   };
 
   const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +137,14 @@ const CasesGame: React.FC = () => {
     }));
     
     setCases(newCases);
-    setGameStarted(true);
+    
+    // Run the slot machine animation when game starts
+    animateSlotMachine();
+    
+    // Set game as started after animation completes
+    setTimeout(() => {
+      setGameStarted(true);
+    }, 2000); // Wait for animation to complete
   };
 
   const selectCase = (index: number) => {
@@ -118,6 +164,65 @@ const CasesGame: React.FC = () => {
 
     setCases(updatedCases);
     setRevealedMultiplier(cases[index].multiplier);
+    
+    // Animate case opening with GSAP for a slot-machine like effect
+    const caseElement = document.getElementById(`case-${index}`);
+    if (caseElement) {
+      // First shake the case side to side
+      gsap.to(caseElement, {
+        x: 5,
+        duration: 0.1,
+        repeat: 5,
+        yoyo: true,
+        ease: "elastic.out(1, 0.3)",
+        onComplete: () => {
+          // Then do a quick zoom in and out
+          gsap.to(caseElement, {
+            scale: 1.2,
+            duration: 0.2,
+            ease: "power2.out",
+            onComplete: () => {
+              gsap.to(caseElement, {
+                scale: 1,
+                duration: 0.2,
+                ease: "bounce.out"
+              });
+            }
+          });
+        }
+      });
+    
+      // Create a multiplier popup animation that floats up
+      const multiplierValue = cases[index].multiplier;
+      if (multiplierValue) {
+        // Create a dynamic multiplier element
+        const multiplierPopup = document.createElement('div');
+        multiplierPopup.textContent = `${multiplierValue}x`;
+        multiplierPopup.className = 
+          `absolute text-2xl font-bold z-10 ${
+            parseFloat(multiplierValue) > 1 ? 'text-green-500' : 'text-red-500'
+          }`;
+        multiplierPopup.style.top = '50%';
+        multiplierPopup.style.left = '50%';
+        multiplierPopup.style.transform = 'translate(-50%, -50%)';
+        multiplierPopup.style.pointerEvents = 'none';
+        
+        // Append the element to the case
+        caseElement.style.position = 'relative';
+        caseElement.appendChild(multiplierPopup);
+        
+        // Animate the multiplier floating up and fading out
+        gsap.to(multiplierPopup, {
+          y: -50,
+          opacity: 0,
+          duration: 1.5,
+          ease: "power2.out",
+          onComplete: () => {
+            multiplierPopup.remove();
+          }
+        });
+      }
+    }
     
     // Animate triangle to point to the selected case
     if (triangleRef.current) {
@@ -269,47 +374,94 @@ const CasesGame: React.FC = () => {
           </div>
 
           {/* Game area */}
-          <div id="game-area" className="relative mb-8">
-            {/* Main game grid */}
-            <div className="grid grid-cols-8 gap-2">
-              {cases.map((caseItem, index) => (
-                <div
-                  id={`case-${index}`}
-                  key={index}
-                  className={cn(
-                    "relative aspect-square rounded cursor-pointer transition-all", 
-                    caseItem.color,
-                    caseItem.isSelected && "ring-2 ring-white",
-                    !gameStarted && "opacity-70"
-                  )}
-                  onClick={() => selectCase(index)}
-                >
-                  {/* Case lid that slides down when opened */}
-                  <div 
-                    className={cn(
-                      "absolute inset-x-0 top-0 h-1/3 bg-black/20 transition-transform duration-300",
-                      caseItem.isOpened ? "translate-y-full" : ""
-                    )}
-                  />
-                  
-                  {/* Case contents/multiplier */}
-                  {caseItem.isOpened && caseItem.multiplier && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
-                    </div>
-                  )}
+          <div id="game-area" className="relative mb-8 overflow-hidden">
+            {/* Created a wrapper for the slot animation with overflow hidden */}
+            <div className="w-full overflow-hidden">
+              {/* Slot container with double width for continuous scroll effect */}
+              <div ref={slotContainerRef} className="flex w-[200%] transition-transform">
+                {/* First set of cases (visible initially) */}
+                <div className="grid grid-cols-8 gap-2 w-1/2">
+                  {cases.map((caseItem, index) => (
+                    <div
+                      id={`case-${index}`}
+                      key={`first-${index}`}
+                      className={cn(
+                        "relative aspect-square rounded cursor-pointer transition-all", 
+                        caseItem.color,
+                        caseItem.isSelected && "ring-2 ring-white",
+                        !gameStarted && "opacity-70"
+                      )}
+                      onClick={() => selectCase(index)}
+                    >
+                      {/* Case lid that slides down when opened */}
+                      <div 
+                        className={cn(
+                          "absolute inset-x-0 top-0 h-1/3 bg-black/20 transition-transform duration-300",
+                          caseItem.isOpened ? "translate-y-full" : ""
+                        )}
+                      />
+                      
+                      {/* Case contents/multiplier */}
+                      {caseItem.isOpened && caseItem.multiplier && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
+                        </div>
+                      )}
 
-                  {/* Briefcase icon when closed */}
-                  {!caseItem.isOpened && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect width="18" height="14" x="3" y="6" rx="2" />
-                        <path d="M14 6v-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-                      </svg>
+                      {/* Briefcase icon when closed */}
+                      {!caseItem.isOpened && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect width="18" height="14" x="3" y="6" rx="2" />
+                            <path d="M14 6v-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ))}
+                
+                {/* Second set of cases (duplicated for infinite scrolling) */}
+                <div className="grid grid-cols-8 gap-2 w-1/2">
+                  {cases.map((caseItem, index) => (
+                    <div
+                      key={`second-${index}`}
+                      className={cn(
+                        "relative aspect-square rounded cursor-pointer transition-all", 
+                        caseItem.color,
+                        caseItem.isSelected && "ring-2 ring-white",
+                        !gameStarted && "opacity-70"
+                      )}
+                      onClick={() => selectCase(index)}
+                    >
+                      {/* Case lid that slides down when opened */}
+                      <div 
+                        className={cn(
+                          "absolute inset-x-0 top-0 h-1/3 bg-black/20 transition-transform duration-300",
+                          caseItem.isOpened ? "translate-y-full" : ""
+                        )}
+                      />
+                      
+                      {/* Case contents/multiplier */}
+                      {caseItem.isOpened && caseItem.multiplier && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
+                        </div>
+                      )}
+
+                      {/* Briefcase icon when closed */}
+                      {!caseItem.isOpened && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect width="18" height="14" x="3" y="6" rx="2" />
+                            <path d="M14 6v-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Triangle pointer */}
