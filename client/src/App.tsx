@@ -7,6 +7,7 @@ import Originals from "@/pages/originals";
 import Admin from "@/pages/admin";
 import InitDb from "@/pages/InitDb";
 import AuthPage from "@/pages/auth-page";
+import WalletPage from "@/pages/wallet-page";
 import Layout from "@/components/layout/Layout";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/init-db" component={InitDb} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/wallet" component={WalletPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

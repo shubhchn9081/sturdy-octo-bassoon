@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/context/UserContext";
+// We'll connect to context in a future update
+// import { useUser } from "@/context/UserContext";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -27,7 +28,13 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const { login } = useUser();
+  // We'll implement a proper context integration later
+  // For now, we'll use a simple mock login function
+  const login = (username: string) => {
+    // In a real app, we'd store the user in context or localStorage
+    console.log(`Logged in as: ${username}`);
+    return true;
+  };
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("login");

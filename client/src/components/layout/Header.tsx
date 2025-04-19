@@ -45,7 +45,11 @@ const Header = () => {
             </svg>
           </div>
           
-          <Button className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4 text-sm">
+          <Button 
+            className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4 text-sm"
+            onClick={() => setLocation('/wallet')}
+          >
+            <WalletIcon className="h-4 w-4 mr-2" />
             Wallet
           </Button>
           
