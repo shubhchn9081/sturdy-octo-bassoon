@@ -61,7 +61,7 @@ const Cases: React.FC = () => {
     setRevealedMultiplier(null);
   };
   
-  // Function to animate slot-like spinning with ultra smooth infinite loop
+  // Function to animate slot-like spinning with true circular infinite loop
   const animateSlotMachine = () => {
     if (!slotContainerRef.current || isSlotSpinning) return;
     
@@ -73,76 +73,84 @@ const Cases: React.FC = () => {
     // Clear any previous animations
     gsap.killTweensOf(slotContainer);
     
-    // Reset position
+    // Calculate the width of a single case (including margins)
+    const caseWidth = 90; // 80px width + 5px margin on each side
+    
+    // Calculate the width of a full set of 8 cases
+    const singleSetWidth = caseWidth * 8;
+    
+    // Position at the start of our strip
     gsap.set(slotContainer, { x: 0 });
     
-    // Calculate the total width of one set of cases (half the container)
-    const totalWidth = slotContainer.scrollWidth / 2;
+    // Create a circular animation that will be perfectly smooth
+    // This is key for the smoothest infinite animation
     
-    // Create a timeline for smoother sequencing
-    const tl = gsap.timeline();
-    
-    // Phase 1: Quick acceleration
-    tl.to(slotContainer, {
-      x: `-=${totalWidth * 0.25}`,  // Start with a quick partial movement
-      duration: 0.2,                // Very short for quick acceleration
-      ease: "power1.in"             // Accelerate in
+    // First acceleration phase
+    gsap.to(slotContainer, {
+      x: `-=${caseWidth * 3}`, // Move a few cases to start
+      duration: 0.3,
+      ease: "power2.in",
+      onComplete: startInfiniteLoop
     });
     
-    // Reference to our infinite animation for later cleanup
-    let infiniteAnim;
-    
-    // Phase 2: Start the infinite loop with seamless looping
-    tl.add(() => {
-      // This creates our infinite loop with perfect looping
-      infiniteAnim = gsap.to(slotContainer, {
-        x: `-=${totalWidth}`,       // Move one full width
-        duration: 0.5,              // Faster speed for exciting effect
-        ease: "none",               // Linear for smooth motion
-        repeat: -1,                 // Infinite repeats
-        onRepeat: () => {
-          // When we complete a cycle, instantly jump back without visual interruption
-          const currentX = gsap.getProperty(slotContainer, "x") as number;
-          // Get only the fractional part by using modulo
-          const loopPosition = currentX % totalWidth;
-          // Reset position to create perfect loop illusion
-          gsap.set(slotContainer, { x: loopPosition });
-        }
+    function startInfiniteLoop() {
+      // Create the main infinite loop animation
+      const infiniteAnimation = gsap.to(slotContainer, {
+        x: `-=${singleSetWidth}`, // Move exactly one full set distance
+        duration: 0.8, // Speed of the loop - lower = faster
+        ease: "none", // Linear movement is essential for smooth loop
+        repeat: -1, // Infinite repeats
+        onRepeat: resetPosition // This is the key to the perfect loop
       });
       
-      // Schedule the stop after some time
+      // This function is called after each loop iteration
+      function resetPosition() {
+        // Get current x position
+        const x = gsap.getProperty(slotContainer, "x") as number;
+        
+        // When we've moved one full set width, reset back seamlessly
+        // This creates the perfect illusion of infinite movement
+        if (x <= -singleSetWidth) {
+          // Calculate the exact overflow amount
+          const overflow = x % singleSetWidth;
+          // Reset position with the overflow amount to make it perfectly seamless
+          gsap.set(slotContainer, { x: overflow });
+        }
+      }
+      
+      // Stop the animation after a few seconds
       setTimeout(() => {
-        if (infiniteAnim) {
-          // Kill the infinite animation safely
-          infiniteAnim.kill();
+        // Kill the infinite animation
+        infiniteAnimation.kill();
+        
+        // Get current position
+        const currentX = gsap.getProperty(slotContainer, "x") as number;
+        
+        // Slow down gradually
+        gsap.to(slotContainer, {
+          x: `-=${singleSetWidth / 2}`, // Continue moving but slow down
+          duration: 1.2,
+          ease: "power2.inOut",
+          onComplete: finalStop
+        });
+        
+        // Make the final stop on a specific case
+        function finalStop() {
+          // Calculate final stopping position to align with a case
+          const finalPosition = Math.round(gsap.getProperty(slotContainer, "x") as number / caseWidth) * caseWidth;
           
-          // Get current exact position for smooth transition
-          const currentX = gsap.getProperty(slotContainer, "x") as number;
-          const normalizedX = currentX % totalWidth; // Normalize the position
-          
-          // Phase 3: Gradual slowdown
+          // Make the final stopping animation with slight bounce
           gsap.to(slotContainer, {
-            x: `${normalizedX - totalWidth}`, // Continue movement but slowing down
-            duration: 0.8,                   // Slowing down period
-            ease: "power1.out",              // Ease out for natural deceleration
+            x: finalPosition,
+            duration: 0.5,
+            ease: "back.out(1.2)",
             onComplete: () => {
-              // Phase 4: Final positioning to a specific case
-              const caseWidth = totalWidth / 8; // Width of each case
-              const randomStopPoint = Math.floor(Math.random() * 8) * caseWidth;
-              
-              gsap.to(slotContainer, {
-                x: -randomStopPoint,         // Stop at a specific case
-                duration: 0.5,               // Quick final positioning
-                ease: "back.out(2)",         // Slight overshoot and settle for realism
-                onComplete: () => {
-                  setIsSlotSpinning(false);
-                }
-              });
+              setIsSlotSpinning(false);
             }
           });
         }
-      }, 3000); // Run for 3 seconds before starting to slow down
-    });
+      }, 3000); // Run for 3 seconds
+    }
   };
 
   const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -433,101 +441,64 @@ const Cases: React.FC = () => {
           </div>
 
           {/* Game area */}
-          <div id="game-area" className="relative mb-8 overflow-hidden">
-            {/* Created a wrapper for the slot animation with overflow hidden */}
-            <div className="w-full overflow-hidden">
-              {/* Slot container with double width for continuous scroll effect */}
-              <div ref={slotContainerRef} className="flex w-[200%] transition-transform">
-                {/* First set of cases (visible initially) */}
-                <div className="grid grid-cols-8 gap-2 w-1/2">
-                  {cases.map((caseItem, index) => (
-                    <div
-                      id={`case-${index}`}
-                      key={`first-${index}`}
-                      className={cn(
-                        "relative aspect-square rounded-md cursor-pointer transition-all flex flex-col overflow-hidden", 
-                        caseItem.color,
-                        caseItem.isSelected && "ring-2 ring-cyan-500",
-                        !gameStarted && "opacity-70"
-                      )}
-                      onClick={() => selectCase(index)}
-                    >
-                      {/* Case lid that slides down when opened */}
-                      <div 
-                        className={cn(
-                          "absolute inset-x-0 top-0 h-1/3 bg-black/20 transition-transform duration-300",
-                          caseItem.isOpened ? "translate-y-full" : ""
-                        )}
-                      />
-                      
-                      {/* Case contents/multiplier */}
-                      {caseItem.isOpened && caseItem.multiplier && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-black/40 rounded-full px-4 py-2">
-                            <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
-                          </div>
-                        </div>
-                      )}
+          <div id="game-area" className="relative mb-8">
+            {/* Improved visible window for cases - only show a few at a time */}
+            <div className="w-full mx-auto overflow-hidden bg-[#0F1923] rounded-md border border-gray-800">
+              {/* This creates a visible "window" that shows only 5 cases horizontally */}
+              <div className="w-full relative h-[110px] overflow-hidden">
+                {/* The slot container now holds many more cases for smoother infinite loop */}
+                <div ref={slotContainerRef} className="absolute flex transition-none">
+                  {/* Generate a long strip of cases for the infinite loop */}
+                  {[...Array(24)].map((_, outerIndex) => (
+                    cases.map((caseItem, index) => {
+                      const uniqueId = outerIndex * cases.length + index;
+                      return (
+                        <div
+                          id={index < 8 ? `case-${index}` : undefined}
+                          key={`case-${uniqueId}`}
+                          className={cn(
+                            "relative w-[80px] h-[80px] mx-[5px] my-[15px] rounded-md cursor-pointer transition-all flex-shrink-0", 
+                            caseItem.color,
+                            uniqueId % cases.length === selectedCase && "ring-2 ring-cyan-500",
+                            !gameStarted && "opacity-70"
+                          )}
+                          onClick={() => selectCase(uniqueId % cases.length)}
+                        >
+                          {/* Case lid that slides down when opened */}
+                          <div 
+                            className={cn(
+                              "absolute inset-x-0 top-0 h-1/3 bg-black/20 transition-transform duration-300",
+                              uniqueId % cases.length === selectedCase && caseItem.isOpened ? "translate-y-full" : ""
+                            )}
+                          />
+                          
+                          {/* Case contents/multiplier */}
+                          {uniqueId % cases.length === selectedCase && caseItem.isOpened && caseItem.multiplier && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-black/40 rounded-full px-4 py-2">
+                                <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
+                              </div>
+                            </div>
+                          )}
 
-                      {/* Briefcase icon when closed */}
-                      {!caseItem.isOpened && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect width="18" height="14" x="3" y="6" rx="2" />
-                            <path d="M14 6v-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-                          </svg>
+                          {/* Briefcase icon when closed */}
+                          {!(uniqueId % cases.length === selectedCase && caseItem.isOpened) && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect width="18" height="14" x="3" y="6" rx="2" />
+                                <path d="M14 6v-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Second set of cases (duplicated for infinite scrolling) */}
-                <div className="grid grid-cols-8 gap-2 w-1/2">
-                  {cases.map((caseItem, index) => (
-                    <div
-                      key={`second-${index}`}
-                      className={cn(
-                        "relative aspect-square rounded-md cursor-pointer transition-all flex flex-col overflow-hidden", 
-                        caseItem.color,
-                        caseItem.isSelected && "ring-2 ring-cyan-500",
-                        !gameStarted && "opacity-70"
-                      )}
-                      onClick={() => selectCase(index)}
-                    >
-                      {/* Case lid that slides down when opened */}
-                      <div 
-                        className={cn(
-                          "absolute inset-x-0 top-0 h-1/3 bg-black/20 transition-transform duration-300",
-                          caseItem.isOpened ? "translate-y-full" : ""
-                        )}
-                      />
-                      
-                      {/* Case contents/multiplier */}
-                      {caseItem.isOpened && caseItem.multiplier && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-black/40 rounded-full px-4 py-2">
-                            <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Briefcase icon when closed */}
-                      {!caseItem.isOpened && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect width="18" height="14" x="3" y="6" rx="2" />
-                            <path d="M14 6v-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
+                      );
+                    })
                   ))}
                 </div>
               </div>
             </div>
             
-            {/* Triangle pointer at the bottom */}
+            {/* Triangle pointer centered below the visible window */}
             <div 
               ref={triangleRef} 
               className="absolute bottom-[-15px] left-1/2 transform -translate-x-1/2 transition-transform"
