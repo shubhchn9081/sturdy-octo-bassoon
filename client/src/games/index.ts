@@ -1,5 +1,6 @@
 import Dice from './Dice';
 import Mines from './Mines';
+import CricketMines from './CricketMines';
 import Plinko from './Plinko';
 import Crash from './Crash';
 import Limbo from './Limbo';
@@ -12,6 +13,21 @@ import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
 
 export const GAMES = [
+  {
+    id: 14,
+    name: 'CRICKET MINES',
+    slug: 'cricket-mines',
+    type: 'STAKE ORIGINALS',
+    description: 'Hit sixes and avoid getting out',
+    color: 'bg-green-600',
+    iconType: 'mines', // Using the same icon type for now
+    component: CricketMines,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: 1000,
+    activePlayers: 2891
+  },
   {
     id: 13,
     name: 'COIN FLIP',
@@ -220,6 +236,7 @@ export const getGameById = (id: number) => {
 export default {
   Dice,
   Mines,
+  CricketMines,
   Plinko,
   Crash,
   Limbo,

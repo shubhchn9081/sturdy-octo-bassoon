@@ -4,6 +4,7 @@ import { GAMES, getGameBySlug } from '@/games';
 import Layout from '@/components/layout/Layout';
 import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
+import CricketMines from '@/games/CricketMines';
 import Plinko from '@/games/Plinko';
 import Crash from '@/games/CrashFinal';
 import Limbo from '@/games/LimboFinal';
@@ -21,6 +22,7 @@ type Game = typeof GAMES[0];
 const GameComponents: Record<string, React.ComponentType> = {
   dice: Dice,
   mines: Mines,
+  'cricket-mines': CricketMines,
   plinko: Plinko,
   crash: Crash,
   limbo: Limbo,
