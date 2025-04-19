@@ -21,7 +21,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Settings,
-  AlignJustify
+  AlignJustify,
+  Bomb
 } from 'lucide-react';
 import { useSidebar } from '@/context/SidebarContext';
 import { Button } from '@/components/ui/button';
@@ -41,17 +42,19 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
   return (
     <div 
       className={cn(
-        "flex items-center px-4 py-2 text-white font-semibold rounded-md hover:bg-[#243442] group transition-colors cursor-pointer",
-        active && "bg-[#243442] text-white",
+        "flex items-center px-3 py-2 text-gray-300 text-sm rounded group transition-colors cursor-pointer",
+        active ? "bg-[#1C333F] text-white border-l-[3px] border-[#57FBA2]" : "hover:bg-[#1C333F]",
         className
       )}
       onClick={() => window.location.href = href}
     >
-      <span className="mr-3 text-[#546d7a] group-hover:text-white">
+      <span className={cn(
+        "mr-3",
+        active ? "text-[#57FBA2]" : "text-[#546d7a] group-hover:text-white"
+      )}>
         {icon}
       </span>
       <span>{children}</span>
-      {active && <ChevronRight className="ml-auto h-4 w-4 text-[#57FBA2]" />}
     </div>
   );
 };
@@ -60,37 +63,44 @@ const Sidebar = () => {
   const { toggleSidebar } = useSidebar();
   
   return (
-    <aside className="w-64 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] overflow-y-auto">
-      <div className="px-6 py-4">
-        <div className="flex items-center mb-6">
+    <aside className="w-56 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] overflow-y-auto">
+      <div className="p-3">
+        <div className="flex items-center mb-4">
           <Button 
             variant="ghost" 
             size="icon"
             onClick={toggleSidebar}
-            className="mr-2 text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
+            className="text-[#546D7A] hover:text-white hover:bg-transparent p-1"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           
           <div 
             className="flex-1 flex items-center justify-center cursor-pointer"
             onClick={() => window.location.href = '/'}
           >
-            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-8" />
           </div>
         </div>
         
-        <div className="flex space-x-2 mb-6">
+        <div className="relative h-8 mb-4 rounded-md overflow-hidden bg-[#1C2C39] flex items-center">
           <div 
-            className="flex-1 bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg"
-            onClick={() => window.location.href = '/'}
-          >
-            CASINO
-          </div>
+            className="absolute h-full w-1/2 bg-gradient-to-r from-[#57FBA2] to-[#39AD6E] rounded-md"
+          ></div>
           <div 
-            className="flex-1 bg-[#243442] text-white font-bold py-2 px-4 rounded-md text-center cursor-pointer text-lg"
+            className="relative z-10 flex w-full"
           >
-            SPORTS
+            <div 
+              className="flex-1 text-center text-xs font-bold py-1.5 text-black cursor-pointer"
+              onClick={() => window.location.href = '/'}
+            >
+              CASINO
+            </div>
+            <div 
+              className="flex-1 text-center text-xs font-bold py-1.5 text-gray-300 cursor-pointer"
+            >
+              SPORTS
+            </div>
           </div>
         </div>
         

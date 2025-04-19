@@ -38,17 +38,17 @@ const CollapsedSidebarLink = ({ href, icon, tooltip, active: forceActive }: Coll
   return (
     <div 
       className={cn(
-        "relative flex flex-col items-center justify-center p-3 mb-2 text-white rounded-md hover:bg-[#243442] group transition-colors cursor-pointer",
-        active && "bg-[#243442] text-white border-l-2 border-[#4cd964]"
+        "relative flex flex-col items-center justify-center py-2.5 text-white group transition-colors cursor-pointer",
+        active ? "text-white" : "text-[#546d7a] hover:text-gray-400"
       )}
       onClick={() => window.location.href = href}
     >
-      <span className={`text-[#546d7a] group-hover:text-white ${active ? "text-white" : ""}`}>
+      <span className="h-5 w-5">
         {icon}
       </span>
       
       {/* Tooltip */}
-      <div className="absolute left-full ml-2 px-2 py-1 bg-[#243442] text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-50 whitespace-nowrap">
+      <div className="absolute left-full ml-2 px-2 py-1 bg-[#1d2a35] text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-50 whitespace-nowrap">
         {tooltip}
       </div>
     </div>
@@ -59,7 +59,7 @@ const CollapsedSidebar = () => {
   const { toggleSidebar } = useSidebar();
   
   return (
-    <aside className="w-16 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] flex flex-col items-center py-4 overflow-y-auto">
+    <aside className="w-12 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] flex flex-col items-center pt-2 overflow-y-auto">
       {/* Toggle Button */}
       <Button 
         variant="ghost" 
