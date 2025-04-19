@@ -15,6 +15,7 @@ import Hilo from '@/games/Hilo';
 import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
 import CoinFlip from '@/games/CoinFlip';
+import Cases from '@/games/Cases';
 
 
 type Game = typeof GAMES[0];
@@ -32,7 +33,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   hilo: Hilo,
   keno: Keno,
   wheel: Wheel,
-  'coin-flip': CoinFlip
+  'coin-flip': CoinFlip,
+  'cases': Cases
 };
 
 const GamePage = () => {
