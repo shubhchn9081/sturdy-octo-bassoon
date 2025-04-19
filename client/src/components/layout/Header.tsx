@@ -10,11 +10,13 @@ import {
   Wallet as WalletIcon,
   LogIn
 } from 'lucide-react';
+import { useUser } from '@/context/UserContext';
 
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useUser();
-  const balance = user ? user.balance.BTC.toFixed(8) : "0.00000000";
+  // Temporarily use a mock user until context is fully integrated
+  const isAuthenticated = false;
+  const balance = "1.00000000";
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
@@ -57,7 +59,7 @@ const Header = () => {
               variant="outline" 
               className="border-[#243442] text-white hover:bg-[#172B3A] hover:text-white"
               onClick={() => {
-                // We'll implement logout functionality later
+                // Temporarily use direct navigation without logout
                 setLocation('/');
               }}
             >
