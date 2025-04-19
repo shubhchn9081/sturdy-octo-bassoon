@@ -69,29 +69,25 @@ const GamePage = () => {
   
   if (!GameComponent) {
     return (
-      <Layout>
-        <div className="container mx-auto p-6">
-          <div className="bg-secondary rounded-lg p-6 text-center">
-            <h1 className="text-2xl mb-4">Game Not Found</h1>
-            <p>The game you're looking for does not exist or is not available.</p>
-            <button 
-              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
-              onClick={() => setLocation('/')}
-            >
-              Back to Home
-            </button>
-          </div>
+      <div className="container mx-auto p-6">
+        <div className="bg-secondary rounded-lg p-6 text-center">
+          <h1 className="text-2xl mb-4">Game Not Found</h1>
+          <p>The game you're looking for does not exist or is not available.</p>
+          <button 
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+            onClick={() => setLocation('/')}
+          >
+            Back to Home
+          </button>
         </div>
-      </Layout>
+      </div>
     );
   }
   
   return (
-    <Layout>
-      <div className="w-full h-full">
-        {currentGame && <GameComponent />}
-      </div>
-    </Layout>
+    <div className="w-full h-full">
+      {currentGame && <GameComponent />}
+    </div>
   );
 };
 
