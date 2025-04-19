@@ -360,13 +360,13 @@ const PlinkoGame = () => {
       
       // Animate the ball dropping with improved physics and realistic timing
       const animateBall = async () => {
-        // Enhanced physics constants for smoother and more engaging animation
+        // Enhanced physics constants with slower animation per user request
         const GRAVITY = 9.8;               // Gravitational constant (m/s²) - standard value
-        const INITIAL_VELOCITY = 0.3;      // Increased initial velocity for better momentum feel
+        const INITIAL_VELOCITY = 0.2;      // Reduced initial velocity for slower start
         const DISTANCE_BETWEEN_ROWS = 21;  // Pixel distance between rows
         const PIXEL_TO_METER_RATIO = 100;  // Conversion ratio (pixels per meter)
-        const FRICTION_COEFFICIENT = 0.88; // Reduced friction for smoother movement
-        const TIME_SCALING = 2.8;          // Faster animation scaling for more exciting gameplay
+        const FRICTION_COEFFICIENT = 0.91; // Higher friction to slow down ball movement
+        const TIME_SCALING = 4.5;          // Significantly increased time scaling for slower animation
         
         // Shorter pause before dropping - better user experience
         await new Promise(resolve => setTimeout(resolve, 250));
@@ -401,9 +401,9 @@ const PlinkoGame = () => {
           // Convert physics time to milliseconds with improved scaling
           const timeToFall = (distance / currentVelocity) * 1000 * TIME_SCALING;
           
-          // Faster animation timing with smoother progression
-          // Min 90ms, max 250ms - faster than previous implementation
-          const delay = Math.max(90, Math.min(250, timeToFall));
+          // Slower animation timing as requested by user
+          // Min 150ms, max 350ms - significantly slower than previous implementation
+          const delay = Math.max(150, Math.min(350, timeToFall));
           
           if (i % 5 === 0) {
             console.log(`Row ${i+1} - Fall speed: ${currentVelocity.toFixed(2)} m/s, Delay: ${delay.toFixed(0)}ms`);
@@ -446,8 +446,8 @@ const PlinkoGame = () => {
                 return updated;
               });
               
-              // Very short pause to emphasize the bounce - improves visual feel
-              await new Promise(resolve => setTimeout(resolve, 35));
+              // Longer pause to emphasize the bounce for a slower, more dramatic effect
+              await new Promise(resolve => setTimeout(resolve, 60));
             }
           }
           
