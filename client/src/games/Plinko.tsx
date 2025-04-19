@@ -194,33 +194,44 @@ const PlinkoGame = () => {
     }
   };
   
-  // Enhanced pin impact tracking - track multiple pins with intensity values
-  const [hitPins, setHitPins] = useState<{row: number, pin: number, intensity: number}[]>([]);
+  // Enhanced pin impact tracking with improved visual effects
+  const [hitPins, setHitPins] = useState<{row: number, pin: number, intensity: number, color: string}[]>([]);
   
-  // Manage the active pin highlight effects
+  // Manage the active pin highlight effects with enhanced visuals
   const updatePinHighlights = (row: number, pin: number) => {
-    // Add a new pin highlight with full intensity (1.0)
-    const newHitPin = {row, pin, intensity: 1.0};
+    // Generate a dynamic color based on position for more varied impact effects
+    // Colors range from orange-yellow at top to reddish at bottom
+    const rowProgress = row / 16; // Normalize row position (0-1)
+    const hue = Math.floor(30 - rowProgress * 15); // Range from 30 (orange) to 15 (red-orange)
+    const saturation = 90 + Math.floor(Math.random() * 10); // 90-100%
+    const lightness = 55 + Math.floor(Math.random() * 10); // 55-65%
+    const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     
-    // Add to the array of hit pins and keep only the 4 most recent ones
+    // Add a new pin highlight with full intensity and dynamic color
+    const newHitPin = {row, pin, intensity: 1.0, color};
+    
+    // Add to the array of hit pins and keep only the 5 most recent ones (increased from 4)
+    // This allows more simultaneous pin highlights for better visual effect
     setHitPins(prev => {
       const updated = [...prev, newHitPin];
-      // Sort by most recent (higher intensity) first
-      return updated.slice(-4);
+      return updated.slice(-5); // Keep 5 most recent for more visible effects
     });
     
-    // Gradually fade out all pin highlights - slower fade for more visible effect
+    // Create a more dynamic fade effect with variable timing
     const fadeInterval = setInterval(() => {
       setHitPins(prev => {
-        // Reduce intensity more gradually (only 7% each interval instead of 15%)
-        // This makes the pin glow effects last longer and be more noticeable
-        const updated = prev.map(pinInfo => ({
-          ...pinInfo,
-          intensity: pinInfo.intensity * 0.93
-        }));
+        // Variable fade rate based on current intensity
+        // Slower fade at start, faster towards end for more natural effect
+        const updated = prev.map(pinInfo => {
+          const fadeFactor = pinInfo.intensity > 0.7 ? 0.96 : 0.92; // Slower fade at high intensity
+          return {
+            ...pinInfo,
+            intensity: pinInfo.intensity * fadeFactor
+          };
+        });
         
-        // Remove pins that are no longer visible - lower threshold for longer effect
-        const stillVisible = updated.filter(pinInfo => pinInfo.intensity >= 0.05);
+        // Keep pins visible longer with lower threshold
+        const stillVisible = updated.filter(pinInfo => pinInfo.intensity >= 0.04);
         
         // If all pins have faded, clear the interval
         if (stillVisible.length === 0) {
@@ -229,33 +240,45 @@ const PlinkoGame = () => {
         
         return stillVisible;
       });
-    }, 40); // Slightly faster interval (40ms vs 50ms) for smoother animation
+    }, 35); // Even faster interval for smoother animation effect
   };
 
   // Generate grid of dots for the plinko board - with proper 3-pin start
   const renderPlinkoGrid = () => {
     const grid = [];
     
-    // Helper function to calculate pin highlight effect - enhanced for more visible impact
+    // Enhanced helper function for more dynamic and visually striking pin highlight effects
     const getPinHighlightStyle = (row: number, pin: number) => {
       // Find if this pin is being hit
       const pinInfo = hitPins.find(p => p.row === row && p.pin === pin);
       
       if (pinInfo) {
-        // Calculate scale based on intensity - larger maximum scale (1.0 = max scale of 2.5)
-        const scale = 1 + (pinInfo.intensity * 1.5);
+        // Enhanced scaling effect with more dramatic size change
+        // More visible at higher intensity levels
+        const scale = 1 + (pinInfo.intensity * 2.0);
         
-        // Calculate glow color and intensity for more vibrant effect
-        const glowIntensity = Math.floor(pinInfo.intensity * 255);
+        // Create an inner glow that uses the dynamic color we generated
+        // Extract the HSL color components for the shadow effects
+        const baseColor = pinInfo.color || 'hsl(30, 95%, 60%)';
         
-        // Create a more visible "shock wave" effect when pins are hit
+        // Create a more dynamic "shock wave" effect when pins are hit
+        // With pulsing animation based on intensity
         return {
-          transform: `scale(${scale})`,
-          boxShadow: `0 0 ${Math.floor(pinInfo.intensity * 12)}px ${Math.floor(pinInfo.intensity * 6)}px rgba(255, 180, 0, ${pinInfo.intensity})`,
-          backgroundColor: `rgba(255, ${155 + glowIntensity}, 0, ${0.9 + pinInfo.intensity * 0.1})`,
-          // Create bright orange/yellow flash effect that matches the ball
-          border: pinInfo.intensity > 0.7 ? '1px solid rgba(255, 255, 200, 0.8)' : 'none',
-          zIndex: 10
+          // Combine scale and rotation in one transform for better performance
+          transform: `scale(${scale}) rotate(${(pinInfo.intensity * 30)}deg)`,
+          // Create multi-layered shadow effect for more dramatic impact
+          boxShadow: `
+            0 0 ${Math.floor(pinInfo.intensity * 15)}px ${Math.floor(pinInfo.intensity * 5)}px ${baseColor.replace(')', ', ' + pinInfo.intensity + ')')},
+            0 0 ${Math.floor(pinInfo.intensity * 5)}px ${Math.floor(pinInfo.intensity * 2)}px rgba(255, 255, 200, ${pinInfo.intensity * 0.8})
+          `,
+          // Use the dynamic color as background with brightness based on intensity
+          backgroundColor: baseColor,
+          // Animated border that pulses with intensity
+          border: pinInfo.intensity > 0.6 
+            ? `1px solid rgba(255, 255, 240, ${0.7 + (Math.sin(Date.now() * 0.01) * 0.3)})` 
+            : 'none',
+          // Ensure active pins appear above other elements
+          zIndex: 20
         };
       }
       
@@ -337,17 +360,16 @@ const PlinkoGame = () => {
       
       // Animate the ball dropping with improved physics and realistic timing
       const animateBall = async () => {
-        // Physics constants
-        // More realistic physics-focused animation with better smoothness
+        // Enhanced physics constants for smoother and more engaging animation
         const GRAVITY = 9.8;               // Gravitational constant (m/s²) - standard value
-        const INITIAL_VELOCITY = 0.2;      // Starting velocity (m/s) - slight initial push
+        const INITIAL_VELOCITY = 0.3;      // Increased initial velocity for better momentum feel
         const DISTANCE_BETWEEN_ROWS = 21;  // Pixel distance between rows
         const PIXEL_TO_METER_RATIO = 100;  // Conversion ratio (pixels per meter)
-        const FRICTION_COEFFICIENT = 0.85; // More realistic friction - higher value means less slowdown
-        const TIME_SCALING = 3.5;          // Moderate time scaling for natural speed
+        const FRICTION_COEFFICIENT = 0.88; // Reduced friction for smoother movement
+        const TIME_SCALING = 2.8;          // Faster animation scaling for more exciting gameplay
         
-        // Start with a slight pause before dropping
-        await new Promise(resolve => setTimeout(resolve, 350));
+        // Shorter pause before dropping - better user experience
+        await new Promise(resolve => setTimeout(resolve, 250));
         
         // Calculate time for a ball to fall between rows using physics
         // Formula: t = sqrt(2 * distance / gravity)
@@ -355,7 +377,7 @@ const PlinkoGame = () => {
         let totalDistance = 0;
         
         // Log information about ball speed
-        console.log("Starting ball drop with physics simulation:");
+        console.log("Starting ball drop with enhanced physics simulation:");
         console.log("Initial velocity:", INITIAL_VELOCITY, "m/s");
         console.log("Gravity constant:", GRAVITY, "m/s²");
         console.log("Time scaling factor:", TIME_SCALING, "x (higher = slower animation)");
@@ -365,22 +387,23 @@ const PlinkoGame = () => {
           const distance = DISTANCE_BETWEEN_ROWS / PIXEL_TO_METER_RATIO; 
           totalDistance += distance;
           
-          // Physics time calculation using gravity equation
-          // t = sqrt(2*d/g) where d is distance and g is gravity
-          // For realistic peg bouncing, we add the previous velocity
-          currentVelocity += Math.sqrt(2 * GRAVITY * distance);
+          // Enhanced physics calculation with progressive acceleration
+          // Simulates real-world acceleration with row-based progression
+          const rowProgress = i / path.length; // 0 to 1 based on progress
+          const accelerationFactor = 1 + (rowProgress * 0.2); // Increases as ball falls
+          currentVelocity += Math.sqrt(2 * GRAVITY * distance) * accelerationFactor;
           
-          // Apply friction at each peg collision
-          currentVelocity *= FRICTION_COEFFICIENT;
+          // Apply dynamic friction based on position - less at top, more at bottom
+          // Creates a more realistic bouncing effect
+          const adaptiveFriction = FRICTION_COEFFICIENT - (rowProgress * 0.05);
+          currentVelocity *= adaptiveFriction;
           
-          // Convert the physics time to milliseconds and scale for animation
-          // Higher TIME_SCALING makes the animation slower
+          // Convert physics time to milliseconds with improved scaling
           const timeToFall = (distance / currentVelocity) * 1000 * TIME_SCALING;
           
-          // Use realistic delay values that prioritize smoothness
-          // Faster animation that feels more like real-world physics
-          // Min 120ms (faster), max 300ms (much faster than before)
-          const delay = Math.max(120, Math.min(300, timeToFall));
+          // Faster animation timing with smoother progression
+          // Min 90ms, max 250ms - faster than previous implementation
+          const delay = Math.max(90, Math.min(250, timeToFall));
           
           if (i % 5 === 0) {
             console.log(`Row ${i+1} - Fall speed: ${currentVelocity.toFixed(2)} m/s, Delay: ${delay.toFixed(0)}ms`);
@@ -388,8 +411,7 @@ const PlinkoGame = () => {
           
           await new Promise(resolve => setTimeout(resolve, delay));
           
-          // Show impact on the pin that the ball hits (enhanced version)
-          // Calculate which pin is being hit
+          // Enhanced pin impact effects with more dynamic visual feedback
           if (i > 0) {
             // Create a pin impact effect - the current row and position
             const currentRow = i;
@@ -398,52 +420,50 @@ const PlinkoGame = () => {
             // Use the enhanced pin highlight system
             updatePinHighlights(currentRow, currentPin);
             
-            // Also add a small random sideways "nudge" to the ball to create the illusion
-            // that the pins are affecting its trajectory
+            // Add dynamic bounce effect for more realistic pin interactions
             if (i < path.length - 1) {
               const directionChange = path[i+1] - path[i];
               
-              // First move the ball slightly in the direction it's heading
-              // This creates an illusion that the pin is pushing the ball in that direction
+              // Calculate a more natural, position-based bounce effect
+              // Higher bounce at the top rows, subtler at bottom rows
+              const bounceIntensity = 0.5 - (rowProgress * 0.3); // Decreases as ball falls
+              const visualOffset = directionChange * (0.4 + (Math.random() * 0.15)); 
+              
+              // First create a "bounce" effect with subtle vertical displacement
               setBalls(prev => {
                 const updated = [...prev];
                 if (updated.length > 0) {
-                  // Add a small visual offset in the direction of movement
-                  // This doesn't affect the actual path but makes the animation look more physical
-                  const visualOffset = directionChange * 0.4; // 40% of the full distance
+                  // Dynamic bounce height based on position in board
+                  const verticalBounce = 0.85 - (rowProgress * 0.25);
                   
                   updated[0] = {
                     ...updated[0],
-                    position: path[i] + visualOffset, // Offset position creates bounce illusion
-                    row: i + 0.8, // Slightly above the actual row position 
+                    position: path[i] + visualOffset, // Horizontal bounce effect
+                    row: i + verticalBounce, // Vertical bounce above actual row
                     currentStep: i
                   };
                 }
                 return updated;
               });
               
-              // No delay needed here - the physics-based nudge is enough
-              // The short pause is removed to make animation more fluid
+              // Very short pause to emphasize the bounce - improves visual feel
+              await new Promise(resolve => setTimeout(resolve, 35));
             }
           }
           
-          // Update the ball position with a simplified animation approach
-          // Removed the complex bluffing effect to improve performance
+          // Update ball position with improved animation timing
           setBalls(prev => {
             const updated = [...prev];
             if (updated.length > 0) {
               updated[0] = {
                 ...updated[0],
-                position: path[i], // Direct position without bluffing
+                position: path[i], // Final position after bounce
                 row: i + 1,
                 currentStep: i
               };
             }
             return updated;
           });
-          
-          // No extra delay - we're prioritizing smooth motion over additional pauses
-          // This makes the animation flow naturally with physics-based timing only
         }
         
         // Set final result
@@ -677,15 +697,25 @@ const PlinkoGame = () => {
                     ? ball.row * 21 // Stay in same row before fading
                     : ball.row * 21, // Match the grid spacing
                   opacity: ball.position === -999 ? 0 : 1, // Fade out when position is -999
-                  scale: ball.done ? 1.2 : 1 // Slight impact animation when done
+                  scale: ball.done ? 1.35 : 1, // Enhanced impact animation when done
+                  // Add subtle rotation for more dynamic movement
+                  rotate: ball.position === -999 ? 0 : (ball.position * 15) % 30 - 15,
+                  // Add glow effect when ball hits final position
+                  boxShadow: ball.done ? '0 0 12px 4px rgba(255, 140, 0, 0.7)' : '0 0 5px 2px rgba(255, 111, 3, 0.5)'
                 }}
                 transition={{ 
-                  // Simplified transition with fewer properties for better performance
-                  type: "tween", // Changed from "spring" to "tween" for smoother performance
-                  duration: 0.3, // Short duration for responsive movement
-                  ease: "easeOut", // Simple easing function
-                  opacity: { duration: 0.5 }, // Slow fade out
-                  scale: { duration: 0.3 } // Quick impact scaling
+                  // Enhanced transitions for smoother, more natural movement
+                  type: ball.done ? "spring" : "tween", // Spring physics for final impact
+                  duration: 0.2, // Shorter duration for more responsive feel
+                  ease: "easeOut", // Smooth easing
+                  opacity: { duration: 0.4 }, // Gentle fade out
+                  scale: { 
+                    type: "spring", 
+                    stiffness: 300, 
+                    damping: 15 
+                  }, // Bouncy impact effect
+                  rotate: { duration: 0.3 }, // Smooth rotation
+                  boxShadow: { duration: 0.4 } // Smooth glow transition
                 }}
               />
             ))}
