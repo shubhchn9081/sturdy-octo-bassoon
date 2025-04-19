@@ -9,8 +9,24 @@ import Pump from './Pump';
 import Hilo from './Hilo';
 import Keno from './Keno';
 import Wheel from './Wheel';
+import CoinFlip from './CoinFlip';
 
 export const GAMES = [
+  {
+    id: 13,
+    name: 'COIN FLIP',
+    slug: 'coin-flip',
+    type: 'STAKE ORIGINALS',
+    description: 'Flip a coin and win big',
+    color: 'bg-yellow-400',
+    iconType: 'coinFlip',
+    component: CoinFlip,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 98,
+    maxMultiplier: 1.98,
+    activePlayers: 5289
+  },
   {
     id: 1,
     name: 'CRASH',
@@ -212,5 +228,6 @@ export default {
   Pump,
   Hilo,
   Keno,
-  Wheel
+  Wheel,
+  CoinFlip
 };
