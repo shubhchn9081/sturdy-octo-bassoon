@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
+import React, { useState, useEffect } from 'react';
 
 // Simple formatCrypto implementation to avoid dependency
 const formatCryptoAmount = (amount: number): string => {
@@ -20,39 +19,6 @@ const DiceGame = () => {
   const [result, setResult] = useState<number | null>(null);
   const [won, setWon] = useState<boolean | null>(null);
   const [profit, setProfit] = useState(0);
-  
-  // Bet history
-  const [betHistory, setBetHistory] = useState<Array<{
-    id: string;
-    username: string;
-    amount: number;
-    multiplier: number;
-    payout: number;
-    win: boolean;
-    timestamp: Date;
-  }>>([
-    {
-      id: "1",
-      username: "Player123",
-      amount: 0.00123456,
-      multiplier: 2.00,
-      payout: 0.00246912,
-      win: true,
-      timestamp: new Date()
-    },
-    {
-      id: "2",
-      username: "Player456",
-      amount: 0.00054321,
-      multiplier: 1.98,
-      payout: 0,
-      win: false,
-      timestamp: new Date()
-    }
-  ]);
-  
-  // Auto-animate refs
-  const [betHistoryRef] = useAutoAnimate();
   
   // Update multiplier and win chance when target changes
   useEffect(() => {
@@ -110,21 +76,6 @@ const DiceGame = () => {
         : diceResult < target;
         
       setWon(isWin);
-      
-      // Add to bet history
-      const payout = isWin ? betAmount * multiplier : 0;
-      const newBet = {
-        id: Math.random().toString(36).substring(2, 9),
-        username: "You",
-        amount: betAmount,
-        multiplier: multiplier,
-        payout: payout,
-        win: isWin,
-        timestamp: new Date()
-      };
-      
-      // Update bet history with animation
-      setBetHistory(prev => [newBet, ...prev.slice(0, 9)]);
       
     } catch (error) {
       console.error('Error rolling dice:', error);
@@ -237,7 +188,7 @@ const DiceGame = () => {
           <div className="bg-[#172B3A] rounded-lg flex-1 flex flex-col p-5">
             <div className="flex-1 flex flex-col">
             
-              {/* Betting History Table with Auto-animate */}
+              {/* Betting History Table */}
               <div className="mb-6 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
@@ -248,20 +199,25 @@ const DiceGame = () => {
                       <th className="text-left pb-2 font-normal">PAYOUT</th>
                     </tr>
                   </thead>
-                  <tbody ref={betHistoryRef}>
-                    {betHistory.map((bet) => (
-                      <tr key={bet.id} className="text-white border-t border-[#243442]">
-                        <td className="py-2 flex items-center">
-                          <div className="w-6 h-6 bg-[#243442] rounded-full mr-2"></div>
-                          <span className={bet.win ? "text-[#57FBA2]" : ""}>{bet.username}</span>
-                        </td>
-                        <td className="py-2">{formatCryptoAmount(bet.amount)} BTC</td>
-                        <td className="py-2">{bet.multiplier.toFixed(2)}×</td>
-                        <td className={`py-2 ${bet.win ? "text-[#57FBA2]" : "text-[#FF5359]"}`}>
-                          {formatCryptoAmount(bet.payout)} BTC
-                        </td>
-                      </tr>
-                    ))}
+                  <tbody>
+                    <tr className="text-white border-t border-[#243442]">
+                      <td className="py-2 flex items-center">
+                        <div className="w-6 h-6 bg-[#243442] rounded-full mr-2"></div>
+                        <span className="text-[#57FBA2]">Player123</span>
+                      </td>
+                      <td className="py-2">0.00123456 BTC</td>
+                      <td className="py-2">2.00×</td>
+                      <td className="py-2 text-[#57FBA2]">0.00246912 BTC</td>
+                    </tr>
+                    <tr className="text-white border-t border-[#243442]">
+                      <td className="py-2 flex items-center">
+                        <div className="w-6 h-6 bg-[#243442] rounded-full mr-2"></div>
+                        <span>Player456</span>
+                      </td>
+                      <td className="py-2">0.00054321 BTC</td>
+                      <td className="py-2">1.98×</td>
+                      <td className="py-2 text-[#FF5359]">0.00000000 BTC</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

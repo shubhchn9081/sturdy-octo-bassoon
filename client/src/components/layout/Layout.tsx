@@ -1,16 +1,20 @@
 import React, { ReactNode } from 'react';
 import Header from './Header';
-import AnimatedSidebar from './AnimatedSidebar';
+import Sidebar from './Sidebar';
+import CollapsedSidebar from './CollapsedSidebar';
 import Footer from './Footer';
+import { useSidebar } from '@/context/SidebarContext';
 
 type LayoutProps = {
   children: ReactNode;
 };
 
 const Layout = ({ children }: LayoutProps) => {
+  const { collapsed } = useSidebar();
+
   return (
     <div className="flex h-screen overflow-hidden">
-      <AnimatedSidebar />
+      {collapsed ? <CollapsedSidebar /> : <Sidebar />}
       <div className="flex-1 flex flex-col overflow-y-auto">
         <Header />
         {children}

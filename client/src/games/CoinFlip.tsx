@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Coins, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
@@ -46,9 +45,6 @@ const CoinFlipGame: React.FC = () => {
   // References
   const coinRef = useRef<HTMLDivElement>(null);
   const [onlinePlayers] = useState<number>(Math.floor(Math.random() * 800) + 300);
-  
-  // Auto-animate refs
-  const [betHistoryRef] = useAutoAnimate();
   
   // Handle coin flip animation
   const flipCoin = () => {
@@ -323,11 +319,11 @@ const CoinFlipGame: React.FC = () => {
           </button>
         </div>
         
-        {/* Bet history with auto-animate */}
+        {/* Bet history */}
         {betHistory.length > 0 && (
           <div className="border-t border-[#243442] mt-6 pt-4 p-4">
             <h3 className="text-sm font-medium text-gray-300 mb-2">Bet History</h3>
-            <div ref={betHistoryRef} className="space-y-2 max-h-60 overflow-y-auto">
+            <div className="space-y-2 max-h-60 overflow-y-auto">
               {betHistory.map((bet, idx) => (
                 <div key={idx} className="flex justify-between text-xs py-1 border-b border-[#243442] last:border-0">
                   <div className="flex items-center">
