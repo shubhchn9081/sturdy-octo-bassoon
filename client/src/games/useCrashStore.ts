@@ -381,12 +381,13 @@ export const useCrashStore = create<CrashStore>((set, get) => {
 export function useCrashGame() {
   const store = useCrashStore();
   
-  // Auto-initialize game on first load
+  // Auto-initialize game on first load (without dependency on store to prevent rerender loops)
   const initialize = useCallback(() => {
-    if (store.gameState === 'waiting' && store.dataPoints.length === 0) {
-      store.resetGame();
+    const currentState = useCrashStore.getState();
+    if (currentState.gameState === 'waiting' && currentState.dataPoints.length === 0) {
+      useCrashStore.getState().resetGame();
     }
-  }, [store]);
+  }, []);
   
   return {
     ...store,

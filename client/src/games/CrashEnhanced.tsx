@@ -1,41 +1,24 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
-import gsap from 'gsap';
 
 // Constants
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
-const MAX_VISIBLE_TIME = 12; 
-const TIME_SCALE = CANVAS_WIDTH / MAX_VISIBLE_TIME;
+const TIME_SCALE = 100;
 const HEIGHT_SCALE = CANVAS_HEIGHT / 4;
 
-// Y-axis multiplier markers
-const MULTIPLIER_MARKERS = [
-  { value: 1.0, label: '1.0×' },
-  { value: 1.3, label: '1.3×' },
-  { value: 1.5, label: '1.5×' },
-  { value: 1.8, label: '1.8×' },
-  { value: 2.0, label: '2.0×' },
-  { value: 2.3, label: '2.3×' },
-];
-
-// Multiplier quicktabs (matching the Stake.com values)
+// Multiplier quicktabs
 const MULTIPLIER_QUICKTABS = [
   { value: 1.71, label: '1.71x', color: 'bg-[#5BE12C]' },
   { value: 1.97, label: '1.97x', color: 'bg-[#5BE12C]' },
   { value: 5.25, label: '5.25x', color: 'bg-[#5BE12C]' },
   { value: 1.37, label: '1.37x', color: 'bg-[#5BE12C]' },
-  { value: 8.34, label: '8.34x', color: 'bg-[#5BE12C]' },
-  { value: 1.03, label: '1.03x', color: 'bg-[#5BE12C]' },
-  { value: 3.26, label: '3.26x', color: 'bg-[#5BE12C]' }, 
-  { value: 20.24, label: '20.24x', color: 'bg-[#5BE12C]' },
-  { value: 12.03, label: '12.03x', color: 'bg-[#5BE12C]' },
-  { value: 1.14, label: '1.14x', color: 'bg-[#5BE12C]' },
 ];
 
 const CrashEnhanced: React.FC = () => {
   // Use our Zustand store
+  const store = useCrashGame();
   const { 
     gameState,
     currentMultiplier,
@@ -53,154 +36,13 @@ const CrashEnhanced: React.FC = () => {
     setBetAmount,
     setAutoCashoutValue,
     initialize
-  } = useCrashGame();
+  } = store;
   
-  // Refs for canvas and animations
+  // Canvas and animation refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const multiplierRef = useRef<HTMLDivElement>(null);
-  const countdownRef = useRef<HTMLDivElement>(null);
-  const crashedRef = useRef<HTMLDivElement>(null);
   const [showRocket, setShowRocket] = useState(false);
   
-  // Set up simple animations instead of GSAP to ensure compatibility
-  useEffect(() => {
-    // Animate elements based on game state
-    if (gameState === 'waiting' && countdownRef.current) {
-      countdownRef.current.className += ' animate-pulse-slow';
-    }
-    
-    if (gameState === 'running' && multiplierRef.current) {
-      multiplierRef.current.className += ' animate-countUp';
-    }
-    
-    if (gameState === 'crashed' && crashedRef.current) {
-      crashedRef.current.className += ' animate-shake';
-    }
-  }, [gameState]);
-
-  // Show/hide rocket based on game state
-  useEffect(() => {
-    if (gameState === 'running') {
-      setShowRocket(true);
-    } else {
-      setShowRocket(false);
-    }
-  }, [gameState]);
-  
-  // Draw the crash graph on canvas
-  const drawGraph = useCallback(() => {
-    if (!canvasRef.current || dataPoints.length === 0) return;
-    
-    const ctx = contextRef.current;
-    if (!ctx) return;
-    
-    // Clear the canvas
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    
-    // Set up the graph style
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#ff9800';
-    ctx.lineJoin = 'round';
-    
-    // Draw horizontal and vertical grid lines
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 1;
-    
-    // Horizontal grid lines for multipliers
-    MULTIPLIER_MARKERS.forEach(marker => {
-      const y = (marker.value - 1.0) * HEIGHT_SCALE * 0.85;
-      ctx.moveTo(0, CANVAS_HEIGHT - y);
-      ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT - y);
-    });
-    
-    // Vertical grid lines (time markers)
-    for (let i = 3; i <= MAX_VISIBLE_TIME; i += 3) {
-      const x = i * TIME_SCALE;
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, CANVAS_HEIGHT);
-    }
-    ctx.stroke();
-    
-    // Draw multiplier indicators on the right side
-    ctx.textAlign = 'right';
-    ctx.font = '11px Arial';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    MULTIPLIER_MARKERS.forEach(marker => {
-      const y = (marker.value - 1.0) * HEIGHT_SCALE * 0.85;
-      ctx.fillText(marker.label, CANVAS_WIDTH - 5, CANVAS_HEIGHT - y - 2);
-    });
-    
-    // Add glow effect for visibility
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowBlur = 30;
-    ctx.shadowOffsetY = 0;
-    
-    // Begin drawing the main crash line
-    ctx.beginPath();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 15;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    // Start at the bottom-left of the chart
-    ctx.moveTo(0, CANVAS_HEIGHT);
-    
-    // Plot each data point
-    dataPoints.forEach(point => {
-      ctx.lineTo(point.x, CANVAS_HEIGHT - point.y);
-    });
-    
-    // Stroke the line
-    ctx.stroke();
-    
-    // Reset shadow properties
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-    
-    // Fill the area under the graph
-    if (dataPoints.length > 0) {
-      ctx.beginPath();
-      ctx.moveTo(0, CANVAS_HEIGHT);
-      dataPoints.forEach(point => {
-        ctx.lineTo(point.x, CANVAS_HEIGHT - point.y);
-      });
-      ctx.lineTo(dataPoints[dataPoints.length - 1].x, CANVAS_HEIGHT);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(255, 157, 2, 0.3)'; // Semi-transparent fill
-      ctx.fill();
-      
-      // Draw graph endpoint circle
-      const lastPoint = dataPoints[dataPoints.length - 1];
-      
-      // Add glow effect for circle
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-      ctx.shadowBlur = 30;
-      ctx.shadowOffsetY = 0;
-      
-      ctx.beginPath();
-      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 15, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3;
-      ctx.fill();
-      ctx.stroke();
-    }
-    
-    // Draw time markers
-    ctx.font = '13px Arial';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.textAlign = 'center';
-    ['2s', '4s', '6s', '8s'].forEach((time, index) => {
-      const x = (index + 1) * 2 * TIME_SCALE;
-      ctx.fillText(time, x, CANVAS_HEIGHT - 10);
-    });
-    
-  }, [dataPoints]);
-  
-  // Initialize canvas
+  // Initialize canvas once when component mounts
   useEffect(() => {
     if (!canvasRef.current) return;
     
@@ -208,24 +50,74 @@ const CrashEnhanced: React.FC = () => {
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
     
+    // Draw the graph
     const ctx = canvas.getContext('2d');
-    if (ctx) {
-      contextRef.current = ctx;
-    }
-  }, []);
-  
-  // Draw graph when data points change
-  useEffect(() => {
-    drawGraph();
-  }, [drawGraph]);
-  
-  // Initialize game only once
-  useEffect(() => {
-    // Only initialize if game hasn't started
+    if (!ctx) return;
+    
+    // Only initialize once when the component mounts
     if (gameState === 'waiting' && dataPoints.length === 0) {
       initialize();
     }
-  }, [gameState, dataPoints, initialize]);
+  }, []);
+  
+  // Show or hide rocket based on game state
+  useEffect(() => {
+    setShowRocket(gameState === 'running');
+  }, [gameState]);
+  
+  // Draw the graph when dataPoints change
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
+    // If no data points, skip drawing
+    if (dataPoints.length === 0) return;
+    
+    // Add glow effect
+    ctx.shadowColor = 'white';
+    ctx.shadowBlur = 10;
+    
+    // Draw the main crash line
+    ctx.beginPath();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    
+    // Start at the bottom left
+    ctx.moveTo(0, CANVAS_HEIGHT);
+    
+    // Draw each point
+    dataPoints.forEach(point => {
+      ctx.lineTo(point.x, CANVAS_HEIGHT - point.y);
+    });
+    
+    // Stroke the line
+    ctx.stroke();
+    
+    // Fill area under line
+    ctx.beginPath();
+    ctx.moveTo(0, CANVAS_HEIGHT);
+    dataPoints.forEach(point => {
+      ctx.lineTo(point.x, CANVAS_HEIGHT - point.y);
+    });
+    ctx.lineTo(dataPoints[dataPoints.length - 1].x, CANVAS_HEIGHT);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 152, 0, 0.2)';
+    ctx.fill();
+    
+    // Draw end circle if there are points
+    if (dataPoints.length > 0) {
+      const lastPoint = dataPoints[dataPoints.length - 1];
+      ctx.beginPath();
+      ctx.arc(lastPoint.x, CANVAS_HEIGHT - lastPoint.y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+    }
+  }, [dataPoints]);
   
   // Calculate profit on win
   const calculateProfit = () => {
@@ -245,14 +137,10 @@ const CrashEnhanced: React.FC = () => {
         <div className="flex flex-col w-[260px] p-4 bg-[#11232F]">
           {/* Game Mode Toggle */}
           <div className="flex rounded-md overflow-hidden mb-4">
-            <button 
-              className={`flex-1 py-2 text-center bg-[#0F212E]`}
-            >
+            <button className="flex-1 py-2 text-center bg-[#0F212E]">
               Manual
             </button>
-            <button 
-              className={`flex-1 py-2 text-center bg-[#11232F]`}
-            >
+            <button className="flex-1 py-2 text-center bg-[#11232F]">
               Auto
             </button>
           </div>
@@ -389,10 +277,7 @@ const CrashEnhanced: React.FC = () => {
           <div className="relative mb-4 bg-[#0E1C27] rounded-lg overflow-hidden w-full h-full min-h-[720px]">
             {/* Rocket element for animation */}
             {showRocket && (
-              <div 
-                className="absolute bottom-0 left-[50px] z-10 animate-rocket"
-                style={{ transformOrigin: 'center' }}
-              >
+              <div className="absolute bottom-0 left-[50px] z-10 animate-rocket">
                 <div className="w-12 h-16 relative">
                   {/* Rocket body */}
                   <div className="absolute inset-0 bg-red-500 clip-path-rocket">
@@ -408,14 +293,14 @@ const CrashEnhanced: React.FC = () => {
             
             <div className="absolute inset-0 flex items-center justify-center z-20">
               {gameState === 'waiting' && (
-                <div className="text-center" ref={countdownRef}>
+                <div className="text-center animate-pulse-slow">
                   <div className="text-6xl font-bold mb-2">{countdown}s</div>
                   <div className="text-xl">Next Round Starting...</div>
                 </div>
               )}
               
               {gameState === 'crashed' && (
-                <div className="text-center" ref={crashedRef}>
+                <div className="text-center animate-shake">
                   <div className="text-6xl font-bold text-red-500 mb-2">CRASHED</div>
                   <div className="text-xl">@ {currentMultiplier.toFixed(2)}x</div>
                 </div>
@@ -429,10 +314,7 @@ const CrashEnhanced: React.FC = () => {
             
             {/* Current multiplier display */}
             {gameState === 'running' && (
-              <div 
-                ref={multiplierRef}
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glow-text"
-              >
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glow-text">
                 <div className="text-9xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
               </div>
             )}
