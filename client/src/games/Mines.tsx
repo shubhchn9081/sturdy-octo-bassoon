@@ -272,20 +272,21 @@ const MinesGame = () => {
   const renderManualControls = () => (
     <div className="space-y-4">
       <div>
-        <div className="text-xs text-muted-foreground mb-1">Bet Amount</div>
+        <div className="text-xs text-[#546D7A] mb-1">Bet Amount</div>
+        <div className="mb-1 text-sm px-2 py-1 text-right bg-[#243442] rounded">$0.00</div>
         <div className="flex items-center space-x-1 mb-2">
           <Input
             type="text"
             value={betAmountStr}
             onChange={(e) => handleBetAmountChange(e.target.value)}
-            className="bg-[#243442] border-none text-white h-8 text-sm"
+            className="bg-[#243442] border-none text-white h-9 text-sm"
             disabled={gameState && !gameState.isGameOver}
           />
           <Button 
             onClick={handleHalfBet} 
             variant="outline" 
             size="sm" 
-            className="bg-transparent border-[#243442] text-white h-8 px-2"
+            className="bg-transparent border-[#243442] text-white h-9 px-2"
             disabled={gameState && !gameState.isGameOver}
           >
             ½
@@ -294,25 +295,23 @@ const MinesGame = () => {
             onClick={handleDoubleBet} 
             variant="outline" 
             size="sm" 
-            className="bg-transparent border-[#243442] text-white h-8 px-2"
+            className="bg-transparent border-[#243442] text-white h-9 px-2"
             disabled={gameState && !gameState.isGameOver}
           >
             2×
           </Button>
         </div>
-        
-        <div className="text-xs text-right text-gray-400 mt-1">$0.00</div>
       </div>
       
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Mines</div>
+          <div className="text-xs text-[#546D7A] mb-1">Mines</div>
           <Select 
             value={mineCount.toString()} 
             onValueChange={handleMineCountChange}
             disabled={gameState && !gameState.isGameOver}
           >
-            <SelectTrigger className="w-full bg-[#243442] border-none text-white h-8 text-sm">
+            <SelectTrigger className="w-full bg-[#243442] border-none text-white h-9 text-sm">
               <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
@@ -326,8 +325,8 @@ const MinesGame = () => {
         </div>
         
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Gems</div>
-          <div className="h-8 bg-[#243442] rounded flex items-center justify-between px-3 text-sm">
+          <div className="text-xs text-[#546D7A] mb-1">Gems</div>
+          <div className="h-9 bg-[#243442] rounded flex items-center justify-between px-3 text-sm">
             <span>{gemCount}</span>
           </div>
         </div>
@@ -336,10 +335,10 @@ const MinesGame = () => {
       {/* Total Profit */}
       {gameState && !gameState.isGameOver && gameState.diamondsCollected > 0 ? (
         <div>
-          <div className="text-xs text-muted-foreground mb-1">
+          <div className="text-xs text-[#546D7A] mb-1">
             Total profit ({gameState.multiplier.toFixed(2)}x)
           </div>
-          <div className="h-8 bg-[#243442] rounded flex items-center justify-between px-3 text-sm">
+          <div className="h-9 bg-[#243442] rounded flex items-center justify-between px-3 text-sm">
             <span>{formatCrypto(totalProfit)}</span>
             <span className="text-amber-400">₿</span>
           </div>
@@ -429,16 +428,16 @@ const MinesGame = () => {
   
   // Render the game grid with positioned tiles
   const renderGameGrid = () => (
-    <div className="relative grid grid-cols-5 gap-2">
+    <div className="relative grid grid-cols-5 gap-3">
       {tiles.map((status, index) => (
         <button
           key={index}
           className={`
-            relative h-[70px] w-full rounded-md cursor-pointer flex items-center justify-center transition-colors
-            ${status === 'hidden' ? 'bg-[#1a2c38] hover:bg-[#223543]' : ''}
-            ${status === 'revealed' ? 'bg-[#1a2c38]' : ''}
-            ${status === 'mine' ? 'bg-[#1a2c38]' : ''}
-            ${status === 'gem' ? 'bg-[#1a2c38]' : ''}
+            relative h-[75px] w-full rounded-md cursor-pointer flex items-center justify-center transition-colors
+            ${status === 'hidden' ? 'bg-[#243442] hover:bg-[#2c3e4d]' : ''}
+            ${status === 'revealed' ? 'bg-[#243442]' : ''}
+            ${status === 'mine' ? 'bg-[#243442]' : ''}
+            ${status === 'gem' ? 'bg-[#243442]' : ''}
           `}
           onClick={() => handleTileClick(index)}
           disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
@@ -456,7 +455,7 @@ const MinesGame = () => {
   return (
     <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]">
       {/* Side Panel */}
-      <div className="w-full lg:w-[320px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
+      <div className="w-full lg:w-[280px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
         <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
           <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-4 h-9 overflow-hidden rounded-md p-0">
             <TabsTrigger 
@@ -484,10 +483,12 @@ const MinesGame = () => {
       </div>
       
       {/* Game Area */}
-      <div className="flex-1 p-4 overflow-auto">
-        <div className="mx-auto max-w-3xl">
-          {/* Game grid */}
-          {renderGameGrid()}
+      <div className="flex-1 overflow-auto">
+        <div className="w-full h-full flex items-center justify-center p-5">
+          <div className="max-w-xl">
+            {/* Game grid */}
+            {renderGameGrid()}
+          </div>
         </div>
       </div>
     </div>
