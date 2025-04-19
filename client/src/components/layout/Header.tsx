@@ -19,12 +19,17 @@ import {
   Shield,
   Headphones,
   LogIn,
-  LogOut
+  LogOut,
+  AlignJustify,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useUser } from '@/context/UserContext';
+import { useSidebar } from '@/context/SidebarContext';
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useUser();
+  const { collapsed, toggleSidebar } = useSidebar();
   const balance = user ? user.balance.BTC.toFixed(8) : "0.00000000";
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -33,18 +38,31 @@ const Header = () => {
   return (
     <header className="bg-[#0F212E] border-b border-[#172B3A] sticky top-0 z-10">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="md:hidden">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
-          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+        <div className="flex items-center">
+          <div className="hidden md:block mr-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleSidebar}
+              className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
+            >
+              {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            </Button>
+          </div>
+          
+          <div className="md:hidden">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+              <AlignJustify className="h-6 w-6" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
+            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+          </div>
         </div>
         
         <div className="flex items-center space-x-4">

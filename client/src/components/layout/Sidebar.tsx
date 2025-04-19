@@ -19,8 +19,12 @@ import {
   BarChart2,
   CircleDollarSign,
   ChevronRight,
-  Settings
+  ChevronLeft,
+  Settings,
+  AlignJustify
 } from 'lucide-react';
+import { useSidebar } from '@/context/SidebarContext';
+import { Button } from '@/components/ui/button';
 
 type SidebarLinkProps = {
   href: string;
@@ -53,14 +57,27 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
 };
 
 const Sidebar = () => {
+  const { toggleSidebar } = useSidebar();
+  
   return (
     <aside className="w-64 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] hidden md:block overflow-y-auto">
       <div className="px-6 py-4">
-        <div 
-          className="flex items-center justify-center mb-6 cursor-pointer"
-          onClick={() => window.location.href = '/'}
-        >
-          <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+        <div className="flex items-center mb-6">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={toggleSidebar}
+            className="mr-2 text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          
+          <div 
+            className="flex-1 flex items-center justify-center cursor-pointer"
+            onClick={() => window.location.href = '/'}
+          >
+            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+          </div>
         </div>
         
         <div className="flex space-x-2 mb-6">
