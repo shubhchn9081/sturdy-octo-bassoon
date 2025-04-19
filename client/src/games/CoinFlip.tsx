@@ -71,16 +71,74 @@ const CoinFlipGame: React.FC = () => {
     // Random result
     const flipResult: CoinSide = Math.random() < 0.5 ? 'heads' : 'tails';
     
-    // Apply flipping animation
-    if (coinRef.current) {
+    // Create visual effects while flipping
+    if (coinRef.current && coinRef.current.parentElement) {
+      // 1. Add a dramatic backdrop
+      const backdrop = document.createElement('div');
+      backdrop.className = 'absolute inset-0 bg-blue-500/10 rounded-full animate-pulse z-0';
+      backdrop.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)';
+      coinRef.current.parentElement.appendChild(backdrop);
+      
+      // 2. Add flipping animation with glow effect
       coinRef.current.classList.add('flipping');
+      coinRef.current.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.7)';
+      
+      // 3. Add dynamic particles effect
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        const size = Math.random() * 6 + 4;
+        const color = Math.random() > 0.5 ? '#FFD700' : '#FFA500';
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 80 + Math.random() * 60;
+        
+        particle.className = 'absolute rounded-full z-20';
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.backgroundColor = color;
+        particle.style.left = `calc(50% - ${size/2}px)`;
+        particle.style.top = `calc(50% - ${size/2}px)`;
+        particle.style.opacity = '0';
+        particle.style.transform = `rotate(${Math.random() * 360}deg)`;
+        particle.style.animation = `particle-fly ${0.8 + Math.random() * 1.2}s ease-out forwards ${Math.random() * 0.5}s`;
+        particle.style.animationFillMode = 'forwards';
+        
+        // Setting keyframes dynamically
+        const keyframes = `
+          @keyframes particle-fly {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(1); opacity: 0; }
+          }
+        `;
+        
+        // Append the keyframes to the document
+        const style = document.createElement('style');
+        style.innerHTML = keyframes;
+        document.head.appendChild(style);
+        
+        coinRef.current.parentElement.appendChild(particle);
+        
+        // Clean up particles
+        setTimeout(() => {
+          if (coinRef.current && coinRef.current.parentElement && coinRef.current.parentElement.contains(particle)) {
+            coinRef.current.parentElement.removeChild(particle);
+          }
+          document.head.removeChild(style);
+        }, 2500);
+      }
       
       // Set the final state after some flips (the animation should show the correct side at the end)
       setTimeout(() => {
         if (coinRef.current) {
-          // Set the resulting side for the animation
+          // Remove animation classes
           coinRef.current.classList.remove('flipping');
+          coinRef.current.style.boxShadow = '';
           coinRef.current.setAttribute('data-result', flipResult);
+          
+          // Remove backdrop
+          if (backdrop.parentElement && backdrop.parentElement.contains(backdrop)) {
+            backdrop.parentElement.removeChild(backdrop);
+          }
           
           // Update game state
           setResult(flipResult);
@@ -309,10 +367,28 @@ const CoinFlipGame: React.FC = () => {
           
           {/* Coin container */}
           <div className="relative w-64 h-64">
-            {/* Result display */}
+            {/* Result display - more exciting animation */}
             {result !== null && (
-              <div className={`absolute -top-16 left-0 right-0 z-10 text-center text-3xl font-bold ${hasWon ? 'text-green-400' : 'text-red-500'}`}>
-                {hasWon ? 'YOU WIN!' : 'YOU LOSE!'}
+              <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none" style={{ perspective: '1000px' }}>
+                <div 
+                  className={`
+                    result-popup p-6 rounded-xl text-center
+                    transform -translate-y-40 rotate-y-animation
+                    shadow-2xl border-2
+                    ${hasWon 
+                      ? 'bg-green-500/90 border-yellow-300 win-bounce' 
+                      : 'bg-red-500/90 border-red-700 lose-shake'}
+                  `}
+                >
+                  <div className="text-white font-bold text-4xl">
+                    {hasWon ? '🎉 WINNER! 🎉' : '💥 BUSTED! 💥'}
+                  </div>
+                  <div className="text-white/90 font-medium mt-2">
+                    {hasWon 
+                      ? `+${(parseFloat(betAmount) * multiplier).toFixed(8)} BTC` 
+                      : `Better luck next time!`}
+                  </div>
+                </div>
               </div>
             )}
             
