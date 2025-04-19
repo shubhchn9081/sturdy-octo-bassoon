@@ -23,9 +23,8 @@ class CrashGame extends Phaser.Scene {
   private isPlaying: boolean = false;
   private difficulty: number = 50; // Default medium difficulty
   private maxHeight: number = 0;
-  private rocketParticles!: Phaser.GameObjects.Particles.ParticleEmitter;
-  private explosionParticles!: Phaser.GameObjects.Particles.ParticleEmitter;
-  private particlesManager!: any; // Using any to avoid specific type issues
+  private rocketGlow!: Phaser.GameObjects.Graphics;
+  private explosionEffect!: Phaser.GameObjects.Graphics;
   private isRed: boolean = false; // Track if we're in the "danger" color state
   private interpolationPoint: number = 0;
   private lastTime: number = 0;
@@ -59,17 +58,12 @@ class CrashGame extends Phaser.Scene {
 
   preload() {
     try {
-      // Create a simple color fill as fallback
-      const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+      // Create a triangle texture for the rocket
+      const graphics = this.add.graphics();
       graphics.fillStyle(0x1375e1, 1);
       graphics.fillTriangle(0, 20, 10, 0, 20, 20);
-      graphics.generateTexture('rocket-fallback', 32, 32);
       
-      // Try to load the rocket sprite, but we'll use fallback if it fails
-      this.load.spritesheet('rocket', '/assets/rocket-sprite.png', { 
-        frameWidth: 64, 
-        frameHeight: 64 
-      });
+      // No need to load external assets, we'll create everything with code
     } catch (error) {
       console.log('Error in preload:', error);
     }
@@ -136,45 +130,14 @@ class CrashGame extends Phaser.Scene {
     });
     this.multiplierText.setOrigin(0.5);
 
-    // Try to create the player sprite
-    try {
-      this.player = this.add.sprite(0, 0, 'rocket');
-      this.anims.create({
-        key: 'fly',
-        frames: this.anims.generateFrameNumbers('rocket', { start: 0, end: 3 }),
-        frameRate: 10,
-        repeat: -1
-      });
-      this.player.play('fly');
-    } catch (e) {
-      // If sprite loading failed, create a triangle as the player
-      this.player = this.add.triangle(0, 0, 0, 20, 10, 0, 20, 20, 0x1375e1) as unknown as Phaser.GameObjects.Sprite;
-    }
-    
+    // Create a simple triangle for the player
+    const triangle = this.add.triangle(0, 0, 0, 20, 10, 0, 20, 20, 0x1375e1);
+    this.player = triangle as unknown as Phaser.GameObjects.Sprite;
     this.player.setScale(0.7);
 
-    // Create particle emitter for rocket thrust
-    this.particlesManager = this.add.particles(0, 0);
-    
-    // Rocket flames
-    this.rocketParticles = this.particlesManager.createEmitter({
-      speed: { min: 50, max: 100 },
-      scale: { start: 0.5, end: 0 },
-      blendMode: 'ADD',
-      lifespan: 400,
-      frequency: 20
-    });
-    
-    // Explosion particles for when the rocket crashes
-    this.explosionParticles = this.particlesManager.createEmitter({
-      speed: { min: 100, max: 200 },
-      scale: { start: 0.4, end: 0 },
-      blendMode: 'ADD',
-      lifespan: 800,
-      frequency: 0
-    });
-    
-    this.explosionParticles.stop();
+    // Create glow effects for the rocket
+    this.rocketGlow = this.add.graphics();
+    this.explosionEffect = this.add.graphics();
     
     // Start playing if needed
     if (this.isPlaying) {
@@ -203,9 +166,9 @@ class CrashGame extends Phaser.Scene {
     this.player.setPosition(initialPoint.x, initialPoint.y);
     this.player.setRotation(0);
     
-    // Reset particles
-    this.rocketParticles.start();
-    this.explosionParticles.stop();
+    // Reset effects
+    this.rocketGlow.clear();
+    this.explosionEffect.clear();
     
     // Reset multiplier text
     this.multiplierText.setText('1.00x');
@@ -240,10 +203,17 @@ class CrashGame extends Phaser.Scene {
     this.crashed = true;
     this.isPlaying = false;
     
-    // Animate the crash
-    this.rocketParticles.stop();
-    this.explosionParticles.setPosition(this.player.x, this.player.y);
-    this.explosionParticles.explode(30);
+    // Animate the crash with a simple explosion effect
+    this.rocketGlow.clear();
+    
+    // Create explosion effect
+    this.explosionEffect.clear();
+    this.explosionEffect.fillStyle(0xff0000, 0.7);
+    this.explosionEffect.fillCircle(this.player.x, this.player.y, 30);
+    this.explosionEffect.fillStyle(0xff9500, 0.7);
+    this.explosionEffect.fillCircle(this.player.x, this.player.y, 20);
+    this.explosionEffect.fillStyle(0xffff00, 0.7);
+    this.explosionEffect.fillCircle(this.player.x, this.player.y, 10);
     
     // Make the text red to indicate crash
     this.multiplierText.setColor('#ff0000');
@@ -383,9 +353,20 @@ class CrashGame extends Phaser.Scene {
         this.player.setPosition(position.x, position.y);
         this.player.setRotation(angle);
         
-        // Update particle emitter position and angle
-        this.rocketParticles.setPosition(position.x - Math.cos(angle) * 15, position.y - Math.sin(angle) * 15);
-        this.rocketParticles.setAngle(Phaser.Math.RadToDeg(angle) + 180);
+        // Draw rocket glow effect
+        this.rocketGlow.clear();
+        this.rocketGlow.fillStyle(0x1375e1, 0.5);
+        this.rocketGlow.fillCircle(
+          position.x - Math.cos(angle) * 15, 
+          position.y - Math.sin(angle) * 15, 
+          12
+        );
+        this.rocketGlow.fillStyle(0xc9e5ff, 0.3);
+        this.rocketGlow.fillCircle(
+          position.x - Math.cos(angle) * 15, 
+          position.y - Math.sin(angle) * 15, 
+          8
+        );
       }
     }
     
