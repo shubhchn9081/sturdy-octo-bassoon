@@ -8,13 +8,12 @@ import {
   User, 
   Bell, 
   Wallet as WalletIcon,
-  LogIn
+  LogIn,
+  LogOut
 } from 'lucide-react';
-import { useUser } from '@/context/UserContext';
-
 
 const Header = () => {
-  // Temporarily use a mock user until context is fully integrated
+  // Temporarily using static values for demonstration
   const isAuthenticated = false;
   const balance = "1.00000000";
   const [, setLocation] = useLocation();
@@ -33,7 +32,7 @@ const Header = () => {
           </Button>
         </div>
         
-        <div className="flex items-center cursor-pointer" onClick={() => window.location.href = '/'}>
+        <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
           <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
         </div>
         
@@ -59,10 +58,11 @@ const Header = () => {
               variant="outline" 
               className="border-[#243442] text-white hover:bg-[#172B3A] hover:text-white"
               onClick={() => {
-                // Temporarily use direct navigation without logout
+                // In a real app, would call logout function
                 setLocation('/');
               }}
             >
+              <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
           ) : (
@@ -103,16 +103,16 @@ const Header = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="block p-2 bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/'}>
+            <div className="block p-2 bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/')}>
               Home
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/originals'}>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/originals')}>
               Stake Originals
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/slots'}>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/slots')}>
               Slots
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => window.location.href = '/live-casino'}>
+            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/live-casino')}>
               Live Casino
             </div>
           </div>

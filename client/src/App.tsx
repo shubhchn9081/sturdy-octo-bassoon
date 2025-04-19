@@ -13,18 +13,20 @@ import { UserProvider } from "@/context/UserContext";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/games/:gameSlug" component={Game} />
-      <Route path="/casino/games/:gameSlug" component={Game} />
-      <Route path="/originals" component={Originals} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/init-db" component={InitDb} />
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/wallet" component={WalletPage} />
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
+    <Layout>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/games/:gameSlug" component={Game} />
+        <Route path="/casino/games/:gameSlug" component={Game} />
+        <Route path="/originals" component={Originals} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/init-db" component={InitDb} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/wallet" component={WalletPage} />
+        {/* Fallback to 404 */}
+        <Route component={NotFound} />
+      </Switch>
+    </Layout>
   );
 }
 
