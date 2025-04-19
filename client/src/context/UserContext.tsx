@@ -1,79 +1,158 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { formatCrypto } from '@/lib/utils';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
+// Define types for user data and context
 type User = {
   id: number;
   username: string;
-  balance: number;
+  balance: {
+    BTC: number;
+    ETH: number;
+    USDT: number;
+    LTC: number;
+  };
+  isAdmin?: boolean;
 };
 
 type UserContextType = {
   user: User | null;
-  isLoading: boolean;
-  balance: string;
   isAuthenticated: boolean;
-  login: (username: string) => void;
+  login: (username: string, password: string) => Promise<boolean>;
+  register: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateBalance: (currency: keyof User['balance'], amount: number) => void;
 };
 
+// Create the context
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export function useUserContext() {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error('useUserContext must be used within a UserProvider');
-  }
-  return context;
-}
-
+// Create the provider component
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [username, setUsername] = useState<string>('Guest');
+  const [user, setUser] = useState<User | null>(null);
+  const { toast } = useToast();
 
-  // Fetch user data if authenticated
-  const { data: userData, isLoading } = useQuery<User>({
-    queryKey: ['/api/user'],
-    enabled: isAuthenticated,
-  });
-
-  // For demo purposes, we'll comment out the auto-login so users can see the login button
-  /*
+  // Check if user is logged in on component mount
   useEffect(() => {
-    // Create a guest user with a random id
-    const guestUser = {
-      id: Math.floor(Math.random() * 1000000),
-      username: `Guest-${Math.floor(Math.random() * 10000)}`,
-      balance: 1000,
-    };
-    
-    login(guestUser.username);
+    const storedUser = localStorage.getItem('stakeUser');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Failed to parse stored user', error);
+        localStorage.removeItem('stakeUser');
+      }
+    }
   }, []);
-  */
 
-  const login = (username: string) => {
-    // In a real implementation, this would call an API endpoint
-    setUsername(username);
-    setIsAuthenticated(true);
+  // Save user to localStorage when user state changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('stakeUser', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('stakeUser');
+    }
+  }, [user]);
+
+  // Login function
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      // In a real app, this would make an API request to authenticate the user
+      // For demo purposes, accept any non-empty username/password
+      if (username && password) {
+        // Mock user data for demonstration
+        const newUser: User = {
+          id: 1,
+          username,
+          balance: {
+            BTC: 0.5,
+            ETH: 1.25,
+            USDT: 1250,
+            LTC: 3.75
+          },
+          isAdmin: username === 'admin'
+        };
+        
+        setUser(newUser);
+        
+        toast({
+          title: 'Login successful',
+          description: `Welcome back, ${username}!`,
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
   };
 
+  // Register function
+  const register = async (username: string, password: string): Promise<boolean> => {
+    try {
+      // In a real app, this would make an API request to create a new user
+      // For demo purposes, accept any non-empty username/password
+      if (username && password) {
+        // Mock user data for demonstration
+        const newUser: User = {
+          id: 1,
+          username,
+          balance: {
+            BTC: 0.1,
+            ETH: 0.5,
+            USDT: 500,
+            LTC: 1.5
+          }
+        };
+        
+        setUser(newUser);
+        
+        toast({
+          title: 'Registration successful',
+          description: `Welcome, ${username}!`,
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Registration error:', error);
+      return false;
+    }
+  };
+
+  // Logout function
   const logout = () => {
-    setIsAuthenticated(false);
-    setUsername('Guest');
+    setUser(null);
+    toast({
+      title: 'Logged out',
+      description: 'You have been logged out successfully',
+    });
   };
 
-  const user = userData || null;
-  const balance = user ? formatCrypto(user.balance) : "0.00000000";
+  // Update balance function
+  const updateBalance = (currency: keyof User['balance'], amount: number) => {
+    if (!user) return;
+
+    setUser({
+      ...user,
+      balance: {
+        ...user.balance,
+        [currency]: user.balance[currency] + amount
+      }
+    });
+  };
 
   return (
     <UserContext.Provider
       value={{
         user,
-        isLoading,
-        balance,
-        isAuthenticated,
+        isAuthenticated: !!user,
         login,
-        logout
+        register,
+        logout,
+        updateBalance
       }}
     >
       {children}
@@ -81,6 +160,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Create a custom hook to use the context
 export function useUser() {
   const context = useContext(UserContext);
   if (context === undefined) {

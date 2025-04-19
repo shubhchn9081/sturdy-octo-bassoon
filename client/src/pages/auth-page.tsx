@@ -9,8 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-// We'll connect to context in a future update
-// import { useUser } from "@/context/UserContext";
+import { useUser } from "@/context/UserContext";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),

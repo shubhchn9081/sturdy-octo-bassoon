@@ -9,6 +9,7 @@ import InitDb from "@/pages/InitDb";
 import AuthPage from "@/pages/auth-page";
 import WalletPage from "@/pages/wallet-page";
 import Layout from "@/components/layout/Layout";
+import { UserProvider } from "@/context/UserContext";
 
 function Router() {
   return (
@@ -29,10 +30,10 @@ function Router() {
 
 function App() {
   return (
-    <>
+    <UserProvider>
       <Router />
       <Toaster />
-    </>
+    </UserProvider>
   );
 }
 
