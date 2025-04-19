@@ -6,6 +6,7 @@ type User = {
   id: number;
   username: string;
   balance: {
+    INR: number; // Added INR as default currency
     BTC: number;
     ETH: number;
     USDT: number;
@@ -64,6 +65,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           id: 1,
           username,
           balance: {
+            INR: 75000, // Default INR balance
             BTC: 0.5,
             ETH: 1.25,
             USDT: 1250,
@@ -99,6 +101,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           id: 1,
           username,
           balance: {
+            INR: 10000, // Default INR balance for new users
             BTC: 0.1,
             ETH: 0.5,
             USDT: 500,

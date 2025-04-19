@@ -25,7 +25,7 @@ const depositSchema = z.object({
     (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
     { message: "Amount must be a positive number" }
   ),
-  currency: z.enum(["BTC", "ETH", "USDT", "LTC"]),
+  currency: z.enum(["INR", "BTC", "ETH", "USDT", "LTC"]),
 });
 
 const withdrawSchema = z.object({
@@ -52,7 +52,7 @@ export default function WalletPage() {
     resolver: zodResolver(depositSchema),
     defaultValues: {
       amount: "",
-      currency: "BTC",
+      currency: "INR", // Changed default to INR
     },
   });
 
