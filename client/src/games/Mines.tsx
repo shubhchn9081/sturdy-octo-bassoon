@@ -273,20 +273,21 @@ const MinesGame = () => {
     <div className="space-y-4">
       <div>
         <div className="text-xs text-[#546D7A] mb-1">Bet Amount</div>
-        <div className="mb-1 text-sm px-2 py-1 text-right bg-[#243442] rounded">$0.00</div>
+        <div className="mb-1 text-sm px-3 py-2 text-right bg-[#1c1c2b] border border-[#333] rounded-[6px]">$0.00</div>
         <div className="flex items-center space-x-1 mb-2">
           <Input
             type="text"
             value={betAmountStr}
             onChange={(e) => handleBetAmountChange(e.target.value)}
-            className="bg-[#243442] border-none text-white h-9 text-sm"
+            className="bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px]"
             disabled={gameState && !gameState.isGameOver}
+            style={{ padding: '10px', fontSize: '14px', width: '100%' }}
           />
           <Button 
             onClick={handleHalfBet} 
             variant="outline" 
             size="sm" 
-            className="bg-transparent border-[#243442] text-white h-9 px-2"
+            className="bg-transparent border-[#333] text-white h-10 px-2 rounded-[6px]"
             disabled={gameState && !gameState.isGameOver}
           >
             ½
@@ -295,7 +296,7 @@ const MinesGame = () => {
             onClick={handleDoubleBet} 
             variant="outline" 
             size="sm" 
-            className="bg-transparent border-[#243442] text-white h-9 px-2"
+            className="bg-transparent border-[#333] text-white h-10 px-2 rounded-[6px]"
             disabled={gameState && !gameState.isGameOver}
           >
             2×
@@ -311,12 +312,12 @@ const MinesGame = () => {
             onValueChange={handleMineCountChange}
             disabled={gameState && !gameState.isGameOver}
           >
-            <SelectTrigger className="w-full bg-[#243442] border-none text-white h-9 text-sm">
+            <SelectTrigger className="w-full bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px]" style={{ padding: '10px', fontSize: '14px' }}>
               <SelectValue placeholder="Select" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#1c1c2b] border border-[#333] text-white rounded-[6px]">
               {MINE_COUNTS.map((count) => (
-                <SelectItem key={count} value={count.toString()}>
+                <SelectItem key={count} value={count.toString()} className="hover:bg-[#2f2f3d]">
                   {count}
                 </SelectItem>
               ))}
@@ -326,7 +327,7 @@ const MinesGame = () => {
         
         <div>
           <div className="text-xs text-[#546D7A] mb-1">Gems</div>
-          <div className="h-9 bg-[#243442] rounded flex items-center justify-between px-3 text-sm">
+          <div className="h-10 bg-[#1c1c2b] border border-[#333] rounded-[6px] flex items-center justify-between px-3 text-sm">
             <span>{gemCount}</span>
           </div>
         </div>
@@ -338,7 +339,7 @@ const MinesGame = () => {
           <div className="text-xs text-[#546D7A] mb-1">
             Total profit ({gameState.multiplier.toFixed(2)}x)
           </div>
-          <div className="h-9 bg-[#243442] rounded flex items-center justify-between px-3 text-sm">
+          <div className="h-10 bg-[#1c1c2b] border border-[#333] rounded-[6px] flex items-center justify-between px-3 text-sm">
             <span>{formatCrypto(totalProfit)}</span>
             <span className="text-amber-400">₿</span>
           </div>
@@ -348,7 +349,7 @@ const MinesGame = () => {
       {/* Pick Random Tile Button (only shown during active game) */}
       {gameState && !gameState.isGameOver && (
         <Button 
-          className="w-full bg-[#243442] hover:bg-[#2a3c4c] text-white h-10"
+          className="w-full bg-[#1c1c2b] hover:bg-[#2f2f3d] text-white h-10 border border-[#333] rounded-[6px] transition-all duration-200"
           onClick={selectRandomTile}
         >
           Pick random tile
@@ -358,14 +359,14 @@ const MinesGame = () => {
       {/* Bet or Cashout Button */}
       {showCashout ? (
         <Button 
-          className="w-full bg-[#7bfa4c] hover:bg-[#6ae43d] text-black font-semibold h-12"
+          className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
           onClick={cashout}
         >
           Cashout
         </Button>
       ) : (
         <Button 
-          className="w-full bg-[#7bfa4c] hover:bg-[#6ae43d] text-black font-semibold h-12"
+          className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
           onClick={startGame}
           disabled={gameState && !gameState.isGameOver}
         >
@@ -439,11 +440,11 @@ const MinesGame = () => {
           key={index}
           className={`
             relative w-[75px] h-[75px] rounded-[10px] cursor-pointer flex items-center justify-center 
-            transition-colors duration-200 ease-in shadow-sm
-            ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3c3c4f]' : ''}
-            ${status === 'revealed' ? 'bg-[#2f2f3d]' : ''}
-            ${status === 'mine' ? 'bg-[#2f2f3d]' : ''}
-            ${status === 'gem' ? 'bg-[#2f2f3d]' : ''}
+            transition-all duration-200 ease-in
+            ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3a3a4d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
+            ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
+            ${status === 'mine' ? 'bg-[#2f2f3d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
+            ${status === 'gem' ? 'bg-[#2f2f3d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
           `}
           onClick={() => handleTileClick(index)}
           disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
@@ -489,9 +490,9 @@ const MinesGame = () => {
       </div>
       
       {/* Game Area */}
-      <div className="flex-1 overflow-auto">
-        <div className="w-full h-full flex items-center justify-center p-5">
-          <div className="flex flex-col items-center justify-center">
+      <div className="flex-1 overflow-auto" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="grid-wrapper flex items-center justify-center">
             {/* Game grid */}
             {renderGameGrid()}
           </div>

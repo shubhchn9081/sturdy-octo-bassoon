@@ -1,0 +1,115 @@
+Your current Replit version looks great, but here’s a **precise checklist** of visual and functional changes needed to match the original Stake Mines UI **exactly** (from your first screenshot):
+
+---
+
+### 🎯 UI Differences & Fixes:
+
+---
+
+#### ✅ 1. **Grid Tile Colors & Hover**
+**Current:** Dark gray with flat icons  
+**Target:** Slightly bluish-dark tone with a *glow* feel and hover
+
+**Fix CSS:**
+```css
+.tile {
+  background-color: #2f2f3d; /* Closer to Stake tone */
+  border-radius: 10px;
+  box-shadow: inset 0 0 5px #1e1e2f;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile:hover {
+  background-color: #3a3a4d;
+}
+```
+
+---
+
+#### ✅ 2. **Gem & Mine Icons (Design mismatch)**
+**Current:** Bright red mine + flat green gem  
+**Target:** More minimal, 2D look
+
+**Fix:**
+- Replace current icons with simpler SVGs or 2D PNGs (closer to Stake's clean UI).
+- Adjust size:
+```css
+.tile img {
+  width: 30px;
+  height: 30px;
+}
+```
+
+I can also generate exact SVGs if you want them in the same style.
+
+---
+
+#### ✅ 3. **Fix Grid Consistency**
+**Current:** You allow variable grid sizes (via dropdown).  
+**Stake Default:** Always **5x5**
+
+**Fix:**
+- Lock grid size:
+```js
+const rows = 5;
+const cols = 5;
+```
+
+Or hide the Mines/Gems inputs and let user only pick mine count.
+
+---
+
+#### ✅ 4. **Spacing & Padding**
+Your tiles are slightly closer than in the original.
+
+**Fix:**
+```css
+.grid {
+  gap: 10px;
+  padding: 20px;
+}
+```
+
+---
+
+#### ✅ 5. **Top Margin for Grid**
+**Current:** Grid is slightly higher  
+**Target:** Add space below Bet panel
+
+```css
+.grid-container {
+  margin-top: 20px;
+}
+```
+
+---
+
+#### ✅ 6. **Game Control Box Styling**
+Stake has a darker container with rounded edges and padding.
+
+**Fix CSS:**
+```css
+.controls {
+  background-color: #1c1c2b;
+  padding: 20px;
+  border-radius: 10px;
+}
+```
+
+---
+
+#### ✅ 7. **Font Fix**
+Stake uses a system font like **Inter**, **Segoe UI**, or **Open Sans**
+
+```css
+body {
+  font-family: 'Inter', sans-serif;
+}
+```
+
+---
+
+Do you want me to generate a **single clean React/HTML+CSS version** with all these Stake-style features prebuilt to drop into Replit?
