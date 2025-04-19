@@ -11,8 +11,25 @@ import Hilo from './Hilo';
 import Keno from './Keno';
 import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
+import Cases from './Cases';
 
 export const GAMES = [
+  {
+    id: 15,
+    name: 'CASES',
+    slug: 'cases',
+    type: 'STAKE ORIGINALS',
+    description: 'Open cases and win multipliers',
+    color: 'bg-blue-500',
+    iconType: 'cases',
+    component: Cases,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 98,
+    maxMultiplier: 5.00,
+    activePlayers: 3421,
+    imageUrl: 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078621/Screenshot_2025-04-19_at_9.36.48_PM_k5e536.png'
+  },
   {
     id: 14,
     name: 'CRICKET MINES',
@@ -247,5 +264,6 @@ export default {
   Hilo,
   Keno,
   Wheel,
-  CoinFlip
+  CoinFlip,
+  Cases
 };
