@@ -13,6 +13,7 @@ import Pump from '@/games/Pump';
 import Hilo from '@/games/Hilo';
 import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
+import CoinFlip from '@/games/CoinFlip';
 
 
 type Game = typeof GAMES[0];
@@ -28,7 +29,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   pump: Pump,
   hilo: Hilo,
   keno: Keno,
-  wheel: Wheel
+  wheel: Wheel,
+  'coin-flip': CoinFlip
 };
 
 const GamePage = () => {
