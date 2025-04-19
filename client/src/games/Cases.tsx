@@ -62,13 +62,13 @@ const CasesGame: React.FC = () => {
     setRevealedMultiplier(null);
   };
   
-  // Function to animate slot-like spinning
+  // Function to animate slot-like spinning with continuous infinite scrolling
   const animateSlotMachine = () => {
     if (!slotContainerRef.current || isSlotSpinning) return;
     
     setIsSlotSpinning(true);
     
-    // Create duplicate elements for infinite loop effect
+    // Access the slot container
     const slotContainer = slotContainerRef.current;
     
     // Clear any previous animations
@@ -77,40 +77,47 @@ const CasesGame: React.FC = () => {
     // Reset position
     gsap.set(slotContainer, { x: 0 });
     
-    // Create a continuous horizontal slot animation
-    // First phase: Accelerate to constant speed
+    // Calculate the total width - we only need to move half of it since we have duplicated items
+    const totalWidth = slotContainer.scrollWidth / 2;
+    
+    // Initial quick spin - accelerate
     gsap.to(slotContainer, {
-      x: "-50%", // Move half the width to create seamless loop
-      duration: 0.5, // Faster initial movement
-      ease: "power1.in",
+      x: `-=${totalWidth * 0.3}`, // Start with a quick movement
+      duration: 0.4,
+      ease: "power2.in",
       onComplete: () => {
-        // Reset position for continuous loop
-        gsap.set(slotContainer, { x: 0 });
-        
-        // Second phase: Continuous scrolling at constant speed
-        const tl = gsap.timeline({
-          repeat: 6, // More repetitions for longer animation
+        // Main continuous loop animation
+        gsap.to(slotContainer, {
+          x: `-=${totalWidth}`, // Move one full cycle
+          duration: 1.5, // Duration controls the speed
+          ease: "none", // Linear movement for smooth scrolling
+          repeat: 3, // Repeat several times
+          modifiers: {
+            // This is the key to infinite looping - once we exceed totalWidth, loop back
+            x: gsap.utils.unitize(x => {
+              // Get the current x value without the 'px' unit
+              const current = parseFloat(x);
+              // Find the modulo to create a loop
+              return (current % totalWidth);
+            })
+          },
           onComplete: () => {
-            // Final phase: Slow down and stop at a specific position
+            // Final slowdown and stop
+            const currentX = gsap.getProperty(slotContainer, "x");
+            
+            // Calculate a nice stopping point - multiples of case width
+            const caseWidth = totalWidth / 8; // 8 cases total
+            const randomStopPoint = Math.floor(Math.random() * 8) * caseWidth;
+            
+            // Slow down gradually to stop
             gsap.to(slotContainer, {
-              x: "-20%", // Stop at specific position
-              duration: 1.8, // Longer slowdown for more realistic effect
-              ease: "power3.out",
+              x: -randomStopPoint, // Stop at a random case
+              duration: 1.2,
+              ease: "power3.out", // Ease out for natural slowdown
               onComplete: () => {
                 setIsSlotSpinning(false);
               }
             });
-          }
-        });
-        
-        // Each loop moves from 0 to -50% creating a continuous scrolling effect
-        tl.to(slotContainer, {
-          x: "-50%",
-          duration: 0.4, // Faster for more fluid scrolling
-          ease: "none",
-          onComplete: () => {
-            // Reset at each loop completion for continuous effect
-            gsap.set(slotContainer, { x: 0 });
           }
         });
       }
