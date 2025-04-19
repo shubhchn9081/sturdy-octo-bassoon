@@ -59,7 +59,7 @@ const CollapsedSidebar = () => {
   const { toggleSidebar } = useSidebar();
   
   return (
-    <aside className="w-16 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] hidden md:flex flex-col items-center py-4 overflow-y-auto">
+    <aside className="w-16 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] flex flex-col items-center py-4 overflow-y-auto">
       {/* Toggle Button */}
       <Button 
         variant="ghost" 

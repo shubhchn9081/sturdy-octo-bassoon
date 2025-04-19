@@ -60,7 +60,7 @@ const Sidebar = () => {
   const { toggleSidebar } = useSidebar();
   
   return (
-    <aside className="w-64 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] hidden md:block overflow-y-auto">
+    <aside className="w-64 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] overflow-y-auto">
       <div className="px-6 py-4">
         <div className="flex items-center mb-6">
           <Button 
