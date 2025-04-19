@@ -108,6 +108,9 @@ const Sidebar = () => {
             <SidebarLink href="/bets" icon={<Wallet className="h-5 w-5" />}>
               My Bets
             </SidebarLink>
+            <SidebarLink href="/animation-examples" icon={<Sparkles className="h-5 w-5 text-[#57FBA2]" />}>
+              Animations
+            </SidebarLink>
             <SidebarLink href="/admin" icon={<Settings className="h-5 w-5" />}>
               Admin Panel
             </SidebarLink>
