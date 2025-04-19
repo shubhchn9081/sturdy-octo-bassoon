@@ -249,13 +249,12 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         : newAIBets;
       
       const newCrashPoint = generateCrashPoint();
-      const newCountdown = Math.floor(Math.random() * 3) + 3; // 3-5 seconds countdown
       
       set({
         gameState: 'waiting',
         currentMultiplier: 1.0,
         crashPoint: newCrashPoint,
-        countdown: newCountdown,
+        countdown: Math.floor(Math.random() * 3) + 3, // 3-5 seconds countdown
         dataPoints: [],
         hasPlacedBet: playerBet ? true : false,
         hasCashedOut: false,
@@ -381,13 +380,12 @@ export const useCrashStore = create<CrashStore>((set, get) => {
 export function useCrashGame() {
   const store = useCrashStore();
   
-  // Auto-initialize game on first load (without dependency on store to prevent rerender loops)
+  // Auto-initialize game on first load
   const initialize = useCallback(() => {
-    const currentState = useCrashStore.getState();
-    if (currentState.gameState === 'waiting' && currentState.dataPoints.length === 0) {
-      useCrashStore.getState().resetGame();
+    if (store.gameState === 'waiting' && store.dataPoints.length === 0) {
+      store.resetGame();
     }
-  }, []);
+  }, [store]);
   
   return {
     ...store,

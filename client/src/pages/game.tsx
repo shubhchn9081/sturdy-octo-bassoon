@@ -5,7 +5,7 @@ import Layout from '@/components/layout/Layout';
 import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
 import Plinko from '@/games/Plinko';
-import CrashEnhanced from '@/games/CrashEnhanced';
+import Crash from '@/games/CrashFinal';
 import Limbo from '@/games/LimboFinal';
 import DragonTower from '@/games/DragonTower';
 import BlueSamurai from '@/games/BlueSamurai';
@@ -22,7 +22,7 @@ const GameComponents: Record<string, React.ComponentType> = {
   dice: Dice,
   mines: Mines,
   plinko: Plinko,
-  crash: CrashEnhanced,
+  crash: Crash,
   limbo: Limbo,
   'dragon-tower': DragonTower,
   'blue-samurai': BlueSamurai,
