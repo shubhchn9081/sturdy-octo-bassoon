@@ -63,7 +63,7 @@ export default function WalletPage() {
     defaultValues: {
       amount: "",
       address: "",
-      currency: "BTC",
+      currency: "INR", // Changed default to INR
     },
   });
 
@@ -102,12 +102,34 @@ export default function WalletPage() {
 
   const handleWithdraw = async (data: WithdrawFormData) => {
     try {
-      // In a real app, you would call an API endpoint to process the withdrawal
+      // Special handling for INR withdrawals via UPI
+      if (data.currency === 'INR') {
+        // Simulate withdrawal
+        if (user && user.balance.INR >= parseFloat(data.amount)) {
+          updateBalance('INR', -parseFloat(data.amount));
+          
+          toast({
+            title: "INR Withdrawal successful",
+            description: `₹${data.amount} has been sent to UPI ID: ${data.address}`,
+            variant: "default",
+          });
+          withdrawForm.reset({ currency: 'INR', amount: '', address: '' });
+        } else {
+          toast({
+            title: "Insufficient balance",
+            description: "You don't have enough INR balance for this withdrawal",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+      
+      // For crypto currencies
       toast({
         title: "Withdrawal pending",
         description: `Withdrawal of ${data.amount} ${data.currency} to ${data.address.substring(0, 10)}... is being processed`,
       });
-      withdrawForm.reset();
+      withdrawForm.reset({ currency: data.currency, amount: '', address: '' });
     } catch (error) {
       toast({
         title: "Withdrawal failed",
@@ -531,14 +553,14 @@ export default function WalletPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Currency</FormLabel>
-                            <div className="grid grid-cols-4 gap-3">
-                              {["BTC", "ETH", "USDT", "LTC"].map((currency) => (
+                            <div className="grid grid-cols-5 gap-3">
+                              {["INR", "BTC", "ETH", "USDT", "LTC"].map((currency) => (
                                 <Button
                                   key={currency}
                                   type="button"
                                   variant={field.value === currency ? "default" : "outline"}
                                   className={field.value === currency 
-                                    ? "bg-[#1375e1] hover:bg-[#0e5dba]" 
+                                    ? currency === "INR" ? "bg-[#20b26c] hover:bg-[#1a9b5c]" : "bg-[#1375e1] hover:bg-[#0e5dba]" 
                                     : "border-[#243442] text-white hover:bg-[#243442]"
                                   }
                                   onClick={() => field.onChange(currency)}
@@ -554,10 +576,18 @@ export default function WalletPage() {
 
                       <Button
                         type="submit"
-                        className="w-full bg-[#1375e1] hover:bg-[#0e5dba]"
+                        className={withdrawForm.watch('currency') === 'INR' 
+                          ? "w-full bg-[#20b26c] hover:bg-[#1a9b5c]" 
+                          : "w-full bg-[#1375e1] hover:bg-[#0e5dba]"
+                        }
                         disabled={withdrawForm.formState.isSubmitting}
                       >
-                        {withdrawForm.formState.isSubmitting ? "Processing..." : "Withdraw Funds"}
+                        {withdrawForm.formState.isSubmitting 
+                          ? "Processing..." 
+                          : withdrawForm.watch('currency') === 'INR'
+                            ? "Withdraw to UPI"
+                            : "Withdraw Funds"
+                        }
                       </Button>
                     </form>
                   </Form>
