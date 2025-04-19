@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { cn } from '@/lib/utils';
 import {
   Home, 
@@ -59,6 +60,10 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
 const Sidebar = () => {
   const { toggleSidebar } = useSidebar();
   
+  // Add auto-animate hooks for sidebar sections
+  const [topNavRef] = useAutoAnimate();
+  const [gamesNavRef] = useAutoAnimate();
+  
   return (
     <aside className="w-64 h-full flex-shrink-0 bg-[#1a2c38] border-r border-[#243442] hidden md:block overflow-y-auto">
       <div className="px-6 py-4">
@@ -95,7 +100,8 @@ const Sidebar = () => {
         </div>
         
         <nav className="space-y-1">
-          <div className="mb-4">
+          {/* Top navigation section with auto-animate */}
+          <div ref={topNavRef} className="mb-4">
             <SidebarLink href="/favorites" icon={<Star className="h-5 w-5" />}>
               Favourites
             </SidebarLink>
@@ -117,42 +123,45 @@ const Sidebar = () => {
             <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-2">
               Games
             </h3>
-            <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
-              Stake Originals
-            </SidebarLink>
-            <SidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />}>
-              Stake Exclusives
-            </SidebarLink>
-            <SidebarLink href="/slots" icon={<SmilePlus className="h-5 w-5" />}>
-              Slots
-            </SidebarLink>
-            <SidebarLink href="/live-casino" icon={<Dices className="h-5 w-5" />}>
-              Live Casino
-            </SidebarLink>
-            <SidebarLink href="/game-shows" icon={<Tv2 className="h-5 w-5" />}>
-              Game Shows
-            </SidebarLink>
-            <SidebarLink href="/new-releases" icon={<Sparkles className="h-5 w-5" />}>
-              New Releases
-            </SidebarLink>
-            <SidebarLink href="/stake-poker" icon={<Megaphone className="h-5 w-5" />}>
-              Stake Poker
-            </SidebarLink>
-            <SidebarLink href="/bonus-buy" icon={<CircleDollarSign className="h-5 w-5" />}>
-              Bonus Buy
-            </SidebarLink>
-            <SidebarLink href="/enhanced-rtp" icon={<BarChart2 className="h-5 w-5" />}>
-              Enhanced RTP
-            </SidebarLink>
-            <SidebarLink href="/table-games" icon={<Gamepad2 className="h-5 w-5" />}>
-              Table Games
-            </SidebarLink>
-            <SidebarLink href="/blackjack" icon={<Diamond className="h-5 w-5" />}>
-              Blackjack
-            </SidebarLink>
-            <SidebarLink href="/baccarat" icon={<Star className="h-5 w-5" />}>
-              Baccarat
-            </SidebarLink>
+            {/* Games navigation section with auto-animate */}
+            <div ref={gamesNavRef}>
+              <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
+                Stake Originals
+              </SidebarLink>
+              <SidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />}>
+                Stake Exclusives
+              </SidebarLink>
+              <SidebarLink href="/slots" icon={<SmilePlus className="h-5 w-5" />}>
+                Slots
+              </SidebarLink>
+              <SidebarLink href="/live-casino" icon={<Dices className="h-5 w-5" />}>
+                Live Casino
+              </SidebarLink>
+              <SidebarLink href="/game-shows" icon={<Tv2 className="h-5 w-5" />}>
+                Game Shows
+              </SidebarLink>
+              <SidebarLink href="/new-releases" icon={<Sparkles className="h-5 w-5" />}>
+                New Releases
+              </SidebarLink>
+              <SidebarLink href="/stake-poker" icon={<Megaphone className="h-5 w-5" />}>
+                Stake Poker
+              </SidebarLink>
+              <SidebarLink href="/bonus-buy" icon={<CircleDollarSign className="h-5 w-5" />}>
+                Bonus Buy
+              </SidebarLink>
+              <SidebarLink href="/enhanced-rtp" icon={<BarChart2 className="h-5 w-5" />}>
+                Enhanced RTP
+              </SidebarLink>
+              <SidebarLink href="/table-games" icon={<Gamepad2 className="h-5 w-5" />}>
+                Table Games
+              </SidebarLink>
+              <SidebarLink href="/blackjack" icon={<Diamond className="h-5 w-5" />}>
+                Blackjack
+              </SidebarLink>
+              <SidebarLink href="/baccarat" icon={<Star className="h-5 w-5" />}>
+                Baccarat
+              </SidebarLink>
+            </div>
           </div>
         </nav>
       </div>
