@@ -26,6 +26,17 @@
   animation: flicker 0.3s infinite;
 }
 
+/* Animation for rocket movement */
+@keyframes rocket-fly {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-150px) rotate(30deg); }
+  100% { transform: translateY(-300px) rotate(45deg); }
+}
+
+.animate-rocket {
+  animation: rocket-fly 8s ease-in forwards;
+}
+
 /* Glow effects */
 .glow-text {
   text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;

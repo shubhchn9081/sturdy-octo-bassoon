@@ -249,12 +249,13 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         : newAIBets;
       
       const newCrashPoint = generateCrashPoint();
+      const newCountdown = Math.floor(Math.random() * 3) + 3; // 3-5 seconds countdown
       
       set({
         gameState: 'waiting',
         currentMultiplier: 1.0,
         crashPoint: newCrashPoint,
-        countdown: Math.floor(Math.random() * 3) + 3, // 3-5 seconds countdown
+        countdown: newCountdown,
         dataPoints: [],
         hasPlacedBet: playerBet ? true : false,
         hasCashedOut: false,

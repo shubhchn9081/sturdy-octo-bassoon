@@ -2,6 +2,7 @@ import Dice from './Dice';
 import Mines from './Mines';
 import Plinko from './Plinko';
 import Crash from './Crash';
+import CrashEnhanced from './CrashEnhanced';
 import Limbo from './Limbo';
 import DragonTower from './DragonTower';
 import BlueSamurai from './BlueSamurai';
@@ -35,7 +36,7 @@ export const GAMES = [
     description: 'Bet and cash out before it crashes',
     color: 'bg-orange-500',
     iconType: 'crash',
-    component: Crash,
+    component: CrashEnhanced,
     minBet: 0.00000001,
     maxBet: 100,
     rtp: 99,
@@ -222,6 +223,7 @@ export default {
   Mines,
   Plinko,
   Crash,
+  CrashEnhanced,
   Limbo,
   DragonTower,
   BlueSamurai,

@@ -1,13 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
-import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
-import { gameAnimations } from '@/hooks/use-gsap-animation';
-
-// Register GSAP plugins
-gsap.registerPlugin(MotionPathPlugin);
 
 // Constants
 const CANVAS_WIDTH = 1200;
@@ -65,93 +59,35 @@ const CrashEnhanced: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const multiplierRef = useRef<HTMLDivElement>(null);
-  const rocketRef = useRef<HTMLDivElement>(null);
   const countdownRef = useRef<HTMLDivElement>(null);
   const crashedRef = useRef<HTMLDivElement>(null);
   const [showRocket, setShowRocket] = useState(false);
   
-  // GSAP animations using useGSAP
-  useGSAP(() => {
-    // Animate countdown 
+  // Set up simple animations instead of GSAP to ensure compatibility
+  useEffect(() => {
+    // Animate elements based on game state
     if (gameState === 'waiting' && countdownRef.current) {
-      gsap.fromTo(countdownRef.current, 
-        { scale: 1.2, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.5, ease: "elastic.out(1, 0.5)" }
-      );
-      
-      // Pulse countdown number
-      gsap.to(countdownRef.current, {
-        scale: 1.1, 
-        duration: 0.5, 
-        repeat: -1, 
-        yoyo: true, 
-        ease: "sine.inOut"
-      });
+      countdownRef.current.className += ' animate-pulse-slow';
     }
     
-    // Animate multiplier during game
     if (gameState === 'running' && multiplierRef.current) {
-      gsap.fromTo(multiplierRef.current,
-        { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.3 }
-      );
+      multiplierRef.current.className += ' animate-countUp';
     }
     
-    // Animate crashed message
     if (gameState === 'crashed' && crashedRef.current) {
-      gsap.fromTo(crashedRef.current,
-        { scale: 2, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.5, ease: "elastic.out(1, 0.3)" }
-      );
-      
-      // Add shake effect
-      gsap.to(crashedRef.current, {
-        x: "random(-10, 10)", 
-        y: "random(-10, 10)",
-        duration: 0.1,
-        repeat: 5,
-        ease: "none",
-        delay: 0.2
-      });
+      crashedRef.current.className += ' animate-shake';
     }
-    
-    // Animate rocket during game
-    if (gameState === 'running' && rocketRef.current && showRocket) {
-      // Calculate path based on current multiplier
-      const pathHeight = Math.min(currentMultiplier * 30, 700);
-      
-      gsap.to(rocketRef.current, {
-        motionPath: {
-          path: [
-            {x: 0, y: 0},
-            {x: 100, y: -pathHeight * 0.3},
-            {x: 200, y: -pathHeight * 0.7},
-            {x: 300, y: -pathHeight}
-          ],
-          curviness: 1.5,
-          alignOrigin: [0.5, 0.5]
-        },
-        duration: 8,
-        ease: "power1.in"
-      });
-      
-      // Rotate rocket to follow path
-      gsap.to(rocketRef.current, {
-        rotation: 45,
-        duration: 2,
-        ease: "power1.inOut"
-      });
-    }
-    
-    // Reset animations when game state changes
-    return () => {
-      gsap.killTweensOf(countdownRef.current);
-      gsap.killTweensOf(multiplierRef.current);
-      gsap.killTweensOf(crashedRef.current);
-      gsap.killTweensOf(rocketRef.current);
-    };
-  }, [gameState, currentMultiplier, showRocket]);
+  }, [gameState]);
 
+  // Show/hide rocket based on game state
+  useEffect(() => {
+    if (gameState === 'running') {
+      setShowRocket(true);
+    } else {
+      setShowRocket(false);
+    }
+  }, [gameState]);
+  
   // Draw the crash graph on canvas
   const drawGraph = useCallback(() => {
     if (!canvasRef.current || dataPoints.length === 0) return;
@@ -196,7 +132,7 @@ const CrashEnhanced: React.FC = () => {
       ctx.fillText(marker.label, CANVAS_WIDTH - 5, CANVAS_HEIGHT - y - 2);
     });
     
-    // Add extreme glow effect for maximum visibility
+    // Add glow effect for visibility
     ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
     ctx.shadowBlur = 30;
     ctx.shadowOffsetY = 0;
@@ -226,15 +162,20 @@ const CrashEnhanced: React.FC = () => {
     
     // Fill the area under the graph
     if (dataPoints.length > 0) {
+      ctx.beginPath();
+      ctx.moveTo(0, CANVAS_HEIGHT);
+      dataPoints.forEach(point => {
+        ctx.lineTo(point.x, CANVAS_HEIGHT - point.y);
+      });
       ctx.lineTo(dataPoints[dataPoints.length - 1].x, CANVAS_HEIGHT);
-      ctx.lineTo(0, CANVAS_HEIGHT);
+      ctx.closePath();
       ctx.fillStyle = 'rgba(255, 157, 2, 0.3)'; // Semi-transparent fill
       ctx.fill();
       
       // Draw graph endpoint circle
       const lastPoint = dataPoints[dataPoints.length - 1];
       
-      // Add extreme glow effect for circle
+      // Add glow effect for circle
       ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
       ctx.shadowBlur = 30;
       ctx.shadowOffsetY = 0;
@@ -246,11 +187,6 @@ const CrashEnhanced: React.FC = () => {
       ctx.lineWidth = 3;
       ctx.fill();
       ctx.stroke();
-      
-      // Reset shadow properties
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
     }
     
     // Draw time markers
@@ -283,19 +219,13 @@ const CrashEnhanced: React.FC = () => {
     drawGraph();
   }, [drawGraph]);
   
-  // Initialize game
+  // Initialize game only once
   useEffect(() => {
+    // Only initialize if game hasn't started
     if (gameState === 'waiting' && dataPoints.length === 0) {
       initialize();
     }
-    
-    // Show rocket during the running state
-    if (gameState === 'running') {
-      setShowRocket(true);
-    } else {
-      setShowRocket(false);
-    }
-  }, [gameState, dataPoints.length, initialize]);
+  }, [gameState, dataPoints, initialize]);
   
   // Calculate profit on win
   const calculateProfit = () => {
@@ -307,19 +237,6 @@ const CrashEnhanced: React.FC = () => {
   const formatAmount = (amount: number) => {
     return amount.toFixed(2);
   };
-
-  // Animate number counter for multiplier
-  const animateCounter = useCallback((element: HTMLElement, start: number, end: number) => {
-    const obj = { value: start };
-    
-    gsap.to(obj, {
-      value: end,
-      duration: 0.5,
-      onUpdate: () => {
-        element.textContent = obj.value.toFixed(2) + 'x';
-      }
-    });
-  }, []);
   
   return (
     <div className="flex flex-col h-full w-full bg-[#0F212E] text-white overflow-hidden">
@@ -473,8 +390,7 @@ const CrashEnhanced: React.FC = () => {
             {/* Rocket element for animation */}
             {showRocket && (
               <div 
-                ref={rocketRef} 
-                className="absolute bottom-0 left-[50px] z-10"
+                className="absolute bottom-0 left-[50px] z-10 animate-rocket"
                 style={{ transformOrigin: 'center' }}
               >
                 <div className="w-12 h-16 relative">
@@ -515,7 +431,7 @@ const CrashEnhanced: React.FC = () => {
             {gameState === 'running' && (
               <div 
                 ref={multiplierRef}
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glow-text"
               >
                 <div className="text-9xl font-bold text-white">{currentMultiplier.toFixed(2)}x</div>
               </div>
