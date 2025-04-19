@@ -23,8 +23,44 @@ const CASE_COLORS = [
   'bg-gradient-to-b from-orange-500 to-orange-700',
 ];
 
-// Array of possible multipliers (some good, some bad)
-const MULTIPLIERS = ['0.1x', '0.2x', '0.3x', '0.5x', '1.5x', '2x', '3x', '5x'];
+// Multiplier pools for different difficulty levels with their probability weights
+const multiplierPools = {
+  Easy: [
+    { multiplier: '0.1x', weight: 20 },
+    { multiplier: '0.2x', weight: 20 },
+    { multiplier: '0.5x', weight: 20 },
+    { multiplier: '1x', weight: 15 },
+    { multiplier: '1.5x', weight: 10 },
+    { multiplier: '2x', weight: 5 },
+    { multiplier: '5x', weight: 4 },
+    { multiplier: '10x', weight: 3 },
+    { multiplier: '15x', weight: 2 },
+    { multiplier: '23x', weight: 1 }
+  ],
+  Medium: [
+    { multiplier: '0x', weight: 30 },
+    { multiplier: '0.2x', weight: 15 },
+    { multiplier: '0.5x', weight: 15 },
+    { multiplier: '1x', weight: 10 },
+    { multiplier: '3x', weight: 10 },
+    { multiplier: '5x', weight: 6 },
+    { multiplier: '10x', weight: 5 },
+    { multiplier: '25x', weight: 5 },
+    { multiplier: '50x', weight: 3 },
+    { multiplier: '115x', weight: 1 }
+  ],
+  Hard: [
+    { multiplier: '0x', weight: 50 },
+    { multiplier: '0.5x', weight: 15 },
+    { multiplier: '2x', weight: 10 },
+    { multiplier: '5x', weight: 8 },
+    { multiplier: '10x', weight: 6 },
+    { multiplier: '50x', weight: 5 },
+    { multiplier: '100x', weight: 4 },
+    { multiplier: '500x', weight: 1 },
+    { multiplier: '1000x', weight: 1 }
+  ]
+};
 
 const Cases: React.FC = () => {
   const [cases, setCases] = useState<Case[]>([]);
@@ -178,19 +214,48 @@ const Cases: React.FC = () => {
     setDifficulty(e.target.value);
   };
 
+  // Function to get a random multiplier based on difficulty and weights
+  const getRandomMultiplier = (difficulty: string): string => {
+    // Get the multiplier pool for the selected difficulty
+    const pool = multiplierPools[difficulty as keyof typeof multiplierPools];
+    
+    // Calculate the total weight for all multipliers in this difficulty
+    const totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
+    
+    // Generate a random number within the total weight range
+    const randomWeight = Math.random() * totalWeight;
+    
+    // Find the multiplier that corresponds to the random weight
+    let currentWeight = 0;
+    
+    for (const item of pool) {
+      currentWeight += item.weight;
+      
+      if (randomWeight <= currentWeight) {
+        return item.multiplier;
+      }
+    }
+    
+    // Fallback - should never reach here if weights are properly configured
+    return pool[0].multiplier;
+  };
+
   const startGame = () => {
     if (betAmount <= 0) {
       alert("Please enter a valid bet amount");
       return;
     }
 
-    // Assign random multipliers to cases
-    const shuffledMultipliers = [...MULTIPLIERS].sort(() => Math.random() - 0.5);
-    
-    const newCases = cases.map((caseItem, index) => ({
-      ...caseItem,
-      multiplier: shuffledMultipliers[index % shuffledMultipliers.length],
-    }));
+    // Assign random multipliers to cases based on difficulty
+    const newCases = cases.map((caseItem) => {
+      // Get a random multiplier using our weighted function
+      const multiplier = getRandomMultiplier(difficulty);
+      
+      return {
+        ...caseItem,
+        multiplier,
+      };
+    });
     
     setCases(newCases);
     
@@ -530,34 +595,63 @@ const Cases: React.FC = () => {
             )}
           </div>
           
-          {/* Game result */}
+          {/* Game result with improved visual presentation */}
           {gameEnded && revealedMultiplier && (
-            <div className="flex flex-col items-center mb-8">
-              <h2 className="text-2xl font-bold mb-2">Result</h2>
+            <div className="flex flex-col items-center mb-8 p-4 bg-[#1A2C38] rounded-lg border border-gray-800">
+              <h2 className="text-2xl font-bold mb-2">Case Opened!</h2>
+              
+              {/* Multiplier display */}
               <div className={cn(
-                "text-3xl font-bold",
+                "text-4xl font-bold mb-2",
                 parseFloat(revealedMultiplier) > 1 ? "text-green-500" : "text-red-500"
               )}>
-                {`${revealedMultiplier} (${(parseFloat(revealedMultiplier) * betAmount).toFixed(2)})`}
+                {revealedMultiplier}
               </div>
+              
+              {/* Win amount */}
+              <div className="flex items-center gap-2">
+                <span className="text-gray-300">You {parseFloat(revealedMultiplier) > 0 ? "Win" : "Lose"}:</span>
+                <span className={cn(
+                  "text-2xl font-bold",
+                  parseFloat(revealedMultiplier) > 1 ? "text-green-500" : "text-red-500"
+                )}>
+                  ${(parseFloat(revealedMultiplier) * betAmount).toFixed(2)}
+                </span>
+              </div>
+              
+              {/* Show confetti animation for big wins */}
+              {parseFloat(revealedMultiplier) >= 5 && (
+                <div className="mt-4 text-yellow-400 animate-pulse">
+                  🎉 BIG WIN! 🎉
+                </div>
+              )}
             </div>
           )}
           
-          {/* Game stats */}
+          {/* Game stats - dynamically updated based on difficulty */}
           <div className="bg-[#1A2C38] rounded-lg p-4">
             <h3 className="text-lg font-medium mb-2">Game Statistics</h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-sm text-gray-400">Win Chance</div>
-                <div className="text-xl font-medium">42%</div>
+                <div className="text-xl font-medium">
+                  {difficulty === "Easy" ? "80%" : 
+                   difficulty === "Medium" ? "70%" : "50%"}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-gray-400">Max Win</div>
-                <div className="text-xl font-medium text-green-500">5x</div>
+                <div className="text-xl font-medium text-green-500">
+                  {difficulty === "Easy" ? "23x" : 
+                   difficulty === "Medium" ? "115x" : "1000x"}
+                </div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-400">Max Loss</div>
-                <div className="text-xl font-medium text-red-500">0.1x</div>
+                <div className="text-sm text-gray-400">House Edge</div>
+                <div className="text-xl font-medium text-cyan-400">
+                  {difficulty === "Easy" ? "2%" : 
+                   difficulty === "Medium" ? "4%" : "6%"}
+                </div>
               </div>
             </div>
           </div>
