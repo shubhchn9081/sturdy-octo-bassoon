@@ -17,6 +17,7 @@ import BetsPage from "@/pages/bets-page";
 import SettingsPage from "@/pages/settings-page";
 import StakeSmartPage from "@/pages/stake-smart-page";
 import SupportPage from "@/pages/support-page";
+import AnimationExamples from "@/pages/animation-examples";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
@@ -44,6 +45,7 @@ function Router() {
             <Route path="/settings" component={SettingsPage} />
             <Route path="/stake-smart" component={StakeSmartPage} />
             <Route path="/support" component={SupportPage} />
+            <Route path="/animation-examples" component={AnimationExamples} />
             {/* Fallback to 404 */}
             <Route component={NotFound} />
           </Switch>
