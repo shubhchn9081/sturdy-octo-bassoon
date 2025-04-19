@@ -238,13 +238,13 @@ const GameCard = ({
   return (
     <div 
       className={cn(
-        "game-card w-[124px] h-[160px] rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out",
+        "game-card w-full rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out",
         className
       )}
       onClick={() => window.location.href = `/games/${slug}`}
     >
       {/* Main card content */}
-      <div className="flex-1 relative">
+      <div className="aspect-square relative">
         {/* Background gradient or image */}
         <div 
           className="absolute inset-0 w-full h-full" 
@@ -261,7 +261,12 @@ const GameCard = ({
           />
         )}
         
-        {/* No text labels as images already have text embedded */}
+        {/* Multiplier badge in top right if available */}
+        {multiplier && (
+          <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold py-1 px-2 rounded">
+            {multiplier}
+          </div>
+        )}
       </div>
       
       {/* Player count */}

@@ -11,7 +11,8 @@ import {
   Dices, 
   Tv2, 
   FileEdit, 
-  Sparkles
+  Sparkles,
+  ArrowDownUp
 } from 'lucide-react';
 
 const HomePage = () => {
@@ -24,6 +25,11 @@ const HomePage = () => {
     game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     game.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Get featured games (first 4)
+  const featuredGames = filteredGames.slice(0, 4);
+  // Get all games
+  const allGames = filteredGames;
   
   // Promotions data
   const promotions = [
@@ -58,71 +64,28 @@ const HomePage = () => {
   
   return (
     <main className="flex-1 p-6">
-      {/* Promotions Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {promotions.map((promo, index) => (
-          <PromotionCard
-            key={index}
-            title={promo.title}
-            description={promo.description}
-            type={promo.type as 'announcement' | 'promo'}
-            imageSrc={promo.imageSrc}
-            readMoreUrl={promo.readMoreUrl}
-            playNowUrl={promo.playNowUrl}
-            playNowText={promo.playNowText}
-          />
-        ))}
-      </div>
-
       {/* Search Bar */}
-      <div className="relative mb-8">
+      <div className="relative mb-6">
         <input 
           type="text" 
           placeholder="Search your game" 
-          className="w-full bg-secondary rounded-lg py-3 px-10 text-white border border-border focus:outline-none focus:border-accent"
+          className="w-full bg-[#172B3A] rounded-lg py-3 px-10 text-white border-none focus:outline-none focus:ring-1 focus:ring-[#0F212E]/80"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-3.5" />
+        <Search className="h-5 w-5 text-gray-400 absolute left-3 top-3.5" />
       </div>
 
-      {/* Game Categories */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        <CategoryButton href="/" icon={Home} active>
-          Lobby
-        </CategoryButton>
-        <CategoryButton href="/originals" icon={Zap}>
-          Stake Originals
-        </CategoryButton>
-        <CategoryButton href="/slots" icon={SmilePlus}>
-          Slots
-        </CategoryButton>
-        <CategoryButton href="/live-casino" icon={Dices}>
-          Live Casino
-        </CategoryButton>
-        <CategoryButton href="/game-shows" icon={Tv2}>
-          Game Shows
-        </CategoryButton>
-        <CategoryButton href="/exclusives" icon={FileEdit}>
-          Stake Exclusives
-        </CategoryButton>
-        <CategoryButton href="/new-releases" icon={Sparkles}>
-          New Releases
-        </CategoryButton>
-      </div>
-
-      {/* Originals Section */}
-      <div className="mb-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <Zap className="h-5 w-5 text-white mr-2" />
-            <h2 className="text-xl font-bold text-white">Stake Originals</h2>
-          </div>
+      {/* Featured Section */}
+      <div className="mb-8">
+        <div className="flex items-center mb-4">
+          <Zap className="h-5 w-5 text-green-500 mr-2" />
+          <h2 className="text-lg font-medium text-white">Featured Stake Originals</h2>
         </div>
         
-        {/* Game Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
-          {filteredGames.map((game) => (
+        {/* Featured Game Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {featuredGames.map((game) => (
             <GameCard
               key={game.id}
               id={game.id}
@@ -135,6 +98,62 @@ const HomePage = () => {
               multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${game.maxMultiplier.toFixed(2)}x` : undefined}
             />
           ))}
+        </div>
+      </div>
+
+      {/* All Games Section */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-medium text-white">All Stake Originals</h2>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
+              <span className="text-gray-400 text-sm">Sort by</span>
+              <div className="bg-[#172B3A] text-white py-1 px-3 rounded-md text-sm flex items-center">
+                Popular <span className="ml-1">▼</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* All Game Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          {allGames.map((game) => (
+            <GameCard
+              key={game.id}
+              id={game.id}
+              name={game.name}
+              slug={game.slug}
+              type={game.type}
+              activePlayers={game.activePlayers}
+              color={game.color}
+              iconType={game.iconType}
+              multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${game.maxMultiplier.toFixed(2)}x` : undefined}
+            />
+          ))}
+        </div>
+      </div>
+      
+      {/* Add this section after all the game sections */}
+      <div className="mt-8 pt-8 border-t border-[#172B3A]">
+        <div className="text-center">
+          <p className="text-sm text-gray-500">© 2025 Stake.com | All Rights Reserved.</p>
+          <div className="flex justify-center space-x-4 mt-4">
+            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
+              <div className="w-3 h-3 bg-[#243442]"></div>
+            </div>
+            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
+              <div className="w-3 h-3 bg-[#243442]"></div>
+            </div>
+            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
+              <div className="w-3 h-3 bg-[#243442]"></div>
+            </div>
+            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
+              <div className="w-3 h-3 bg-[#243442]"></div>
+            </div>
+            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
+              <div className="w-3 h-3 bg-[#243442]"></div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
