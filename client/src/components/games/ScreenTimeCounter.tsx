@@ -31,9 +31,9 @@ const ScreenTimeCounter: React.FC<ScreenTimeCounterProps> = ({
   }, []);
 
   return (
-    <div className={`text-white ${className}`}>
+    <span className={`text-white ${className}`}>
       {prefix} {time}s
-    </div>
+    </span>
   );
 };
 

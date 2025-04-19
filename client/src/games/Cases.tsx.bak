@@ -81,7 +81,7 @@ const CasesGame: React.FC = () => {
     // First phase: Accelerate to constant speed
     gsap.to(slotContainer, {
       x: "-50%", // Move half the width to create seamless loop
-      duration: 0.5, // Faster initial movement
+      duration: 0.8,
       ease: "power1.in",
       onComplete: () => {
         // Reset position for continuous loop
@@ -89,12 +89,12 @@ const CasesGame: React.FC = () => {
         
         // Second phase: Continuous scrolling at constant speed
         const tl = gsap.timeline({
-          repeat: 6, // More repetitions for longer animation
+          repeat: 4, 
           onComplete: () => {
             // Final phase: Slow down and stop at a specific position
             gsap.to(slotContainer, {
               x: "-20%", // Stop at specific position
-              duration: 1.8, // Longer slowdown for more realistic effect
+              duration: 1.5,
               ease: "power3.out",
               onComplete: () => {
                 setIsSlotSpinning(false);
@@ -106,7 +106,7 @@ const CasesGame: React.FC = () => {
         // Each loop moves from 0 to -50% creating a continuous scrolling effect
         tl.to(slotContainer, {
           x: "-50%",
-          duration: 0.4, // Faster for more fluid scrolling
+          duration: 0.7,
           ease: "none",
           onComplete: () => {
             // Reset at each loop completion for continuous effect
@@ -164,7 +164,7 @@ const CasesGame: React.FC = () => {
     // Set game as started after animation completes
     setTimeout(() => {
       setGameStarted(true);
-    }, 3000); // Wait for animation to complete
+    }, 2000); // Wait for animation to complete
   };
 
   const selectCase = (index: number) => {
@@ -435,9 +435,7 @@ const CasesGame: React.FC = () => {
                       {/* Case contents/multiplier */}
                       {caseItem.isOpened && caseItem.multiplier && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-black/40 rounded-full px-4 py-2">
-                            <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
-                          </div>
+                          <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
                         </div>
                       )}
 
@@ -478,9 +476,7 @@ const CasesGame: React.FC = () => {
                       {/* Case contents/multiplier */}
                       {caseItem.isOpened && caseItem.multiplier && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-black/40 rounded-full px-4 py-2">
-                            <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
-                          </div>
+                          <span className="text-white font-bold text-lg">{caseItem.multiplier}</span>
                         </div>
                       )}
 
@@ -505,8 +501,8 @@ const CasesGame: React.FC = () => {
               className="absolute -bottom-6 left-1/2 -translate-x-1/2 transform transition-transform" 
             >
               <div className="flex flex-col items-center">
-                <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-b-[18px] border-l-transparent border-r-transparent border-b-cyan-500"></div>
-                <div className="w-1 h-30 bg-cyan-500 rounded-full opacity-70"></div>
+                <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[15px] border-l-transparent border-r-transparent border-b-white"></div>
+                <div className="w-1 h-20 bg-white rounded-full opacity-50"></div>
               </div>
             </div>
           </div>
