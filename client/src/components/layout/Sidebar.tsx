@@ -42,8 +42,8 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
   return (
     <div 
       className={cn(
-        "flex items-center px-3 py-2 text-gray-300 text-sm rounded group transition-colors cursor-pointer",
-        active ? "bg-[#1C333F] text-white border-l-[3px] border-[#57FBA2]" : "hover:bg-[#1C333F]",
+        "flex items-center px-3 py-1.5 text-gray-300 text-xs rounded group transition-colors cursor-pointer",
+        active ? "text-white border-l-2 border-[#57FBA2]" : "hover:text-white",
         className
       )}
       onClick={() => window.location.href = href}
@@ -106,22 +106,22 @@ const Sidebar = () => {
         
         <nav className="space-y-1">
           <div className="mb-4">
-            <SidebarLink href="/favorites" icon={<Star className="h-5 w-5" />}>
+            <SidebarLink href="/favorites" icon={<Star className="h-4 w-4" />}>
               Favourites
             </SidebarLink>
-            <SidebarLink href="/recent" icon={<Clock className="h-5 w-5" />}>
+            <SidebarLink href="/recent" icon={<Clock className="h-4 w-4" />}>
               Recent
             </SidebarLink>
-            <SidebarLink href="/challenges" icon={<Trophy className="h-5 w-5" />}>
+            <SidebarLink href="/challenges" icon={<Trophy className="h-4 w-4" />}>
               Challenges
             </SidebarLink>
-            <SidebarLink href="/bets" icon={<Wallet className="h-5 w-5" />}>
+            <SidebarLink href="/bets" icon={<Wallet className="h-4 w-4" />}>
               My Bets
             </SidebarLink>
-            <SidebarLink href="/animation-examples" icon={<Sparkles className="h-5 w-5 text-[#57FBA2]" />}>
+            <SidebarLink href="/animation-examples" icon={<Sparkles className="h-4 w-4 text-[#57FBA2]" />}>
               Animations
             </SidebarLink>
-            <SidebarLink href="/admin" icon={<Settings className="h-5 w-5" />}>
+            <SidebarLink href="/admin" icon={<Settings className="h-4 w-4" />}>
               Admin Panel
             </SidebarLink>
           </div>

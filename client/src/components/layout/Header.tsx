@@ -36,8 +36,8 @@ const Header = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   
   return (
-    <header className="bg-[#0F212E] border-b border-[#172B3A] sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="bg-[#0F1923] border-b border-[#182634] sticky top-0 z-10">
+      <div className="px-4 py-2 flex items-center justify-between">
         <div className="flex items-center">
           <div className="hidden md:block mr-2">
             <Button 
@@ -66,41 +66,42 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <div className="hidden md:flex bg-[#172B3A] rounded-md px-3 py-2 items-center">
-            <span className="text-white mr-2 font-mono">{balance}</span>
-            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div className="hidden md:flex bg-[#1C2C39] rounded px-2 py-1.5 items-center text-xs">
+            <span className="text-white mr-1 font-mono">{balance}</span>
+            <svg className="h-4 w-4 text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M15 8.5C14.315 7.81501 13.1087 7.33855 12 7.30872M9 15C9.64448 15.8593 10.8428 16.3494 12 16.391M12 7.30872C10.6809 7.27322 9.5 7.86998 9.5 9.50001C9.5 12.5 15 11 15 14C15 15.711 13.5362 16.4462 12 16.391M12 7.30872V5.5M12 16.391V18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <svg className="h-3 w-3 ml-1 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6"/>
             </svg>
           </div>
           
           <Button 
-            className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4 text-sm"
+            className="bg-[#1C82E3] hover:bg-[#1375d1] rounded text-white font-medium py-1.5 px-3 text-xs"
             onClick={() => setLocation('/wallet')}
           >
-            <WalletIcon className="h-4 w-4 mr-2" />
             Wallet
           </Button>
           
           {isAuthenticated ? (
             <Button 
               variant="outline" 
-              className="border-[#243442] text-white hover:bg-[#172B3A] hover:text-white"
+              className="border-[#1d2a35] text-white hover:bg-[#1C2C39] hover:text-white p-1.5 text-xs"
               onClick={() => {
                 logout();
                 setLocation('/');
               }}
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-3 w-3 mr-1" />
               Logout
             </Button>
           ) : (
             <Button 
-              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 text-sm flex items-center"
+              className="bg-[#57FBA2] hover:bg-[#4ce996] text-black font-medium py-1.5 px-3 text-xs rounded"
               onClick={() => setLocation('/auth')}
             >
-              <LogIn className="h-4 w-4 mr-2" />
-              Sign Up / Login
+              Sign Up
             </Button>
           )}
           
