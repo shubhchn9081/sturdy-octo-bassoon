@@ -3,13 +3,13 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import CollapsedSidebar from './CollapsedSidebar';
 import Footer from './Footer';
-import { SidebarProvider, useSidebar } from '@/context/SidebarContext';
+import { useSidebar } from '@/context/SidebarContext';
 
 type LayoutProps = {
   children: ReactNode;
 };
 
-const LayoutContent = ({ children }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps) => {
   const { collapsed } = useSidebar();
 
   return (
@@ -21,14 +21,6 @@ const LayoutContent = ({ children }: LayoutProps) => {
         <Footer />
       </div>
     </div>
-  );
-};
-
-const Layout = ({ children }: LayoutProps) => {
-  return (
-    <SidebarProvider>
-      <LayoutContent children={children} />
-    </SidebarProvider>
   );
 };
 

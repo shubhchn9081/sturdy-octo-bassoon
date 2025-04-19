@@ -18,42 +18,47 @@ import SettingsPage from "@/pages/settings-page";
 import StakeSmartPage from "@/pages/stake-smart-page";
 import SupportPage from "@/pages/support-page";
 import Layout from "@/components/layout/Layout";
+import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/games/:gameSlug" component={Game} />
-        <Route path="/casino/games/:gameSlug" component={Game} />
-        <Route path="/originals" component={Originals} />
-        <Route path="/admin" component={Admin} />
-        <Route path="/init-db" component={InitDb} />
-        <Route path="/auth" component={AuthPage} />
-        <Route path="/wallet" component={WalletPage} />
-        <Route path="/vault" component={VaultPage} />
-        <Route path="/vip" component={VIPPage} />
-        <Route path="/affiliate" component={AffiliatePage} />
-        <Route path="/statistics" component={StatisticsPage} />
-        <Route path="/transactions" component={TransactionsPage} />
-        <Route path="/bets" component={BetsPage} />
-        <Route path="/settings" component={SettingsPage} />
-        <Route path="/stake-smart" component={StakeSmartPage} />
-        <Route path="/support" component={SupportPage} />
-        {/* Fallback to 404 */}
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <UserProvider>
+      <SidebarProvider>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/games/:gameSlug" component={Game} />
+            <Route path="/casino/games/:gameSlug" component={Game} />
+            <Route path="/originals" component={Originals} />
+            <Route path="/admin" component={Admin} />
+            <Route path="/init-db" component={InitDb} />
+            <Route path="/auth" component={AuthPage} />
+            <Route path="/wallet" component={WalletPage} />
+            <Route path="/vault" component={VaultPage} />
+            <Route path="/vip" component={VIPPage} />
+            <Route path="/affiliate" component={AffiliatePage} />
+            <Route path="/statistics" component={StatisticsPage} />
+            <Route path="/transactions" component={TransactionsPage} />
+            <Route path="/bets" component={BetsPage} />
+            <Route path="/settings" component={SettingsPage} />
+            <Route path="/stake-smart" component={StakeSmartPage} />
+            <Route path="/support" component={SupportPage} />
+            {/* Fallback to 404 */}
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </SidebarProvider>
+    </UserProvider>
   );
 }
 
 function App() {
   return (
-    <UserProvider>
+    <>
       <Router />
       <Toaster />
-    </UserProvider>
+    </>
   );
 }
 
