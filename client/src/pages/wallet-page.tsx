@@ -166,11 +166,11 @@ export default function WalletPage() {
             <CardContent>
               <div className="flex items-center">
                 <span className="text-3xl font-bold font-mono">
-                  ₹{user ? user.balance.INR.toFixed(2) : "0.00"}
+                  ₹{user && user.balance && user.balance.INR ? user.balance.INR.toFixed(2) : "0.00"}
                 </span>
                 <span className="ml-2 text-[#7F8990]">INR</span>
               </div>
-              <p className="text-[#7F8990] mt-1">≈ ${user ? (user.balance.INR / 83).toFixed(2) : "0.00"} USD</p>
+              <p className="text-[#7F8990] mt-1">≈ ${user && user.balance && user.balance.INR ? (user.balance.INR / 83).toFixed(2) : "0.00"} USD</p>
             </CardContent>
             <CardFooter className="border-t border-[#243442] pt-4">
               <div className="grid grid-cols-2 gap-3 w-full">
@@ -213,8 +213,8 @@ export default function WalletPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono">₹{user ? user.balance.INR.toFixed(2) : "0.00"}</p>
-                  <p className="text-sm text-[#7F8990]">≈ ₹{user ? user.balance.INR.toFixed(2) : "0.00"}</p>
+                  <p className="font-mono">₹{user && user.balance && user.balance.INR ? user.balance.INR.toFixed(2) : "0.00"}</p>
+                  <p className="text-sm text-[#7F8990]">≈ ₹{user && user.balance && user.balance.INR ? user.balance.INR.toFixed(2) : "0.00"}</p>
                 </div>
               </div>
               
@@ -227,7 +227,7 @@ export default function WalletPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono">{user ? user.balance.BTC.toFixed(8) : "0.00000000"}</p>
+                  <p className="font-mono">{user && user.balance && user.balance.BTC ? user.balance.BTC.toFixed(8) : "0.00000000"}</p>
                   <p className="text-sm text-[#7F8990]">≈ $23,675.00</p>
                 </div>
               </div>
@@ -249,7 +249,7 @@ export default function WalletPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono">{user ? user.balance.ETH.toFixed(8) : "0.00000000"}</p>
+                  <p className="font-mono">{user && user.balance && user.balance.ETH ? user.balance.ETH.toFixed(8) : "0.00000000"}</p>
                   <p className="text-sm text-[#7F8990]">≈ $3,125.00</p>
                 </div>
               </div>
@@ -266,7 +266,7 @@ export default function WalletPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono">{user ? user.balance.USDT.toFixed(2) : "0.00"}</p>
+                  <p className="font-mono">{user && user.balance && user.balance.USDT ? user.balance.USDT.toFixed(2) : "0.00"}</p>
                   <p className="text-sm text-[#7F8990]">≈ $1,250.00</p>
                 </div>
               </div>
