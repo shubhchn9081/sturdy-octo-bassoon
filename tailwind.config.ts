@@ -79,10 +79,59 @@ export default {
             height: "0",
           },
         },
+        "pop": {
+          "0%": { 
+            transform: "scale(0)",
+            opacity: "0" 
+          },
+          "60%": { 
+            transform: "scale(1.2)",
+            opacity: "1" 
+          },
+          "100%": { 
+            transform: "scale(1)",
+            opacity: "1" 
+          }
+        },
+        "explosion": {
+          "0%": { 
+            transform: "scale(0) rotate(0deg)",
+            opacity: "0" 
+          },
+          "50%": { 
+            transform: "scale(1.5) rotate(15deg)",
+            opacity: "1" 
+          },
+          "70%": { 
+            transform: "scale(1.2) rotate(-5deg)",
+            filter: "brightness(1.5)" 
+          },
+          "100%": { 
+            transform: "scale(1) rotate(0deg)",
+            opacity: "1" 
+          }
+        },
+        "revealGem": {
+          "0%": { 
+            backgroundColor: "#2f2f3d",
+            boxShadow: "inset 0 0 5px #1e1e2f"
+          },
+          "50%": { 
+            backgroundColor: "#45455e",
+            boxShadow: "inset 0 0 10px #2e2e40"
+          },
+          "100%": { 
+            backgroundColor: "#2f2f3d", 
+            boxShadow: "inset 0 0 5px #1e1e2f"
+          }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pop": "pop 0.5s ease-out",
+        "explosion": "explosion 0.7s ease-out",
+        "revealGem": "revealGem 0.5s ease-out"
       },
     },
   },

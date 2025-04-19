@@ -430,8 +430,8 @@ const MinesGame = () => {
   // Render the game grid with positioned tiles
   const renderGameGrid = () => (
     <div className="relative grid-container grid" style={{ 
-      gridTemplateColumns: 'repeat(5, 75px)', 
-      gridTemplateRows: 'repeat(5, 75px)', 
+      gridTemplateColumns: 'repeat(5, 88px)', 
+      gridTemplateRows: 'repeat(5, 88px)', 
       gap: '10px',
       padding: '20px',
       margin: 'auto',
@@ -441,12 +441,12 @@ const MinesGame = () => {
         <button
           key={index}
           className={`
-            relative w-[75px] h-[75px] rounded-[10px] cursor-pointer tile flex items-center justify-center 
+            relative w-[88px] h-[88px] rounded-[10px] cursor-pointer tile flex items-center justify-center 
             transition-all duration-200 ease-in
             ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3a3a4d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
-            ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
-            ${status === 'mine' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
-            ${status === 'gem' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
+            ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
+            ${status === 'mine' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-explosion' : ''}
+            ${status === 'gem' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
           `}
           onClick={() => handleTileClick(index)}
           disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
