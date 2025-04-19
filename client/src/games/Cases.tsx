@@ -1,68 +1,67 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { cn } from '../lib/utils';
+import React, { useState, useRef, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import gsap from 'gsap';
-import LoadingBar from '../components/games/LoadingBar';
-import ScreenTimeCounter from '../components/games/ScreenTimeCounter';
+import LoadingBar from '@/components/games/LoadingBar';
+import ScreenTimeCounter from '@/components/games/ScreenTimeCounter';
 
-// Case colors
+interface Case {
+  id: number;
+  color: string;
+  multiplier: string | null;
+  isSelected: boolean;
+  isOpened: boolean;
+}
+
 const CASE_COLORS = [
-  'bg-green-500',  // Green
-  'bg-blue-400',   // Blue light
-  'bg-blue-600',   // Blue dark
-  'bg-purple-500', // Purple
-  'bg-gray-400',   // Gray light
-  'bg-gray-600',   // Gray dark
-  'bg-cyan-400',   // Cyan
+  'bg-gradient-to-b from-green-500 to-green-700',
+  'bg-gradient-to-b from-blue-500 to-blue-700',
+  'bg-gradient-to-b from-purple-500 to-purple-700',
+  'bg-gradient-to-b from-yellow-500 to-yellow-700',
+  'bg-gradient-to-b from-pink-500 to-pink-700',
+  'bg-gradient-to-b from-cyan-500 to-cyan-700',
+  'bg-gradient-to-b from-red-500 to-red-700',
+  'bg-gradient-to-b from-orange-500 to-orange-700',
 ];
 
-// Possible multipliers for the cases
-const MULTIPLIERS = ['0.20x', '0.30x', '0.40x', '1.50x', '3.00x', '5.00x'];
+// Array of possible multipliers (some good, some bad)
+const MULTIPLIERS = ['0.1x', '0.2x', '0.3x', '0.5x', '1.5x', '2x', '3x', '5x'];
 
-const CasesGame: React.FC = () => {
-  const [betAmount, setBetAmount] = useState<number>(0);
-  const [inputBetAmount, setInputBetAmount] = useState<string>('0.00000000');
-  const [difficulty, setDifficulty] = useState<string>('Medium');
-  const [cases, setCases] = useState<Array<{color: string, multiplier: string | null, isSelected: boolean, isOpened: boolean}>>([]);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameEnded, setGameEnded] = useState(false);
+const Cases: React.FC = () => {
+  const [cases, setCases] = useState<Case[]>([]);
   const [selectedCase, setSelectedCase] = useState<number | null>(null);
   const [revealedMultiplier, setRevealedMultiplier] = useState<string | null>(null);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
+  const [betAmount, setBetAmount] = useState(0);
+  const [inputBetAmount, setInputBetAmount] = useState('');
+  const [difficulty, setDifficulty] = useState('Medium');
   const [isManualMode, setIsManualMode] = useState(true);
-
-  // Reference for animation
-  const triangleRef = useRef<HTMLDivElement>(null);
-  const loaderRef = useRef<HTMLDivElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
-
-  // References for slot animations
-  const slotContainerRef = useRef<HTMLDivElement>(null);
   const [isSlotSpinning, setIsSlotSpinning] = useState(false);
   
-  // Initialize random cases
+  const slotContainerRef = useRef<HTMLDivElement>(null);
+  const triangleRef = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
     initializeCases();
   }, []);
-
+  
   const initializeCases = () => {
-    const numberOfCases = 8; // We'll display 8 cases in a row
-    const shuffledColors = [...CASE_COLORS].sort(() => Math.random() - 0.5);
-    
-    // Create cases with random colors
-    let newCases = Array(numberOfCases).fill(null).map((_, index) => ({
-      color: shuffledColors[index % shuffledColors.length],
+    const initialCases = CASE_COLORS.map((color, index) => ({
+      id: index,
+      color,
       multiplier: null,
       isSelected: false,
-      isOpened: false
+      isOpened: false,
     }));
-
-    setCases(newCases);
+    
+    setCases(initialCases);
     setGameStarted(false);
     setGameEnded(false);
     setSelectedCase(null);
     setRevealedMultiplier(null);
   };
   
-  // Function to animate slot-like spinning with true infinite loop until stop
+  // Function to animate slot-like spinning with ultra smooth infinite loop
   const animateSlotMachine = () => {
     if (!slotContainerRef.current || isSlotSpinning) return;
     
@@ -77,64 +76,73 @@ const CasesGame: React.FC = () => {
     // Reset position
     gsap.set(slotContainer, { x: 0 });
     
-    // Calculate the total width - we only need to move half of it since we have duplicated items
+    // Calculate the total width of one set of cases (half the container)
     const totalWidth = slotContainer.scrollWidth / 2;
     
-    // Initial quick spin - accelerate
-    gsap.to(slotContainer, {
-      x: `-=${totalWidth * 0.2}`, // Start with a quick movement
-      duration: 0.3,
-      ease: "power2.in",
-      onComplete: startInfiniteLoop
+    // Create a timeline for smoother sequencing
+    const tl = gsap.timeline();
+    
+    // Phase 1: Quick acceleration
+    tl.to(slotContainer, {
+      x: `-=${totalWidth * 0.25}`,  // Start with a quick partial movement
+      duration: 0.2,                // Very short for quick acceleration
+      ease: "power1.in"             // Accelerate in
     });
     
-    // Function to handle the true infinite loop
-    function startInfiniteLoop() {
-      // Main infinite loop animation - will continue until manually stopped
-      const infiniteLoop = gsap.to(slotContainer, {
-        x: `-=${totalWidth}`, // Move one full cycle
-        duration: 0.8, // Duration controls the speed - faster for more exciting effect
-        ease: "none", // Linear movement for smooth continuous scrolling
-        repeat: -1, // -1 means infinite loop
-        modifiers: {
-          // This creates the infinite loop effect
-          x: gsap.utils.unitize(x => {
-            return parseFloat(x) % totalWidth; // Keep looping back
-          })
+    // Reference to our infinite animation for later cleanup
+    let infiniteAnim;
+    
+    // Phase 2: Start the infinite loop with seamless looping
+    tl.add(() => {
+      // This creates our infinite loop with perfect looping
+      infiniteAnim = gsap.to(slotContainer, {
+        x: `-=${totalWidth}`,       // Move one full width
+        duration: 0.5,              // Faster speed for exciting effect
+        ease: "none",               // Linear for smooth motion
+        repeat: -1,                 // Infinite repeats
+        onRepeat: () => {
+          // When we complete a cycle, instantly jump back without visual interruption
+          const currentX = gsap.getProperty(slotContainer, "x") as number;
+          // Get only the fractional part by using modulo
+          const loopPosition = currentX % totalWidth;
+          // Reset position to create perfect loop illusion
+          gsap.set(slotContainer, { x: loopPosition });
         }
       });
       
-      // Wait for some spins and then stop gradually
+      // Schedule the stop after some time
       setTimeout(() => {
-        // Get current position to ensure smooth transition
-        const currentX = gsap.getProperty(slotContainer, "x");
-        
-        // Kill the infinite animation
-        gsap.killTweensOf(slotContainer);
-        
-        // Calculate a random stopping point - makes it more unpredictable
-        const caseWidth = totalWidth / 8; // 8 cases total
-        const randomStopPoint = Math.floor(Math.random() * 8) * caseWidth;
-        
-        // First slow down gradually
-        gsap.to(slotContainer, {
-          x: `-=${totalWidth * 1.5}`, // Continue moving but slower
-          duration: 1.2,
-          ease: "power1.inOut",
-          onComplete: () => {
-            // Now make the final stop at exact case position
-            gsap.to(slotContainer, {
-              x: -randomStopPoint, // Stop at a specific case position
-              duration: 0.8,
-              ease: "power3.out", // Ease out for natural slowdown
-              onComplete: () => {
-                setIsSlotSpinning(false);
-              }
-            });
-          }
-        });
+        if (infiniteAnim) {
+          // Kill the infinite animation safely
+          infiniteAnim.kill();
+          
+          // Get current exact position for smooth transition
+          const currentX = gsap.getProperty(slotContainer, "x") as number;
+          const normalizedX = currentX % totalWidth; // Normalize the position
+          
+          // Phase 3: Gradual slowdown
+          gsap.to(slotContainer, {
+            x: `${normalizedX - totalWidth}`, // Continue movement but slowing down
+            duration: 0.8,                   // Slowing down period
+            ease: "power1.out",              // Ease out for natural deceleration
+            onComplete: () => {
+              // Phase 4: Final positioning to a specific case
+              const caseWidth = totalWidth / 8; // Width of each case
+              const randomStopPoint = Math.floor(Math.random() * 8) * caseWidth;
+              
+              gsap.to(slotContainer, {
+                x: -randomStopPoint,         // Stop at a specific case
+                duration: 0.5,               // Quick final positioning
+                ease: "back.out(2)",         // Slight overshoot and settle for realism
+                onComplete: () => {
+                  setIsSlotSpinning(false);
+                }
+              });
+            }
+          });
+        }
       }, 3000); // Run for 3 seconds before starting to slow down
-    }
+    });
   };
 
   const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -518,84 +526,74 @@ const CasesGame: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Triangle pointer - enhanced visibility */}
+            
+            {/* Triangle pointer at the bottom */}
             <div 
-              ref={triangleRef}
-              className="absolute -bottom-6 left-1/2 -translate-x-1/2 transform transition-transform" 
+              ref={triangleRef} 
+              className="absolute bottom-[-15px] left-1/2 transform -translate-x-1/2 transition-transform"
             >
-              <div className="flex flex-col items-center">
-                <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-b-[18px] border-l-transparent border-r-transparent border-b-cyan-500"></div>
-                <div className="w-1 h-30 bg-cyan-500 rounded-full opacity-70"></div>
+              <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[15px] border-l-transparent border-r-transparent border-b-cyan-500" />
+            </div>
+          </div>
+          
+          {/* Game controls: Bet and Reset Buttons */}
+          <div className="flex justify-center gap-4 mb-8">
+            {!gameStarted ? (
+              <button 
+                onClick={startGame} 
+                disabled={betAmount <= 0 || isSlotSpinning}
+                className={cn(
+                  "px-8 py-3 rounded-md text-white font-medium text-lg",
+                  betAmount > 0 && !isSlotSpinning ? "bg-green-600 hover:bg-green-700" : "bg-gray-700 cursor-not-allowed"
+                )}
+              >
+                {isSlotSpinning ? "Spinning..." : "Bet"}
+              </button>
+            ) : (
+              <button 
+                onClick={resetGame} 
+                className="px-8 py-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg"
+              >
+                New Game
+              </button>
+            )}
+          </div>
+          
+          {/* Game result */}
+          {gameEnded && revealedMultiplier && (
+            <div className="flex flex-col items-center mb-8">
+              <h2 className="text-2xl font-bold mb-2">Result</h2>
+              <div className={cn(
+                "text-3xl font-bold",
+                parseFloat(revealedMultiplier) > 1 ? "text-green-500" : "text-red-500"
+              )}>
+                {`${revealedMultiplier} (${(parseFloat(revealedMultiplier) * betAmount).toFixed(2)})`}
+              </div>
+            </div>
+          )}
+          
+          {/* Game stats */}
+          <div className="bg-[#1A2C38] rounded-lg p-4">
+            <h3 className="text-lg font-medium mb-2">Game Statistics</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-sm text-gray-400">Win Chance</div>
+                <div className="text-xl font-medium">42%</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-gray-400">Max Win</div>
+                <div className="text-xl font-medium text-green-500">5x</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-gray-400">Max Loss</div>
+                <div className="text-xl font-medium text-red-500">0.1x</div>
               </div>
             </div>
           </div>
-
-          {/* Color selector */}
-          <div className="flex justify-center gap-2 mb-6">
-            {CASE_COLORS.map((color, index) => (
-              <button
-                key={index}
-                className={`w-6 h-6 rounded-full ${color}`}
-              />
-            ))}
-          </div>
-
-          {/* Game action buttons */}
-          <div className="flex justify-center">
-            {!gameStarted ? (
-              <button
-                className="bg-green-500 text-white px-12 py-3 rounded-md font-medium text-lg"
-                onClick={startGame}
-              >
-                Bet
-              </button>
-            ) : (
-              gameEnded && (
-                <button
-                  className="bg-blue-500 text-white px-12 py-3 rounded-md font-medium text-lg"
-                  onClick={resetGame}
-                >
-                  New Game
-                </button>
-              )
-            )}
-          </div>
-
-          {/* Results display */}
-          {revealedMultiplier && (
-            <div className="mt-6 text-center">
-              <p className="text-2xl font-bold">
-                {parseFloat(revealedMultiplier) > 1 ? (
-                  <span className="text-green-500">You won {revealedMultiplier}!</span>
-                ) : (
-                  <span className="text-red-500">You lost with {revealedMultiplier}</span>
-                )}
-              </p>
-            </div>
-          )}
         </div>
-      </div>
-
-      {/* Game information/fairness */}
-      <div className="mt-auto p-4 flex justify-between items-center border-t border-gray-800">
-        <button className="text-sm text-gray-400">
-          <svg className="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          Stats
-        </button>
-        
-        <span className="text-sm text-gray-400">
-          Stake
-        </span>
-        
-        <button className="text-sm text-gray-400">
-          Fairness
-        </button>
       </div>
     </div>
   );
 };
 
-export default CasesGame;
+export default Cases;
