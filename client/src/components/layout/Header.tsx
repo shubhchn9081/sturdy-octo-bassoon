@@ -54,12 +54,11 @@ const Header = () => {
               variant="outline" 
               className="border-[#243442] text-white hover:bg-[#172B3A] hover:text-white"
               onClick={() => {
-                logout();
+                // We'll implement logout functionality later
                 setLocation('/');
               }}
             >
               Logout
-              {user?.username && ` (${user.username})`}
             </Button>
           ) : (
             <Button 
