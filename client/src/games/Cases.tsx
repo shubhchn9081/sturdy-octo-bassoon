@@ -70,7 +70,6 @@ const CasesGame: React.FC = () => {
     
     // Create duplicate elements for infinite loop effect
     const slotContainer = slotContainerRef.current;
-    const duration = 1.5; // seconds
     
     // Clear any previous animations
     gsap.killTweensOf(slotContainer);
@@ -78,19 +77,40 @@ const CasesGame: React.FC = () => {
     // Reset position
     gsap.set(slotContainer, { x: 0 });
     
-    // Create the slot machine animation
+    // Create a continuous horizontal slot animation
+    // First phase: Accelerate to constant speed
     gsap.to(slotContainer, {
       x: "-50%", // Move half the width to create seamless loop
-      duration: duration,
-      ease: "power1.inOut",
-      repeat: 3, // Repeat a few times
+      duration: 0.8,
+      ease: "power1.in",
       onComplete: () => {
-        gsap.to(slotContainer, {
-          x: 0,
-          duration: 0.5,
-          ease: "power3.out",
+        // Reset position for continuous loop
+        gsap.set(slotContainer, { x: 0 });
+        
+        // Second phase: Continuous scrolling at constant speed
+        const tl = gsap.timeline({
+          repeat: 4, 
           onComplete: () => {
-            setIsSlotSpinning(false);
+            // Final phase: Slow down and stop at a specific position
+            gsap.to(slotContainer, {
+              x: "-20%", // Stop at specific position
+              duration: 1.5,
+              ease: "power3.out",
+              onComplete: () => {
+                setIsSlotSpinning(false);
+              }
+            });
+          }
+        });
+        
+        // Each loop moves from 0 to -50% creating a continuous scrolling effect
+        tl.to(slotContainer, {
+          x: "-50%",
+          duration: 0.7,
+          ease: "none",
+          onComplete: () => {
+            // Reset at each loop completion for continuous effect
+            gsap.set(slotContainer, { x: 0 });
           }
         });
       }
@@ -197,7 +217,7 @@ const CasesGame: React.FC = () => {
       if (multiplierValue) {
         // Create a dynamic multiplier element
         const multiplierPopup = document.createElement('div');
-        multiplierPopup.textContent = `${multiplierValue}x`;
+        multiplierPopup.textContent = `${multiplierValue}`;
         multiplierPopup.className = 
           `absolute text-2xl font-bold z-10 ${
             parseFloat(multiplierValue) > 1 ? 'text-green-500' : 'text-red-500'
@@ -207,18 +227,29 @@ const CasesGame: React.FC = () => {
         multiplierPopup.style.transform = 'translate(-50%, -50%)';
         multiplierPopup.style.pointerEvents = 'none';
         
+        // Create a background pill for the multiplier
+        const multiplierContainer = document.createElement('div');
+        multiplierContainer.className = 'bg-black/40 rounded-full px-4 py-2';
+        multiplierContainer.style.position = 'absolute';
+        multiplierContainer.style.top = '50%';
+        multiplierContainer.style.left = '50%';
+        multiplierContainer.style.transform = 'translate(-50%, -50%)';
+        multiplierContainer.style.pointerEvents = 'none';
+        multiplierContainer.appendChild(multiplierPopup);
+        
         // Append the element to the case
         caseElement.style.position = 'relative';
-        caseElement.appendChild(multiplierPopup);
+        caseElement.appendChild(multiplierContainer);
         
         // Animate the multiplier floating up and fading out
-        gsap.to(multiplierPopup, {
-          y: -50,
+        gsap.to(multiplierContainer, {
+          y: -25,
           opacity: 0,
           duration: 1.5,
           ease: "power2.out",
+          delay: 1.5, // Wait a bit before fading out
           onComplete: () => {
-            multiplierPopup.remove();
+            multiplierContainer.remove();
           }
         });
       }
@@ -386,9 +417,9 @@ const CasesGame: React.FC = () => {
                       id={`case-${index}`}
                       key={`first-${index}`}
                       className={cn(
-                        "relative aspect-square rounded cursor-pointer transition-all", 
+                        "relative aspect-square rounded-md cursor-pointer transition-all flex flex-col overflow-hidden", 
                         caseItem.color,
-                        caseItem.isSelected && "ring-2 ring-white",
+                        caseItem.isSelected && "ring-2 ring-cyan-500",
                         !gameStarted && "opacity-70"
                       )}
                       onClick={() => selectCase(index)}
@@ -427,9 +458,9 @@ const CasesGame: React.FC = () => {
                     <div
                       key={`second-${index}`}
                       className={cn(
-                        "relative aspect-square rounded cursor-pointer transition-all", 
+                        "relative aspect-square rounded-md cursor-pointer transition-all flex flex-col overflow-hidden", 
                         caseItem.color,
-                        caseItem.isSelected && "ring-2 ring-white",
+                        caseItem.isSelected && "ring-2 ring-cyan-500",
                         !gameStarted && "opacity-70"
                       )}
                       onClick={() => selectCase(index)}
@@ -464,12 +495,15 @@ const CasesGame: React.FC = () => {
               </div>
             </div>
 
-            {/* Triangle pointer */}
+            {/* Triangle pointer - enhanced visibility */}
             <div 
               ref={triangleRef}
               className="absolute -bottom-6 left-1/2 -translate-x-1/2 transform transition-transform" 
             >
-              <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[15px] border-l-transparent border-r-transparent border-b-white"></div>
+              <div className="flex flex-col items-center">
+                <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[15px] border-l-transparent border-r-transparent border-b-white"></div>
+                <div className="w-1 h-20 bg-white rounded-full opacity-50"></div>
+              </div>
             </div>
           </div>
 
