@@ -5,7 +5,7 @@ import Layout from '@/components/layout/Layout';
 import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
 import Plinko from '@/games/Plinko';
-import Crash from '@/games/CrashEnhanced';
+import Crash from '@/games/CrashFinal';
 import Limbo from '@/games/LimboFinal';
 import DragonTower from '@/games/DragonTower';
 import BlueSamurai from '@/games/BlueSamurai';
@@ -88,7 +88,7 @@ const GamePage = () => {
   
   return (
     <div className="w-full h-full">
-      {currentGame && <GameComponent gameId={1} />}
+      {currentGame && <GameComponent />}
     </div>
   );
 };
