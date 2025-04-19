@@ -62,7 +62,7 @@ const CasesGame: React.FC = () => {
     setRevealedMultiplier(null);
   };
   
-  // Function to animate slot-like spinning with continuous infinite scrolling
+  // Function to animate slot-like spinning with true infinite loop until stop
   const animateSlotMachine = () => {
     if (!slotContainerRef.current || isSlotSpinning) return;
     
@@ -82,37 +82,50 @@ const CasesGame: React.FC = () => {
     
     // Initial quick spin - accelerate
     gsap.to(slotContainer, {
-      x: `-=${totalWidth * 0.3}`, // Start with a quick movement
-      duration: 0.4,
+      x: `-=${totalWidth * 0.2}`, // Start with a quick movement
+      duration: 0.3,
       ease: "power2.in",
-      onComplete: () => {
-        // Main continuous loop animation
+      onComplete: startInfiniteLoop
+    });
+    
+    // Function to handle the true infinite loop
+    function startInfiniteLoop() {
+      // Main infinite loop animation - will continue until manually stopped
+      const infiniteLoop = gsap.to(slotContainer, {
+        x: `-=${totalWidth}`, // Move one full cycle
+        duration: 0.8, // Duration controls the speed - faster for more exciting effect
+        ease: "none", // Linear movement for smooth continuous scrolling
+        repeat: -1, // -1 means infinite loop
+        modifiers: {
+          // This creates the infinite loop effect
+          x: gsap.utils.unitize(x => {
+            return parseFloat(x) % totalWidth; // Keep looping back
+          })
+        }
+      });
+      
+      // Wait for some spins and then stop gradually
+      setTimeout(() => {
+        // Get current position to ensure smooth transition
+        const currentX = gsap.getProperty(slotContainer, "x");
+        
+        // Kill the infinite animation
+        gsap.killTweensOf(slotContainer);
+        
+        // Calculate a random stopping point - makes it more unpredictable
+        const caseWidth = totalWidth / 8; // 8 cases total
+        const randomStopPoint = Math.floor(Math.random() * 8) * caseWidth;
+        
+        // First slow down gradually
         gsap.to(slotContainer, {
-          x: `-=${totalWidth}`, // Move one full cycle
-          duration: 1.5, // Duration controls the speed
-          ease: "none", // Linear movement for smooth scrolling
-          repeat: 3, // Repeat several times
-          modifiers: {
-            // This is the key to infinite looping - once we exceed totalWidth, loop back
-            x: gsap.utils.unitize(x => {
-              // Get the current x value without the 'px' unit
-              const current = parseFloat(x);
-              // Find the modulo to create a loop
-              return (current % totalWidth);
-            })
-          },
+          x: `-=${totalWidth * 1.5}`, // Continue moving but slower
+          duration: 1.2,
+          ease: "power1.inOut",
           onComplete: () => {
-            // Final slowdown and stop
-            const currentX = gsap.getProperty(slotContainer, "x");
-            
-            // Calculate a nice stopping point - multiples of case width
-            const caseWidth = totalWidth / 8; // 8 cases total
-            const randomStopPoint = Math.floor(Math.random() * 8) * caseWidth;
-            
-            // Slow down gradually to stop
+            // Now make the final stop at exact case position
             gsap.to(slotContainer, {
-              x: -randomStopPoint, // Stop at a random case
-              duration: 1.2,
+              x: -randomStopPoint, // Stop at a specific case position
+              duration: 0.8,
               ease: "power3.out", // Ease out for natural slowdown
               onComplete: () => {
                 setIsSlotSpinning(false);
@@ -120,8 +133,8 @@ const CasesGame: React.FC = () => {
             });
           }
         });
-      }
-    });
+      }, 3000); // Run for 3 seconds before starting to slow down
+    }
   };
 
   const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,7 +184,7 @@ const CasesGame: React.FC = () => {
     // Set game as started after animation completes
     setTimeout(() => {
       setGameStarted(true);
-    }, 3000); // Wait for animation to complete
+    }, 5000); // Wait for animation to complete - longer to account for the infinite spinning
   };
 
   const selectCase = (index: number) => {
