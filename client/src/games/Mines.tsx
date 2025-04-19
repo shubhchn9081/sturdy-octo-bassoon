@@ -429,22 +429,24 @@ const MinesGame = () => {
   
   // Render the game grid with positioned tiles
   const renderGameGrid = () => (
-    <div className="relative grid" style={{ 
+    <div className="relative grid-container grid" style={{ 
       gridTemplateColumns: 'repeat(5, 75px)', 
       gridTemplateRows: 'repeat(5, 75px)', 
       gap: '10px',
-      margin: 'auto' 
+      padding: '20px',
+      margin: 'auto',
+      marginTop: '20px' 
     }}>
       {tiles.map((status, index) => (
         <button
           key={index}
           className={`
-            relative w-[75px] h-[75px] rounded-[10px] cursor-pointer flex items-center justify-center 
+            relative w-[75px] h-[75px] rounded-[10px] cursor-pointer tile flex items-center justify-center 
             transition-all duration-200 ease-in
-            ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3a3a4d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
-            ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
-            ${status === 'mine' ? 'bg-[#2f2f3d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
-            ${status === 'gem' ? 'bg-[#2f2f3d] shadow-[0_0_5px_rgba(0,0,0,0.5)]' : ''}
+            ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3a3a4d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
+            ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
+            ${status === 'mine' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
+            ${status === 'gem' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
           `}
           onClick={() => handleTileClick(index)}
           disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
@@ -460,7 +462,7 @@ const MinesGame = () => {
   
   // Main render
   return (
-    <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]">
+    <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Side Panel */}
       <div className="w-full lg:w-[280px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
         <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
@@ -480,17 +482,21 @@ const MinesGame = () => {
           </TabsList>
           
           <TabsContent value="manual" className="mt-0">
-            {renderManualControls()}
+            <div className="controls bg-[#1c1c2b] p-5 rounded-[10px]">
+              {renderManualControls()}
+            </div>
           </TabsContent>
           
           <TabsContent value="auto" className="mt-0">
-            {renderAutoControls()}
+            <div className="controls bg-[#1c1c2b] p-5 rounded-[10px]">
+              {renderAutoControls()}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
       
       {/* Game Area */}
-      <div className="flex-1 overflow-auto" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <div className="flex-1 overflow-auto">
         <div className="w-full h-full flex items-center justify-center">
           <div className="grid-wrapper flex items-center justify-center">
             {/* Game grid */}
