@@ -36,15 +36,15 @@ const Header = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   
   return (
-    <header className="bg-[#0F212E] border-b border-[#172B3A] sticky top-0 z-10 h-[60px] flex items-center">
-      <div className="w-full px-4 flex items-center justify-between h-full">
-        <div className="flex items-center h-full">
+    <header className="bg-[#0F1923] border-b border-[#182634] sticky top-0 z-10">
+      <div className="px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center">
           <div className="hidden md:block mr-2">
             <Button 
               variant="ghost" 
               size="icon"
               onClick={toggleSidebar}
-              className="text-[#546D7A] hover:text-white hover:bg-transparent p-1"
+              className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
             >
               {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </Button>
@@ -55,45 +55,180 @@ const Header = () => {
               variant="ghost" 
               size="icon"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="text-[#546D7A] hover:text-white hover:bg-transparent p-1"
             >
               <AlignJustify className="h-6 w-6" />
             </Button>
           </div>
           
-          <div className="flex items-center cursor-pointer h-full" onClick={() => setLocation('/')}>
-            <img src="/images/stake_logo_white.png" alt="Stake" className="h-6" />
+          <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
+            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
-          <div className="relative h-[28px] flex items-center group">
-            <div className="flex items-center bg-[#1A242D] px-2 py-1 h-full rounded-sm cursor-pointer">
-              <span className="text-white text-xs font-mono mr-1">{balance}</span>
-              <span className="text-amber-500 text-xs">⊙</span>
-              <svg className="h-3 w-3 ml-0.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-            </div>
+        <div className="flex items-center space-x-4">
+          <div className="hidden md:flex bg-[#1C2C39] rounded px-2 py-1.5 items-center text-xs">
+            <span className="text-white mr-1 font-mono">{balance}</span>
+            <svg className="h-4 w-4 text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M15 8.5C14.315 7.81501 13.1087 7.33855 12 7.30872M9 15C9.64448 15.8593 10.8428 16.3494 12 16.391M12 7.30872C10.6809 7.27322 9.5 7.86998 9.5 9.50001C9.5 12.5 15 11 15 14C15 15.711 13.5362 16.4462 12 16.391M12 7.30872V5.5M12 16.391V18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <svg className="h-3 w-3 ml-1 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
           </div>
           
           <Button 
-            className="bg-[#1C82E3] hover:bg-[#1375d1] text-white font-medium text-xs h-[28px] px-3 rounded-[3px]"
+            className="bg-[#1C82E3] hover:bg-[#1375d1] rounded text-white font-medium py-1.5 px-3 text-xs"
             onClick={() => setLocation('/wallet')}
           >
             Wallet
           </Button>
           
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-transparent p-1 flex items-center">
+          {isAuthenticated ? (
+            <Button 
+              variant="outline" 
+              className="border-[#1d2a35] text-white hover:bg-[#1C2C39] hover:text-white p-1.5 text-xs"
+              onClick={() => {
+                logout();
+                setLocation('/');
+              }}
+            >
+              <LogOut className="h-3 w-3 mr-1" />
+              Logout
+            </Button>
+          ) : (
+            <Button 
+              className="bg-[#57FBA2] hover:bg-[#4ce996] text-black font-medium py-1.5 px-3 text-xs rounded"
+              onClick={() => setLocation('/auth')}
+            >
+              Sign Up
+            </Button>
+          )}
+          
+          <div className="hidden md:flex items-center space-x-1">
+            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
               <Search className="h-5 w-5" />
             </Button>
             
-            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-transparent p-1 flex items-center">
-              <User className="h-5 w-5" />
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+              >
+                <User className="h-5 w-5" />
+              </Button>
+              
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-[#1A2C38] border border-[#243442] z-50">
+                  <div className="py-1 divide-y divide-[#243442]">
+                    <div className="px-4 py-3">
+                      <p className="text-sm leading-5 text-white">
+                        {user ? user.username : 'Guest'}
+                      </p>
+                      <p className="text-xs leading-4 text-[#7F8990] mt-1">
+                        {user ? user.balance.BTC.toFixed(8) : '0.00000000'} BTC
+                      </p>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { setLocation('/wallet'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Wallet className="h-4 w-4 mr-3" />
+                        Wallet
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/vault'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <KeyRound className="h-4 w-4 mr-3" />
+                        Vault
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/vip'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Trophy className="h-4 w-4 mr-3" />
+                        VIP
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/affiliate'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Share2 className="h-4 w-4 mr-3" />
+                        Affiliate
+                      </button>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { setLocation('/statistics'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <BarChart2 className="h-4 w-4 mr-3" />
+                        Statistics
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/transactions'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <ListOrdered className="h-4 w-4 mr-3" />
+                        Transactions
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/bets'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <DollarSign className="h-4 w-4 mr-3" />
+                        My Bets
+                      </button>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { setLocation('/settings'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Settings className="h-4 w-4 mr-3" />
+                        Settings
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/stake-smart'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Shield className="h-4 w-4 mr-3" />
+                        Stake Smart
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/support'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Headphones className="h-4 w-4 mr-3" />
+                        Live Support
+                      </button>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { 
+                          logout();
+                          setShowUserMenu(false);
+                        }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             
-            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-transparent p-1 flex items-center">
+            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
               <Bell className="h-5 w-5" />
             </Button>
           </div>
@@ -101,7 +236,7 @@ const Header = () => {
       </div>
       
       {showMobileMenu && (
-        <div className="md:hidden absolute top-[60px] left-0 right-0 bg-[#0F212E] border-t border-[#172B3A] p-4">
+        <div className="md:hidden bg-[#0F212E] border-t border-[#172B3A] p-4">
           <div className="relative mb-4">
             <Input 
               placeholder="Search games..." 

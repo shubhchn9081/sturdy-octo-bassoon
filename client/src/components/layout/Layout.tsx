@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -26,7 +26,7 @@ const Layout = ({ children }: LayoutProps) => {
   const sidebarClass = collapsed ? 'w-16' : 'w-64';
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0F212E]">
+    <div className="flex h-screen overflow-hidden">
       {/* Apply auto-animate ref to the parent container */}
       <div 
         ref={animationParent} 
@@ -36,9 +36,7 @@ const Layout = ({ children }: LayoutProps) => {
       </div>
       <div className="flex-1 flex flex-col overflow-y-auto">
         <Header />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        {children}
         <Footer />
       </div>
     </div>

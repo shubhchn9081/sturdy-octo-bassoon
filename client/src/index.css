@@ -4,51 +4,50 @@
 
 @layer base {
   :root {
-    --background: 205 30% 12%;
+    --background: 222 20% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 206 33% 17%;
+    --card: 222 20% 15%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 205 30% 12%;
+    --popover: 222 20% 10%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 133 89% 64%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 160 100% 50%;
+    --primary-foreground: 222 20% 10%;
 
-    --secondary: 206 33% 17%;
+    --secondary: 223 15% 16%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 205 26% 27%;
+    --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 133 89% 64%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 160 100% 50%;
+    --accent-foreground: 222 20% 10%;
 
     --destructive: 0 80% 63%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 206 33% 25%;
-    --input: 206 33% 25%;
-    --ring: 133 89% 64%;
+    --border: 215 27% 20%;
+    --input: 215 27% 20%;
+    --ring: 160 100% 50%;
 
-    --sidebar-background: 205 30% 12%;
+    --sidebar-background: 222 20% 10%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-muted: 206 19% 40%;
-    --sidebar-primary: 133 89% 64%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 206 33% 17%;
+    --sidebar-primary: 160 100% 50%;
+    --sidebar-primary-foreground: 222 20% 10%;
+    --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 206 33% 25%;
-    --sidebar-ring: 133 89% 64%;
+    --sidebar-border: 215 27% 20%;
+    --sidebar-ring: 160 100% 50%;
 
     --chart-1: 0 72% 51%;
-    --chart-2: 133 89% 64%;
+    --chart-2: 160 100% 50%;
     --chart-3: 217 91% 60%;
     --chart-4: 41 100% 50%;
     --chart-5: 262 83% 58%;
 
-    --radius: 0.25rem;
+    --radius: 0.5rem;
   }
 }
 
@@ -64,43 +63,19 @@
 
 @layer components {
   .game-card {
-    @apply relative overflow-hidden rounded-md transition-all duration-200;
-  }
-  
-  .game-card:hover {
-    @apply transform scale-[1.02] shadow-xl shadow-black/40;
+    @apply relative overflow-hidden rounded-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10;
   }
   
   .panel-bg {
-    @apply bg-[#172B3A];
-  }
-  
-  .darker-bg {
-    @apply bg-[#0F212E];
-  }
-  
-  .lighter-bg {
-    @apply bg-[#1A242D];
-  }
-  
-  .green-button {
-    @apply bg-[#7BFA4C] hover:bg-[#6AE33C] text-black font-medium rounded-[3px] transition-colors;
-  }
-  
-  .blue-button {
-    @apply bg-[#1C82E3] hover:bg-[#1375D1] text-white font-medium rounded-[3px] transition-colors;
-  }
-  
-  .dark-input {
-    @apply bg-[#243442] border-none text-white rounded-[3px] focus:outline-none focus:ring-1 focus:ring-[#7BFA4C]/50;
+    @apply bg-[#171A21];
   }
   
   .bet-input {
-    @apply w-full bg-[#243442] border-none text-white p-2 rounded-[3px] focus:outline-none focus:ring-1 focus:ring-[#7BFA4C]/50;
+    @apply w-full bg-panel-bg text-white p-2 rounded border border-border focus:outline-none focus:border-accent;
   }
   
   .bet-button {
-    @apply bg-[#7BFA4C] hover:bg-[#6AE33C] text-black font-semibold py-2 px-4 rounded-[3px] transition-colors;
+    @apply bg-primary text-primary-foreground font-semibold py-2 px-4 rounded hover:bg-primary/90 transition;
   }
   
   /* Wheel Game styles */

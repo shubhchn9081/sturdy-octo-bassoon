@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GAMES } from '@/games';
 import GameCard from '@/components/games/GameCard';
 import { formatNumber } from '@/lib/utils';
-import { Search, ListFilter, Grid } from 'lucide-react';
+import { ListFilter, Trophy, Zap } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 type Game = {
   id: number;
@@ -24,8 +25,6 @@ const OriginalsPage = () => {
     // Using default query function from queryClient.ts - no need to specify queryFn
   });
   
-  const [viewAll, setViewAll] = useState(false);
-  
   // Combine API game data (mainly for imageUrl) with our static game data for other props
   const combinedGames = GAMES.map(game => {
     const apiGame = Array.isArray(apiGames) ? 
@@ -40,52 +39,39 @@ const OriginalsPage = () => {
   // Filter only Stake Originals games
   const originalsGames = combinedGames.filter(game => game.type === 'STAKE ORIGINALS');
   
-  // Sample player counts to match the screenshot
-  const playerCounts = {
-    'MINES': 13166,
-    'DICE': 7781,
-    'PLINKO': 5134,
-    'LIMBO': 8092,
-    'CRASH': 4411,
-    'KENO': 2069,
-    'WHEEL': 2226,
-    'BLACKJACK': 3503
-  };
-  
   return (
-    <div className="px-8 py-6 bg-[#0F212E]">
-      <h1 className="text-2xl font-medium text-white mb-4">Stake Originals</h1>
-      
-      <div className="w-full flex items-center mb-8">
-        <div className="relative flex-grow max-w-[450px]">
-          <input 
-            type="text" 
-            placeholder="Search your game"
-            className="w-full h-10 bg-[#172B3A] border-none rounded-sm py-2 px-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#7BFA4C]/20"
-          />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#546D7A]">
-            <Search className="h-4 w-4" />
-          </div>
+    <div className="container mx-auto px-6 py-6">
+      <div className="relative mb-6">
+        <input 
+          type="text" 
+          placeholder="Search your game"
+          className="w-full bg-[#172B3A] border-none rounded-md py-3 px-10 text-white focus:outline-none"
+        />
+        <div className="absolute left-3 top-3.5 text-[#546D7A]">
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
+      </div>
+      
+      <div className="flex items-center gap-2 mb-6">
+        <div className="bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black p-2 rounded-md">
+          <Zap className="h-5 w-5" />
+        </div>
+        <h2 className="text-xl font-medium text-white">Stake Originals</h2>
         
         <div className="ml-auto flex items-center gap-2">
-          <button 
-            className="flex items-center gap-1 text-[#546D7A] hover:text-white text-sm"
-            onClick={() => setViewAll(!viewAll)}
-          >
-            {viewAll ? "View Popular" : "View All Providers"}
-          </button>
-          
-          <div className="flex items-center gap-1 ml-4">
-            <span className="text-[#546D7A] text-sm mr-1">Sort by</span>
-            <div className="bg-[#172B3A] hover:bg-[#243442] text-white py-1 px-3 rounded-sm text-xs flex items-center gap-1 cursor-pointer">
-              Popular <span className="ml-1">▼</span>
-            </div>
+          <div className="flex items-center gap-1 text-white">
+            <ListFilter className="h-4 w-4" />
+            <span className="text-sm">Sort by</span>
+          </div>
+          <div className="bg-[#172B3A] text-white py-1 px-3 rounded-md text-sm flex items-center gap-1">
+            Popular <span className="ml-1">▼</span>
           </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
         {originalsGames.map(game => (
           <GameCard
             key={game.id}
@@ -93,12 +79,11 @@ const OriginalsPage = () => {
             name={game.name}
             slug={game.slug}
             type={game.type}
-            activePlayers={playerCounts[game.name] || Math.floor(Math.random() * 10000)}
+            activePlayers={game.activePlayers}
             color={game.color}
             iconType={game.iconType}
             multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${formatNumber(game.maxMultiplier)}x` : undefined}
             imageUrl={game.imageUrl}
-            showPlayerCount={true}
           />
         ))}
       </div>
