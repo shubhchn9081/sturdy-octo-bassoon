@@ -8,6 +8,16 @@ import {
   User, 
   Bell, 
   Wallet as WalletIcon,
+  Wallet,
+  KeyRound,
+  Trophy,
+  Share2,
+  BarChart2,
+  ListOrdered,
+  DollarSign,
+  Settings,
+  Shield,
+  Headphones,
   LogIn,
   LogOut
 } from 'lucide-react';
@@ -18,6 +28,7 @@ const Header = () => {
   const balance = user ? user.balance.BTC.toFixed(8) : "0.00000000";
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   
   return (
     <header className="bg-[#0F212E] border-b border-[#172B3A] sticky top-0 z-10">
@@ -80,9 +91,123 @@ const Header = () => {
               <Search className="h-5 w-5" />
             </Button>
             
-            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
-              <User className="h-5 w-5" />
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+              >
+                <User className="h-5 w-5" />
+              </Button>
+              
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-[#1A2C38] border border-[#243442] z-50">
+                  <div className="py-1 divide-y divide-[#243442]">
+                    <div className="px-4 py-3">
+                      <p className="text-sm leading-5 text-white">
+                        {user ? user.username : 'Guest'}
+                      </p>
+                      <p className="text-xs leading-4 text-[#7F8990] mt-1">
+                        {user ? user.balance.BTC.toFixed(8) : '0.00000000'} BTC
+                      </p>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { setLocation('/wallet'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Wallet className="h-4 w-4 mr-3" />
+                        Wallet
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/vault'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <KeyRound className="h-4 w-4 mr-3" />
+                        Vault
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/vip'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Trophy className="h-4 w-4 mr-3" />
+                        VIP
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/affiliate'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Share2 className="h-4 w-4 mr-3" />
+                        Affiliate
+                      </button>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { setLocation('/statistics'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <BarChart2 className="h-4 w-4 mr-3" />
+                        Statistics
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/transactions'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <ListOrdered className="h-4 w-4 mr-3" />
+                        Transactions
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/bets'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <DollarSign className="h-4 w-4 mr-3" />
+                        My Bets
+                      </button>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { setLocation('/settings'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Settings className="h-4 w-4 mr-3" />
+                        Settings
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/stake-smart'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Shield className="h-4 w-4 mr-3" />
+                        Stake Smart
+                      </button>
+                      <button 
+                        onClick={() => { setLocation('/support'); setShowUserMenu(false); }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <Headphones className="h-4 w-4 mr-3" />
+                        Live Support
+                      </button>
+                    </div>
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={() => { 
+                          logout();
+                          setShowUserMenu(false);
+                        }} 
+                        className="flex items-center w-full px-4 py-2 text-sm leading-5 text-white hover:bg-[#243442]"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             
             <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
               <Bell className="h-5 w-5" />

@@ -9,11 +9,9 @@ import { queryClient } from "./lib/queryClient";
 const Main = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <GameProvider>
-          <App />
-        </GameProvider>
-      </UserProvider>
+      <GameProvider>
+        <App />
+      </GameProvider>
     </QueryClientProvider>
   );
 };
