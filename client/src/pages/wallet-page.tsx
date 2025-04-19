@@ -34,7 +34,7 @@ const withdrawSchema = z.object({
     { message: "Amount must be a positive number" }
   ),
   address: z.string().min(10, "Valid wallet address is required"),
-  currency: z.enum(["BTC", "ETH", "USDT", "LTC"]),
+  currency: z.enum(["INR", "BTC", "ETH", "USDT", "LTC"]),
 });
 
 type DepositFormData = z.infer<typeof depositSchema>;
@@ -47,6 +47,8 @@ export default function WalletPage() {
   const [activeTab, setActiveTab] = useState("deposit");
   const [depositAddress, setDepositAddress] = useState("");
   const [hasCopied, setHasCopied] = useState(false);
+  const [showUpiForm, setShowUpiForm] = useState(false);
+  const [upiId, setUpiId] = useState("");
 
   const depositForm = useForm<DepositFormData>({
     resolver: zodResolver(depositSchema),
@@ -67,8 +69,20 @@ export default function WalletPage() {
 
   const handleDeposit = async (data: DepositFormData) => {
     try {
-      // In a real app, you would call an API endpoint to generate a deposit address
-      // For demo, generate a mock deposit address
+      // Special handling for INR deposits via UPI
+      if (data.currency === 'INR') {
+        // Show the UPI payment form
+        setShowUpiForm(true);
+        setUpiId("stake" + Math.floor(Math.random() * 10000) + "@ybl");
+        
+        toast({
+          title: "UPI Payment Initiated",
+          description: `Please complete payment of ₹${data.amount} via UPI`,
+        });
+        return;
+      }
+      
+      // For crypto currencies, generate a deposit address
       const fakeAddress = "bc1q" + Math.random().toString(36).substring(2, 15) + 
         Math.random().toString(36).substring(2, 15);
       setDepositAddress(fakeAddress);
@@ -79,7 +93,7 @@ export default function WalletPage() {
       });
     } catch (error) {
       toast({
-        title: "Failed to generate deposit address",
+        title: "Failed to process deposit request",
         description: "Please try again later",
         variant: "destructive",
       });
@@ -130,11 +144,11 @@ export default function WalletPage() {
             <CardContent>
               <div className="flex items-center">
                 <span className="text-3xl font-bold font-mono">
-                  {user ? user.balance.BTC.toFixed(8) : "0.00000000"}
+                  ₹{user ? user.balance.INR.toFixed(2) : "0.00"}
                 </span>
-                <span className="ml-2 text-[#7F8990]">BTC</span>
+                <span className="ml-2 text-[#7F8990]">INR</span>
               </div>
-              <p className="text-[#7F8990] mt-1">≈ $47,350.00 USD</p>
+              <p className="text-[#7F8990] mt-1">≈ ${user ? (user.balance.INR / 83).toFixed(2) : "0.00"} USD</p>
             </CardContent>
             <CardFooter className="border-t border-[#243442] pt-4">
               <div className="grid grid-cols-2 gap-3 w-full">
@@ -161,9 +175,27 @@ export default function WalletPage() {
           {/* Crypto Balances */}
           <Card className="bg-[#172B3A] border-[#243442] text-white shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xl font-bold">Crypto Balances</CardTitle>
+              <CardTitle className="text-xl font-bold">Balances</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* INR Balance (Indian Rupees) */}
+              <div className="flex items-center justify-between border-b border-[#243442] pb-3">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#20b26c" />
+                    <path d="M8 7h8M13 7v10M8 12h5M8 17h8" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  <div>
+                    <p className="font-medium">Indian Rupee</p>
+                    <p className="text-sm text-[#7F8990]">INR</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono">₹{user ? user.balance.INR.toFixed(2) : "0.00"}</p>
+                  <p className="text-sm text-[#7F8990]">≈ ₹{user ? user.balance.INR.toFixed(2) : "0.00"}</p>
+                </div>
+              </div>
+              
               <div className="flex items-center justify-between border-b border-[#243442] pb-3">
                 <div className="flex items-center">
                   <Bitcoin className="h-5 w-5 text-[#f7931a] mr-3" />
@@ -255,7 +287,97 @@ export default function WalletPage() {
 
                 {/* Deposit Tab */}
                 <TabsContent value="deposit">
-                  {!depositAddress ? (
+                  {showUpiForm ? (
+                    <div className="bg-[#0F212E] rounded-md p-6 flex flex-col items-center">
+                      <h3 className="text-lg font-medium mb-4">UPI Payment</h3>
+                      <div className="text-center mb-4">
+                        <p className="text-white mb-2">Amount: ₹{depositForm.getValues().amount}</p>
+                        <p className="text-[#7F8990] mb-4">Complete payment using any UPI app</p>
+                      </div>
+                      
+                      <div className="w-40 h-40 bg-white p-2 rounded-md mb-4 flex items-center justify-center">
+                        {/* This would be an actual QR code in a real app */}
+                        <div className="text-black text-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+                            <rect width="30" height="30" x="10" y="10" />
+                            <rect width="30" height="30" x="60" y="10" />
+                            <rect width="30" height="30" x="10" y="60" />
+                            <rect width="10" height="10" x="50" y="10" />
+                            <rect width="10" height="10" x="50" y="30" />
+                            <rect width="10" height="10" x="50" y="60" />
+                            <rect width="10" height="10" x="60" y="50" />
+                            <rect width="30" height="10" x="60" y="80" />
+                            <rect width="10" height="10" x="10" y="50" />
+                            <rect width="30" height="10" x="10" y="40" />
+                            <rect width="10" height="10" x="40" y="40" />
+                            <rect width="10" height="10" x="40" y="60" />
+                            <rect width="10" height="10" x="40" y="80" />
+                            <rect width="10" height="10" x="30" y="60" />
+                            <rect width="10" height="10" x="80" y="60" />
+                            <rect width="10" height="10" x="80" y="40" />
+                          </svg>
+                          <p className="mt-2 font-medium">UPI QR Code</p>
+                        </div>
+                      </div>
+                      
+                      <div className="w-full mb-6">
+                        <p className="text-center mb-2 text-white font-medium">UPI ID</p>
+                        <div 
+                          className="bg-[#172B3A] border border-[#243442] p-3 rounded-md w-full flex items-center justify-between cursor-pointer hover:bg-[#1c334a]"
+                          onClick={() => {
+                            navigator.clipboard.writeText(upiId);
+                            toast({
+                              title: "UPI ID copied",
+                              description: "UPI ID copied to clipboard",
+                            });
+                          }}
+                        >
+                          <span className="text-[#e6e6e6] font-mono">{upiId}</span>
+                          <Copy className="h-5 w-5 text-[#7F8990]" />
+                        </div>
+                      </div>
+                      
+                      <div className="text-[#7F8990] text-sm mb-6">
+                        <p>• Open any UPI app like Google Pay, PhonePe, Paytm, etc.</p>
+                        <p>• Scan the QR code or pay to the UPI ID</p>
+                        <p>• Enter amount ₹{depositForm.getValues().amount} and complete payment</p>
+                        <p>• Your account will be credited once payment is confirmed</p>
+                      </div>
+                      
+                      <div className="flex w-full space-x-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowUpiForm(false);
+                            // Simulate deposit successful
+                            if (depositForm.getValues().amount && user) {
+                              const amount = parseFloat(depositForm.getValues().amount);
+                              updateBalance('INR', amount);
+                              toast({
+                                title: "Deposit successful",
+                                description: `₹${amount} has been added to your account`,
+                                variant: "default",
+                              });
+                              depositForm.reset({ currency: 'INR', amount: '' });
+                            }
+                          }}
+                          className="flex-1 border-[#20b26c] text-[#20b26c] hover:bg-[#20b26c] hover:text-white"
+                        >
+                          I've Completed Payment
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowUpiForm(false);
+                            depositForm.reset({ currency: 'INR', amount: '' });
+                          }}
+                          className="flex-1 border-[#243442] text-white hover:bg-[#243442]"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : !depositAddress ? (
                     <Form {...depositForm}>
                       <form onSubmit={depositForm.handleSubmit(handleDeposit)} className="space-y-6">
                         <FormField
@@ -282,14 +404,14 @@ export default function WalletPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Currency</FormLabel>
-                              <div className="grid grid-cols-4 gap-3">
-                                {["BTC", "ETH", "USDT", "LTC"].map((currency) => (
+                              <div className="grid grid-cols-5 gap-3">
+                                {["INR", "BTC", "ETH", "USDT", "LTC"].map((currency) => (
                                   <Button
                                     key={currency}
                                     type="button"
                                     variant={field.value === currency ? "default" : "outline"}
                                     className={field.value === currency 
-                                      ? "bg-[#1375e1] hover:bg-[#0e5dba]" 
+                                      ? currency === "INR" ? "bg-[#20b26c] hover:bg-[#1a9b5c]" : "bg-[#1375e1] hover:bg-[#0e5dba]" 
                                       : "border-[#243442] text-white hover:bg-[#243442]"
                                     }
                                     onClick={() => field.onChange(currency)}
@@ -303,13 +425,24 @@ export default function WalletPage() {
                           )}
                         />
 
-                        <Button
-                          type="submit"
-                          className="w-full bg-[#1375e1] hover:bg-[#0e5dba]"
-                          disabled={depositForm.formState.isSubmitting}
-                        >
-                          {depositForm.formState.isSubmitting ? "Generating address..." : "Generate Deposit Address"}
-                        </Button>
+                        {/* Special button for INR/UPI */}
+                        {depositForm.watch('currency') === 'INR' ? (
+                          <Button
+                            type="submit"
+                            className="w-full bg-[#20b26c] hover:bg-[#1a9b5c]"
+                            disabled={depositForm.formState.isSubmitting}
+                          >
+                            {depositForm.formState.isSubmitting ? "Processing..." : "Deposit via UPI"}
+                          </Button>
+                        ) : (
+                          <Button
+                            type="submit"
+                            className="w-full bg-[#1375e1] hover:bg-[#0e5dba]"
+                            disabled={depositForm.formState.isSubmitting}
+                          >
+                            {depositForm.formState.isSubmitting ? "Generating address..." : "Generate Deposit Address"}
+                          </Button>
+                        )}
                       </form>
                     </Form>
                   ) : (
