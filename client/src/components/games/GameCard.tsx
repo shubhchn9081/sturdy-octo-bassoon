@@ -30,6 +30,8 @@ const GameCard = ({
   // Function to get gradient style based on game type
   const getGradientStyle = () => {
     switch (name) {
+      case 'CRICKET MINES':
+        return { background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
       case 'MINES':
         return { background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)' };
       case 'DICE':
@@ -61,6 +63,8 @@ const GameCard = ({
   const getImageSource = () => {
     // For games with Cloudinary images
     switch (name) {
+      case 'CRICKET MINES':
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png';
       case 'CRASH':
         return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
       case 'PLINKO':
@@ -121,6 +125,16 @@ const GameCard = ({
   // Get game icon based on game type
   const getGameIcon = () => {
     switch (name) {
+      case 'CRICKET MINES':
+        return (
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="w-8 h-8 bg-green-600 rounded-sm flex items-center justify-center">
+              <div className="w-5 h-5 bg-white/80 rounded-sm flex items-center justify-center">
+                <span className="text-green-600 font-bold text-sm">6</span>
+              </div>
+            </div>
+          </div>
+        );
       case 'KENO':
         return (
           <div className="w-12 h-12 mb-2">

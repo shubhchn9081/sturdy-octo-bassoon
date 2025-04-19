@@ -26,7 +26,8 @@ export const GAMES = [
     maxBet: 100,
     rtp: 99,
     maxMultiplier: 1000,
-    activePlayers: 2891
+    activePlayers: 2891,
+    imageUrl: 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png'
   },
   {
     id: 13,
