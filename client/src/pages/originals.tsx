@@ -39,11 +39,6 @@ const OriginalsPage = () => {
   // Filter only Stake Originals games
   const originalsGames = combinedGames.filter(game => game.type === 'STAKE ORIGINALS');
   
-  // Get featured games (first 4 games)
-  const featuredGames = originalsGames.slice(0, 4);
-  // Get remaining games
-  const remainingGames = originalsGames.slice(4);
-  
   return (
     <div className="container mx-auto px-6 py-6">
       <div className="relative mb-6">
@@ -63,29 +58,9 @@ const OriginalsPage = () => {
         <div className="bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black p-2 rounded-md">
           <Zap className="h-5 w-5" />
         </div>
-        <h2 className="text-xl font-medium text-white">Featured Stake Originals</h2>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 mb-8">
-        {featuredGames.map(game => (
-          <GameCard
-            key={game.id}
-            id={game.id}
-            name={game.name}
-            slug={game.slug}
-            type={game.type}
-            activePlayers={game.activePlayers}
-            color={game.color}
-            iconType={game.iconType}
-            multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${formatNumber(game.maxMultiplier)}x` : undefined}
-            imageUrl={game.imageUrl}
-          />
-        ))}
-      </div>
-      
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-medium text-white">All Stake Originals</h2>
-        <div className="flex items-center gap-2">
+        <h2 className="text-xl font-medium text-white">Stake Originals</h2>
+        
+        <div className="ml-auto flex items-center gap-2">
           <div className="flex items-center gap-1 text-white">
             <ListFilter className="h-4 w-4" />
             <span className="text-sm">Sort by</span>
@@ -97,7 +72,7 @@ const OriginalsPage = () => {
       </div>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
-        {remainingGames.map(game => (
+        {originalsGames.map(game => (
           <GameCard
             key={game.id}
             id={game.id}
