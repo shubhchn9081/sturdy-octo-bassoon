@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -27,16 +27,17 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  // We'll implement a proper context integration later
-  // For now, we'll use a simple mock login function
-  const login = (username: string) => {
-    // In a real app, we'd store the user in context or localStorage
-    console.log(`Logged in as: ${username}`);
-    return true;
-  };
+  const { login, register, isAuthenticated } = useUser();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("login");
+  
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, setLocation]);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -57,17 +58,20 @@ export default function AuthPage() {
 
   const onLoginSubmit = async (data: LoginFormData) => {
     try {
-      // In a real implementation, you would call an API endpoint
-      // For now, just use the existing login function
-      login(data.username);
+      // Use the login function from UserContext
+      const success = await login(data.username, data.password);
       
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${data.username}!`,
-      });
-      
-      // Redirect to homepage
-      setLocation("/");
+      if (success) {
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${data.username}!`,
+        });
+        
+        // Redirect to homepage
+        setLocation("/");
+      } else {
+        throw new Error("Login failed");
+      }
     } catch (error) {
       toast({
         title: "Login failed",
@@ -79,17 +83,20 @@ export default function AuthPage() {
 
   const onRegisterSubmit = async (data: RegisterFormData) => {
     try {
-      // In a real implementation, you would call an API endpoint
-      // For now, just use the existing login function
-      login(data.username);
+      // Use the register function from UserContext
+      const success = await register(data.username, data.password);
       
-      toast({
-        title: "Registration successful",
-        description: `Welcome, ${data.username}!`,
-      });
-      
-      // Redirect to homepage
-      setLocation("/");
+      if (success) {
+        toast({
+          title: "Registration successful",
+          description: `Welcome, ${data.username}!`,
+        });
+        
+        // Redirect to homepage
+        setLocation("/");
+      } else {
+        throw new Error("Registration failed");
+      }
     } catch (error) {
       toast({
         title: "Registration failed",

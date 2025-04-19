@@ -13,9 +13,8 @@ import {
 
 
 const Header = () => {
-  // Using static values for now, will integrate with UserContext later
-  const isAuthenticated = false;
-  const balance = "1.00000000";
+  const { isAuthenticated, user, logout } = useUser();
+  const balance = user ? user.balance.BTC.toFixed(8) : "0.00000000";
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
