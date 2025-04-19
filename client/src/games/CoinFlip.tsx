@@ -71,56 +71,11 @@ const CoinFlipGame: React.FC = () => {
     // Random result
     const flipResult: CoinSide = Math.random() < 0.5 ? 'heads' : 'tails';
     
-    // Apply flipping animation with enhanced visual effects
+    // Apply flipping animation
     if (coinRef.current) {
-      // Create visual effects for the flip
-      const container = coinRef.current.parentElement;
-      if (container) {
-        // Add dramatic light effect
-        const lightEffect = document.createElement('div');
-        lightEffect.className = 'absolute inset-0 bg-yellow-400/20 rounded-full animate-pulse z-10';
-        container.appendChild(lightEffect);
-        
-        // Add particles around the coin
-        for (let i = 0; i < 20; i++) {
-          const particle = document.createElement('div');
-          particle.className = 'absolute bg-yellow-300 rounded-full z-0 opacity-0';
-          
-          // Random size, position, and animation duration
-          const size = 2 + Math.random() * 6;
-          const angle = Math.random() * Math.PI * 2;
-          const distance = 60 + Math.random() * 80;
-          const duration = 0.5 + Math.random() * 1.5;
-          
-          particle.style.width = `${size}px`;
-          particle.style.height = `${size}px`;
-          particle.style.left = `${container.offsetWidth / 2}px`;
-          particle.style.top = `${container.offsetHeight / 2}px`;
-          particle.style.animation = `particle ${duration}s ease-out forwards`;
-          particle.style.transform = `translate(-50%, -50%) rotate(${angle}rad) translateX(${distance}px)`;
-          
-          container.appendChild(particle);
-          
-          // Clean up particles after animation
-          setTimeout(() => {
-            if (container.contains(particle)) {
-              container.removeChild(particle);
-            }
-          }, duration * 1000 + 100);
-        }
-        
-        // Clean up light effect after animation
-        setTimeout(() => {
-          if (container.contains(lightEffect)) {
-            container.removeChild(lightEffect);
-          }
-        }, 3000);
-      }
-      
-      // Start the actual flip animation
       coinRef.current.classList.add('flipping');
       
-      // Set the final state after some flips
+      // Set the final state after some flips (the animation should show the correct side at the end)
       setTimeout(() => {
         if (coinRef.current) {
           // Set the resulting side for the animation
@@ -138,39 +93,6 @@ const CoinFlipGame: React.FC = () => {
             // Add winnings to balance
             const winAmount = betValue * multiplier;
             setBalance(prev => parseFloat((prev + winAmount).toFixed(8)));
-            
-            // Add win celebration effects
-            if (container) {
-              // Add confetti for wins
-              for (let i = 0; i < 40; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'absolute rounded-sm z-20';
-                
-                // Random properties
-                const size = 4 + Math.random() * 8;
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 100 + Math.random() * 150;
-                const duration = 1 + Math.random() * 2;
-                const color = ['bg-green-400', 'bg-yellow-300', 'bg-blue-400', 'bg-purple-400', 'bg-pink-400'][Math.floor(Math.random() * 5)];
-                
-                confetti.className += ` ${color}`;
-                confetti.style.width = `${size}px`;
-                confetti.style.height = `${size}px`;
-                confetti.style.left = `${container.offsetWidth / 2}px`;
-                confetti.style.top = `${container.offsetHeight / 2}px`;
-                confetti.style.animation = `confetti ${duration}s ease-out forwards`;
-                confetti.style.transform = `translate(-50%, -50%) rotate(${angle}rad) translateY(${distance}px)`;
-                
-                container.appendChild(confetti);
-                
-                // Clean up
-                setTimeout(() => {
-                  if (container.contains(confetti)) {
-                    container.removeChild(confetti);
-                  }
-                }, duration * 1000 + 100);
-              }
-            }
           } else {
             playSound('lose');
           }
@@ -191,7 +113,7 @@ const CoinFlipGame: React.FC = () => {
           // Reset flip state
           setIsFlipping(false);
         }
-      }, 2500); // Slightly longer duration for more dramatic effect
+      }, 2000); // Duration of flipping animation
     }
   };
   
@@ -406,22 +328,8 @@ const CoinFlipGame: React.FC = () => {
                   <div className="symbol">
                     <div className="circle-border">
                       <div className="center-circle flex items-center justify-center">
-                        <div className="text-6xl font-bold text-yellow-800">
-                          H
-                        </div>
+                        <Coins className="w-12 h-12 text-yellow-700" />
                       </div>
-                    </div>
-                    <div className="coin-decorations">
-                      {[...Array(8)].map((_, i) => (
-                        <div 
-                          key={i} 
-                          className="coin-dot"
-                          style={{
-                            transform: `rotate(${i * 45}deg) translateX(70px)`,
-                            animationDelay: `${i * 0.1}s`
-                          }}
-                        ></div>
-                      ))}
                     </div>
                   </div>
                 </div>
@@ -432,23 +340,10 @@ const CoinFlipGame: React.FC = () => {
                 <div className="coin-content bg-gradient-to-br from-yellow-400 to-yellow-700">
                   <div className="symbol">
                     <div className="circle-border">
-                      <div className="center-circle flex items-center justify-center">
-                        <div className="text-6xl font-bold text-yellow-800">
-                          T
-                        </div>
+                      <div className="center-circle flex flex-col items-center justify-center">
+                        <ChevronUp className="w-8 h-8 text-yellow-800" />
+                        <ChevronDown className="w-8 h-8 text-yellow-800 -mt-2" />
                       </div>
-                    </div>
-                    <div className="coin-decorations">
-                      {[...Array(8)].map((_, i) => (
-                        <div 
-                          key={i} 
-                          className="coin-star"
-                          style={{
-                            transform: `rotate(${i * 45}deg) translateX(70px)`,
-                            animationDelay: `${i * 0.1}s`
-                          }}
-                        ></div>
-                      ))}
                     </div>
                   </div>
                 </div>
