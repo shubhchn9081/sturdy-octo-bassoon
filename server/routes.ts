@@ -127,6 +127,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Transaction routes
+  app.get('/api/transactions', async (req, res) => {
+    try {
+      // For demo purposes, use a fixed user ID
+      const userId = 1;
+      const transactions = await storage.getUserTransactions(userId);
+      res.json(transactions);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+  
+  app.post('/api/transactions', async (req, res) => {
+    try {
+      const { type, amount, currency = "BTC", status, txid, description } = req.body;
+      
+      // Validate required fields
+      if (!type || !amount || !status) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+      
+      // For demo purposes, use a fixed user ID
+      const userId = 1;
+      
+      const transaction = await storage.createTransaction({
+        userId,
+        type,
+        amount,
+        currency,
+        status,
+        txid,
+        description
+      });
+      
+      // If it's a deposit or withdrawal, update user balance
+      if ((type === 'deposit' || type === 'withdrawal') && status === 'completed') {
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const multiplier = type === 'deposit' ? 1 : -1;
+        const newBalance = user.balance + (amount * multiplier);
+        await storage.updateUserBalance(userId, newBalance);
+      }
+      
+      res.status(201).json(transaction);
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+  
   // Game routes
   
   // Initialize database with games (dev only)

@@ -200,6 +200,31 @@ export class MemStorage implements IStorage {
     
     return userBets;
   }
+  
+  // Transaction methods
+  async getTransaction(id: number): Promise<Transaction | undefined> {
+    return this.transactions.get(id);
+  }
+  
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const id = this.transactionIdCounter++;
+    const transaction: Transaction = {
+      ...insertTransaction,
+      id,
+      currency: insertTransaction.currency || "BTC",
+      txid: insertTransaction.txid || null,
+      description: insertTransaction.description || null,
+      createdAt: new Date()
+    };
+    this.transactions.set(id, transaction);
+    return transaction;
+  }
+  
+  async getUserTransactions(userId: number): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .filter(transaction => transaction.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -295,6 +320,27 @@ export class DatabaseStorage implements IStorage {
         .where(eq(bets.userId, userId))
         .orderBy(desc(bets.createdAt));
     }
+  }
+  
+  // Transaction methods
+  async getTransaction(id: number): Promise<Transaction | undefined> {
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+    return transaction || undefined;
+  }
+  
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const [transaction] = await db
+      .insert(transactions)
+      .values(insertTransaction)
+      .returning();
+    return transaction;
+  }
+  
+  async getUserTransactions(userId: number): Promise<Transaction[]> {
+    return await db.select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(desc(transactions.createdAt));
   }
 }
 
