@@ -428,16 +428,22 @@ const MinesGame = () => {
   
   // Render the game grid with positioned tiles
   const renderGameGrid = () => (
-    <div className="relative grid grid-cols-5 gap-3">
+    <div className="relative grid" style={{ 
+      gridTemplateColumns: 'repeat(5, 75px)', 
+      gridTemplateRows: 'repeat(5, 75px)', 
+      gap: '10px',
+      margin: 'auto' 
+    }}>
       {tiles.map((status, index) => (
         <button
           key={index}
           className={`
-            relative h-[75px] w-full rounded-md cursor-pointer flex items-center justify-center transition-colors
-            ${status === 'hidden' ? 'bg-[#243442] hover:bg-[#2c3e4d]' : ''}
-            ${status === 'revealed' ? 'bg-[#243442]' : ''}
-            ${status === 'mine' ? 'bg-[#243442]' : ''}
-            ${status === 'gem' ? 'bg-[#243442]' : ''}
+            relative w-[75px] h-[75px] rounded-[10px] cursor-pointer flex items-center justify-center 
+            transition-colors duration-200 ease-in shadow-sm
+            ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3c3c4f]' : ''}
+            ${status === 'revealed' ? 'bg-[#2f2f3d]' : ''}
+            ${status === 'mine' ? 'bg-[#2f2f3d]' : ''}
+            ${status === 'gem' ? 'bg-[#2f2f3d]' : ''}
           `}
           onClick={() => handleTileClick(index)}
           disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
@@ -485,7 +491,7 @@ const MinesGame = () => {
       {/* Game Area */}
       <div className="flex-1 overflow-auto">
         <div className="w-full h-full flex items-center justify-center p-5">
-          <div className="max-w-xl">
+          <div className="flex flex-col items-center justify-center">
             {/* Game grid */}
             {renderGameGrid()}
           </div>
