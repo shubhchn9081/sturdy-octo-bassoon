@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useLocation } from 'wouter';
 import { 
   Menu, 
   Search, 
   User, 
   Bell, 
-  Wallet as WalletIcon
+  Wallet as WalletIcon,
+  LogIn
 } from 'lucide-react';
 
 
 const Header = () => {
-  // Temporary value until we fix context providers
+  // Using static values for now, will integrate with UserContext later
+  const isAuthenticated = false;
   const balance = "1.00000000";
+  const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   return (
@@ -44,6 +48,28 @@ const Header = () => {
           <Button className="bg-[#1375e1] hover:bg-[#0e5dba] rounded-md text-white font-medium py-2 px-4 text-sm">
             Wallet
           </Button>
+          
+          {isAuthenticated ? (
+            <Button 
+              variant="outline" 
+              className="border-[#243442] text-white hover:bg-[#172B3A] hover:text-white"
+              onClick={() => {
+                logout();
+                setLocation('/');
+              }}
+            >
+              Logout
+              {user?.username && ` (${user.username})`}
+            </Button>
+          ) : (
+            <Button 
+              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 text-sm flex items-center"
+              onClick={() => setLocation('/auth')}
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Sign Up / Login
+            </Button>
+          )}
           
           <div className="hidden md:flex items-center space-x-1">
             <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">

@@ -19,6 +19,14 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+export function useUserContext() {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUserContext must be used within a UserProvider');
+  }
+  return context;
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [username, setUsername] = useState<string>('Guest');
@@ -29,7 +37,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     enabled: isAuthenticated,
   });
 
-  // For demo purposes, auto-login as a guest user
+  // For demo purposes, we'll comment out the auto-login so users can see the login button
+  /*
   useEffect(() => {
     // Create a guest user with a random id
     const guestUser = {
@@ -40,6 +49,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     
     login(guestUser.username);
   }, []);
+  */
 
   const login = (username: string) => {
     // In a real implementation, this would call an API endpoint
