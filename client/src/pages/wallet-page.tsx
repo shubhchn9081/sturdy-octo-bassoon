@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { 
@@ -534,14 +534,25 @@ export default function WalletPage() {
                         name="address"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Recipient Address</FormLabel>
+                            <FormLabel>
+                              {withdrawForm.watch('currency') === 'INR' ? 'UPI ID' : 'Recipient Address'}
+                            </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter recipient wallet address"
+                                placeholder={
+                                  withdrawForm.watch('currency') === 'INR' 
+                                    ? "Enter UPI ID (e.g. name@upi)" 
+                                    : "Enter recipient wallet address"
+                                }
                                 {...field}
                                 className="bg-[#0F212E] border-[#243442]"
                               />
                             </FormControl>
+                            {withdrawForm.watch('currency') === 'INR' && (
+                              <FormDescription className="text-[#7F8990] text-xs mt-1">
+                                Enter your UPI ID from Google Pay, PhonePe, Paytm, or other UPI apps
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
