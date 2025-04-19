@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/context/UserContext';
 import { 
   Bitcoin, 
   CreditCard, 
@@ -42,7 +42,7 @@ type WithdrawFormData = z.infer<typeof withdrawSchema>;
 
 export default function WalletPage() {
   const [, setLocation] = useLocation();
-  const { user, updateBalance } = useUser();
+  const { user, updateUserBalance } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("deposit");
   const [depositAddress, setDepositAddress] = useState("");
@@ -106,7 +106,7 @@ export default function WalletPage() {
       if (data.currency === 'INR') {
         // Simulate withdrawal
         if (user && user.balance.INR >= parseFloat(data.amount)) {
-          updateBalance('INR', -parseFloat(data.amount));
+          updateUserBalance('INR', -parseFloat(data.amount));
           
           toast({
             title: "INR Withdrawal successful",
@@ -374,7 +374,7 @@ export default function WalletPage() {
                             // Simulate deposit successful
                             if (depositForm.getValues().amount && user) {
                               const amount = parseFloat(depositForm.getValues().amount);
-                              updateBalance('INR', amount);
+                              updateUserBalance('INR', amount);
                               toast({
                                 title: "Deposit successful",
                                 description: `₹${amount} has been added to your account`,

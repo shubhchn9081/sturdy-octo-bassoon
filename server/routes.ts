@@ -435,6 +435,228 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Server error' });
     }
   });
+  
+  // Login and auth routes
+  app.post('/api/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+      }
+      
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user || user.password !== password) { // In a real app, use proper password hashing
+        return res.status(401).json({ message: 'Invalid username or password' });
+      }
+      
+      if (user.isBanned) {
+        return res.status(403).json({ message: 'Your account has been banned' });
+      }
+      
+      res.json({ 
+        id: user.id,
+        username: user.username,
+        isAdmin: user.isAdmin,
+        balance: user.balance,
+        createdAt: user.createdAt
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/register', async (req, res) => {
+    try {
+      // Validate with schema
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username already taken' });
+      }
+      
+      // Create new user
+      const user = await storage.createUser(userData);
+      
+      // Return user without password
+      res.status(201).json({ 
+        id: user.id,
+        username: user.username,
+        isAdmin: user.isAdmin,
+        balance: user.balance,
+        createdAt: user.createdAt
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid user data', errors: error.errors });
+      }
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Admin routes
+  const isAdmin = async (req: any, res: any, next: any) => {
+    try {
+      const userId = req.body.userId || parseInt(req.headers['user-id'] as string);
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ message: 'Admin privileges required' });
+      }
+      
+      next();
+    } catch (error) {
+      console.error('Admin auth error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  app.get('/api/admin/users', isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error('Error getting users:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/admin/update-admin', isAdmin, async (req, res) => {
+    try {
+      const { userId, isAdmin } = req.body;
+      
+      if (!userId || isAdmin === undefined) {
+        return res.status(400).json({ message: 'Missing required parameters' });
+      }
+      
+      const updatedUser = await storage.updateUserAdmin(userId, isAdmin);
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating admin status:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/admin/update-ban', isAdmin, async (req, res) => {
+    try {
+      const { userId, isBanned } = req.body;
+      
+      if (!userId || isBanned === undefined) {
+        return res.status(400).json({ message: 'Missing required parameters' });
+      }
+      
+      const updatedUser = await storage.updateUserBanned(userId, isBanned);
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating ban status:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/admin/set-balance', isAdmin, async (req, res) => {
+    try {
+      const { userId, currency, amount } = req.body;
+      
+      if (!userId || !currency || amount === undefined) {
+        return res.status(400).json({ message: 'Missing required parameters' });
+      }
+      
+      const updatedUser = await storage.setUserBalance(userId, currency, amount);
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error setting balance:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.get('/api/admin/game-settings', isAdmin, async (req, res) => {
+    try {
+      const gameSettings = await storage.getAllGameSettings();
+      res.json(gameSettings);
+    } catch (error) {
+      console.error('Error getting game settings:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.get('/api/admin/game-settings/:gameId', isAdmin, async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.gameId);
+      const settings = await storage.getGameSettings(gameId);
+      
+      if (!settings) {
+        return res.status(404).json({ message: 'Game settings not found' });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error('Error getting game settings:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/admin/game-settings', isAdmin, async (req, res) => {
+    try {
+      const { gameId, houseEdge, forceOutcome, forcedOutcomeValue, minBetAmount, maxBetAmount } = req.body;
+      
+      if (!gameId) {
+        return res.status(400).json({ message: 'Game ID is required' });
+      }
+      
+      // Check if settings already exist for this game
+      const existingSettings = await storage.getGameSettings(gameId);
+      
+      if (existingSettings) {
+        // Update existing settings
+        const updatedSettings = await storage.updateGameSettings(gameId, {
+          houseEdge,
+          forceOutcome,
+          forcedOutcomeValue,
+          minBetAmount,
+          maxBetAmount,
+        });
+        
+        return res.json(updatedSettings);
+      } else {
+        // Create new settings
+        const newSettings = await storage.createGameSettings({
+          gameId,
+          houseEdge: houseEdge || 1.0,
+          forceOutcome: forceOutcome || false,
+          forcedOutcomeValue: forcedOutcomeValue || null,
+          minBetAmount: minBetAmount || 0.00001,
+          maxBetAmount: maxBetAmount || 1.0,
+        });
+        
+        return res.status(201).json(newSettings);
+      }
+    } catch (error) {
+      console.error('Error creating/updating game settings:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
 
   const httpServer = createServer(app);
 

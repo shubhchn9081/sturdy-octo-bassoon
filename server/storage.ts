@@ -24,7 +24,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserBalance(id: number, newBalance: number): Promise<User | undefined>;
+  updateUserBalance(id: number, currency: string, amount: number): Promise<User | undefined>;
   
   // Game methods
   getGame(id: number): Promise<Game | undefined>;
@@ -47,6 +47,18 @@ export interface IStorage {
   getTransaction(id: number): Promise<Transaction | undefined>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getUserTransactions(userId: number): Promise<Transaction[]>;
+  
+  // Admin methods
+  getAllUsers(): Promise<User[]>;
+  updateUserAdmin(id: number, isAdmin: boolean): Promise<User | undefined>;
+  updateUserBanned(id: number, isBanned: boolean): Promise<User | undefined>;
+  setUserBalance(id: number, currency: string, exactAmount: number): Promise<User | undefined>;
+  
+  // Game settings methods
+  getGameSettings(gameId: number): Promise<GameSettings | undefined>;
+  createGameSettings(settings: InsertGameSettings): Promise<GameSettings>;
+  updateGameSettings(gameId: number, settings: Partial<GameSettings>): Promise<GameSettings | undefined>;
+  getAllGameSettings(): Promise<GameSettings[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -79,7 +91,7 @@ export class MemStorage implements IStorage {
       id: 1,
       username: "demo_user",
       password: "hashed_password", // In a real app, this would be hashed
-      isAdmin: true,
+      isAdmin: false,
       isBanned: false,
       balance: {
         BTC: 0.01,
@@ -90,6 +102,26 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.users.set(demoUser.id, demoUser);
+    
+    // Create an admin user for admin panel access
+    const adminUser: User = {
+      id: 2,
+      username: "admin",
+      password: "admin_password", // In a real app, this would be hashed
+      isAdmin: true,
+      isBanned: false,
+      balance: {
+        BTC: 1.0,
+        ETH: 10.0,
+        USDT: 10000,
+        INR: 750000
+      },
+      createdAt: new Date()
+    };
+    this.users.set(adminUser.id, adminUser);
+    
+    // Update user counter
+    this.userIdCounter = 3;
     
     // Initialize games from the frontend list
     GAMES.forEach(game => {
@@ -249,6 +281,85 @@ export class MemStorage implements IStorage {
       .filter(transaction => transaction.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
+  
+  // Admin methods
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+  
+  async updateUserAdmin(id: number, isAdmin: boolean): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, isAdmin };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateUserBanned(id: number, isBanned: boolean): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, isBanned };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  async setUserBalance(id: number, currency: string, exactAmount: number): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    // Create a new balance object with the updated currency amount
+    const newBalance = { ...user.balance };
+    if (currency in newBalance) {
+      newBalance[currency] = exactAmount;
+    }
+    
+    const updatedUser = { ...user, balance: newBalance };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  // Game settings methods
+  private gameSettings: Map<number, GameSettings> = new Map();
+  private gameSettingsIdCounter: number = 1;
+  
+  async getGameSettings(gameId: number): Promise<GameSettings | undefined> {
+    return Array.from(this.gameSettings.values()).find(
+      (settings) => settings.gameId === gameId
+    );
+  }
+  
+  async createGameSettings(settings: InsertGameSettings): Promise<GameSettings> {
+    const id = this.gameSettingsIdCounter++;
+    const newSettings: GameSettings = {
+      ...settings,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.gameSettings.set(id, newSettings);
+    return newSettings;
+  }
+  
+  async updateGameSettings(gameId: number, settings: Partial<GameSettings>): Promise<GameSettings | undefined> {
+    const existingSettings = await this.getGameSettings(gameId);
+    if (!existingSettings) return undefined;
+    
+    const updatedSettings = { 
+      ...existingSettings, 
+      ...settings,
+      updatedAt: new Date()
+    };
+    
+    this.gameSettings.set(existingSettings.id, updatedSettings);
+    return updatedSettings;
+  }
+  
+  async getAllGameSettings(): Promise<GameSettings[]> {
+    return Array.from(this.gameSettings.values());
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -270,13 +381,94 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserBalance(id: number, newBalance: number): Promise<User | undefined> {
-    const [user] = await db
+  async updateUserBalance(id: number, currency: string, amount: number): Promise<User | undefined> {
+    const user = await this.getUser(id);
+    if (!user) return undefined;
+    
+    // Create a new balance object with the updated currency amount
+    const newBalance = { ...user.balance };
+    if (currency in newBalance) {
+      newBalance[currency] += amount;
+      if (newBalance[currency] < 0) newBalance[currency] = 0; // Don't allow negative balances
+    }
+    
+    const [updatedUser] = await db
       .update(users)
       .set({ balance: newBalance })
       .where(eq(users.id, id))
       .returning();
+    return updatedUser || undefined;
+  }
+  
+  // Admin methods
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+  
+  async updateUserAdmin(id: number, isAdmin: boolean): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ isAdmin })
+      .where(eq(users.id, id))
+      .returning();
     return user || undefined;
+  }
+  
+  async updateUserBanned(id: number, isBanned: boolean): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ isBanned })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+  
+  async setUserBalance(id: number, currency: string, exactAmount: number): Promise<User | undefined> {
+    const user = await this.getUser(id);
+    if (!user) return undefined;
+    
+    // Create a new balance object with the updated currency amount
+    const newBalance = { ...user.balance };
+    if (currency in newBalance) {
+      newBalance[currency] = exactAmount;
+    }
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set({ balance: newBalance })
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser || undefined;
+  }
+  
+  // Game settings methods
+  async getGameSettings(gameId: number): Promise<GameSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(gameSettings)
+      .where(eq(gameSettings.gameId, gameId));
+    return settings || undefined;
+  }
+  
+  async createGameSettings(settings: InsertGameSettings): Promise<GameSettings> {
+    const [newSettings] = await db
+      .insert(gameSettings)
+      .values(settings)
+      .returning();
+    return newSettings;
+  }
+  
+  async updateGameSettings(gameId: number, settings: Partial<GameSettings>): Promise<GameSettings | undefined> {
+    const [updatedSettings] = await db
+      .update(gameSettings)
+      .set({ ...settings, updatedAt: new Date() })
+      .where(eq(gameSettings.gameId, gameId))
+      .returning();
+    return updatedSettings || undefined;
+  }
+  
+  async getAllGameSettings(): Promise<GameSettings[]> {
+    return await db.select().from(gameSettings);
   }
 
   async getGame(id: number): Promise<Game | undefined> {
