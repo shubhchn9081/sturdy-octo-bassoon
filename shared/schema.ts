@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, real, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, real, timestamp, jsonb, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -126,3 +126,28 @@ export type HiloOutcome = {
   prediction: "higher" | "lower";
   win: boolean;
 };
+
+export const transactions = pgTable("transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: varchar("type", { length: 20 }).notNull(), // "deposit", "withdrawal", "bet_win", "bet_loss"
+  amount: real("amount").notNull(),
+  currency: varchar("currency", { length: 10 }).notNull().default("BTC"),
+  status: varchar("status", { length: 20 }).notNull(), // "pending", "completed", "failed"
+  txid: varchar("txid", { length: 100 }), // Blockchain transaction ID (for deposits/withdrawals)
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertTransactionSchema = createInsertSchema(transactions).pick({
+  userId: true,
+  type: true,
+  amount: true,
+  currency: true,
+  status: true,
+  txid: true,
+  description: true,
+});
+
+export type Transaction = typeof transactions.$inferSelect;
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;

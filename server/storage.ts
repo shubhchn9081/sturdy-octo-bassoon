@@ -7,7 +7,10 @@ import {
   type InsertGame,
   bets, 
   type Bet, 
-  type InsertBet 
+  type InsertBet,
+  transactions,
+  type Transaction,
+  type InsertTransaction
 } from "@shared/schema";
 import { GAMES } from "../client/src/games";
 import { db } from "./db";
@@ -36,23 +39,32 @@ export interface IStorage {
   }): Promise<Bet>;
   updateBet(id: number, bet: Bet): Promise<Bet>;
   getBetHistory(userId: number, gameId?: number): Promise<Bet[]>;
+  
+  // Transaction methods
+  getTransaction(id: number): Promise<Transaction | undefined>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getUserTransactions(userId: number): Promise<Transaction[]>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private games: Map<number, Game>;
   private bets: Map<number, Bet>;
+  private transactions: Map<number, Transaction>;
   
   private userIdCounter: number;
   private betIdCounter: number;
+  private transactionIdCounter: number;
 
   constructor() {
     this.users = new Map();
     this.games = new Map();
     this.bets = new Map();
+    this.transactions = new Map();
     
     this.userIdCounter = 1;
     this.betIdCounter = 1;
+    this.transactionIdCounter = 1;
     
     // Initialize with demo data
     this.initializeDemoData();
