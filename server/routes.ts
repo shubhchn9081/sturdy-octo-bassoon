@@ -106,27 +106,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
   app.get('/api/user', async (req, res) => {
     try {
-      // For demo purposes, return a sample user
-      const user = await storage.getUser(1);
-      if (!user) {
-        return res.status(401).json({ message: 'User not found' });
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
       }
       
-      res.json(user);
+      // Use the authenticated user's ID from the session
+      const user = req.user;
+      
+      // Omit sensitive information like password
+      const { password, ...safeUserData } = user;
+      
+      res.json(safeUserData);
     } catch (error) {
+      console.error('Error fetching user:', error);
       res.status(500).json({ message: 'Server error' });
     }
   });
   
   app.get('/api/user/balance', async (req, res) => {
     try {
-      const user = await storage.getUser(1);
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      // Use the authenticated user's ID from the session
+      const user = req.user;
       if (!user) {
         return res.status(401).json({ message: 'User not found' });
       }
       
       res.json(user.balance);
     } catch (error) {
+      console.error('Error fetching balance:', error);
       res.status(500).json({ message: 'Server error' });
     }
   });
@@ -134,8 +147,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Transaction routes
   app.get('/api/transactions', async (req, res) => {
     try {
-      // For demo purposes, use a fixed user ID
-      const userId = 1;
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      // Use the authenticated user's ID from the session
+      const userId = req.user.id;
       const transactions = await storage.getUserTransactions(userId);
       res.json(transactions);
     } catch (error) {
@@ -146,6 +164,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/transactions', async (req, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
       const { type, amount, currency = "BTC", status, txid, description } = req.body;
       
       // Validate required fields
@@ -153,8 +176,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Missing required fields' });
       }
       
-      // For demo purposes, use a fixed user ID
-      const userId = 1;
+      // Use authenticated user's ID
+      const userId = req.user.id;
       
       const transaction = await storage.createTransaction({
         userId,
@@ -168,14 +191,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If it's a deposit or withdrawal, update user balance
       if ((type === 'deposit' || type === 'withdrawal') && status === 'completed') {
-        const user = await storage.getUser(userId);
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
+        // User is available from the session
+        const user = req.user;
         
+        // Update the balance with the proper currency
         const multiplier = type === 'deposit' ? 1 : -1;
-        const newBalance = user.balance + (amount * multiplier);
-        await storage.updateUserBalance(userId, newBalance);
+        await storage.updateUserBalance(userId, currency, amount * multiplier);
       }
       
       res.status(201).json(transaction);
@@ -190,6 +211,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize database with games (dev only)
   app.post('/api/initialize-games', async (req, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      // Check if user is admin
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: 'Admin privileges required' });
+      }
+      
       // Import GAMES array from client
       const { GAMES } = require('../client/src/games');
       
@@ -596,13 +627,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   const isAdmin = async (req: any, res: any, next: any) => {
     try {
-      const userId = req.body.userId || parseInt(req.headers['user-id'] as string);
-      
-      if (!userId) {
+      // Check if the user is authenticated
+      if (!req.isAuthenticated()) {
         return res.status(401).json({ message: 'Authentication required' });
       }
       
-      const user = await storage.getUser(userId);
+      // Check if the authenticated user is an admin
+      const user = req.user;
       
       if (!user || !user.isAdmin) {
         return res.status(403).json({ message: 'Admin privileges required' });
