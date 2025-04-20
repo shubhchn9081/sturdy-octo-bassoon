@@ -38,7 +38,7 @@ const CollapsedSidebarLink = ({ href, icon, tooltip, active: forceActive }: Coll
   return (
     <div 
       className={cn(
-        "relative flex flex-col items-center justify-center py-2.5 text-white group transition-colors cursor-pointer",
+        "relative flex flex-col items-center justify-center py-1 text-white group transition-colors cursor-pointer",
         active ? "text-white" : "text-[#546d7a] hover:text-gray-400"
       )}
       onClick={() => window.location.href = href}
@@ -60,18 +60,8 @@ const CollapsedSidebar = () => {
   
   return (
     <aside className="w-12 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] flex flex-col items-center pt-2 overflow-y-auto">
-      {/* Toggle Button */}
-      <Button 
-        variant="ghost" 
-        size="icon"
-        onClick={toggleSidebar}
-        className="text-[#546D7A] hover:text-white hover:bg-[#172B3A] mb-4"
-      >
-        <AlignJustify className="h-5 w-5" />
-      </Button>
-      
       {/* Casino / Sports Buttons */}
-      <div className="mb-4 w-12 h-12 bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold rounded-md flex items-center justify-center cursor-pointer">
+      <div className="mb-3 w-12 h-12 bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold rounded-md flex items-center justify-center cursor-pointer">
         <span className="text-xs font-bold">CASINO</span>
       </div>
       
@@ -82,7 +72,7 @@ const CollapsedSidebar = () => {
         <CollapsedSidebarLink href="/challenges" icon={<Trophy className="h-5 w-5" />} tooltip="Challenges" />
         <CollapsedSidebarLink href="/bets" icon={<Wallet className="h-5 w-5" />} tooltip="My Bets" />
         
-        <div className="w-8 border-t border-[#243442] my-3"></div>
+        <div className="w-8 border-t border-[#243442] my-1"></div>
         
         <CollapsedSidebarLink 
           href="/originals" 
