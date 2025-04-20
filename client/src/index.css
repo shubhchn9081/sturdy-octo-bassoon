@@ -76,13 +76,23 @@
 }
 
 @layer components {
-  /* Game grid layout styles */
+  /* Game grid layout styles - Stake.com exact match */
   .game-grid {
-    @apply grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-5 p-5 justify-items-center items-start;
+    @apply grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3 p-2 justify-items-center items-start;
   }
   
   .game-card {
-    @apply w-[150px] h-[200px] rounded-[20px] shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.05] transition-transform duration-300 ease-in-out bg-gradient-to-br from-[#1e1f2b] to-[#26283c];
+    @apply w-[140px] rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out bg-[#0F1923];
+  }
+  
+  /* Specific styles for game titles */
+  .game-title {
+    @apply text-center text-white font-bold text-lg uppercase tracking-wide mb-1;
+  }
+  
+  /* Platform indicator styles */
+  .platform-indicator {
+    @apply text-xs text-gray-400 uppercase tracking-wider;
   }
   
   .panel-bg {

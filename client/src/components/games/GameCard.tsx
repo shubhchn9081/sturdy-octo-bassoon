@@ -26,35 +26,37 @@ const GameCard = ({
   className,
   imageUrl
 }: GameCardProps) => {
-  // Function to get gradient style based on game type
+  // Function to get gradient style based on game type - exact Stake.com colors
   const getGradientStyle = () => {
     switch (name) {
-      case 'CRICKET MINES':
-        return { background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
-      case 'MINES':
-        return { background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)' };
       case 'DICE':
-        return { background: 'linear-gradient(135deg, #f472b6 0%, #ef4444 100%)' };
+        return { background: '#7b1fa2' }; // Purple
+      case 'MINES':
+        return { background: '#1e88e5' }; // Blue
       case 'PLINKO':
-        return { background: 'linear-gradient(135deg, #a78bfa 0%, #facc15 100%)' };
-      case 'LIMBO':
-        return { background: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)' };
-      case 'PUMP':
-        return { background: 'linear-gradient(135deg, #f87171 0%, #ec4899 100%)' };
+        return { background: '#7c4dff' }; // Purple-Blue
       case 'CRASH':
-        return { background: 'linear-gradient(135deg, #60a5fa 0%, #facc15 100%)' };
+        return { background: '#ffb300' }; // Gold
+      case 'LIMBO':
+        return { background: '#ff9800' }; // Orange
+      case 'PUMP':
+        return { background: '#f44336' }; // Red
       case 'KENO':
-        return { background: 'linear-gradient(135deg, #10b981 0%, #2563eb 100%)' };
-      case 'DRAGON TOWER':
-        return { background: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)' };
+        return { background: '#00bcd4' }; // Teal
+      case 'CRICKET MINES':
+        return { background: '#4caf50' }; // Green
+      case 'WHEEL':
+        return { background: '#f9a825' }; // Yellow
       case 'HILO':
-        return { background: 'linear-gradient(135deg, #22c55e 0%, #065f46 100%)' };
+        return { background: '#009688' }; // Turquoise
       case 'VIDEO POKER':
-        return { background: 'linear-gradient(135deg, #ef4444 0%, #7f1d1d 100%)' };
+        return { background: '#d32f2f' }; // Dark Red
+      case 'DRAGON TOWER':
+        return { background: '#ff5722' }; // Deep Orange
       case 'BLUE SAMURAI':
-        return { background: 'linear-gradient(135deg, #3b82f6 0%, #4338ca 100%)' };
+        return { background: '#3949ab' }; // Indigo
       default:
-        return { background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)' };
+        return { background: '#1e88e5' }; // Default Blue
     }
   };
   
@@ -254,7 +256,7 @@ const GameCard = ({
       className={cn("game-card", className)}
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      {/* Main card content */}
+      {/* Main card content - matching Stake.com layout */}
       <div className="aspect-square relative w-full">
         {/* Background gradient or image */}
         <div 
@@ -275,15 +277,26 @@ const GameCard = ({
           />
         )}
         
-        {/* Multiplier badge in top right if available */}
+        {/* Centered game name in large bold uppercase font */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="text-center text-white font-bold text-2xl uppercase z-10 px-2 tracking-wide">
+            {name}
+          </div>
+          <div className="text-[10px] text-gray-300 uppercase mt-1 tracking-wider z-10">
+            STAKE ORIGINALS
+          </div>
+        </div>
+        
+        {/* Multiplier badge in top right if available - exact Stake.com style */}
         {multiplier && (
-          <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold py-1 px-2 rounded">
+          <div className="absolute top-2 right-2 bg-yellow-400 text-white text-[10px] font-bold py-0.5 px-1.5 rounded-sm flex items-center">
+            <div className="w-2 h-2 rounded-full bg-orange-500 mr-1"></div>
             {multiplier}
           </div>
         )}
       </div>
       
-      {/* Player count */}
+      {/* Player count - with green dot and exact Stake.com styling */}
       <div className="bg-[#0F212E] px-2 py-1 text-[11px] text-green-400 flex items-center justify-center">
         <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></div>
         {activePlayers.toLocaleString()} playing
