@@ -277,15 +277,7 @@ const GameCard = ({
           />
         )}
         
-        {/* Centered game name in large bold uppercase font */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-center text-white font-bold text-2xl uppercase z-10 px-2 tracking-wide">
-            {name}
-          </div>
-          <div className="text-[10px] text-gray-300 uppercase mt-1 tracking-wider z-10">
-            STAKE ORIGINALS
-          </div>
-        </div>
+        {/* No text overlay as images already contain game names */}
         
         {/* Multiplier badge in top right if available - exact Stake.com style */}
         {multiplier && (
@@ -297,8 +289,8 @@ const GameCard = ({
       </div>
       
       {/* Player count - with green dot and exact Stake.com styling */}
-      <div className="bg-[#0F212E] px-2 py-1 text-[11px] text-green-400 flex items-center justify-center">
-        <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></div>
+      <div className="bg-[#0F212E] px-2 py-0.5 text-[10px] text-green-400 flex items-center justify-center">
+        <div className="w-1 h-1 rounded-full bg-green-400 mr-1"></div>
         {activePlayers.toLocaleString()} playing
       </div>
     </div>
