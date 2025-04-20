@@ -102,9 +102,9 @@ const GameCard = ({
       case 'LIMBO':
         return '/images/games/14a07f57ad5198ffadd4e0d4386245f4e017d030-1080x1080.png';
       case 'MINES':
-        return '/images/mines.png';
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745173634/5da127925ac99a19da0cd888e5436049bc42f8ee4002df80cdc817f0501ab8a7_fhf3kc.png';
       case 'CRICKET MINES':
-        return '/images/cricket_mines.png';
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745173403/Cricket_Mines_Resized_xfosv9.png';
       case 'DICE':
         return '/images/games/1b45a8e293264dab4677f8187e8d71feeb56adabc02510a59d6b4e780c1e5b4c.png';
       case 'VIDEO POKER':
