@@ -47,7 +47,7 @@ const Header = () => {
   
   return (
     <header className="bg-[#0F1923] border-b border-[#182634] sticky top-0 z-10">
-      <div className="px-4 py-2 flex items-center justify-between">
+      <div className="px-2 md:px-4 py-1 md:py-2 flex items-center justify-between">
         <div className="flex items-center">
           <div className="hidden md:block mr-2">
             <Button 
@@ -65,13 +65,14 @@ const Header = () => {
               variant="ghost" 
               size="icon"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="p-1"
             >
-              <AlignJustify className="h-6 w-6" />
+              <AlignJustify className="h-5 w-5" />
             </Button>
           </div>
           
           <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
-            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10 md:h-16" />
           </div>
         </div>
         
@@ -89,7 +90,7 @@ const Header = () => {
           </div>
           
           <Button 
-            className="bg-[#1C82E3] hover:bg-[#1375d1] rounded text-white font-medium py-1.5 px-3 text-xs"
+            className="bg-[#1C82E3] hover:bg-[#1375d1] rounded text-white font-medium py-1 md:py-1.5 px-2 md:px-3 text-[10px] md:text-xs"
             onClick={() => setLocation('/wallet')}
           >
             Wallet
@@ -99,7 +100,7 @@ const Header = () => {
             <UserProfileButton />
           ) : (
             <Button 
-              className="bg-[#57FBA2] hover:bg-[#4ce996] text-black font-medium py-1.5 px-3 text-xs rounded"
+              className="bg-[#57FBA2] hover:bg-[#4ce996] text-black font-medium py-1 md:py-1.5 px-2 md:px-3 text-[10px] md:text-xs rounded"
               onClick={() => setLocation('/auth')}
             >
               Sign Up
@@ -188,29 +189,40 @@ const Header = () => {
       </div>
       
       {showMobileMenu && (
-        <div className="md:hidden bg-[#0F212E] border-t border-[#172B3A] p-4">
-          <div className="relative mb-4">
+        <div className="md:hidden bg-[#0F212E] border-t border-[#172B3A] p-3">
+          <div className="relative mb-3">
             <Input 
               placeholder="Search games..." 
-              className="pl-8 bg-[#172B3A] border-[#243442]"
+              className="pl-8 py-1 text-sm bg-[#172B3A] border-[#243442]"
             />
-            <div className="absolute left-3 top-3">
+            <div className="absolute left-3 top-2">
               <Search className="h-4 w-4 text-[#7F8990]" />
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="block p-2 bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/')}>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/')}>
               Home
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/originals')}>
+            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/originals')}>
               Stake Originals
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/slots')}>
+            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/slots')}>
               Slots
             </div>
-            <div className="block p-2 hover:bg-[#172B3A] rounded-md cursor-pointer" onClick={() => setLocation('/live-casino')}>
+            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/live-casino')}>
               Live Casino
             </div>
+            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/sports')}>
+              Sports
+            </div>
+            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/promotions')}>
+              Promotions
+            </div>
+            {isSignedIn && (
+              <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/account')}>
+                My Account
+              </div>
+            )}
           </div>
         </div>
       )}

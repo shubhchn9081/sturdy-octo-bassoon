@@ -65,7 +65,9 @@ const Layout = ({ children }: LayoutProps) => {
         }}
       >
         <Header />
-        {children}
+        <div className="px-2 md:px-4">
+          {children}
+        </div>
         <Footer />
       </div>
       
