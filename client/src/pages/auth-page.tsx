@@ -95,7 +95,13 @@ export default function AuthPage() {
   const onRegisterSubmit = async (data: RegisterFormData) => {
     try {
       // Use the register function from UserContext
-      const success = await register(data.username, data.password);
+      const success = await register(
+        data.username, 
+        data.password, 
+        data.email, 
+        data.dateOfBirth, 
+        data.phone
+      );
       
       if (success) {
         toast({
@@ -241,6 +247,62 @@ export default function AuthPage() {
                               <Input
                                 type="password"
                                 placeholder="Confirm your password"
+                                {...field}
+                                className="bg-[#0F212E] border-[#243442]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="Enter your email"
+                                {...field}
+                                className="bg-[#0F212E] border-[#243442]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="dateOfBirth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date of Birth</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                className="bg-[#0F212E] border-[#243442]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone (Optional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="tel"
+                                placeholder="Enter your phone number"
                                 {...field}
                                 className="bg-[#0F212E] border-[#243442]"
                               />
