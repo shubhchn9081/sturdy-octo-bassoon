@@ -42,14 +42,14 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
   return (
     <div 
       className={cn(
-        "flex items-center px-3 py-1.5 text-gray-300 text-xs rounded group transition-colors cursor-pointer",
+        "flex items-center px-3 py-0.5 text-gray-300 text-xs rounded group transition-colors cursor-pointer",
         active ? "text-white border-l-2 border-[#57FBA2]" : "hover:text-white",
         className
       )}
       onClick={() => window.location.href = href}
     >
       <span className={cn(
-        "mr-3",
+        "mr-2",
         active ? "text-[#57FBA2]" : "text-[#546d7a] group-hover:text-white"
       )}>
         {icon}
@@ -66,15 +66,6 @@ const Sidebar = () => {
     <aside className="w-56 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] overflow-y-auto">
       <div className="p-3">
         <div className="flex items-center mb-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={toggleSidebar}
-            className="text-[#546D7A] hover:text-white hover:bg-transparent p-1"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          
           <div 
             className="flex-1 flex items-center justify-center cursor-pointer"
             onClick={() => window.location.href = '/'}
@@ -104,8 +95,8 @@ const Sidebar = () => {
           </div>
         </div>
         
-        <nav className="space-y-1">
-          <div className="mb-4">
+        <nav className="space-y-0.5">
+          <div className="mb-2">
             <SidebarLink href="/favorites" icon={<Star className="h-4 w-4" />}>
               Favourites
             </SidebarLink>
@@ -126,8 +117,8 @@ const Sidebar = () => {
             </SidebarLink>
           </div>
           
-          <div className="pt-4 border-t border-[#243442]">
-            <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-2">
+          <div className="pt-2 border-t border-[#243442]">
+            <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-1">
               Games
             </h3>
             <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
