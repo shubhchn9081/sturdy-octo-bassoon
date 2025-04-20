@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
 const ROW_OPTIONS = [8, 12, 16]; // From screenshot
@@ -45,7 +46,8 @@ type BallState = {
 
 const PlinkoGame = () => {
   const { getGameResult } = useProvablyFair('plinko');
-  const { rawBalance, placeBet } = useBalance('BTC');
+  const { rawBalance, placeBet, completeBet } = useBalance('BTC');
+  const { toast } = useToast();
   const boardRef = useRef<HTMLDivElement>(null);
   
   const [gameMode, setGameMode] = useState('Manual');
@@ -55,6 +57,7 @@ const PlinkoGame = () => {
   const [balls, setBalls] = useState<BallState[]>([]);
   const [playing, setPlaying] = useState(false);
   const [result, setResult] = useState<number | null>(null);
+  const [betId, setBetId] = useState<number | null>(null);
   
   // Calculate the multipliers based on risk level
   const multipliers = useMemo(() => {
@@ -335,188 +338,268 @@ const PlinkoGame = () => {
     return grid;
   };
   
-  // Handle the bet action
-  const handleBet = async () => {
-    if (playing) return;
+  // Animating the ball drop - separated from the bet handling logic
+  const animateBallDrop = async (path: number[]): Promise<number> => {
+    // Enhanced physics constants with slower animation per user request
+    const GRAVITY = 9.8;               // Gravitational constant (m/s²) - standard value
+    const INITIAL_VELOCITY = 0.2;      // Reduced initial velocity for slower start
+    const DISTANCE_BETWEEN_ROWS = 21;  // Pixel distance between rows
+    const PIXEL_TO_METER_RATIO = 100;  // Conversion ratio (pixels per meter)
+    const FRICTION_COEFFICIENT = 0.91; // Higher friction to slow down ball movement
+    const TIME_SCALING = 4.5;          // Significantly increased time scaling for slower animation
     
-    setPlaying(true);
-    setResult(null);
+    // Shorter pause before dropping - better user experience
+    await new Promise(resolve => setTimeout(resolve, 250));
     
-    try {
-      // Generate the ball path using provably fair algorithm
-      const path = generatePath(rows);
+    // Calculate time for a ball to fall between rows using physics
+    // Formula: t = sqrt(2 * distance / gravity)
+    let currentVelocity = INITIAL_VELOCITY;
+    let totalDistance = 0;
+    
+    // Log information about ball speed
+    console.log("Starting ball drop with enhanced physics simulation:");
+    console.log("Initial velocity:", INITIAL_VELOCITY, "m/s");
+    console.log("Gravity constant:", GRAVITY, "m/s²");
+    console.log("Time scaling factor:", TIME_SCALING, "x (higher = slower animation)");
+    
+    for (let i = 0; i < path.length; i++) {
+      // Distance calculation (in meters)
+      const distance = DISTANCE_BETWEEN_ROWS / PIXEL_TO_METER_RATIO; 
+      totalDistance += distance;
       
-      // Create a new ball with its path - centered at top with the 3 pegs
-      const newBall: BallState = {
-        position: 1, // Position over the middle peg of the 3 initial pegs
-        row: 0,
-        done: false,
-        finalMultiplier: null,
-        path,
-        currentStep: 0
-      };
+      // Enhanced physics calculation with progressive acceleration
+      // Simulates real-world acceleration with row-based progression
+      const rowProgress = i / path.length; // 0 to 1 based on progress
+      const accelerationFactor = 1 + (rowProgress * 0.2); // Increases as ball falls
+      currentVelocity += Math.sqrt(2 * GRAVITY * distance) * accelerationFactor;
       
-      setBalls([newBall]);
+      // Apply dynamic friction based on position - less at top, more at bottom
+      // Creates a more realistic bouncing effect
+      const adaptiveFriction = FRICTION_COEFFICIENT - (rowProgress * 0.05);
+      currentVelocity *= adaptiveFriction;
       
-      // Animate the ball dropping with improved physics and realistic timing
-      const animateBall = async () => {
-        // Enhanced physics constants with slower animation per user request
-        const GRAVITY = 9.8;               // Gravitational constant (m/s²) - standard value
-        const INITIAL_VELOCITY = 0.2;      // Reduced initial velocity for slower start
-        const DISTANCE_BETWEEN_ROWS = 21;  // Pixel distance between rows
-        const PIXEL_TO_METER_RATIO = 100;  // Conversion ratio (pixels per meter)
-        const FRICTION_COEFFICIENT = 0.91; // Higher friction to slow down ball movement
-        const TIME_SCALING = 4.5;          // Significantly increased time scaling for slower animation
+      // Convert physics time to milliseconds with improved scaling
+      const timeToFall = (distance / currentVelocity) * 1000 * TIME_SCALING;
+      
+      // Slower animation timing as requested by user
+      // Min 150ms, max 350ms - significantly slower than previous implementation
+      const delay = Math.max(150, Math.min(350, timeToFall));
+      
+      if (i % 5 === 0) {
+        console.log(`Row ${i+1} - Fall speed: ${currentVelocity.toFixed(2)} m/s, Delay: ${delay.toFixed(0)}ms`);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      // Enhanced pin impact effects with more dynamic visual feedback
+      if (i > 0) {
+        // Create a pin impact effect - the current row and position
+        const currentRow = i;
+        const currentPin = path[i];
         
-        // Shorter pause before dropping - better user experience
-        await new Promise(resolve => setTimeout(resolve, 250));
+        // Use the enhanced pin highlight system
+        updatePinHighlights(currentRow, currentPin);
         
-        // Calculate time for a ball to fall between rows using physics
-        // Formula: t = sqrt(2 * distance / gravity)
-        let currentVelocity = INITIAL_VELOCITY;
-        let totalDistance = 0;
-        
-        // Log information about ball speed
-        console.log("Starting ball drop with enhanced physics simulation:");
-        console.log("Initial velocity:", INITIAL_VELOCITY, "m/s");
-        console.log("Gravity constant:", GRAVITY, "m/s²");
-        console.log("Time scaling factor:", TIME_SCALING, "x (higher = slower animation)");
-        
-        for (let i = 0; i < path.length; i++) {
-          // Distance calculation (in meters)
-          const distance = DISTANCE_BETWEEN_ROWS / PIXEL_TO_METER_RATIO; 
-          totalDistance += distance;
+        // Add dynamic bounce effect for more realistic pin interactions
+        if (i < path.length - 1) {
+          const directionChange = path[i+1] - path[i];
           
-          // Enhanced physics calculation with progressive acceleration
-          // Simulates real-world acceleration with row-based progression
-          const rowProgress = i / path.length; // 0 to 1 based on progress
-          const accelerationFactor = 1 + (rowProgress * 0.2); // Increases as ball falls
-          currentVelocity += Math.sqrt(2 * GRAVITY * distance) * accelerationFactor;
+          // Calculate a more natural, position-based bounce effect
+          // Higher bounce at the top rows, subtler at bottom rows
+          const bounceIntensity = 0.5 - (rowProgress * 0.3); // Decreases as ball falls
+          const visualOffset = directionChange * (0.4 + (Math.random() * 0.15)); 
           
-          // Apply dynamic friction based on position - less at top, more at bottom
-          // Creates a more realistic bouncing effect
-          const adaptiveFriction = FRICTION_COEFFICIENT - (rowProgress * 0.05);
-          currentVelocity *= adaptiveFriction;
-          
-          // Convert physics time to milliseconds with improved scaling
-          const timeToFall = (distance / currentVelocity) * 1000 * TIME_SCALING;
-          
-          // Slower animation timing as requested by user
-          // Min 150ms, max 350ms - significantly slower than previous implementation
-          const delay = Math.max(150, Math.min(350, timeToFall));
-          
-          if (i % 5 === 0) {
-            console.log(`Row ${i+1} - Fall speed: ${currentVelocity.toFixed(2)} m/s, Delay: ${delay.toFixed(0)}ms`);
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, delay));
-          
-          // Enhanced pin impact effects with more dynamic visual feedback
-          if (i > 0) {
-            // Create a pin impact effect - the current row and position
-            const currentRow = i;
-            const currentPin = path[i];
-            
-            // Use the enhanced pin highlight system
-            updatePinHighlights(currentRow, currentPin);
-            
-            // Add dynamic bounce effect for more realistic pin interactions
-            if (i < path.length - 1) {
-              const directionChange = path[i+1] - path[i];
-              
-              // Calculate a more natural, position-based bounce effect
-              // Higher bounce at the top rows, subtler at bottom rows
-              const bounceIntensity = 0.5 - (rowProgress * 0.3); // Decreases as ball falls
-              const visualOffset = directionChange * (0.4 + (Math.random() * 0.15)); 
-              
-              // First create a "bounce" effect with subtle vertical displacement
-              setBalls(prev => {
-                const updated = [...prev];
-                if (updated.length > 0) {
-                  // Dynamic bounce height based on position in board
-                  const verticalBounce = 0.85 - (rowProgress * 0.25);
-                  
-                  updated[0] = {
-                    ...updated[0],
-                    position: path[i] + visualOffset, // Horizontal bounce effect
-                    row: i + verticalBounce, // Vertical bounce above actual row
-                    currentStep: i
-                  };
-                }
-                return updated;
-              });
-              
-              // Longer pause to emphasize the bounce for a slower, more dramatic effect
-              await new Promise(resolve => setTimeout(resolve, 60));
-            }
-          }
-          
-          // Update ball position with improved animation timing
+          // First create a "bounce" effect with subtle vertical displacement
           setBalls(prev => {
             const updated = [...prev];
             if (updated.length > 0) {
+              // Dynamic bounce height based on position in board
+              const verticalBounce = 0.85 - (rowProgress * 0.25);
+              
               updated[0] = {
                 ...updated[0],
-                position: path[i], // Final position after bounce
-                row: i + 1,
+                position: path[i] + visualOffset, // Horizontal bounce effect
+                row: i + verticalBounce, // Vertical bounce above actual row
                 currentStep: i
               };
             }
             return updated;
           });
+          
+          // Longer pause to emphasize the bounce for a slower, more dramatic effect
+          await new Promise(resolve => setTimeout(resolve, 60));
         }
-        
-        // Set final result
-        const finalPosition = path[path.length - 1];
-        const finalMultiplier = multipliers[finalPosition];
-        
-        // Update ball state to show it's done
-        setBalls(prev => {
-          const updated = [...prev];
-          if (updated.length > 0) {
-            updated[0] = {
-              ...updated[0],
-              done: true,
-              finalMultiplier
-            };
-          }
-          return updated;
-        });
-        
-        // Set and display the result
-        setResult(finalMultiplier);
-        
-        // Let the ball sit for a moment after landing
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Fade out the ball after landing
-        setBalls(prev => {
-          const updated = [...prev];
-          if (updated.length > 0) {
-            updated[0] = {
-              ...updated[0],
-              done: true,
-              finalMultiplier,
-              // This will trigger a transition in the ball's opacity
-              position: -999 // Move it offscreen to fade out
-            };
-          }
-          return updated;
-        });
-      };
+      }
       
-      await animateBall();
-      
-    } catch (error) {
-      console.error('Error playing Plinko:', error);
-    } finally {
-      // Longer delay before resetting to allow animations to complete
-      setTimeout(() => {
-        setPlaying(false);
-        setBalls([]);
-        // Don't clear the result after game is over
-      }, 1500);
+      // Update ball position with improved animation timing
+      setBalls(prev => {
+        const updated = [...prev];
+        if (updated.length > 0) {
+          updated[0] = {
+            ...updated[0],
+            position: path[i], // Final position after bounce
+            row: i + 1,
+            currentStep: i
+          };
+        }
+        return updated;
+      });
     }
+    
+    // Set final result
+    const finalPosition = path[path.length - 1];
+    const finalMultiplier = multipliers[finalPosition];
+    
+    // Update ball state to show it's done
+    setBalls(prev => {
+      const updated = [...prev];
+      if (updated.length > 0) {
+        updated[0] = {
+          ...updated[0],
+          done: true,
+          finalMultiplier
+        };
+      }
+      return updated;
+    });
+    
+    // Set and display the result
+    setResult(finalMultiplier);
+    
+    // Let the ball sit for a moment after landing
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Fade out the ball after landing
+    setBalls(prev => {
+      const updated = [...prev];
+      if (updated.length > 0) {
+        updated[0] = {
+          ...updated[0],
+          done: true,
+          finalMultiplier,
+          // This will trigger a transition in the ball's opacity
+          position: -999 // Move it offscreen to fade out
+        };
+      }
+      return updated;
+    });
+    
+    return finalMultiplier;
+  };
+  
+  // Handle the bet action
+  const handleBet = () => {
+    if (playing) return;
+    
+    // Validate bet amount
+    const betValue = parseFloat(betAmount);
+    
+    if (isNaN(betValue) || betValue <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid bet amount",
+        description: "Please enter a valid positive bet amount.",
+      });
+      return;
+    }
+    
+    // Check for insufficient balance
+    if (betValue > rawBalance) {
+      toast({
+        variant: "destructive",
+        title: "Insufficient balance",
+        description: "Add money to your wallet to place this bet.",
+      });
+      return;
+    }
+    
+    setPlaying(true);
+    setResult(null);
+    setBetId(null);
+    
+    // Place the bet through the API
+    placeBet.mutate({
+      gameId: 2, // Plinko game ID
+      amount: betValue,
+      clientSeed: 'seed',
+      options: { risk, rows, currency: 'BTC' }
+    }, {
+      onSuccess: (data) => {
+        // Store the bet ID for later use when completing the bet
+        setBetId(data.betId);
+        
+        // Generate the ball path using provably fair algorithm
+        const path = generatePath(rows);
+        
+        // Create a new ball with its path - centered at top with the 3 pegs
+        const newBall: BallState = {
+          position: 1, // Position over the middle peg of the 3 initial pegs
+          row: 0,
+          done: false,
+          finalMultiplier: null,
+          path,
+          currentStep: 0
+        };
+        
+        setBalls([newBall]);
+        
+        // Use the async animation function
+        animateBallDrop(path).then(finalMultiplier => {
+          // Complete the bet and update balance if we have a bet ID
+          if (betId !== null) {
+            // Call the API to complete the bet
+            completeBet.mutate({
+              betId: betId,
+              outcome: {
+                multiplier: finalMultiplier,
+                win: finalMultiplier > 0
+              }
+            }, {
+              onSuccess: () => {
+                console.log(`Completed bet ${betId} with result ${finalMultiplier}x`);
+                // Reset bet ID
+                setBetId(null);
+              },
+              onError: (error) => {
+                toast({
+                  variant: "destructive",
+                  title: "Failed to complete bet",
+                  description: "There was an error processing your bet result."
+                });
+                console.error("Error completing bet:", error);
+              }
+            });
+          }
+          
+          // Longer delay before resetting to allow animations to complete
+          setTimeout(() => {
+            setPlaying(false);
+            setBalls([]);
+            // Don't clear the result after game is over
+          }, 1500);
+        }).catch(error => {
+          console.error('Error playing Plinko:', error);
+          toast({
+            variant: "destructive",
+            title: "Game Error",
+            description: "There was an error running the game."
+          });
+          setTimeout(() => {
+            setPlaying(false);
+            setBalls([]);
+          }, 1500);
+        });
+      },
+      onError: (error) => {
+        setPlaying(false);
+        toast({
+          variant: "destructive",
+          title: "Failed to place bet",
+          description: "There was an error placing your bet."
+        });
+        console.error("Error placing bet:", error);
+      }
+    });
   };
   
   // Renders the manual controls - exactly matching screenshot
