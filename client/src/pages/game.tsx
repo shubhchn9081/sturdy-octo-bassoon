@@ -8,13 +8,8 @@ import CricketMines from '@/games/CricketMines';
 import Plinko from '@/games/Plinko';
 import Crash from '@/games/CrashFinal';
 import Limbo from '@/games/LimboFinal';
-import DragonTower from '@/games/DragonTower';
-import BlueSamurai from '@/games/BlueSamurai';
-import Pump from '@/games/Pump';
-import Hilo from '@/games/Hilo';
 import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
-import CoinFlip from '@/games/CoinFlip';
 import Cases from '@/games/Cases';
 
 
@@ -27,13 +22,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   plinko: Plinko,
   crash: Crash,
   limbo: Limbo,
-  'dragon-tower': DragonTower,
-  'blue-samurai': BlueSamurai,
-  pump: Pump,
-  hilo: Hilo,
   keno: Keno,
   wheel: Wheel,
-  'coin-flip': CoinFlip,
   'cases': Cases
 };
 
