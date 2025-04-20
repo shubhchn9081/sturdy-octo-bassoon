@@ -75,6 +75,11 @@ const Cases: React.FC = () => {
   const [difficulty, setDifficulty] = useState('Medium');
   const [isManualMode, setIsManualMode] = useState(true);
   const [isSlotSpinning, setIsSlotSpinning] = useState(false);
+  const [currentBetId, setCurrentBetId] = useState<number | null>(null);
+  
+  // Hook to access balance and betting functions
+  const { rawBalance, placeBet, completeBet } = useBalance('INR');
+  const { toast } = useToast();
   
   const slotContainerRef = useRef<HTMLDivElement>(null);
   const triangleRef = useRef<HTMLDivElement>(null);
@@ -242,32 +247,73 @@ const Cases: React.FC = () => {
     return pool[0].multiplier;
   };
 
-  const startGame = () => {
+  const startGame = async () => {
     if (betAmount <= 0) {
-      alert("Please enter a valid bet amount");
+      toast({
+        title: "Invalid bet amount",
+        description: "Please enter a valid bet amount",
+        variant: "destructive"
+      });
       return;
     }
 
-    // Assign random multipliers to cases based on difficulty
-    const newCases = cases.map((caseItem) => {
-      // Get a random multiplier using our weighted function
-      const multiplier = getRandomMultiplier(difficulty);
+    // Check if user has enough balance
+    if (betAmount > rawBalance) {
+      toast({
+        title: "Insufficient balance",
+        description: "You don't have enough balance to place this bet",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Place the bet with the API
+      const clientSeed = Math.random().toString(36).substring(2, 15);
+      const response = await placeBet.mutateAsync({
+        gameId: 6, // Cases game ID
+        clientSeed,
+        amount: betAmount,
+        options: {
+          difficulty
+        }
+      });
       
-      return {
-        ...caseItem,
-        multiplier,
-      };
-    });
-    
-    setCases(newCases);
-    
-    // Run the slot machine animation when game starts
-    animateSlotMachine();
-    
-    // Set game as started after animation completes
-    setTimeout(() => {
-      setGameStarted(true);
-    }, 5000); // Wait for animation to complete - longer to account for the infinite spinning
+      // Store the bet ID from the response
+      if (response && typeof response === 'object' && 'betId' in response) {
+        setCurrentBetId(response.betId as number);
+      } else {
+        console.error("Invalid response from placeBet:", response);
+      }
+
+      // Assign random multipliers to cases based on difficulty
+      const newCases = cases.map((caseItem) => {
+        // Get a random multiplier using our weighted function
+        const multiplier = getRandomMultiplier(difficulty);
+        
+        return {
+          ...caseItem,
+          multiplier,
+        };
+      });
+      
+      setCases(newCases);
+      
+      // Run the slot machine animation when game starts
+      animateSlotMachine();
+      
+      // Set game as started after animation completes
+      setTimeout(() => {
+        setGameStarted(true);
+      }, 5000); // Wait for animation to complete - longer to account for the infinite spinning
+    } catch (error) {
+      console.error('Error placing bet:', error);
+      toast({
+        title: "Error placing bet",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
   };
 
   const selectCase = (index: number) => {
@@ -379,6 +425,39 @@ const Cases: React.FC = () => {
 
     // End the game
     setGameEnded(true);
+    
+    // Complete the bet with the API if we have a bet ID
+    if (currentBetId !== null) {
+      try {
+        const multiplierValue = cases[index].multiplier || '0';
+        const numericMultiplier = parseFloat(multiplierValue);
+        const isWin = numericMultiplier > 1;
+        
+        // Call completeBet to update user balance
+        completeBet.mutate({
+          betId: currentBetId,
+          outcome: {
+            caseIndex: index,
+            multiplier: numericMultiplier,
+            win: isWin
+          }
+        });
+        
+        // Show toast notification
+        toast({
+          title: isWin ? "You won!" : "Better luck next time",
+          description: isWin 
+            ? `You won ${(betAmount * numericMultiplier).toFixed(2)} INR` 
+            : `You lost ${betAmount.toFixed(2)} INR`,
+          variant: isWin ? "default" : "destructive"
+        });
+        
+        // Clear the current bet ID
+        setCurrentBetId(null);
+      } catch (error) {
+        console.error('Error completing bet:', error);
+      }
+    }
   };
 
   const resetGame = () => {
@@ -388,6 +467,9 @@ const Cases: React.FC = () => {
     if (triangleRef.current) {
       gsap.set(triangleRef.current, { x: 0 });
     }
+    
+    // Reset current bet ID
+    setCurrentBetId(null);
   };
 
   const toggleMode = (mode: 'manual' | 'auto') => {
