@@ -82,7 +82,7 @@
   }
   
   .game-card {
-    @apply w-[132px] h-[176px] rounded-md shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out bg-[#0F1923];
+    @apply w-[132px] h-[176px] rounded-sm shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out bg-[#0F1923];
   }
   
   /* Specific styles for game titles */

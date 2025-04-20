@@ -256,8 +256,8 @@ const GameCard = ({
       className={cn("game-card", className)}
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      {/* Main card content - matching Stake.com layout */}
-      <div className="aspect-square relative w-full">
+      {/* Main card content - matching Stake.com layout - fixed height for all cards */}
+      <div className="relative w-full h-[154px]">
         {/* Background gradient or image */}
         <div 
           className="absolute inset-0 w-full h-full" 
