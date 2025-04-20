@@ -1,6 +1,5 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import ImageWithFallback from '@/components/ui/image-with-fallback';
 
 type GameCardProps = {
   id: number;
@@ -249,9 +248,6 @@ const GameCard = ({
   // Get image source and icon
   const imageSource = getImageSource();
   const gradientStyle = getGradientStyle();
-  
-  // Generic fallback image for all games
-  const fallbackImageUrl = 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990258/game-fallback_vwu7dc.jpg';
 
   return (
     <div 
@@ -271,11 +267,14 @@ const GameCard = ({
         
         {/* Background image if available */}
         {imageSource && (
-          <ImageWithFallback
+          <img
             src={imageSource}
-            fallbackSrc={fallbackImageUrl}
             alt={`${name} game background`}
             className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to gradient if image fails to load
+              e.currentTarget.style.display = 'none';
+            }}
           />
         )}
         
