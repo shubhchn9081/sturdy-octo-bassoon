@@ -4,6 +4,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import CollapsedSidebar from './CollapsedSidebar';
 import Footer from './Footer';
+import MobileFooterMenu from './MobileFooterMenu';
 import { useSidebar } from '@/context/SidebarContext';
 
 type LayoutProps = {
@@ -12,6 +13,23 @@ type LayoutProps = {
 
 const Layout = ({ children }: LayoutProps) => {
   const { collapsed } = useSidebar();
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Handle mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Use auto-animate for smooth transitions with customized options
   const [animationParent] = useAutoAnimate({
@@ -27,20 +45,20 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="relative h-screen w-full overflow-hidden" style={{ margin: 0, padding: 0 }}>
-      {/* Sidebar - absolutely positioned */}
+      {/* Sidebar - absolutely positioned - hidden on mobile */}
       <div 
         ref={animationParent} 
-        className={`absolute left-0 top-0 h-full ${sidebarClass} transition-all duration-300 ease-out`}
+        className={`absolute left-0 top-0 h-full ${sidebarClass} transition-all duration-300 ease-out hidden md:block`}
         style={{ margin: 0, padding: 0, zIndex: 10 }}
       >
         {collapsed ? <CollapsedSidebar /> : <Sidebar />}
       </div>
       
-      {/* Content area - positioned to the right of sidebar */}
+      {/* Content area - positioned to the right of sidebar on desktop, full width on mobile */}
       <div 
-        className="absolute top-0 right-0 bottom-0 overflow-y-auto"
+        className="absolute top-0 right-0 bottom-0 overflow-y-auto md:pb-0 pb-16"
         style={{ 
-          left: collapsed ? '4rem' : '16rem', 
+          left: isMobile ? 0 : (collapsed ? '4rem' : '16rem'), 
           margin: 0, 
           padding: 0,
           transition: 'left 0.3s ease-out'
@@ -50,6 +68,9 @@ const Layout = ({ children }: LayoutProps) => {
         {children}
         <Footer />
       </div>
+      
+      {/* Mobile Footer Menu */}
+      <MobileFooterMenu />
     </div>
   );
 };

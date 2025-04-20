@@ -1,0 +1,61 @@
+import React from 'react';
+import { Link, useLocation } from 'wouter';
+
+const MobileFooterMenu = () => {
+  const [location] = useLocation();
+  
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-[#0F1923] border-t border-[#172B3A] md:hidden z-50">
+      <div className="flex justify-around text-[#546D7A]">
+        <div className={`flex flex-col items-center p-3 ${location === '/' ? 'text-blue-400 border-t-2 border-blue-400 -mt-px' : ''}`}>
+          <Link href="/">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="cursor-pointer">
+              <path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
+          <span className="text-xs mt-1">Browse</span>
+        </div>
+        
+        <div className={`flex flex-col items-center p-3 ${location === '/casino' ? 'text-blue-400 border-t-2 border-blue-400 -mt-px' : ''}`}>
+          <Link href="/casino">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="cursor-pointer">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
+          <span className="text-xs mt-1">Casino</span>
+        </div>
+        
+        <div className={`flex flex-col items-center p-3 ${location === '/bets' ? 'text-blue-400 border-t-2 border-blue-400 -mt-px' : ''}`}>
+          <Link href="/bets">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="cursor-pointer">
+              <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <line x1="4" y1="10" x2="20" y2="10" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+          </Link>
+          <span className="text-xs mt-1">Bets</span>
+        </div>
+        
+        <div className={`flex flex-col items-center p-3 ${location === '/sports' ? 'text-blue-400 border-t-2 border-blue-400 -mt-px' : ''}`}>
+          <Link href="/sports">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="cursor-pointer">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M12 3C14.5 5 16 8 16 12C16 16 14.5 19 12 21M12 3C9.5 5 8 8 8 12C8 16 9.5 19 12 21M3 12H21" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+          </Link>
+          <span className="text-xs mt-1">Sports</span>
+        </div>
+        
+        <div className={`flex flex-col items-center p-3 ${location === '/chat' ? 'text-blue-400 border-t-2 border-blue-400 -mt-px' : ''}`}>
+          <Link href="/chat">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="cursor-pointer">
+              <path d="M21 12c0 4.418-4.03 8-9 8-1.173 0-2.3-.21-3.34-.594-1.2.537-4.16 1.594-4.16 1.594 0 0 1.2-3 .6-4-1.299-1.215-2.1-2.925-2.1-4.85C3 7.582 7.03 4 12 4s9 3.582 9 8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+            </svg>
+          </Link>
+          <span className="text-xs mt-1">Chat</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MobileFooterMenu;
