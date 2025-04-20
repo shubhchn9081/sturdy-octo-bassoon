@@ -53,14 +53,20 @@ export function useBalance(currency: string = 'BTC') {
       const betCurrency = options.currency || currency;
       const updatedOptions = { ...options, currency: betCurrency };
       
-      // Check balance client-side before making the request
-      if (!hasSufficientBalance(amount, betCurrency)) {
-        throw new Error(`Insufficient ${betCurrency} balance`);
-      }
-      
       // Don't allow bets of 0 or negative amounts
       if (amount <= 0) {
         throw new Error('Bet amount must be greater than 0');
+      }
+      
+      // Get minimum bet from options or use a default
+      const minBet = options.minBet || 0.00000001;
+      if (amount < minBet) {
+        throw new Error(`Bet amount must be at least ${minBet} ${betCurrency}`);
+      }
+      
+      // Check balance client-side before making the request
+      if (!hasSufficientBalance(amount, betCurrency)) {
+        throw new Error(`Insufficient ${betCurrency} balance`);
       }
       
       return apiRequest('POST', '/api/bets/place', {

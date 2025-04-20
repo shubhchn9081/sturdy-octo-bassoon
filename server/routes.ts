@@ -327,14 +327,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the currency from the request or default to BTC
       const currency = validatedData.options?.currency || 'BTC';
       
-      // Check if user has enough balance for that currency
-      if (!user.balance || !user.balance[currency] || user.balance[currency] < validatedData.amount) {
-        return res.status(400).json({ message: `Insufficient ${currency} balance` });
+      // Get the game's minimum bet amount
+      const minBet = game.minBet || 0.00000001;
+      
+      // Don't allow bets below minimum amount
+      if (validatedData.amount < minBet) {
+        return res.status(400).json({ 
+          message: `Bet amount must be at least ${minBet} ${currency}`,
+          minBet: minBet
+        });
       }
       
       // Don't allow bets of 0 or negative amounts
       if (validatedData.amount <= 0) {
         return res.status(400).json({ message: 'Bet amount must be greater than 0' });
+      }
+      
+      // Check if user has enough balance for that currency
+      if (!user.balance || !user.balance[currency] || user.balance[currency] < validatedData.amount) {
+        return res.status(400).json({ message: `Insufficient ${currency} balance` });
       }
       
       // Generate server seed
