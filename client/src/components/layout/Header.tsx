@@ -22,7 +22,8 @@ import {
   LogOut,
   AlignJustify,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import { useUser } from '@/context/UserContext';
 import { useSidebar } from '@/context/SidebarContext';

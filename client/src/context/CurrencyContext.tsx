@@ -1,33 +1,33 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 
-// Define the supported currencies
+// Define supported currencies
 export type SupportedCurrency = 'BTC' | 'ETH' | 'USDT' | 'USD' | 'INR';
 
+// Define context type
 interface CurrencyContextType {
   activeCurrency: SupportedCurrency;
   setActiveCurrency: (currency: SupportedCurrency) => void;
 }
 
-// Create the currency context
-const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
+// Create context with default values
+export const CurrencyContext = createContext<CurrencyContextType>({
+  activeCurrency: 'BTC',
+  setActiveCurrency: () => {},
+});
 
 // Provider component
 export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [activeCurrency, setActiveCurrency] = useState<SupportedCurrency>('BTC');
+  // Initialize state with stored preference or default to BTC
+  const [activeCurrency, setActiveCurrencyState] = useState<SupportedCurrency>(() => {
+    const storedCurrency = localStorage.getItem('activeCurrency');
+    return (storedCurrency as SupportedCurrency) || 'BTC';
+  });
 
-  // Store the currency preference in localStorage whenever it changes
+  // Update currency and store in localStorage
   const setCurrency = (currency: SupportedCurrency) => {
-    setActiveCurrency(currency);
-    localStorage.setItem('preferredCurrency', currency);
+    setActiveCurrencyState(currency);
+    localStorage.setItem('activeCurrency', currency);
   };
-
-  // Load the preferred currency from localStorage on mount
-  React.useEffect(() => {
-    const savedCurrency = localStorage.getItem('preferredCurrency') as SupportedCurrency | null;
-    if (savedCurrency && ['BTC', 'ETH', 'USDT', 'USD', 'INR'].includes(savedCurrency)) {
-      setActiveCurrency(savedCurrency);
-    }
-  }, []);
 
   return (
     <CurrencyContext.Provider value={{ activeCurrency, setActiveCurrency: setCurrency }}>
@@ -36,11 +36,13 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
   );
 };
 
-// Custom hook to use the currency context
+// Custom hook for using the currency context
 export const useCurrency = () => {
   const context = useContext(CurrencyContext);
-  if (context === undefined) {
+  
+  if (!context) {
     throw new Error('useCurrency must be used within a CurrencyProvider');
   }
+  
   return context;
 };

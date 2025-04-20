@@ -1,129 +1,79 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
-import { formatCrypto } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { SupportedCurrency } from '@/context/CurrencyContext';
+import { apiRequest } from '@/lib/queryClient';
 
-// Define the balance type
-type BalanceType = {
+// Define balance structure that matches the API response
+type BalanceResponse = {
   BTC: number;
   ETH: number;
-  USDT: number;
   INR: number;
-  [key: string]: number;
+  USDT: number;
+  USD: number;
 };
 
-export function useBalance(currency: string = 'BTC') {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [displayBalance, setDisplayBalance] = useState("0.00000000");
-  
-  const { data: balanceData, isLoading } = useQuery<BalanceType>({
+/**
+ * Custom hook to get and format user balance based on active currency
+ * @param currency The active currency
+ * @returns Formatted balance string and raw balance number
+ */
+export const useBalance = (currency: SupportedCurrency) => {
+  // Query to fetch balance data from API
+  const { data, isLoading, error } = useQuery<BalanceResponse, Error>({
     queryKey: ['/api/user/balance'],
-    refetchInterval: 10000, // Refresh balance every 10 seconds
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/user/balance');
+      return await res.json();
+    },
+    // Keep cached balance data for 10 seconds
+    staleTime: 10000,
   });
-  
-  useEffect(() => {
-    if (balanceData !== undefined && currency in balanceData) {
-      setDisplayBalance(formatCrypto(balanceData[currency]));
-    }
-  }, [balanceData, currency]);
-  
-  // Check if there's enough balance for a bet
-  const hasSufficientBalance = (amount: number, currencyToCheck: string = currency): boolean => {
-    if (!balanceData) return false;
+
+  // Format balance based on currency
+  const formatBalance = (balance: BalanceResponse | undefined, currency: SupportedCurrency): string => {
+    if (!balance) return "0";
     
-    const availableBalance = balanceData[currencyToCheck] || 0;
-    return availableBalance >= amount && amount > 0;
+    switch (currency) {
+      case 'BTC':
+        return balance.BTC.toFixed(8);
+      case 'ETH':
+        return balance.ETH.toFixed(6);
+      case 'USDT':
+        return balance.USDT.toFixed(2);
+      case 'USD':
+        return balance.USD.toFixed(2);
+      case 'INR':
+        return balance.INR.toFixed(2);
+      default:
+        return "0";
+    }
   };
-  
-  const placeBet = useMutation({
-    mutationFn: async ({ 
-      amount, 
-      gameId, 
-      clientSeed,
-      options = {}
-    }: { 
-      amount: number; 
-      gameId: number; 
-      clientSeed: string;
-      options?: Record<string, any>;
-    }) => {
-      // Add the currency to options if not already set
-      const betCurrency = options.currency || currency;
-      const updatedOptions = { ...options, currency: betCurrency };
-      
-      // Don't allow bets of 0 or negative amounts
-      if (amount <= 0) {
-        throw new Error('Bet amount must be greater than 0');
-      }
-      
-      // Get minimum bet from options or use a default
-      const minBet = options.minBet || 0.00000001;
-      if (amount < minBet) {
-        throw new Error(`Bet amount must be at least ${minBet} ${betCurrency}`);
-      }
-      
-      // Check balance client-side before making the request
-      if (!hasSufficientBalance(amount, betCurrency)) {
-        throw new Error(`Insufficient ${betCurrency} balance`);
-      }
-      
-      return apiRequest('POST', '/api/bets/place', {
-        amount, 
-        gameId, 
-        clientSeed,
-        options: updatedOptions,
-        userId: options.userId || null
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/bets/history'] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Bet Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+
+  // Get raw balance amount for the selected currency
+  const getRawBalance = (balance: BalanceResponse | undefined, currency: SupportedCurrency): number => {
+    if (!balance) return 0;
+    
+    switch (currency) {
+      case 'BTC':
+        return balance.BTC;
+      case 'ETH':
+        return balance.ETH;
+      case 'USDT':
+        return balance.USDT;
+      case 'USD':
+        return balance.USD;
+      case 'INR':
+        return balance.INR;
+      default:
+        return 0;
     }
-  });
+  };
 
-  const completeBet = useMutation({
-    mutationFn: async ({ 
-      betId, 
-      outcome 
-    }: { 
-      betId: number; 
-      outcome: Record<string, any>;
-    }) => {
-      return apiRequest('POST', `/api/bets/${betId}/complete`, { outcome });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/bets/history'] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error Completing Bet",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Get the raw balance value for the selected currency
-  const rawBalance = balanceData ? balanceData[currency] || 0 : 0;
-
+  // Return formatted balance string and raw balance value
   return {
-    balance: displayBalance,
-    rawBalance, // Add the raw balance number for calculations
-    balanceData, // Return the full balance object
+    balance: formatBalance(data, currency),
+    rawBalance: getRawBalance(data, currency),
     isLoading,
-    placeBet,
-    completeBet,
-    hasSufficientBalance, // Expose the balance check function
-    getCurrencySymbol: (curr: string = currency) => curr // Helper to get currency symbol
+    error,
   };
-}
+};
