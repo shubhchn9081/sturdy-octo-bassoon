@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBalance } from '@/hooks/use-balance';
-import { Sparkle, Settings, Users } from 'lucide-react';
+import { Sparkle, Settings, Users, Loader2 } from 'lucide-react';
 import gsap from 'gsap';
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
@@ -32,12 +32,12 @@ const WheelGame: React.FC = () => {
   const wheelContainerRef = useRef<HTMLDivElement>(null);
   const [betAmount, setBetAmount] = useState<string>('0.00010000');
   const [risk, setRisk] = useState<RiskLevel>('Medium');
-  const [segments, setSegments] = useState<number>(16);
+  const [segments, setSegments] = useState<number>(30);
   const [activeTab, setActiveTab] = useState<'Manual' | 'Auto'>('Manual');
   const { rawBalance } = useBalance('BTC');
   const [lastWins, setLastWins] = useState<{ multiplier: number; amount: number }[]>([]);
   
-  // Define colors for wheel segments
+  // Define colors for wheel segments - matching reference image exactly
   const colors = [
     '#3EBD5C', // Green
     '#FDC23C', // Yellow
@@ -56,7 +56,7 @@ const WheelGame: React.FC = () => {
   // Multipliers based on risk level
   const multipliers = {
     Low: [0.5, 1.1, 1.2, 1.3, 1.5, 2.0],
-    Medium: [0.0, 1.5, 1.7, 2.0, 3.0, 5.0],
+    Medium: [0.0, 1.5, 1.7, 2.0, 3.0, 4.0],
     High: [0.0, 0.0, 1.5, 3.0, 5.0, 10.0]
   };
 
@@ -76,6 +76,7 @@ const WheelGame: React.FC = () => {
   const finalRotationRef = useRef<number>(0);
   const targetMultiplierRef = useRef<number>(0);
   const idleSpeedRef = useRef<number>(0.003); // Speed of idle rotation
+  const rotationRef = useRef({ value: 0 });
 
   // Draw the wheel whenever segments or rotation changes
   useEffect(() => {
@@ -106,9 +107,6 @@ const WheelGame: React.FC = () => {
       }
     };
   }, [segments, rotation]);
-  
-  // Reference for rotation value
-  const rotationRef = useRef({ value: 0 });
   
   // Start idle spinning animation when component mounts using GSAP
   useEffect(() => {
@@ -295,8 +293,6 @@ const WheelGame: React.FC = () => {
       return;
     }
     
-    // Note: Balance is now managed by the balance API, no need to manually deduct
-    
     // Play spin sound
     playSound('spin');
     
@@ -363,7 +359,6 @@ const WheelGame: React.FC = () => {
     });
   };
   
-  
   const finishSpin = () => {
     // Get result based on animation
     setIsSpinning(false);
@@ -382,8 +377,6 @@ const WheelGame: React.FC = () => {
       // Calculate winnings
       const betValue = parseFloat(betAmount);
       const winAmount = betValue * resultMultiplier;
-      
-      // Note: Balance is now managed by the balance API, no need to manually update
       
       // Record win in history
       setLastWins(prev => [
@@ -428,19 +421,19 @@ const WheelGame: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-full bg-[#0f1a24] text-white">
+    <div className="flex flex-col md:flex-row h-full bg-[#0B131C] text-white">
       {/* Sidebar */}
-      <div className="w-full md:w-80 bg-[#172B3A] p-0 z-10 border-r border-[#243442]">
+      <div className="w-full md:w-64 bg-[#0B131C] p-0 z-10 border-r border-[#172532]">
         {/* Tab switch */}
-        <div className="flex bg-[#172B3A] mb-4">
+        <div className="flex rounded-md m-4 bg-[#172532] p-1">
           <button 
-            className={`flex-1 py-3 px-4 ${activeTab === 'Manual' ? 'bg-[#172B3A] text-white border-b-2 border-[#1375e1]' : 'bg-[#11212d] text-gray-400'}`}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'Manual' ? 'bg-[#0B131C] text-white' : 'bg-transparent text-gray-400'}`}
             onClick={() => setActiveTab('Manual')}
           >
             Manual
           </button>
           <button 
-            className={`flex-1 py-3 px-4 ${activeTab === 'Auto' ? 'bg-[#172B3A] text-white border-b-2 border-[#1375e1]' : 'bg-[#11212d] text-gray-400'}`}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'Auto' ? 'bg-[#0B131C] text-white' : 'bg-transparent text-gray-400'}`}
             onClick={() => setActiveTab('Auto')}
           >
             Auto
@@ -448,53 +441,35 @@ const WheelGame: React.FC = () => {
         </div>
         
         <div className="p-4 space-y-4">
-          {/* Balance */}
-          <div className="flex justify-between text-sm mb-4">
-            <span className="text-gray-400">Balance</span>
-            <span className="text-white font-medium">{rawBalance.toFixed(8)} BTC</span>
-          </div>
-          
-          {/* Bet amount */}
+          {/* Amount */}
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-400">Bet Amount</span>
-              <span className="text-sm text-gray-400">${(parseFloat(betAmount) * 44000).toFixed(2)}</span>
-            </div>
+            <span className="text-sm text-gray-400">Amount</span>
             <div className="flex">
               <input 
                 type="text" 
                 value={betAmount} 
                 onChange={(e) => setBetAmount(e.target.value)}
-                className="flex-1 bg-[#0e1822] py-2 px-3 text-white rounded-l border-0 focus:outline-none focus:ring-1 focus:ring-[#1375e1]" 
+                className="flex-1 bg-[#172532] py-2 px-3 text-white rounded border-0 focus:outline-none focus:ring-1 focus:ring-[#3A4F66]" 
               />
-              <div className="bg-[#0e1822] flex items-center px-2 rounded-r">
-                <span className="text-amber-500">₿</span>
-              </div>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              <button 
-                onClick={() => setBetAmount('0.00010000')}
-                className="bg-[#0e1822] py-1 px-2 rounded text-white hover:bg-[#1a2c3d] text-xs"
-              >
-                Min
-              </button>
+            <div className="grid grid-cols-3 gap-1">
               <button 
                 onClick={handleHalfBet}
-                className="bg-[#0e1822] py-1 px-2 rounded text-white hover:bg-[#1a2c3d] text-xs"
+                className="bg-[#172532] py-1 px-2 rounded text-white hover:bg-[#1F3142] text-xs"
               >
                 ½
               </button>
               <button 
-                onClick={handleDoubleBet}
-                className="bg-[#0e1822] py-1 px-2 rounded text-white hover:bg-[#1a2c3d] text-xs"
+                onClick={() => setBetAmount('0.00000000')}
+                className="bg-[#172532] py-1 px-2 rounded text-white hover:bg-[#1F3142] text-xs"
               >
-                2×
+                0
               </button>
               <button 
-                onClick={() => setBetAmount(rawBalance.toFixed(8))}
-                className="bg-[#0e1822] py-1 px-2 rounded text-white hover:bg-[#1a2c3d] text-xs"
+                onClick={handleDoubleBet}
+                className="bg-[#172532] py-1 px-2 rounded text-white hover:bg-[#1F3142] text-xs"
               >
-                Max
+                2×
               </button>
             </div>
           </div>
@@ -503,10 +478,10 @@ const WheelGame: React.FC = () => {
           <div className="space-y-2">
             <span className="text-sm text-gray-400">Risk</span>
             <Select value={risk} onValueChange={(value) => setRisk(value as RiskLevel)}>
-              <SelectTrigger className="w-full bg-[#0e1822] border-0 text-white">
+              <SelectTrigger className="w-full bg-[#172532] border-0 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#0e1822] border-[#2a3642] text-white">
+              <SelectContent className="bg-[#172532] border-[#2a3642] text-white">
                 <SelectItem value="Low">Low</SelectItem>
                 <SelectItem value="Medium">Medium</SelectItem>
                 <SelectItem value="High">High</SelectItem>
@@ -521,62 +496,43 @@ const WheelGame: React.FC = () => {
               value={segments.toString()} 
               onValueChange={(value) => setSegments(parseInt(value))}
             >
-              <SelectTrigger className="w-full bg-[#0e1822] border-0 text-white">
+              <SelectTrigger className="w-full bg-[#172532] border-0 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#0e1822] border-[#2a3642] text-white">
-                <SelectItem value="8">8</SelectItem>
-                <SelectItem value="12">12</SelectItem>
-                <SelectItem value="16">16</SelectItem>
-                <SelectItem value="24">24</SelectItem>
-                <SelectItem value="32">32</SelectItem>
+              <SelectContent className="bg-[#172532] border-[#2a3642] text-white">
+                <SelectItem value="30">30</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
-          {/* Bet button */}
+        </div>
+        
+        {/* Spin button */}
+        <div className="p-4">
           <button 
             onClick={handleBet}
             disabled={isSpinning}
-            className={`w-full py-3 rounded font-semibold transition-colors mt-6
-              ${isSpinning 
-                ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
-                : 'bg-[#4cd964] text-black hover:bg-[#40c557]'}`}
+            className={`w-full py-3 rounded-md text-center font-medium text-white ${isSpinning ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#00C74D] hover:bg-[#00B544]'}`}
           >
-            {isSpinning ? 'Spinning...' : 'Bet'}
-          </button>
-          
-          {/* Last wins */}
-          {lastWins.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-[#243442]">
-              <h3 className="text-sm font-medium text-gray-300 mb-2">Last Wins</h3>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {lastWins.map((win, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span className="text-green-500">{win.multiplier.toFixed(1)}×</span>
-                    <span className="text-gray-300">+{win.amount.toFixed(8)} BTC</span>
-                  </div>
-                ))}
+            {isSpinning ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Spinning...
               </div>
-            </div>
-          )}
+            ) : 'Spin'}
+          </button>
+        </div>
+        
+        {/* Fairness link at bottom */}
+        <div className="absolute bottom-4 left-4">
+          <button className="text-xs text-gray-400 hover:text-white flex items-center">
+            <Settings className="h-3 w-3 mr-1" />
+            Fairness
+          </button>
         </div>
       </div>
       
-      {/* Game board */}
-      <div className="flex-1 flex flex-col p-5 bg-[#0f1a24]">
-        {/* Stats bar */}
-        <div className="flex justify-between items-center mb-4 px-4 py-2 bg-[#172B3A] rounded-lg">
-          <div className="flex items-center space-x-2">
-            <Settings className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-400">Segments: {segments}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-400">{onlinePlayers} Online</span>
-          </div>
-        </div>
-        
+      {/* Main game area */}
+      <div className="flex-1 flex flex-col relative bg-[#0B131C]">
         {/* Game container */}
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="relative w-full flex-1 flex items-center justify-center" ref={wheelContainerRef}>
@@ -609,7 +565,7 @@ const WheelGame: React.FC = () => {
               ref={canvasRef} 
               width={400} 
               height={400} 
-              className={`rounded-full ${isSpinning ? 'wheel-spinning' : ''}`}
+              className="rounded-full"
             />
             
             {/* Hidden audio elements for preloading */}
@@ -647,8 +603,6 @@ const WheelGame: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      {/* CSS added in global styles */}
     </div>
   );
 };
