@@ -42,14 +42,14 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
   return (
     <div 
       className={cn(
-        "flex items-center px-3 py-0.5 text-gray-300 text-xs rounded group transition-colors cursor-pointer",
+        "flex items-center px-2 py-0 h-6 text-gray-300 text-xs rounded group transition-colors cursor-pointer",
         active ? "text-white border-l-2 border-[#57FBA2]" : "hover:text-white",
         className
       )}
       onClick={() => window.location.href = href}
     >
       <span className={cn(
-        "mr-2",
+        "mr-1.5",
         active ? "text-[#57FBA2]" : "text-[#546d7a] group-hover:text-white"
       )}>
         {icon}
@@ -95,8 +95,8 @@ const Sidebar = () => {
           </div>
         </div>
         
-        <nav className="space-y-0.5">
-          <div className="mb-2">
+        <nav className="space-y-0">
+          <div className="mb-1">
             <SidebarLink href="/favorites" icon={<Star className="h-4 w-4" />}>
               Favourites
             </SidebarLink>
@@ -117,8 +117,8 @@ const Sidebar = () => {
             </SidebarLink>
           </div>
           
-          <div className="pt-2 border-t border-[#243442]">
-            <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-1">
+          <div className="pt-1 border-t border-[#243442]">
+            <h3 className="px-4 text-xs font-semibold text-[#546d7a] uppercase tracking-wider mb-0.5">
               Games
             </h3>
             <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
