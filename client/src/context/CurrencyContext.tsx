@@ -11,16 +11,16 @@ interface CurrencyContextType {
 
 // Create context with default values
 export const CurrencyContext = createContext<CurrencyContextType>({
-  activeCurrency: 'BTC',
+  activeCurrency: 'INR',
   setActiveCurrency: () => {},
 });
 
 // Provider component
 export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state with stored preference or default to BTC
+  // Initialize state with stored preference or default to INR
   const [activeCurrency, setActiveCurrencyState] = useState<SupportedCurrency>(() => {
     const storedCurrency = localStorage.getItem('activeCurrency');
-    return (storedCurrency as SupportedCurrency) || 'BTC';
+    return (storedCurrency as SupportedCurrency) || 'INR';
   });
 
   // Update currency and store in localStorage

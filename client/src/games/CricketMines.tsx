@@ -31,10 +31,10 @@ interface GameStateType {
 
 const CricketMinesGame = () => {
   const { getGameResult } = useProvablyFair('cricket-mines');
-  const { rawBalance, placeBet } = useBalance('BTC');
+  const { rawBalance, placeBet } = useBalance('INR');
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
-  const [betAmountStr, setBetAmountStr] = useState('0.00000001');
+  const [betAmountStr, setBetAmountStr] = useState('10.00');
   const [outCount, setOutCount] = useState(20);
   const [tiles, setTiles] = useState<TileStatus[]>(Array(TOTAL_CELLS).fill('hidden'));
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
@@ -55,19 +55,32 @@ const CricketMinesGame = () => {
   
   const handleBetAmountChange = (value: string) => {
     if (gameState && !gameState.isGameOver) return;
-    setBetAmountStr(value);
+    
+    // Allow empty input for easier editing
+    if (value === '') {
+      setBetAmountStr('');
+      return;
+    }
+    
+    // Only allow valid numeric inputs with up to 2 decimal places for INR
+    const regex = /^[0-9]*\.?[0-9]{0,2}$/;
+    if (regex.test(value)) {
+      setBetAmountStr(value);
+    }
   };
   
   const handleHalfBet = () => {
     if (gameState && !gameState.isGameOver) return;
     const amount = parseFloat(betAmountStr) || 0;
-    setBetAmountStr((amount / 2).toFixed(8));
+    // For INR we only need 2 decimal places
+    setBetAmountStr((amount / 2).toFixed(2));
   };
   
   const handleDoubleBet = () => {
     if (gameState && !gameState.isGameOver) return;
     const amount = parseFloat(betAmountStr) || 0;
-    setBetAmountStr((amount * 2).toFixed(8));
+    // For INR we only need 2 decimal places
+    setBetAmountStr((amount * 2).toFixed(2));
   };
   
   const handleOutCountChange = (value: string) => {
@@ -273,7 +286,6 @@ const CricketMinesGame = () => {
     <div className="space-y-4">
       <div>
         <div className="text-xs text-[#546D7A] mb-1">Bet Amount</div>
-        <div className="mb-1 text-sm px-3 py-2 text-right bg-[#1c1c2b] border border-[#333] rounded-[6px]">$0.00</div>
         <div className="flex items-center space-x-1 mb-2">
           <Input
             type="text"
@@ -281,6 +293,7 @@ const CricketMinesGame = () => {
             onChange={(e) => handleBetAmountChange(e.target.value)}
             className="bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px]"
             disabled={gameState && !gameState.isGameOver}
+            placeholder="0.00"
             style={{ padding: '10px', fontSize: '14px', width: '100%' }}
           />
           <Button 
@@ -341,7 +354,7 @@ const CricketMinesGame = () => {
           </div>
           <div className="h-10 bg-[#1c1c2b] border border-[#333] rounded-[6px] flex items-center justify-between px-3 text-sm">
             <span>{formatCrypto(totalProfit)}</span>
-            <span className="text-amber-400">₿</span>
+            <span className="text-green-400">₹</span>
           </div>
         </div>
       ) : null}
@@ -418,7 +431,7 @@ const CricketMinesGame = () => {
             <div className="text-xl font-bold text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</div>
             <div className="text-sm text-white flex items-center">
               {formatCrypto(gameState.betAmount)}
-              <span className="text-amber-400 ml-1">₿</span>
+              <span className="text-green-400 ml-1">₹</span>
             </div>
           </div>
         </div>
