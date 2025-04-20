@@ -30,23 +30,23 @@ function Router() {
       <SidebarProvider>
         <Layout>
           <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/games/:gameSlug" component={Game} />
-            <Route path="/casino/games/:gameSlug" component={Game} />
-            <Route path="/originals" component={Originals} />
-            <Route path="/admin" component={Admin} />
+            <ProtectedRoute path="/" component={Home} />
+            <ProtectedRoute path="/games/:gameSlug" component={Game} />
+            <ProtectedRoute path="/casino/games/:gameSlug" component={Game} />
+            <ProtectedRoute path="/originals" component={Originals} />
+            <ProtectedRoute path="/admin" component={Admin} />
             <Route path="/init-db" component={InitDb} />
             <Route path="/auth" component={AuthPage} />
-            <Route path="/wallet" component={WalletPage} />
-            <Route path="/vault" component={VaultPage} />
-            <Route path="/vip" component={VIPPage} />
-            <Route path="/affiliate" component={AffiliatePage} />
-            <Route path="/statistics" component={StatisticsPage} />
-            <Route path="/transactions" component={TransactionsPage} />
-            <Route path="/bets" component={BetsPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="/stake-smart" component={StakeSmartPage} />
-            <Route path="/support" component={SupportPage} />
+            <ProtectedRoute path="/wallet" component={WalletPage} />
+            <ProtectedRoute path="/vault" component={VaultPage} />
+            <ProtectedRoute path="/vip" component={VIPPage} />
+            <ProtectedRoute path="/affiliate" component={AffiliatePage} />
+            <ProtectedRoute path="/statistics" component={StatisticsPage} />
+            <ProtectedRoute path="/transactions" component={TransactionsPage} />
+            <ProtectedRoute path="/bets" component={BetsPage} />
+            <ProtectedRoute path="/settings" component={SettingsPage} />
+            <ProtectedRoute path="/stake-smart" component={StakeSmartPage} />
+            <ProtectedRoute path="/support" component={SupportPage} />
             <Route path="/animation-examples" component={AnimationExamples} />
             {/* Fallback to 404 */}
             <Route component={NotFound} />

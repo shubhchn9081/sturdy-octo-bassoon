@@ -3,15 +3,15 @@ import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 
 const AuthPage = () => {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const [, setLocation] = useLocation();
   
   // If user is already signed in, redirect to home page
   useEffect(() => {
-    if (isSignedIn) {
+    if (isLoaded && isSignedIn) {
       setLocation('/');
     }
-  }, [isSignedIn, setLocation]);
+  }, [isLoaded, isSignedIn, setLocation]);
 
   return (
     <div className="min-h-screen bg-[#0f1a24] flex items-center justify-center p-4">
@@ -67,7 +67,6 @@ const AuthPage = () => {
               ) : (
                 <SignIn 
                   routing="hash" 
-                  path="/auth" 
                   redirectUrl="/"
                   appearance={{
                     elements: {
