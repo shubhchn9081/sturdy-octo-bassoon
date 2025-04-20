@@ -98,9 +98,16 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Missing required fields" });
       }
       
+      // Check if username exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      // Check if email exists
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
       }
 
       const hashedPassword = await hashPassword(password);
@@ -121,6 +128,16 @@ export function setupAuth(app: Express) {
       });
     } catch (error) {
       console.error("Registration error:", error);
+      // Check for specific database constraint errors
+      const err = error as any;
+      if (err.code === '23505') { // PostgreSQL unique constraint violation
+        if (err.constraint === 'users_email_unique') {
+          return res.status(400).json({ message: "Email address already in use" });
+        } else if (err.constraint === 'users_username_unique') {
+          return res.status(400).json({ message: "Username already taken" });
+        }
+      }
+      
       res.status(500).json({ message: "Server error" });
     }
   });
