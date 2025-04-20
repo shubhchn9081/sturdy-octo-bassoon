@@ -78,7 +78,7 @@
 @layer components {
   /* Game grid layout styles - Stake.com exact match */
   .game-grid {
-    @apply grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] gap-2 p-1 justify-items-center items-start;
+    @apply grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] gap-1 p-1 justify-items-center items-start;
   }
   
   .game-card {

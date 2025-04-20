@@ -63,9 +63,9 @@ const HomePage = () => {
   ];
   
   return (
-    <main className="flex-1 p-2">
+    <main className="flex-1 p-1">
       {/* Search Bar */}
-      <div className="relative mb-6">
+      <div className="relative mb-3">
         <input 
           type="text" 
           placeholder="Search your game" 
@@ -84,7 +84,7 @@ const HomePage = () => {
         </div>
         
         {/* Featured Game Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-1">
           {featuredGames.map((game) => (
             <GameCard
               key={game.id}
@@ -115,8 +115,8 @@ const HomePage = () => {
           </div>
         </div>
         
-        {/* All Game Cards */}
-        <div className="game-grid">
+        {/* All Game Cards - With minimal gap */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-1">
           {allGames.map((game) => (
             <GameCard
               key={game.id}
