@@ -305,6 +305,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bet routes
   app.post('/api/bets/place', async (req, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
       // Validate request body
       const betSchema = insertBetSchema.extend({
         options: z.record(z.any()).optional()
@@ -312,8 +317,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = betSchema.parse(req.body);
       
-      // Get user and game
-      const user = await storage.getUser(validatedData.userId);
+      // Get user from the authenticated session and game
+      const user = req.user;
       const game = await storage.getGame(validatedData.gameId);
       
       if (!user) {
@@ -354,6 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create bet with initial state
       const bet = await storage.createBet({
         ...validatedData,
+        userId: user.id, // Explicitly set userId from authenticated user
         serverSeed,
         nonce: 1,
         completed: false,
@@ -375,11 +381,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/bets/:id/complete', async (req, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
       const betId = parseInt(req.params.id);
       const bet = await storage.getBet(betId);
       
       if (!bet) {
         return res.status(404).json({ message: 'Bet not found' });
+      }
+      
+      // Ensure the bet belongs to the authenticated user
+      if (bet.userId !== req.user.id) {
+        return res.status(403).json({ message: 'You can only complete your own bets' });
       }
       
       if (bet.completed) {
@@ -403,41 +419,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update user balance if won
       if (req.body.outcome.win) {
-        const user = await storage.getUser(bet.userId);
-        if (user) {
-          // Get the currency from the bet options or default to BTC
-          const currency = bet.options?.currency || 'BTC';
-          const winAmount = bet.amount * req.body.outcome.multiplier;
-          await storage.updateUserBalance(user.id, currency, winAmount);
-          
-          // Add transaction record if available
-          if (storage.createTransaction) {
-            try {
-              await storage.createTransaction({
-                userId: user.id,
-                type: 'WIN',
-                amount: winAmount,
-                status: 'COMPLETED',
-                currency: currency,
-                description: `Win from ${game.name} - Multiplier: ${req.body.outcome.multiplier}x`,
-              });
-            } catch (err) {
-              console.error('Error creating transaction record:', err);
-              // Don't fail the whole request if transaction creation fails
-            }
+        // Get the authenticated user directly
+        const user = req.user;
+        
+        // Get the currency from the game options or default to BTC
+        const currency = req.body.currency || 'BTC';
+        const winAmount = bet.amount * req.body.outcome.multiplier;
+        await storage.updateUserBalance(user.id, currency, winAmount);
+        
+        // Add transaction record if available
+        if (storage.createTransaction) {
+          try {
+            await storage.createTransaction({
+              userId: user.id,
+              type: 'WIN',
+              amount: winAmount,
+              status: 'COMPLETED',
+              currency: currency,
+              description: `Win from ${game.name} - Multiplier: ${req.body.outcome.multiplier}x`,
+            });
+          } catch (err) {
+            console.error('Error creating transaction record:', err);
+            // Don't fail the whole request if transaction creation fails
           }
         }
       }
       
       res.json(updatedBet);
     } catch (error) {
+      console.error('Error completing bet:', error);
       res.status(500).json({ message: 'Server error' });
     }
   });
   
   app.get('/api/bets/history', async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string) || 1;
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      // Use the authenticated user's ID
+      const userId = req.user.id;
       const gameId = req.query.gameId ? parseInt(req.query.gameId as string) : undefined;
       
       const bets = await storage.getBetHistory(userId, gameId);
@@ -497,18 +520,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Your account has been banned' });
       }
       
-      res.json({ 
-        id: user.id,
-        username: user.username,
-        isAdmin: user.isAdmin,
-        isBanned: user.isBanned,
-        balance: user.balance,
-        createdAt: user.createdAt,
-        email: user.email,
-        dateOfBirth: user.dateOfBirth,
-        phone: user.phone,
-        referralCode: user.referralCode,
-        language: user.language
+      // Store user in session
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Session login error:', err);
+          return res.status(500).json({ message: 'Error creating session' });
+        }
+        
+        // Return user data without sensitive fields
+        res.json({ 
+          id: user.id,
+          username: user.username,
+          isAdmin: user.isAdmin,
+          isBanned: user.isBanned,
+          balance: user.balance,
+          createdAt: user.createdAt,
+          email: user.email,
+          dateOfBirth: user.dateOfBirth,
+          phone: user.phone,
+          referralCode: user.referralCode,
+          language: user.language
+        });
       });
     } catch (error) {
       console.error('Login error:', error);
@@ -530,19 +562,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new user
       const user = await storage.createUser(userData);
       
-      // Return user without password
-      res.status(201).json({ 
-        id: user.id,
-        username: user.username,
-        isAdmin: user.isAdmin,
-        isBanned: user.isBanned,
-        balance: user.balance,
-        createdAt: user.createdAt,
-        email: user.email,
-        dateOfBirth: user.dateOfBirth,
-        phone: user.phone,
-        referralCode: user.referralCode,
-        language: user.language
+      // Automatically log the user in after registration
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Session login error:', err);
+          return res.status(500).json({ message: 'Error creating session' });
+        }
+        
+        // Return user without password
+        res.status(201).json({ 
+          id: user.id,
+          username: user.username,
+          isAdmin: user.isAdmin,
+          isBanned: user.isBanned,
+          balance: user.balance,
+          createdAt: user.createdAt,
+          email: user.email,
+          dateOfBirth: user.dateOfBirth,
+          phone: user.phone,
+          referralCode: user.referralCode,
+          language: user.language
+        });
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
