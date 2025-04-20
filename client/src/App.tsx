@@ -21,6 +21,8 @@ import AnimationExamples from "@/pages/animation-examples";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
+import { ClerkProviderWrapper } from "@/lib/clerk-provider";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   return (
@@ -57,10 +59,10 @@ function Router() {
 
 function App() {
   return (
-    <>
+    <ClerkProviderWrapper>
       <Router />
       <Toaster />
-    </>
+    </ClerkProviderWrapper>
   );
 }
 
