@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SupportedCurrency } from '@/context/CurrencyContext';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -12,12 +12,28 @@ type BalanceResponse = {
   USD: number;
 };
 
+// Types for bet placement and completion
+type PlaceBetParams = {
+  gameId: number;
+  clientSeed: string;
+  amount: number;
+  options?: Record<string, any>;
+  currency?: SupportedCurrency;
+};
+
+type CompleteBetParams = {
+  betId: number;
+  outcome: Record<string, any>;
+};
+
 /**
  * Custom hook to get and format user balance based on active currency
  * @param currency The active currency
- * @returns Formatted balance string and raw balance number
+ * @returns Formatted balance string, raw balance number, and bet mutations
  */
 export const useBalance = (currency: SupportedCurrency) => {
+  const queryClient = useQueryClient();
+  
   // Query to fetch balance data from API
   const { data, isLoading, error } = useQuery<BalanceResponse, Error>({
     queryKey: ['/api/user/balance'],
@@ -27,6 +43,38 @@ export const useBalance = (currency: SupportedCurrency) => {
     },
     // Keep cached balance data for 10 seconds
     staleTime: 10000,
+  });
+
+  // Mutation to place a bet
+  const placeBet = useMutation({
+    mutationFn: async (params: PlaceBetParams) => {
+      const betData = {
+        ...params,
+        options: {
+          ...params.options,
+          currency: params.currency || currency
+        }
+      };
+      
+      const res = await apiRequest('POST', '/api/bets/place', betData);
+      return res.json();
+    },
+    onSuccess: () => {
+      // Invalidate the balance query to fetch fresh balance after placing bet
+      queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
+    }
+  });
+
+  // Mutation to complete a bet
+  const completeBet = useMutation({
+    mutationFn: async (params: CompleteBetParams) => {
+      const res = await apiRequest('POST', `/api/bets/${params.betId}/complete`, { outcome: params.outcome });
+      return res.json();
+    },
+    onSuccess: () => {
+      // Invalidate the balance query to fetch fresh balance after completing bet
+      queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
+    }
   });
 
   // Format balance based on currency
@@ -69,11 +117,13 @@ export const useBalance = (currency: SupportedCurrency) => {
     }
   };
 
-  // Return formatted balance string and raw balance value
+  // Return formatted balance string, raw balance value, and bet mutations
   return {
     balance: formatBalance(data, currency),
     rawBalance: getRawBalance(data, currency),
     isLoading,
     error,
+    placeBet,
+    completeBet
   };
 };
