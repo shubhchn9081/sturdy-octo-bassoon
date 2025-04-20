@@ -36,9 +36,10 @@ const WheelGame: React.FC = () => {
   const [risk, setRisk] = useState<RiskLevel>('Medium');
   const [segments, setSegments] = useState<number>(30);
   const [activeTab, setActiveTab] = useState<'Manual' | 'Auto'>('Manual');
-  const [activeCurrency, setActiveCurrency] = useState<'BTC' | 'USD' | 'INR' | 'ETH' | 'USDT'>('BTC');
+  const [activeCurrency, setActiveCurrency] = useState<'BTC' | 'USD' | 'INR' | 'ETH' | 'USDT'>('INR');
   const { rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
   const [lastWins, setLastWins] = useState<{ multiplier: number; amount: number }[]>([]);
+  const [betId, setBetId] = useState<number | null>(null);
   
   // Define colors for wheel segments - matching reference image exactly
   const colors = [
@@ -428,6 +429,32 @@ const WheelGame: React.FC = () => {
     const resultMultiplier = targetMultiplierRef.current;
     setResult(resultMultiplier);
     
+    // Complete the bet and update balance if we have a bet ID
+    if (betId !== null) {
+      // Call the API to complete the bet
+      completeBet.mutate({
+        betId: betId,
+        outcome: {
+          multiplier: resultMultiplier,
+          win: resultMultiplier > 0
+        }
+      }, {
+        onSuccess: () => {
+          console.log(`Completed bet ${betId} with result ${resultMultiplier}x`);
+          // Reset bet ID
+          setBetId(null);
+        },
+        onError: (error) => {
+          toast({
+            variant: "destructive",
+            title: "Failed to complete bet",
+            description: "There was an error processing your bet result."
+          });
+          console.error("Error completing bet:", error);
+        }
+      });
+    }
+    
     // Play appropriate sound
     if (resultMultiplier === 0) {
       playSound('lose');
@@ -466,8 +493,40 @@ const WheelGame: React.FC = () => {
       return;
     }
     
-    playSound('click');
-    spinWheel();
+    // Validate bet amount
+    const betValue = parseFloat(betAmount);
+    
+    if (isNaN(betValue) || betValue <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid bet amount",
+        description: "Please enter a valid positive bet amount.",
+      });
+      return;
+    }
+    
+    // Place the bet through the API
+    placeBet.mutate({
+      gameId: 4, // Wheel game ID
+      amount: betValue,
+      clientSeed: 'seed',
+      options: { risk, segments, currency: activeCurrency }
+    }, {
+      onSuccess: (data) => {
+        // Store the bet ID for later use when completing the bet
+        setBetId(data.betId);
+        // Start spinning the wheel
+        playSound('click');
+        spinWheel();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          title: "Failed to place bet",
+          description: error.message || "Something went wrong",
+        });
+      }
+    });
   };
 
   const handleBetAmountChange = (value: string) => {
