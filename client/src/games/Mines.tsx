@@ -464,9 +464,9 @@ const MinesGame = () => {
   return (
     <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Side Panel */}
-      <div className="w-full lg:w-[280px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
+      <div className="w-full lg:w-[280px] p-2 bg-[#172B3A] border-r border-[#243442]/50">
         <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
-          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-4 h-9 overflow-hidden rounded-md p-0">
+          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0">
             <TabsTrigger 
               value="manual" 
               className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
@@ -482,13 +482,13 @@ const MinesGame = () => {
           </TabsList>
           
           <TabsContent value="manual" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-5 rounded-[10px]">
+            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
               {renderManualControls()}
             </div>
           </TabsContent>
           
           <TabsContent value="auto" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-5 rounded-[10px]">
+            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
               {renderAutoControls()}
             </div>
           </TabsContent>
