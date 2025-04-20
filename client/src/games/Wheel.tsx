@@ -36,8 +36,8 @@ const WheelGame: React.FC = () => {
   const [risk, setRisk] = useState<RiskLevel>('Medium');
   const [segments, setSegments] = useState<number>(30);
   const [activeTab, setActiveTab] = useState<'Manual' | 'Auto'>('Manual');
-  const [activeCurrency, setActiveCurrency] = useState<string>('BTC');
-  const { rawBalance, balanceData } = useBalance(activeCurrency);
+  const [activeCurrency, setActiveCurrency] = useState<'BTC' | 'USD' | 'INR' | 'ETH' | 'USDT'>('BTC');
+  const { rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
   const [lastWins, setLastWins] = useState<{ multiplier: number; amount: number }[]>([]);
   
   // Define colors for wheel segments - matching reference image exactly
@@ -471,6 +471,20 @@ const WheelGame: React.FC = () => {
     spinWheel();
   };
 
+  const handleBetAmountChange = (value: string) => {
+    // Allow empty input for easier editing
+    if (value === '') {
+      setBetAmount('');
+      return;
+    }
+    
+    // Only allow valid numeric inputs with up to 8 decimal places
+    const regex = /^[0-9]*\.?[0-9]{0,8}$/;
+    if (regex.test(value)) {
+      setBetAmount(value);
+    }
+  };
+
   const handleHalfBet = () => {
     playSound('click');
     const currentAmount = parseFloat(betAmount);
@@ -516,8 +530,9 @@ const WheelGame: React.FC = () => {
                 <input 
                   type="text" 
                   value={betAmount} 
-                  onChange={(e) => setBetAmount(e.target.value)}
+                  onChange={(e) => handleBetAmountChange(e.target.value)}
                   className="flex-1 bg-[#172532] py-2 px-3 text-white rounded-l border-0 focus:outline-none focus:ring-1 focus:ring-[#3A4F66]" 
+                  placeholder="0.00000000"
                 />
                 
                 {/* Currency Switcher */}
@@ -525,17 +540,13 @@ const WheelGame: React.FC = () => {
                   <Select 
                     value={activeCurrency} 
                     onValueChange={(value) => {
-                      setActiveCurrency(value);
+                      setActiveCurrency(value as any);
                       
-                      // Adjust bet amount based on new currency
-                      if (balanceData) {
-                        const newCurrencyBalance = balanceData[value] || 0;
-                        // Set a reasonable default bet for the new currency
-                        if (value === 'BTC' || value === 'ETH') {
-                          setBetAmount('0.00010000');
-                        } else {
-                          setBetAmount('10.00');
-                        }
+                      // Set a reasonable default bet for the new currency
+                      if (value === 'BTC' || value === 'ETH') {
+                        setBetAmount('0.00010000');
+                      } else {
+                        setBetAmount('10.00');
                       }
                     }}
                   >
