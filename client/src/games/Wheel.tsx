@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBalance } from '@/hooks/use-balance';
-import { Sparkle, Settings, Users, Loader2 } from 'lucide-react';
+import { Sparkle, Settings, Users, Loader2, AlertCircle, Plus } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import gsap from 'gsap';
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
@@ -309,13 +310,46 @@ const WheelGame: React.FC = () => {
     }
   };
   
+  const { toast } = useToast();
+
   const spinWheel = () => {
     if (isSpinning) return;
     
     // Validate bet amount
     const betValue = parseFloat(betAmount);
-    if (isNaN(betValue) || betValue <= 0 || betValue > rawBalance) {
-      alert('Please enter a valid bet amount');
+    
+    // Check for invalid bet amount
+    if (isNaN(betValue) || betValue <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid bet amount",
+        description: "Please enter a valid positive bet amount.",
+      });
+      return;
+    }
+    
+    // Check for insufficient balance
+    if (betValue > rawBalance) {
+      toast({
+        variant: "destructive",
+        title: "Insufficient balance",
+        description: "Add money to your wallet to place this bet.",
+        action: (
+          <Button 
+            variant="outline"
+            size="sm"
+            className="bg-green-600 text-white border-0 hover:bg-green-700"
+            onClick={() => {
+              // Navigate to deposit page or open deposit modal
+              console.log("Navigate to deposit");
+              // This would typically navigate to a deposit page
+            }}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Funds
+          </Button>
+        ),
+      });
       return;
     }
     
@@ -422,7 +456,12 @@ const WheelGame: React.FC = () => {
 
   const handleBet = () => {
     if (isSpinning) {
-      alert('Wheel is currently spinning!');
+      toast({
+        variant: "destructive",
+        title: "Wheel is spinning",
+        description: "Please wait for the current spin to finish.",
+        icon: <Loader2 className="h-4 w-4 animate-spin" />
+      });
       return;
     }
     
