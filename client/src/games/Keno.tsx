@@ -26,7 +26,7 @@ const Keno: React.FC = () => {
   
   // Hooks for actual game logic
   const { getGameResult } = useProvablyFair('keno');
-  const { balance, placeBet, completeBet } = useBalance();
+  const { rawBalance, placeBet, completeBet } = useBalance('BTC');
   
   // Fixed game info for Keno
   const gameInfo = {

@@ -31,7 +31,7 @@ interface GameStateType {
 
 const CricketMinesGame = () => {
   const { getGameResult } = useProvablyFair('cricket-mines');
-  const { balance, placeBet } = useBalance();
+  const { rawBalance, placeBet } = useBalance('BTC');
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
   const [betAmountStr, setBetAmountStr] = useState('0.00000001');

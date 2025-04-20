@@ -25,7 +25,7 @@ const LimboGame: React.FC = () => {
   
   // Hooks for actual game logic
   const { getGameResult } = useProvablyFair('limbo');
-  const { balance, placeBet, completeBet } = useBalance();
+  const { rawBalance, placeBet, completeBet } = useBalance('BTC');
   
   // Fixed game info for Limbo
   const gameInfo = {
