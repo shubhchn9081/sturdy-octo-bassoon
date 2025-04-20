@@ -18,6 +18,14 @@ const loginSchema = z.object({
 
 const registerSchema = loginSchema.extend({
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Please enter a valid email"),
+  dateOfBirth: z.string().refine(val => {
+    const date = new Date(val);
+    const today = new Date();
+    const age = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 365));
+    return age >= 18;
+  }, "You must be at least 18 years old"),
+  phone: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -53,6 +61,9 @@ export default function AuthPage() {
       username: "",
       password: "",
       confirmPassword: "",
+      email: "",
+      dateOfBirth: "",
+      phone: ""
     },
   });
 

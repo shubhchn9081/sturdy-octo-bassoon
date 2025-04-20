@@ -15,11 +15,19 @@ export const users = pgTable("users", {
     INR: 75000
   }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  email: text("email").notNull().unique(),
+  dateOfBirth: timestamp("date_of_birth").notNull(),
+  phone: text("phone"),
+  referralCode: text("referral_code"),
+  language: text("language").default('English'),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true, 
+  dateOfBirth: true,
+  phone: true,
 });
 
 export const games = pgTable("games", {
