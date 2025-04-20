@@ -26,16 +26,18 @@ const Layout = ({ children }: LayoutProps) => {
   const sidebarClass = collapsed ? 'w-16' : 'w-64';
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Apply auto-animate ref to the parent container */}
+    <div className="flex h-screen overflow-hidden" style={{ boxSizing: 'border-box', margin: 0, padding: 0 }}>
+      {/* Apply auto-animate ref to the parent container without any margin/spacing */}
       <div 
         ref={animationParent} 
-        className={`flex h-full transition-all duration-300 ease-out ${sidebarClass}`}
+        className={`flex h-full transition-all duration-300 ease-out ${sidebarClass} sidebar-container`}
+        style={{ margin: 0, padding: 0, boxSizing: 'border-box' }}
       >
         {collapsed ? <CollapsedSidebar /> : <Sidebar />}
       </div>
-      {/* Removed padding/margins between sidebar and content */}
-      <div className="flex-1 flex flex-col overflow-y-auto pl-0">
+      {/* Content area with no padding/margin and tight to sidebar */}
+      <div className="flex-1 flex flex-col overflow-y-auto sidebar-content"
+           style={{ margin: 0, padding: 0, boxSizing: 'border-box' }}>
         <Header />
         {children}
         <Footer />

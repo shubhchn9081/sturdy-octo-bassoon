@@ -59,7 +59,7 @@ const CollapsedSidebar = () => {
   const { toggleSidebar } = useSidebar();
   
   return (
-    <aside className="w-12 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] flex flex-col items-center pt-2 overflow-y-auto">
+    <aside className="w-12 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] flex flex-col items-center pt-2 overflow-y-auto m-0 p-0">
       {/* Casino / Sports Buttons */}
       <div className="mb-3 w-12 h-12 bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black font-bold rounded-md flex items-center justify-center cursor-pointer">
         <span className="text-xs font-bold">CASINO</span>
