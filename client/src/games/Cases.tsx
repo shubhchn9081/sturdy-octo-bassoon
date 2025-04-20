@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils';
 import gsap from 'gsap';
 import LoadingBar from '@/components/games/LoadingBar';
 import ScreenTimeCounter from '@/components/games/ScreenTimeCounter';
+import { useBalance } from '@/hooks/use-balance';
+import { useToast } from '@/hooks/use-toast';
 
 interface Case {
   id: number;
