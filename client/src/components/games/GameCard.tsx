@@ -251,14 +251,11 @@ const GameCard = ({
 
   return (
     <div 
-      className={cn(
-        "game-card w-full rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out",
-        className
-      )}
+      className={cn("game-card", className)}
       onClick={() => window.location.href = `/games/${slug}`}
     >
       {/* Main card content */}
-      <div className="aspect-square relative">
+      <div className="aspect-square relative w-full">
         {/* Background gradient or image */}
         <div 
           className="absolute inset-0 w-full h-full" 

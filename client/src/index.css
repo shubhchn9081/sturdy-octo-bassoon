@@ -76,8 +76,13 @@
 }
 
 @layer components {
+  /* Game grid layout styles */
+  .game-grid {
+    @apply grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-5 p-5 justify-items-center items-start;
+  }
+  
   .game-card {
-    @apply relative overflow-hidden rounded-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10;
+    @apply w-[150px] h-[200px] rounded-[20px] shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.05] transition-transform duration-300 ease-in-out bg-gradient-to-br from-[#1e1f2b] to-[#26283c];
   }
   
   .panel-bg {
