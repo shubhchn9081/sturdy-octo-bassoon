@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useBalance } from '@/hooks/use-balance';
 import { Sparkle, Settings, Users, Loader2, AlertCircle, Plus } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { getCurrencySymbol } from "@/lib/utils";
 import gsap from 'gsap';
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
@@ -35,7 +36,8 @@ const WheelGame: React.FC = () => {
   const [risk, setRisk] = useState<RiskLevel>('Medium');
   const [segments, setSegments] = useState<number>(30);
   const [activeTab, setActiveTab] = useState<'Manual' | 'Auto'>('Manual');
-  const { rawBalance } = useBalance('BTC');
+  const [activeCurrency, setActiveCurrency] = useState<string>('BTC');
+  const { rawBalance, balanceData } = useBalance(activeCurrency);
   const [lastWins, setLastWins] = useState<{ multiplier: number; amount: number }[]>([]);
   
   // Define colors for wheel segments - matching reference image exactly
@@ -510,12 +512,49 @@ const WheelGame: React.FC = () => {
           <div className="space-y-2">
             <span className="text-sm text-gray-400">Amount</span>
             <div className="flex">
-              <input 
-                type="text" 
-                value={betAmount} 
-                onChange={(e) => setBetAmount(e.target.value)}
-                className="flex-1 bg-[#172532] py-2 px-3 text-white rounded border-0 focus:outline-none focus:ring-1 focus:ring-[#3A4F66]" 
-              />
+              <div className="flex w-full">
+                <input 
+                  type="text" 
+                  value={betAmount} 
+                  onChange={(e) => setBetAmount(e.target.value)}
+                  className="flex-1 bg-[#172532] py-2 px-3 text-white rounded-l border-0 focus:outline-none focus:ring-1 focus:ring-[#3A4F66]" 
+                />
+                
+                {/* Currency Switcher */}
+                <div className="relative inline-block">
+                  <Select 
+                    value={activeCurrency} 
+                    onValueChange={(value) => {
+                      setActiveCurrency(value);
+                      
+                      // Adjust bet amount based on new currency
+                      if (balanceData) {
+                        const newCurrencyBalance = balanceData[value] || 0;
+                        // Set a reasonable default bet for the new currency
+                        if (value === 'BTC' || value === 'ETH') {
+                          setBetAmount('0.00010000');
+                        } else {
+                          setBetAmount('10.00');
+                        }
+                      }
+                    }}
+                  >
+                    <SelectTrigger 
+                      className="w-[80px] h-full bg-[#172532] border-0 text-white rounded-l-none rounded-r border-l border-[#0B131C]"
+                    >
+                      <div className="flex items-center">
+                        <span className="mr-1">{getCurrencySymbol(activeCurrency)}</span>
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="min-w-[80px] bg-[#172532] border-[#2a3642] text-white">
+                      <SelectItem value="BTC">BTC</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="INR">INR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-1">
               <button 

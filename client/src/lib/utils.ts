@@ -21,6 +21,42 @@ export function formatCrypto(amount: number): string {
   return amount.toFixed(8);
 }
 
+// Currency formatting based on currency type
+export function formatCurrency(amount: number, currency: string = 'BTC'): string {
+  switch(currency) {
+    case 'BTC':
+      return formatCrypto(amount);
+    case 'ETH':
+      return formatCrypto(amount);
+    case 'USDT':
+      return amount.toFixed(2);
+    case 'USD':
+      return amount.toFixed(2);
+    case 'INR':
+      return amount.toFixed(2);
+    default:
+      return formatCrypto(amount);
+  }
+}
+
+// Get currency symbol
+export function getCurrencySymbol(currency: string): string {
+  switch(currency) {
+    case 'BTC':
+      return '₿';
+    case 'ETH':
+      return 'Ξ';
+    case 'USDT':
+      return '$';
+    case 'USD':
+      return '$';
+    case 'INR':
+      return '₹';
+    default:
+      return currency;
+  }
+}
+
 // Calculate profit from bet amount and multiplier
 export function calculateProfit(amount: number, multiplier: number): number {
   return amount * multiplier;
