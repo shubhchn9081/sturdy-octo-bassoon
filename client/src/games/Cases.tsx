@@ -507,8 +507,8 @@ const Cases: React.FC = () => {
       <div className="w-full p-4 md:p-8">
         <div className="max-w-5xl mx-auto">
           {/* Game controls panel */}
-          <div className="w-full bg-[#1A2C38] rounded-lg p-4 mb-8">
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="w-full bg-[#1A2C38] rounded-lg p-2 mb-4">
+            <div className="flex flex-col md:flex-row gap-2 mb-2">
               {/* Manual/Auto toggle */}
               <div className="flex rounded-full bg-[#0F1923] overflow-hidden">
                 <button 

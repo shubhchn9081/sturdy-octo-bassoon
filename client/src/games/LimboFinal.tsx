@@ -419,17 +419,17 @@ const LimboFinal: React.FC = () => {
         </div>
         
         {/* Right Side - Controls */}
-        <div className="w-full md:w-1/4 p-4 bg-[#172B3A]">
+        <div className="w-full md:w-1/4 p-2 bg-[#172B3A]">
           {/* Game Mode Tabs */}
-          <div className="flex rounded-md overflow-hidden mb-4 bg-[#0F212E]">
+          <div className="flex rounded-md overflow-hidden mb-2 bg-[#0F212E]">
             <button 
-              className={`flex-1 py-2 text-center ${gameMode === 'Manual' ? 'bg-[#172B3A]' : ''}`}
+              className={`flex-1 py-1 text-center ${gameMode === 'Manual' ? 'bg-[#172B3A]' : ''}`}
               onClick={() => setGameMode('Manual')}
             >
               Manual
             </button>
             <button 
-              className={`flex-1 py-2 text-center ${gameMode === 'Auto' ? 'bg-[#172B3A]' : ''}`}
+              className={`flex-1 py-1 text-center ${gameMode === 'Auto' ? 'bg-[#172B3A]' : ''}`}
               onClick={() => setGameMode('Auto')}
             >
               Auto
