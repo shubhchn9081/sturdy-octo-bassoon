@@ -30,13 +30,14 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'stake-session-secret',
+    secret: process.env.SESSION_SECRET || "extremely-secure-secret-key-for-development",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      sameSite: 'lax'
     }
   };
 
@@ -49,30 +50,53 @@ export function setupAuth(app: Express) {
     new LocalStrategy(async (username, password, done) => {
       try {
         const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false, { message: 'Invalid username or password' });
-        } else {
-          return done(null, user);
+        if (!user) {
+          return done(null, false, { message: "Invalid username or password" });
         }
+        
+        if (user.isBanned) {
+          return done(null, false, { message: "Your account has been banned" });
+        }
+        
+        const isValid = await comparePasswords(password, user.password);
+        if (!isValid) {
+          return done(null, false, { message: "Invalid username or password" });
+        }
+        
+        return done(null, user);
       } catch (error) {
         return done(error);
       }
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
+      if (!user) {
+        return done(new Error("User not found"));
+      }
+      if (user.isBanned) {
+        return done(new Error("Account is banned"));
+      }
       done(null, user);
     } catch (error) {
       done(error);
     }
   });
 
+  // Register user endpoint
   app.post("/api/register", async (req, res, next) => {
     try {
       const { username, password, email, dateOfBirth, phone } = req.body;
+      
+      if (!username || !password || !email || !dateOfBirth) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
       
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
@@ -85,30 +109,41 @@ export function setupAuth(app: Express) {
         password: hashedPassword,
         email,
         dateOfBirth: new Date(dateOfBirth),
-        phone: phone || null,
+        phone: phone || null
       });
 
       req.login(user, (err) => {
         if (err) return next(err);
-        res.status(201).json(user);
+        
+        // Don't include the password in the response
+        const { password, ...userWithoutPassword } = user;
+        res.status(201).json(userWithoutPassword);
       });
     } catch (error) {
-      next(error);
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Server error" });
     }
   });
 
+  // Login endpoint
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
       if (err) return next(err);
-      if (!user) return res.status(401).json({ message: info?.message || "Authentication failed" });
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Authentication failed" });
+      }
       
       req.login(user, (err) => {
         if (err) return next(err);
-        res.status(200).json(user);
+        
+        // Don't include the password in the response
+        const { password, ...userWithoutPassword } = user;
+        res.json(userWithoutPassword);
       });
     })(req, res, next);
   });
 
+  // Logout endpoint
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
@@ -116,8 +151,14 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Get current user endpoint
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    res.json(req.user);
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    // Don't include the password in the response
+    const { password, ...userWithoutPassword } = req.user;
+    res.json(userWithoutPassword);
   });
 }

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useUser, useAuth, SignOutButton } from '@clerk/clerk-react';
+import React from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,17 +26,16 @@ import {
 } from 'lucide-react';
 
 export const UserProfileButton = () => {
-  const { user } = useUser();
-  const { signOut } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const [, setLocation] = useLocation();
 
   if (!user) {
     return null;
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-    setLocation('/');
+  const handleSignOut = () => {
+    logoutMutation.mutate();
+    setLocation('/auth');
   };
 
   const getInitials = (name: string) => {
@@ -48,14 +47,13 @@ export const UserProfileButton = () => {
     return name.slice(0, 2).toUpperCase();
   };
 
-  const userInitials = user.fullName ? getInitials(user.fullName) : user.emailAddresses[0]?.emailAddress?.slice(0, 2).toUpperCase() || 'U';
+  const userInitials = user.username ? getInitials(user.username) : 'U';
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full overflow-hidden">
           <Avatar className="h-8 w-8 border border-[#243442]">
-            <AvatarImage src={user.imageUrl} alt={user.fullName || 'User'}/>
             <AvatarFallback className="bg-[#172B3A] text-white text-xs">
               {userInitials}
             </AvatarFallback>
@@ -64,8 +62,8 @@ export const UserProfileButton = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-[#1A2C38] border border-[#243442] text-white" align="end">
         <div className="px-4 py-3">
-          <p className="text-sm font-medium leading-none">{user.fullName || user.username || 'User'}</p>
-          <p className="text-xs text-muted-foreground mt-1 text-[#7F8990]">{user.primaryEmailAddress?.emailAddress}</p>
+          <p className="text-sm font-medium leading-none">{user.username || 'User'}</p>
+          <p className="text-xs text-muted-foreground mt-1 text-[#7F8990]">{user.email}</p>
           <p className="text-xs text-muted-foreground mt-1 text-[#7F8990]">0.00000000 BTC</p>
         </div>
         

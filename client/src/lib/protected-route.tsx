@@ -1,19 +1,17 @@
-import { useAuth, useUser } from '@clerk/clerk-react';
-import { ReactNode } from 'react';
-import { Redirect, Route } from 'wouter';
-import { Loader2 } from 'lucide-react';
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
+import { Redirect, Route } from "wouter";
 
-interface ProtectedRouteProps {
+export function ProtectedRoute({
+  path,
+  component: Component,
+}: {
   path: string;
-  component: () => ReactNode;
-}
+  component: () => React.JSX.Element;
+}) {
+  const { user, isLoading } = useAuth();
 
-export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
-  const { isLoaded, isSignedIn } = useAuth();
-  const { user } = useUser();
-
-  // Show loading state while Clerk is initializing
-  if (!isLoaded) {
+  if (isLoading) {
     return (
       <Route path={path}>
         <div className="flex items-center justify-center min-h-screen">
@@ -23,8 +21,7 @@ export function ProtectedRoute({ path, component: Component }: ProtectedRoutePro
     );
   }
 
-  // If not signed in, redirect to auth page
-  if (!isSignedIn || !user) {
+  if (!user) {
     return (
       <Route path={path}>
         <Redirect to="/auth" />
@@ -32,6 +29,5 @@ export function ProtectedRoute({ path, component: Component }: ProtectedRoutePro
     );
   }
 
-  // User is authenticated, render the component
-  return <Route path={path} component={Component as any} />;
+  return <Route path={path} component={Component} />;
 }

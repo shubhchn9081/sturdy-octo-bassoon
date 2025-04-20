@@ -21,8 +21,10 @@ import AnimationExamples from "@/pages/animation-examples";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
-import { ClerkProviderWrapper } from "@/lib/clerk-provider";
+import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 function Router() {
   return (
@@ -59,10 +61,12 @@ function Router() {
 
 function App() {
   return (
-    <ClerkProviderWrapper>
-      <Router />
-      <Toaster />
-    </ClerkProviderWrapper>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

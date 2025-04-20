@@ -26,14 +26,16 @@ import {
 } from 'lucide-react';
 import { useUser } from '@/context/UserContext';
 import { useSidebar } from '@/context/SidebarContext';
-import { useAuth as useClerkAuth } from '@clerk/clerk-react';
+import { useAuth } from '@/hooks/use-auth';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useUser();
-  const { isSignedIn, isLoaded } = useClerkAuth();
+  const { isAuthenticated, user: contextUser } = useUser();
+  const { user, isLoading } = useAuth();
+  const isSignedIn = !!user;
+  const isLoaded = !isLoading;
   const { collapsed, toggleSidebar } = useSidebar();
-  const balance = user ? user.balance.BTC.toFixed(8) : "0.00000000";
+  const balance = user && user.balance ? user.balance.BTC.toFixed(8) : "0.00000000";
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
