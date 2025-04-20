@@ -461,8 +461,7 @@ const WheelGame: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Wheel is spinning",
-        description: "Please wait for the current spin to finish.",
-        icon: <Loader2 className="h-4 w-4 animate-spin" />
+        description: "Please wait for the current spin to finish."
       });
       return;
     }
@@ -539,11 +538,17 @@ const WheelGame: React.FC = () => {
                 <div className="relative inline-block">
                   <Select 
                     value={activeCurrency} 
-                    onValueChange={(value) => {
-                      setActiveCurrency(value as any);
+                    onValueChange={(value: string) => {
+                      // Ensure the value is one of our supported currencies
+                      const currencyValue = (value === 'BTC' || value === 'ETH' || value === 'USD' || 
+                                             value === 'INR' || value === 'USDT') 
+                                             ? value 
+                                             : 'BTC';
+                      
+                      setActiveCurrency(currencyValue as any);
                       
                       // Set a reasonable default bet for the new currency
-                      if (value === 'BTC' || value === 'ETH') {
+                      if (currencyValue === 'BTC' || currencyValue === 'ETH') {
                         setBetAmount('0.00010000');
                       } else {
                         setBetAmount('10.00');
