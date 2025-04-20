@@ -31,13 +31,14 @@ interface GameStateType {
 
 const CricketMinesGame = () => {
   const { getGameResult } = useProvablyFair('cricket-mines');
-  const { rawBalance, placeBet } = useBalance('INR');
+  const { rawBalance, placeBet, completeBet } = useBalance('INR');
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
   const [betAmountStr, setBetAmountStr] = useState('10.00');
   const [outCount, setOutCount] = useState(20);
   const [tiles, setTiles] = useState<TileStatus[]>(Array(TOTAL_CELLS).fill('hidden'));
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
+  const [currBetId, setCurrBetId] = useState<number | null>(null);
 
   // New game state with the logic from the provided code
   const [gameState, setGameState] = useState<GameStateType | null>(null);
@@ -138,13 +139,24 @@ const CricketMinesGame = () => {
     setTiles(Array(TOTAL_CELLS).fill('hidden'));
     setSelectedTile(null);
     
-    // In a real app, this would call the API to place a bet
-    // const response = await placeBet.mutateAsync({
-    //   amount: betAmount,
-    //   gameId: 2, // Cricket Mines game id
-    //   clientSeed: 'seed',
-    //   options: { outCount }
-    // });
+    // Call the API to place a bet and deduct balance
+    placeBet.mutate({
+      amount: betAmount,
+      gameId: 2, // Cricket Mines game id
+      clientSeed: 'seed',
+      options: { outCount },
+      currency: 'INR'
+    }, {
+      onSuccess: (response) => {
+        // Store bet ID for future reference
+        setCurrBetId(response.id);
+      },
+      onError: (error) => {
+        // Reset game state on error
+        setGameState(null);
+        console.error("Error placing bet:", error);
+      }
+    });
   };
   
   // Reveal a cell
@@ -201,17 +213,18 @@ const CricketMinesGame = () => {
     
     setGameState(updatedGameState);
     
-    // In a real app, this would call the API to complete the bet
-    // if (updatedGameState.isGameOver) {
-    //   completeBet.mutate({
-    //     betId: currBetId!,
-    //     outcome: { 
-    //       outPositions: updatedGameState.outPositions, 
-    //       revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
-    //       win: updatedGameState.isWon 
-    //     }
-    //   });
-    // }
+    // Call the API to complete the bet if the game is over
+    if (updatedGameState.isGameOver && currBetId) {
+      completeBet.mutate({
+        betId: currBetId,
+        outcome: { 
+          outPositions: updatedGameState.outPositions, 
+          revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
+          win: updatedGameState.isWon,
+          multiplier: updatedGameState.multiplier
+        }
+      });
+    }
   };
   
   // Handle tile click
@@ -269,15 +282,18 @@ const CricketMinesGame = () => {
     setTiles(newTiles);
     setGameState(updatedGameState);
     
-    // In a real app, this would call the API to complete the bet
-    // completeBet.mutate({
-    //   betId: currBetId!,
-    //   outcome: { 
-    //     outPositions: updatedGameState.outPositions, 
-    //     revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
-    //     win: true 
-    //   }
-    // });
+    // Call the API to complete the bet and credit winnings
+    if (currBetId) {
+      completeBet.mutate({
+        betId: currBetId,
+        outcome: { 
+          outPositions: updatedGameState.outPositions, 
+          revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
+          win: true,
+          multiplier: updatedGameState.multiplier
+        }
+      });
+    }
     
     return calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
   };
