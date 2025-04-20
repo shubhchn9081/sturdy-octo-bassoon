@@ -256,8 +256,8 @@ const GameCard = ({
       className={cn("game-card", className)}
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      {/* Main card content - matching Stake.com layout - fixed height for all cards */}
-      <div className="relative w-full h-[154px]">
+      {/* Main card content - matching Stake.com layout - responsive height */}
+      <div className="relative w-full h-[110px] sm:h-[125px] md:h-[140px] lg:h-[154px]">
         {/* Background gradient or image */}
         <div 
           className="absolute inset-0 w-full h-full" 
@@ -281,16 +281,16 @@ const GameCard = ({
         
         {/* Multiplier badge in top right if available - exact Stake.com style */}
         {multiplier && (
-          <div className="absolute top-2 right-2 bg-yellow-400 text-white text-[10px] font-bold py-0.5 px-1.5 rounded-sm flex items-center">
-            <div className="w-2 h-2 rounded-full bg-orange-500 mr-1"></div>
+          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-yellow-400 text-white text-[8px] sm:text-[10px] font-bold py-0.5 px-1 sm:px-1.5 rounded-sm flex items-center">
+            <div className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-orange-500 mr-0.5 sm:mr-1"></div>
             {multiplier}
           </div>
         )}
       </div>
       
       {/* Player count - with green dot and exact Stake.com styling */}
-      <div className="bg-[#0F212E] px-2 py-0.5 text-[10px] text-green-400 flex items-center justify-center">
-        <div className="w-1 h-1 rounded-full bg-green-400 mr-1"></div>
+      <div className="bg-[#0F212E] px-1 sm:px-2 py-0.5 text-[8px] sm:text-[10px] text-green-400 flex items-center justify-center">
+        <div className="w-1 h-1 rounded-full bg-green-400 mr-0.5 sm:mr-1"></div>
         {activePlayers.toLocaleString()} playing
       </div>
     </div>

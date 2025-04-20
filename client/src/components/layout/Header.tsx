@@ -128,7 +128,7 @@ const Header = () => {
                     <div className="py-1 divide-y divide-[#243442]">
                       <div className="px-4 py-3">
                         <p className="text-sm leading-5 text-white">
-                          {user ? user.username : 'Guest'}
+                          Guest
                         </p>
                         <p className="text-xs leading-4 text-[#7F8990] mt-1">
                           {balance} {activeCurrency}

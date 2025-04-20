@@ -56,7 +56,7 @@ const Layout = ({ children }: LayoutProps) => {
       
       {/* Content area - positioned to the right of sidebar on desktop, full width on mobile */}
       <div 
-        className="absolute top-0 right-0 bottom-0 overflow-y-auto md:pb-0 pb-16"
+        className="absolute top-0 right-0 bottom-0 overflow-y-auto md:pb-0 pb-20"
         style={{ 
           left: isMobile ? 0 : (collapsed ? '4rem' : '16rem'), 
           margin: 0, 

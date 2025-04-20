@@ -5,21 +5,21 @@ import { Twitter, Instagram, Facebook, Youtube, Twitch } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#0F212E] py-6 px-6 text-[#7F8990] text-sm border-t border-[#172B3A]">
-      <div className="flex justify-center mb-4">
-        <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-16" />
+    <footer className="bg-[#0F212E] py-4 md:py-6 px-4 md:px-6 text-[#7F8990] text-xs md:text-sm border-t border-[#172B3A]">
+      <div className="md:flex justify-center mb-4 hidden">
+        <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-12 md:h-16" />
       </div>
-      <div className="text-center mb-4">
+      <div className="text-center mb-3 md:mb-4">
         <p>© 2025 Stake.com | All Rights Reserved.</p>
       </div>
-      <div className="flex justify-center space-x-4 mb-8">
-        <Twitter className="h-5 w-5 text-muted-foreground hover:text-foreground transition" />
-        <Instagram className="h-5 w-5 text-muted-foreground hover:text-foreground transition" />
-        <Facebook className="h-5 w-5 text-muted-foreground hover:text-foreground transition" />
-        <Youtube className="h-5 w-5 text-muted-foreground hover:text-foreground transition" />
-        <Twitch className="h-5 w-5 text-muted-foreground hover:text-foreground transition" />
+      <div className="flex justify-center space-x-4 mb-6 md:mb-8">
+        <Twitter className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-foreground transition" />
+        <Instagram className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-foreground transition" />
+        <Facebook className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-foreground transition" />
+        <Youtube className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-foreground transition" />
+        <Twitch className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-foreground transition" />
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 max-w-screen-lg mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 gap-y-6 max-w-screen-lg mx-auto">
         <div>
           <h4 className="font-medium mb-2 text-foreground">Casino</h4>
           <ul className="space-y-1">

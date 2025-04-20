@@ -63,28 +63,28 @@ const HomePage = () => {
   ];
   
   return (
-    <main className="flex-1 p-1">
+    <main className="flex-1">
       {/* Search Bar */}
-      <div className="relative mb-3">
+      <div className="relative mb-3 px-2">
         <input 
           type="text" 
           placeholder="Search your game" 
-          className="w-full bg-[#172B3A] rounded-lg py-3 px-10 text-white border-none focus:outline-none focus:ring-1 focus:ring-[#0F212E]/80"
+          className="w-full bg-[#172B3A] rounded-lg py-2 px-9 text-sm md:text-base text-white border-none focus:outline-none focus:ring-1 focus:ring-[#0F212E]/80"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Search className="h-5 w-5 text-gray-400 absolute left-3 top-3.5" />
+        <Search className="h-4 w-4 md:h-5 md:w-5 text-gray-400 absolute left-4 top-3" />
       </div>
 
       {/* Featured Section */}
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <Zap className="h-5 w-5 text-green-500 mr-2" />
-          <h2 className="text-lg font-medium text-white">Featured Stake Originals</h2>
+      <div className="mb-6">
+        <div className="flex items-center mb-3 px-2">
+          <Zap className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2" />
+          <h2 className="text-base md:text-lg font-medium text-white">Featured Stake Originals</h2>
         </div>
         
         {/* Featured Game Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-[1px]">
           {featuredGames.map((game) => (
             <GameCard
               key={game.id}
@@ -103,12 +103,12 @@ const HomePage = () => {
 
       {/* All Games Section */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-white">All Stake Originals</h2>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 px-2">
+          <h2 className="text-base md:text-lg font-medium text-white mb-2 md:mb-0">All Stake Originals</h2>
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
-              <span className="text-gray-400 text-sm">Sort by</span>
-              <div className="bg-[#172B3A] text-white py-1 px-3 rounded-md text-sm flex items-center">
+              <span className="text-gray-400 text-xs md:text-sm">Sort by</span>
+              <div className="bg-[#172B3A] text-white py-1 px-2 rounded-md text-xs md:text-sm flex items-center">
                 Popular <span className="ml-1">▼</span>
               </div>
             </div>
@@ -116,7 +116,7 @@ const HomePage = () => {
         </div>
         
         {/* All Game Cards - With minimal gap */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-1">
+        <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-[1px]">
           {allGames.map((game) => (
             <GameCard
               key={game.id}
