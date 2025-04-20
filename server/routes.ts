@@ -324,9 +324,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Game not found' });
       }
       
-      // Check if user has enough balance
-      if (user.balance < validatedData.amount) {
-        return res.status(400).json({ message: 'Insufficient balance' });
+      // Get the currency from the request or default to BTC
+      const currency = validatedData.options?.currency || 'BTC';
+      
+      // Check if user has enough balance for that currency
+      if (!user.balance || !user.balance[currency] || user.balance[currency] < validatedData.amount) {
+        return res.status(400).json({ message: `Insufficient ${currency} balance` });
+      }
+      
+      // Don't allow bets of 0 or negative amounts
+      if (validatedData.amount <= 0) {
+        return res.status(400).json({ message: 'Bet amount must be greater than 0' });
       }
       
       // Generate server seed
@@ -342,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Deduct bet amount from user balance
-      await storage.updateUserBalance(user.id, user.balance - validatedData.amount);
+      await storage.updateUserBalance(user.id, currency, -validatedData.amount);
       
       res.json({ betId: bet.id, serverSeedHash: bet.serverSeed });
     } catch (error) {
@@ -386,8 +394,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.body.outcome.win) {
         const user = await storage.getUser(bet.userId);
         if (user) {
+          // Get the currency from the bet options or default to BTC
+          const currency = bet.options?.currency || 'BTC';
           const winAmount = bet.amount * req.body.outcome.multiplier;
-          await storage.updateUserBalance(user.id, user.balance + winAmount);
+          await storage.updateUserBalance(user.id, currency, winAmount);
+          
+          // Add transaction record if available
+          if (storage.createTransaction) {
+            try {
+              await storage.createTransaction({
+                userId: user.id,
+                type: 'WIN',
+                amount: winAmount,
+                status: 'COMPLETED',
+                currency: currency,
+                description: `Win from ${game.name} - Multiplier: ${req.body.outcome.multiplier}x`,
+              });
+            } catch (err) {
+              console.error('Error creating transaction record:', err);
+              // Don't fail the whole request if transaction creation fails
+            }
+          }
         }
       }
       

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCrypto } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 // Define the balance type
 type BalanceType = {
@@ -14,6 +15,7 @@ type BalanceType = {
 
 export function useBalance(currency: string = 'BTC') {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [displayBalance, setDisplayBalance] = useState("0.00000000");
   
   const { data: balanceData, isLoading } = useQuery<BalanceType>({
@@ -27,6 +29,14 @@ export function useBalance(currency: string = 'BTC') {
     }
   }, [balanceData, currency]);
   
+  // Check if there's enough balance for a bet
+  const hasSufficientBalance = (amount: number, currencyToCheck: string = currency): boolean => {
+    if (!balanceData) return false;
+    
+    const availableBalance = balanceData[currencyToCheck] || 0;
+    return availableBalance >= amount && amount > 0;
+  };
+  
   const placeBet = useMutation({
     mutationFn: async ({ 
       amount, 
@@ -39,17 +49,39 @@ export function useBalance(currency: string = 'BTC') {
       clientSeed: string;
       options?: Record<string, any>;
     }) => {
+      // Add the currency to options if not already set
+      const betCurrency = options.currency || currency;
+      const updatedOptions = { ...options, currency: betCurrency };
+      
+      // Check balance client-side before making the request
+      if (!hasSufficientBalance(amount, betCurrency)) {
+        throw new Error(`Insufficient ${betCurrency} balance`);
+      }
+      
+      // Don't allow bets of 0 or negative amounts
+      if (amount <= 0) {
+        throw new Error('Bet amount must be greater than 0');
+      }
+      
       return apiRequest('POST', '/api/bets/place', {
         amount, 
         gameId, 
         clientSeed,
-        options
+        options: updatedOptions,
+        userId: options.userId || null
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
       queryClient.invalidateQueries({ queryKey: ['/api/bets/history'] });
     },
+    onError: (error: Error) => {
+      toast({
+        title: "Bet Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
 
   const completeBet = useMutation({
@@ -66,6 +98,13 @@ export function useBalance(currency: string = 'BTC') {
       queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
       queryClient.invalidateQueries({ queryKey: ['/api/bets/history'] });
     },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Completing Bet",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
 
   // Get the raw balance value for the selected currency
@@ -77,6 +116,8 @@ export function useBalance(currency: string = 'BTC') {
     balanceData, // Return the full balance object
     isLoading,
     placeBet,
-    completeBet
+    completeBet,
+    hasSufficientBalance, // Expose the balance check function
+    getCurrencySymbol: (curr: string = currency) => curr // Helper to get currency symbol
   };
 }
