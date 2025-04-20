@@ -63,7 +63,7 @@ const HomePage = () => {
   ];
   
   return (
-    <main className="flex-1 p-6">
+    <main className="flex-1 p-2">
       {/* Search Bar */}
       <div className="relative mb-6">
         <input 

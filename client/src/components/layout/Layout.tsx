@@ -34,7 +34,8 @@ const Layout = ({ children }: LayoutProps) => {
       >
         {collapsed ? <CollapsedSidebar /> : <Sidebar />}
       </div>
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      {/* Removed padding/margins between sidebar and content */}
+      <div className="flex-1 flex flex-col overflow-y-auto pl-0">
         <Header />
         {children}
         <Footer />

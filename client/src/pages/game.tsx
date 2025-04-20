@@ -81,7 +81,7 @@ const GamePage = () => {
   }
   
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full ml-0">
       {currentGame && <GameComponent />}
     </div>
   );
