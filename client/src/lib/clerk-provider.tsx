@@ -18,6 +18,12 @@ export function ClerkProviderWrapper({ children }: ClerkProviderWrapperProps) {
   return (
     <ClerkProvider 
       publishableKey={publishableKey}
+      // Allow all domains for development
+      allowedRedirectOrigins={[
+        window.location.origin,
+        /\.replit.dev$/,
+        /\.replit.app$/
+      ]}
       appearance={{
         baseTheme: dark,
         variables: {
