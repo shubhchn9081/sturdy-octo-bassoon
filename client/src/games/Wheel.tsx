@@ -39,14 +39,18 @@ const WheelGame: React.FC = () => {
   
   // Define colors for wheel segments
   const colors = [
-    '#FF3B30', // Red
-    '#4CD964', // Green
-    '#FFCC00', // Yellow
-    '#5856D6', // Purple
-    '#5AC8FA', // Blue
-    '#FF9500', // Orange
-    '#4CD964', // Green
-    '#FFCC00', // Yellow
+    '#3EBD5C', // Green
+    '#FDC23C', // Yellow
+    '#3EBD5C', // Green
+    '#FFFFFF', // White
+    '#3EBD5C', // Green
+    '#FDC23C', // Yellow
+    '#9657DE', // Purple
+    '#FDC23C', // Yellow
+    '#3EBD5C', // Green
+    '#F87C36', // Orange
+    '#3EBD5C', // Green
+    '#FDC23C', // Yellow
   ];
   
   // Multipliers based on risk level
@@ -162,23 +166,20 @@ const WheelGame: React.FC = () => {
     
     ctx.clearRect(0, 0, canvasWidth, canvasWidth);
     
-    // Draw outer ring
+    // Draw dark background
     ctx.beginPath();
     ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
-    ctx.fillStyle = "#0F1B29";
+    ctx.fillStyle = "#0B131C";
     ctx.fill();
     
-    // Draw gradient outer edge
-    const outerGradient = ctx.createRadialGradient(
-      radius, radius, radius * 0.95,
-      radius, radius, radius
-    );
-    outerGradient.addColorStop(0, '#172B3A');
-    outerGradient.addColorStop(1, '#0A131E');
+    // Draw inner wheel (the colored segments ring)
+    const innerRadius = radius * 0.85;
+    const outerRadius = radius * 0.7;
     
+    // Draw the dark inner circle
     ctx.beginPath();
-    ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
-    ctx.fillStyle = outerGradient;
+    ctx.arc(radius, radius, outerRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#0B131C";
     ctx.fill();
     
     // Save context before transformations
@@ -188,159 +189,60 @@ const WheelGame: React.FC = () => {
     ctx.translate(radius, radius);
     ctx.rotate(rotationAngle);
     
-    // Draw segments
+    // Draw segments - thin colored ring style as shown in the image
     for (let i = 0; i < segmentCount; i++) {
       const angle = i * anglePerSegment;
       const colorIndex = i % colors.length;
       
-      // Create segment path
+      // Create segment path - just the outer ring part
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, radius * 0.85, angle, angle + anglePerSegment);
-      ctx.lineTo(0, 0);
+      ctx.arc(0, 0, innerRadius, angle, angle + anglePerSegment);
+      ctx.arc(0, 0, radius, angle + anglePerSegment, angle, true);
       ctx.closePath();
       
-      // Fill segment with slightly transparent color to blend
-      ctx.fillStyle = colors[colorIndex] + 'E6'; // Add 90% opacity
+      // Fill with color
+      ctx.fillStyle = colors[colorIndex];
       ctx.fill();
       
-      // Draw thin gold separators
+      // Draw darker separator lines between segments
       ctx.beginPath();
-      ctx.moveTo(0, 0);
+      ctx.moveTo(innerRadius * Math.cos(angle), innerRadius * Math.sin(angle));
       ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
-      ctx.strokeStyle = "#FFC107";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#0B131C";
+      ctx.lineWidth = 2;
       ctx.stroke();
-      
-      // Add multiplier values
-      ctx.save();
-      ctx.rotate(angle + anglePerSegment / 2);
-      ctx.translate(radius * 0.6, 0);
-      ctx.rotate(Math.PI / 2);
-      
-      const multiplierOptions = multipliers[risk];
-      const multiplierIndex = i % multiplierOptions.length;
-      const multiplier = multiplierOptions[multiplierIndex];
-      
-      ctx.font = "bold 18px Arial";
-      ctx.fillStyle = "#FFFFFF";
-      ctx.textAlign = "center";
-      ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
-      ctx.shadowBlur = 4;
-      
-      // Different style for 0x multiplier
-      if (multiplier === 0.0) {
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 22px Arial";
-      }
-      
-      ctx.fillText(`${multiplier.toFixed(1)}×`, 0, 0);
-      ctx.restore();
     }
     
     // Restore context after segment drawing
     ctx.restore();
     
-    // Draw center circle with gradient
-    const centerGradient = ctx.createRadialGradient(
-      radius, radius, 0,
-      radius, radius, radius * 0.25
-    );
-    centerGradient.addColorStop(0, '#2C4356');
-    centerGradient.addColorStop(1, '#172B3A');
-    
+    // Draw inner empty space 
     ctx.beginPath();
-    ctx.arc(radius, radius, radius * 0.25, 0, 2 * Math.PI);
-    ctx.fillStyle = centerGradient;
+    ctx.arc(radius, radius, outerRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#0B131C";
     ctx.fill();
     
-    // Add embossed edge to center
+    // Draw faint inner circle
     ctx.beginPath();
-    ctx.arc(radius, radius, radius * 0.25, 0, 2 * Math.PI);
-    ctx.strokeStyle = "#3A5A7D";
-    ctx.lineWidth = 3;
+    ctx.arc(radius, radius, outerRadius * 0.85, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1;
     ctx.stroke();
     
-    // Add inner glowing circle
-    const glowGradient = ctx.createRadialGradient(
-      radius, radius, radius * 0.15,
-      radius, radius, radius * 0.25
-    );
-    glowGradient.addColorStop(0, 'rgba(26, 188, 156, 0.3)');
-    glowGradient.addColorStop(1, 'rgba(26, 188, 156, 0)');
-    
-    ctx.beginPath();
-    ctx.arc(radius, radius, radius * 0.2, 0, 2 * Math.PI);
-    ctx.fillStyle = glowGradient;
-    ctx.fill();
-    
-    // Add logo in center
-    ctx.font = "bold 28px Arial";
-    ctx.fillStyle = "#FFFFFF";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("STAKE", radius, radius);
-    
-    // Draw pointer/indicator at the top
-    const pointerHeight = radius * 0.15;
-    const pointerWidth = radius * 0.1;
-    
-    // Draw glow behind pointer
-    if (isSpinning) {
-      ctx.beginPath();
-      ctx.moveTo(radius, radius - radius * 0.85 - pointerHeight / 2);
-      ctx.arc(radius, radius - radius * 0.85, pointerHeight, 0, Math.PI, true);
-      ctx.closePath();
-      
-      const pointerGlow = ctx.createRadialGradient(
-        radius, radius - radius * 0.85, 0,
-        radius, radius - radius * 0.85, pointerHeight
-      );
-      pointerGlow.addColorStop(0, 'rgba(255, 59, 48, 0.8)');
-      pointerGlow.addColorStop(1, 'rgba(255, 59, 48, 0)');
-      ctx.fillStyle = pointerGlow;
-      ctx.fill();
-    }
+    // Draw pointer/indicator at the top (green triangle)
+    const pointerHeight = radius * 0.12;
+    const pointerWidth = radius * 0.10;
     
     // Draw pointer triangle
     ctx.beginPath();
-    ctx.moveTo(radius, radius - radius * 0.85);
-    ctx.lineTo(radius - pointerWidth / 2, radius - radius * 0.85 - pointerHeight);
-    ctx.lineTo(radius + pointerWidth / 2, radius - radius * 0.85 - pointerHeight);
+    ctx.moveTo(radius, radius - innerRadius - pointerHeight * 0.5);
+    ctx.lineTo(radius - pointerWidth / 2, radius - innerRadius - pointerHeight);
+    ctx.lineTo(radius + pointerWidth / 2, radius - innerRadius - pointerHeight);
     ctx.closePath();
     
-    // Create gradient for pointer
-    const pointerGradient = ctx.createLinearGradient(
-      radius, radius - radius * 0.85,
-      radius, radius - radius * 0.85 - pointerHeight
-    );
-    pointerGradient.addColorStop(0, '#FF3B30');
-    pointerGradient.addColorStop(1, '#FF6B60');
-    
-    ctx.fillStyle = pointerGradient;
+    // Fill pointer with green
+    ctx.fillStyle = '#3EBD5C';
     ctx.fill();
-    
-    // Add highlight/shadow to make it 3D
-    ctx.beginPath();
-    ctx.moveTo(radius, radius - radius * 0.85);
-    ctx.lineTo(radius - pointerWidth / 2, radius - radius * 0.85 - pointerHeight);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(radius, radius - radius * 0.85);
-    ctx.lineTo(radius + pointerWidth / 2, radius - radius * 0.85 - pointerHeight);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
-    // Draw outer ring
-    ctx.beginPath();
-    ctx.arc(radius, radius, radius * 0.93, 0, 2 * Math.PI);
-    ctx.strokeStyle = "#FFC107";
-    ctx.lineWidth = 2;
-    ctx.stroke();
   };
   
   // Create animated sparkles
@@ -676,8 +578,8 @@ const WheelGame: React.FC = () => {
         </div>
         
         {/* Game container */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="relative w-full h-full flex items-center justify-center" ref={wheelContainerRef}>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="relative w-full flex-1 flex items-center justify-center" ref={wheelContainerRef}>
             {/* Result display */}
             {result !== null && (
               <div className={`absolute top-4 left-0 right-0 z-10 text-center text-3xl font-bold ${result === 0 ? 'text-red-500' : 'text-green-400'}`}>
@@ -707,12 +609,7 @@ const WheelGame: React.FC = () => {
               ref={canvasRef} 
               width={400} 
               height={400} 
-              className={`rounded-full shadow-xl ${isSpinning ? 'wheel-spinning' : ''}`}
-              style={{ 
-                boxShadow: isSpinning 
-                  ? '0 0 15px 5px rgba(19, 117, 225, 0.5), 0 0 30px 10px rgba(19, 117, 225, 0.3)' 
-                  : '0 0 10px 2px rgba(23, 43, 58, 0.5)' 
-              }}
+              className={`rounded-full ${isSpinning ? 'wheel-spinning' : ''}`}
             />
             
             {/* Hidden audio elements for preloading */}
@@ -721,46 +618,32 @@ const WheelGame: React.FC = () => {
             <audio src="/sounds/lose.mp3" preload="auto" className="hidden" />
             <audio src="/sounds/click.mp3" preload="auto" className="hidden" />
           </div>
-        </div>
-        
-        {/* Multipliers display */}
-        <div className="mt-6 px-4">
-          <h3 className="text-sm font-medium text-gray-300 mb-2">Multipliers</h3>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {multipliers[risk].map((multiplier, index) => {
-              // Determine color based on multiplier
-              let bgColor = "#1c2d3a"; // Default dark blue
-              let textColor = "white";
-              
-              if (multiplier === 0) {
-                textColor = "white";
-                bgColor = "#FF3B30"; // Red for 0x
-              } else if (multiplier >= 5.0) {
-                bgColor = "#FF9500"; // Orange for high values
-              } else if (multiplier >= 3.0) {
-                bgColor = "#FFCC00"; // Yellow
-              } else if (multiplier >= 2.0) {
-                bgColor = "#5856D6"; // Purple
-              } else if (multiplier >= 1.5) {
-                bgColor = "#4CD964"; // Green
-              } else if (multiplier >= 1.0) {
-                bgColor = "#5AC8FA"; // Blue
-              }
-              
-              return (
-                <div 
-                  key={index} 
-                  className="px-4 py-2 rounded-full flex items-center justify-center text-sm font-medium"
-                  style={{ 
-                    backgroundColor: bgColor, 
-                    color: textColor,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  {multiplier.toFixed(1)}×
-                </div>
-              );
-            })}
+          
+          {/* Multiplier buttons */}
+          <div className="flex justify-center space-x-2 mb-6 mt-4 w-full px-4">
+            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
+              <span className="block text-lg font-medium">0.00×</span>
+            </button>
+            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
+              <span className="block text-lg font-medium">1.50×</span>
+              <span className="block h-1 bg-green-500 mt-1"></span>
+            </button>
+            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
+              <span className="block text-lg font-medium">1.70×</span>
+              <span className="block h-1 bg-green-500 mt-1"></span>
+            </button>
+            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
+              <span className="block text-lg font-medium">2.00×</span>
+              <span className="block h-1 bg-yellow-500 mt-1"></span>
+            </button>
+            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
+              <span className="block text-lg font-medium">3.00×</span>
+              <span className="block h-1 bg-purple-500 mt-1"></span>
+            </button>
+            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
+              <span className="block text-lg font-medium">4.00×</span>
+              <span className="block h-1 bg-orange-500 mt-1"></span>
+            </button>
           </div>
         </div>
       </div>
