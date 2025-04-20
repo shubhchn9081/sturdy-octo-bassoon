@@ -53,6 +53,9 @@ const WheelGame: React.FC = () => {
     '#FDC23C', // Yellow
   ];
   
+  // The middle spacer color between segments
+  const segmentSpacerColor = '#1E3243';
+  
   // Multipliers based on risk level
   const multipliers = {
     Low: [0.5, 1.1, 1.2, 1.3, 1.5, 2.0],
@@ -187,28 +190,32 @@ const WheelGame: React.FC = () => {
     ctx.translate(radius, radius);
     ctx.rotate(rotationAngle);
     
-    // Draw segments - thin colored ring style as shown in the image
+    // First draw the spacer ring (the dark blue-gray color between segments)
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = segmentSpacerColor;
+    ctx.fill();
+
+    // Draw colored segments on top of the spacer ring
     for (let i = 0; i < segmentCount; i++) {
       const angle = i * anglePerSegment;
       const colorIndex = i % colors.length;
       
-      // Create segment path - just the outer ring part
+      // Make segments slightly smaller to show the spacer between them
+      // Create a rectangular segment (not a pie slice)
+      const segmentWidth = anglePerSegment * 0.7; // Make segments a bit smaller than the full angle
+      const segmentStartAngle = angle + (anglePerSegment - segmentWidth) / 2;
+      const segmentEndAngle = segmentStartAngle + segmentWidth;
+      
+      // Draw colored segment
       ctx.beginPath();
-      ctx.arc(0, 0, innerRadius, angle, angle + anglePerSegment);
-      ctx.arc(0, 0, radius, angle + anglePerSegment, angle, true);
+      ctx.arc(0, 0, innerRadius, segmentStartAngle, segmentEndAngle);
+      ctx.arc(0, 0, radius, segmentEndAngle, segmentStartAngle, true);
       ctx.closePath();
       
       // Fill with color
       ctx.fillStyle = colors[colorIndex];
       ctx.fill();
-      
-      // Draw darker separator lines between segments
-      ctx.beginPath();
-      ctx.moveTo(innerRadius * Math.cos(angle), innerRadius * Math.sin(angle));
-      ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
-      ctx.strokeStyle = "#0B131C";
-      ctx.lineWidth = 2;
-      ctx.stroke();
     }
     
     // Restore context after segment drawing
@@ -227,19 +234,38 @@ const WheelGame: React.FC = () => {
     ctx.lineWidth = 1;
     ctx.stroke();
     
-    // Draw pointer/indicator at the top (green triangle)
-    const pointerHeight = radius * 0.12;
-    const pointerWidth = radius * 0.10;
+    // Draw pointer/indicator at the top (pink/red teardrop shape)
+    const pointerHeight = radius * 0.15;
+    const pointerWidth = radius * 0.08;
     
-    // Draw pointer triangle
+    // Draw pointer base (rectangle with rounded bottom)
     ctx.beginPath();
-    ctx.moveTo(radius, radius - innerRadius - pointerHeight * 0.5);
-    ctx.lineTo(radius - pointerWidth / 2, radius - innerRadius - pointerHeight);
-    ctx.lineTo(radius + pointerWidth / 2, radius - innerRadius - pointerHeight);
+    
+    // Create a slightly rounded teardrop/marker shape
+    ctx.moveTo(radius, radius - innerRadius - pointerHeight);
+    ctx.arc(radius, radius - innerRadius - pointerHeight * 0.7, pointerHeight * 0.3, Math.PI, 0, true);
+    ctx.lineTo(radius + pointerWidth / 2, radius - innerRadius);
+    ctx.lineTo(radius - pointerWidth / 2, radius - innerRadius);
     ctx.closePath();
     
-    // Fill pointer with green
-    ctx.fillStyle = '#3EBD5C';
+    // Create gradient for 3D effect
+    const pointerGradient = ctx.createLinearGradient(
+      radius, radius - innerRadius - pointerHeight,
+      radius, radius - innerRadius
+    );
+    pointerGradient.addColorStop(0, '#FF4971'); // Brighter pink at top
+    pointerGradient.addColorStop(1, '#E93963'); // Deeper pink at bottom
+    
+    // Fill pointer with gradient
+    ctx.fillStyle = pointerGradient;
+    ctx.fill();
+    
+    // Add shine/highlight for more 3D effect
+    ctx.beginPath();
+    ctx.moveTo(radius, radius - innerRadius - pointerHeight);
+    ctx.arc(radius, radius - innerRadius - pointerHeight * 0.7, pointerHeight * 0.2, Math.PI, 0, true);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.fill();
   };
   
