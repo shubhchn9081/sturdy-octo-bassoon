@@ -80,9 +80,7 @@ const Header = () => {
             {isSignedIn && (
               <div className="flex items-center bg-[#1C2C39] rounded text-xs relative cursor-pointer" onClick={() => setLocation('/wallet')}>
                 <span className="text-white px-2 py-1.5 font-mono">{balance}</span>
-                <span className="text-gray-400 mr-2">
-                  <ChevronDown className="h-3 w-3 inline-block" />
-                </span>
+                {/* Removed the first chevron down icon */}
                 <div className="border-l border-[#0B131C] pl-2 py-1.5 pr-2 flex items-center">
                   <CurrencySwitcher variant="header" currencies={['BTC', 'USD', 'INR']} />
                 </div>

@@ -46,7 +46,7 @@ const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
                 {getCurrencySymbol(activeCurrency)}
               </span>
               <span className="text-white font-mono">{activeCurrency}</span>
-              <ChevronDown className="h-3 w-3 ml-1 text-gray-400" />
+              {/* Chevron is already included by SelectTrigger */}
             </div>
           </SelectTrigger>
           <SelectContent className="min-w-[80px] bg-[#172532] border-[#2a3642] text-white z-50">
