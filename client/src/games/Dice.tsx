@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useBalance } from '@/hooks/use-balance';
+import { useProvablyFair } from '@/hooks/use-provably-fair';
+import { useToast } from '@/hooks/use-toast';
 
 // Simple formatCrypto implementation to avoid dependency
 const formatCryptoAmount = (amount: number): string => {
@@ -6,6 +9,11 @@ const formatCryptoAmount = (amount: number): string => {
 };
 
 const DiceGame = () => {
+  // Use hooks for game functionality
+  const { getGameResult } = useProvablyFair('dice');
+  const { rawBalance, placeBet, completeBet } = useBalance('INR');
+  const { toast } = useToast();
+  
   // Local state for bet amount
   const [betAmount, setBetAmount] = useState(0.00000000);
   
@@ -19,6 +27,7 @@ const DiceGame = () => {
   const [result, setResult] = useState<number | null>(null);
   const [won, setWon] = useState<boolean | null>(null);
   const [profit, setProfit] = useState(0);
+  const [currentBetId, setCurrentBetId] = useState<number | null>(null);
   
   // Update multiplier and win chance when target changes
   useEffect(() => {
@@ -57,28 +66,88 @@ const DiceGame = () => {
   const handleBet = async () => {
     if (rolling || betAmount <= 0) return;
     
+    // Validate bet amount
+    if (betAmount <= 0) {
+      toast({
+        title: "Invalid bet amount",
+        description: "Please enter a valid bet amount",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check if user has enough balance
+    if (betAmount > rawBalance) {
+      toast({
+        title: "Insufficient balance",
+        description: "You don't have enough balance to place this bet",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setRolling(true);
     setResult(null);
     setWon(null);
     
     try {
-      // Simulate dice roll with random number between 0-100
-      const diceResult = Math.random() * 100;
+      // First place the bet and get the bet ID
+      const clientSeed = Math.random().toString(36).substring(2, 15);
+      const response = await placeBet.mutateAsync({
+        gameId: 5, // Dice game ID
+        clientSeed,
+        amount: betAmount,
+        options: {
+          target,
+          rollMode
+        }
+      });
       
-      // Wait a bit to simulate the roll
+      // Store the bet ID from the response
+      if (response && typeof response === 'object' && 'betId' in response) {
+        setCurrentBetId(response.betId as number);
+      } else {
+        console.error("Invalid response from placeBet:", response);
+        throw new Error("Invalid server response");
+      }
+      
+      // Generate dice result (this would normally come from the server)
+      const diceResult = getGameResult() as number;
+      const formattedResult = parseFloat((diceResult * 100).toFixed(2));
+      
+      // Wait a bit to show the animation
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      setResult(diceResult);
+      setResult(formattedResult);
       
       // Check if win
       const isWin = rollMode === 'over' 
-        ? diceResult > target 
-        : diceResult < target;
+        ? formattedResult > target 
+        : formattedResult < target;
         
       setWon(isWin);
       
+      // Call completeBet to update wallet balance
+      if (currentBetId !== null) {
+        completeBet.mutate({
+          betId: response.betId as number,
+          outcome: {
+            result: formattedResult,
+            target,
+            rollMode,
+            win: isWin,
+            multiplier: isWin ? multiplier : 0
+          }
+        });
+      }
+      
     } catch (error) {
       console.error('Error rolling dice:', error);
+      toast({
+        title: "Error placing bet",
+        description: "An error occurred while placing your bet",
+        variant: "destructive"
+      });
     } finally {
       setRolling(false);
     }
