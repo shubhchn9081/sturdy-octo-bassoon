@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBalance } from '@/hooks/use-balance';
 import { Sparkle, Settings, Users } from 'lucide-react';
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
@@ -32,7 +33,7 @@ const WheelGame: React.FC = () => {
   const [risk, setRisk] = useState<RiskLevel>('Medium');
   const [segments, setSegments] = useState<number>(16);
   const [activeTab, setActiveTab] = useState<'Manual' | 'Auto'>('Manual');
-  const [balance, setBalance] = useState<number>(1.00000000);
+  const { rawBalance } = useBalance('BTC');
   const [lastWins, setLastWins] = useState<{ multiplier: number; amount: number }[]>([]);
   
   // Define colors for wheel segments
@@ -348,13 +349,12 @@ const WheelGame: React.FC = () => {
     
     // Validate bet amount
     const betValue = parseFloat(betAmount);
-    if (isNaN(betValue) || betValue <= 0 || betValue > balance) {
+    if (isNaN(betValue) || betValue <= 0 || betValue > rawBalance) {
       alert('Please enter a valid bet amount');
       return;
     }
     
-    // Deduct bet amount from balance
-    setBalance(prev => parseFloat((prev - betValue).toFixed(8)));
+    // Note: Balance is now managed by the balance API, no need to manually deduct
     
     // Play spin sound
     playSound('spin');
@@ -450,8 +450,7 @@ const WheelGame: React.FC = () => {
       const betValue = parseFloat(betAmount);
       const winAmount = betValue * resultMultiplier;
       
-      // Update balance
-      setBalance(prev => parseFloat((prev + winAmount).toFixed(8)));
+      // Note: Balance is now managed by the balance API, no need to manually update
       
       // Record win in history
       setLastWins(prev => [
