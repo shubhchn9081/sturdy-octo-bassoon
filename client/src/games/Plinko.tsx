@@ -45,7 +45,7 @@ type BallState = {
 
 const PlinkoGame = () => {
   const { getGameResult } = useProvablyFair('plinko');
-  const { balance, placeBet } = useBalance();
+  const { rawBalance, placeBet } = useBalance('BTC');
   const boardRef = useRef<HTMLDivElement>(null);
   
   const [gameMode, setGameMode] = useState('Manual');

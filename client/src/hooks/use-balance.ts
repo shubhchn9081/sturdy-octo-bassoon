@@ -3,20 +3,29 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCrypto } from "@/lib/utils";
 
-export function useBalance() {
+// Define the balance type
+type BalanceType = {
+  BTC: number;
+  ETH: number;
+  USDT: number;
+  INR: number;
+  [key: string]: number;
+};
+
+export function useBalance(currency: string = 'BTC') {
   const queryClient = useQueryClient();
   const [displayBalance, setDisplayBalance] = useState("0.00000000");
   
-  const { data: balance, isLoading } = useQuery({
+  const { data: balanceData, isLoading } = useQuery<BalanceType>({
     queryKey: ['/api/user/balance'],
     refetchInterval: 10000, // Refresh balance every 10 seconds
   });
   
   useEffect(() => {
-    if (balance !== undefined) {
-      setDisplayBalance(formatCrypto(balance));
+    if (balanceData !== undefined && currency in balanceData) {
+      setDisplayBalance(formatCrypto(balanceData[currency]));
     }
-  }, [balance]);
+  }, [balanceData, currency]);
   
   const placeBet = useMutation({
     mutationFn: async ({ 
@@ -59,8 +68,13 @@ export function useBalance() {
     },
   });
 
+  // Get the raw balance value for the selected currency
+  const rawBalance = balanceData ? balanceData[currency] || 0 : 0;
+
   return {
     balance: displayBalance,
+    rawBalance, // Add the raw balance number for calculations
+    balanceData, // Return the full balance object
     isLoading,
     placeBet,
     completeBet
