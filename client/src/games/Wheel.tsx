@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBalance } from '@/hooks/use-balance';
 import { Sparkle, Settings, Users } from 'lucide-react';
+import gsap from 'gsap';
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
 
@@ -61,13 +62,16 @@ const WheelGame: React.FC = () => {
   const [result, setResult] = useState<number | null>(null);
   const [sparkles, setSparkles] = useState<boolean>(false);
   const [onlinePlayers] = useState<number>(Math.floor(Math.random() * 1000) + 500);
+  const [isIdleSpinning, setIsIdleSpinning] = useState<boolean>(true);
   
   // Refs for animation
   const animationRef = useRef<number>();
+  const idleAnimationRef = useRef<number>();
   const spinStartTimeRef = useRef<number>(0);
   const spinDurationRef = useRef<number>(7000); // 7 seconds
   const finalRotationRef = useRef<number>(0);
   const targetMultiplierRef = useRef<number>(0);
+  const idleSpeedRef = useRef<number>(0.003); // Speed of idle rotation
 
   // Draw the wheel whenever segments or rotation changes
   useEffect(() => {
@@ -93,8 +97,43 @@ const WheelGame: React.FC = () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
+      if (idleAnimationRef.current) {
+        cancelAnimationFrame(idleAnimationRef.current);
+      }
     };
   }, [segments, rotation]);
+  
+  // Reference for rotation value
+  const rotationRef = useRef({ value: 0 });
+  
+  // Start idle spinning animation when component mounts using GSAP
+  useEffect(() => {
+    if (!isSpinning && isIdleSpinning) {
+      // Initial value
+      rotationRef.current.value = rotation;
+      
+      // Kill any existing animations
+      gsap.killTweensOf(rotationRef.current);
+      
+      // Create infinite spinning animation
+      const idleAnimation = gsap.to(rotationRef.current, {
+        value: rotation + Math.PI * 2, // Full 360-degree rotation
+        duration: 8, // 8 seconds per rotation
+        ease: "none", // Linear rotation
+        repeat: -1, // Infinite repeats
+        onUpdate: () => {
+          // Update rotation state when the GSAP animation updates
+          setRotation(rotationRef.current.value % (Math.PI * 2));
+        }
+      });
+      
+      // Store reference to animation
+      return () => {
+        // Kill the animation on cleanup
+        idleAnimation.kill();
+      };
+    }
+  }, [isSpinning, isIdleSpinning, rotation]);
 
   // Add resize listener
   useEffect(() => {
@@ -359,6 +398,9 @@ const WheelGame: React.FC = () => {
     // Play spin sound
     playSound('spin');
     
+    // Kill any existing GSAP animations
+    gsap.killTweensOf(rotationRef.current);
+    
     setIsSpinning(true);
     setResult(null);
     setSparkles(false);
@@ -378,58 +420,47 @@ const WheelGame: React.FC = () => {
     
     // Add 8-10 full rotations plus the target segment angle
     const fullRotations = 8 + Math.random() * 2; // 8-10 rotations
-    const finalAngle = (fullRotations * 2 * Math.PI) + targetAngle;
+    const finalAngle = rotation + (fullRotations * 2 * Math.PI) + targetAngle;
     
-    // Set up animation
-    spinStartTimeRef.current = performance.now();
-    spinDurationRef.current = 7000; // 7 seconds
-    finalRotationRef.current = finalAngle;
+    // Update the rotation ref initial value
+    rotationRef.current.value = rotation;
     
-    // Start animation
-    animateSpinning();
+    // Create GSAP timeline for more control
+    const timeline = gsap.timeline({
+      onComplete: finishSpin
+    });
+    
+    // Fast initial rotation
+    timeline.to(rotationRef.current, {
+      value: rotation + (fullRotations * 0.7 * Math.PI * 2),
+      duration: 3,
+      ease: "power1.out",
+      onUpdate: () => {
+        setRotation(rotationRef.current.value);
+      }
+    });
+    
+    // Gradual slow down
+    timeline.to(rotationRef.current, {
+      value: rotation + (fullRotations * 0.95 * Math.PI * 2),
+      duration: 2.5,
+      ease: "power3.out",
+      onUpdate: () => {
+        setRotation(rotationRef.current.value);
+      }
+    });
+    
+    // Final approach with slight elasticity
+    timeline.to(rotationRef.current, {
+      value: finalAngle,
+      duration: 1.5,
+      ease: "elastic.out(1, 0.3)",
+      onUpdate: () => {
+        setRotation(rotationRef.current.value);
+      }
+    });
   };
   
-  const animateSpinning = () => {
-    const currentTime = performance.now();
-    const elapsedTime = currentTime - spinStartTimeRef.current;
-    const duration = spinDurationRef.current;
-    const progress = Math.min(elapsedTime / duration, 1);
-    
-    // Enhanced easing for more realistic spin physics
-    const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5);
-    const easeOutElastic = (x: number): number => {
-      const c4 = (2 * Math.PI) / 3;
-      return x === 0 ? 0 : x === 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1;
-    };
-    
-    // Combine easing functions for natural spin down
-    // Fast at start, then gradually slows with slight elastic effect at end
-    let easedProgress;
-    if (progress < 0.7) {
-      // First 70% - smooth cubic deceleration
-      easedProgress = easeOutQuint(progress / 0.7) * 0.7;
-    } else if (progress < 0.95) {
-      // Next 25% - approaching final position
-      const normalizedProgress = (progress - 0.7) / 0.25;
-      easedProgress = 0.7 + (easeOutQuint(normalizedProgress) * 0.25);
-    } else {
-      // Final 5% - small elastic effect
-      const normalizedProgress = (progress - 0.95) / 0.05;
-      easedProgress = 0.95 + (easeOutElastic(normalizedProgress) * 0.05);
-    }
-    
-    // Apply rotation
-    const currentRotation = easedProgress * finalRotationRef.current;
-    setRotation(currentRotation);
-    
-    if (progress < 1) {
-      // Continue animation
-      animationRef.current = requestAnimationFrame(animateSpinning);
-    } else {
-      // Animation complete - show result
-      finishSpin();
-    }
-  };
   
   const finishSpin = () => {
     // Get result based on animation
