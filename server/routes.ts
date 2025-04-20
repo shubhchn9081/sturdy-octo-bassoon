@@ -459,8 +459,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: user.id,
         username: user.username,
         isAdmin: user.isAdmin,
+        isBanned: user.isBanned,
         balance: user.balance,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        email: user.email,
+        dateOfBirth: user.dateOfBirth,
+        phone: user.phone,
+        referralCode: user.referralCode,
+        language: user.language
       });
     } catch (error) {
       console.error('Login error:', error);
@@ -487,8 +493,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: user.id,
         username: user.username,
         isAdmin: user.isAdmin,
+        isBanned: user.isBanned,
         balance: user.balance,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        email: user.email,
+        dateOfBirth: user.dateOfBirth,
+        phone: user.phone,
+        referralCode: user.referralCode,
+        language: user.language
       });
     } catch (error) {
       if (error instanceof z.ZodError) {

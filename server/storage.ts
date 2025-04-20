@@ -99,7 +99,12 @@ export class MemStorage implements IStorage {
         USDT: 1000,
         INR: 75000
       },
-      createdAt: new Date()
+      createdAt: new Date(),
+      email: "demo@example.com",
+      dateOfBirth: new Date("1990-01-01"),
+      phone: "1234567890",
+      referralCode: null,
+      language: "English"
     };
     this.users.set(demoUser.id, demoUser);
     
@@ -116,7 +121,12 @@ export class MemStorage implements IStorage {
         USDT: 10000,
         INR: 750000
       },
-      createdAt: new Date()
+      createdAt: new Date(),
+      email: "admin@example.com",
+      dateOfBirth: new Date("1985-01-01"),
+      phone: "9876543210",
+      referralCode: null,
+      language: "English"
     };
     this.users.set(adminUser.id, adminUser);
     
@@ -165,7 +175,12 @@ export class MemStorage implements IStorage {
         USDT: 1000,
         INR: 10000 // Lower amount for regular users
       },
-      createdAt: new Date()
+      createdAt: new Date(),
+      email: insertUser.email,
+      dateOfBirth: new Date(insertUser.dateOfBirth),
+      phone: insertUser.phone || null,
+      referralCode: null,
+      language: 'English'
     };
     this.users.set(id, user);
     return user;
@@ -374,9 +389,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    // Add default values for the new fields
+    const userWithDefaults = {
+      ...insertUser,
+      isAdmin: false,
+      isBanned: false,
+      balance: {
+        BTC: 0.01,
+        ETH: 0.1,
+        USDT: 1000,
+        INR: 10000
+      },
+      dateOfBirth: new Date(insertUser.dateOfBirth),
+      referralCode: null,
+      language: 'English'
+    };
+    
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(userWithDefaults)
       .returning();
     return user;
   }
