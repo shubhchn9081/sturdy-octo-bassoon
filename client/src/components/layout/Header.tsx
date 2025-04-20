@@ -27,7 +27,10 @@ import {
 import { useUser } from '@/context/UserContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/use-auth';
+import { useCurrency } from '@/context/CurrencyContext';
+import { useBalance } from '@/hooks/use-balance';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
+import CurrencySwitcher from '@/components/ui/CurrencySwitcher';
 
 const Header = () => {
   const { isAuthenticated, user: contextUser } = useUser();
@@ -35,7 +38,8 @@ const Header = () => {
   const isSignedIn = !!user;
   const isLoaded = !isLoading;
   const { collapsed, toggleSidebar } = useSidebar();
-  const balance = user && user.balance ? user.balance.BTC.toFixed(8) : "0.00000000";
+  const { activeCurrency } = useCurrency();
+  const { balance, rawBalance } = useBalance(activeCurrency);
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -71,15 +75,18 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <div className="hidden md:flex bg-[#1C2C39] rounded px-2 py-1.5 items-center text-xs">
-            <span className="text-white mr-1 font-mono">{balance}</span>
-            <svg className="h-4 w-4 text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M15 8.5C14.315 7.81501 13.1087 7.33855 12 7.30872M9 15C9.64448 15.8593 10.8428 16.3494 12 16.391M12 7.30872C10.6809 7.27322 9.5 7.86998 9.5 9.50001C9.5 12.5 15 11 15 14C15 15.711 13.5362 16.4462 12 16.391M12 7.30872V5.5M12 16.391V18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <svg className="h-3 w-3 ml-1 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 9l6 6 6-6"/>
-            </svg>
+          <div className="hidden md:block">
+            {isSignedIn && (
+              <div className="flex items-center bg-[#1C2C39] rounded text-xs relative cursor-pointer" onClick={() => setLocation('/wallet')}>
+                <span className="text-white px-2 py-1.5 font-mono">{balance}</span>
+                <span className="text-gray-400 mr-2">
+                  <ChevronDown className="h-3 w-3 inline-block" />
+                </span>
+                <div className="border-l border-[#0B131C] pl-2 py-1.5 pr-2 flex items-center">
+                  <CurrencySwitcher variant="header" currencies={['BTC', 'USD', 'INR']} />
+                </div>
+              </div>
+            )}
           </div>
           
           <Button 
@@ -124,7 +131,7 @@ const Header = () => {
                           {user ? user.username : 'Guest'}
                         </p>
                         <p className="text-xs leading-4 text-[#7F8990] mt-1">
-                          {user ? user.balance.BTC.toFixed(8) : '0.00000000'} BTC
+                          {balance} {activeCurrency}
                         </p>
                       </div>
                       

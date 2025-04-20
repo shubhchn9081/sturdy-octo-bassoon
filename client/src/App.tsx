@@ -21,6 +21,7 @@ import AnimationExamples from "@/pages/animation-examples";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -63,8 +64,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <CurrencyProvider>
+          <Router />
+          <Toaster />
+        </CurrencyProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
