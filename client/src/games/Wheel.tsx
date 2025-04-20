@@ -518,7 +518,7 @@ const WheelGame: React.FC = () => {
           {/* Balance */}
           <div className="flex justify-between text-sm mb-4">
             <span className="text-gray-400">Balance</span>
-            <span className="text-white font-medium">{balance.toFixed(8)} BTC</span>
+            <span className="text-white font-medium">{rawBalance.toFixed(8)} BTC</span>
           </div>
           
           {/* Bet amount */}
@@ -558,7 +558,7 @@ const WheelGame: React.FC = () => {
                 2×
               </button>
               <button 
-                onClick={() => setBetAmount((balance).toFixed(8))}
+                onClick={() => setBetAmount(rawBalance.toFixed(8))}
                 className="bg-[#0e1822] py-1 px-2 rounded text-white hover:bg-[#1a2c3d] text-xs"
               >
                 Max
