@@ -49,6 +49,7 @@ export const useBalance = (currency: SupportedCurrency) => {
   const placeBet = useMutation({
     mutationFn: async (params: PlaceBetParams) => {
       const betData = {
+        userId: 1, // Use the userId from the currently authenticated user
         ...params,
         options: {
           ...params.options,

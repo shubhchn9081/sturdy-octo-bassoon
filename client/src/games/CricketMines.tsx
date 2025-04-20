@@ -64,9 +64,12 @@ const CricketMinesGame = () => {
     }
     
     // Only allow valid numeric inputs with up to 2 decimal places for INR
+    // First, replace any commas with periods for internationalization
+    const sanitizedValue = value.replace(',', '.');
+    
     const regex = /^[0-9]*\.?[0-9]{0,2}$/;
-    if (regex.test(value)) {
-      setBetAmountStr(value);
+    if (regex.test(sanitizedValue)) {
+      setBetAmountStr(sanitizedValue);
     }
   };
   

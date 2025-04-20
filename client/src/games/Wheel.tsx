@@ -477,10 +477,14 @@ const WheelGame: React.FC = () => {
       return;
     }
     
-    // Only allow valid numeric inputs with up to 8 decimal places
-    const regex = /^[0-9]*\.?[0-9]{0,8}$/;
-    if (regex.test(value)) {
-      setBetAmount(value);
+    // Only allow valid numeric inputs with up to 2 decimal places for INR
+    // First, replace any commas with periods for internationalization
+    const sanitizedValue = value.replace(',', '.');
+    
+    // Only allow valid numeric inputs with up to 2 decimal places
+    const regex = /^[0-9]*\.?[0-9]{0,2}$/;
+    if (regex.test(sanitizedValue)) {
+      setBetAmount(sanitizedValue);
     }
   };
 
@@ -488,7 +492,7 @@ const WheelGame: React.FC = () => {
     playSound('click');
     const currentAmount = parseFloat(betAmount);
     if (!isNaN(currentAmount)) {
-      setBetAmount((currentAmount / 2).toFixed(8));
+      setBetAmount((currentAmount / 2).toFixed(2));
     }
   };
 
@@ -496,7 +500,7 @@ const WheelGame: React.FC = () => {
     playSound('click');
     const currentAmount = parseFloat(betAmount);
     if (!isNaN(currentAmount)) {
-      setBetAmount((currentAmount * 2).toFixed(8));
+      setBetAmount((currentAmount * 2).toFixed(2));
     }
   };
 
@@ -580,7 +584,7 @@ const WheelGame: React.FC = () => {
                 ½
               </button>
               <button 
-                onClick={() => setBetAmount('0.00000000')}
+                onClick={() => setBetAmount('0.00')}
                 className="bg-[#172532] py-1 px-2 rounded text-white hover:bg-[#1F3142] text-xs"
               >
                 0
