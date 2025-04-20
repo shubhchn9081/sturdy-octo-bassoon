@@ -1,10 +1,11 @@
 import { SignIn, SignUp, useAuth } from '@clerk/clerk-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 
 const AuthPage = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const [, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   
   // If user is already signed in, redirect to home page
   useEffect(() => {
@@ -12,6 +13,11 @@ const AuthPage = () => {
       setLocation('/');
     }
   }, [isLoaded, isSignedIn, setLocation]);
+
+  // Handle tab switch
+  const handleTabSwitch = (tab: 'signin' | 'signup') => {
+    setActiveTab(tab);
+  };
 
   return (
     <div className="min-h-screen bg-[#0f1a24] flex items-center justify-center p-4">
@@ -27,62 +33,48 @@ const AuthPage = () => {
             {/* Tabs for Sign In / Sign Up */}
             <div className="tabs mb-8 flex">
               <button 
-                onClick={() => window.location.hash = '#sign-in'}
-                className={`flex-1 py-3 px-4 ${window.location.hash !== '#sign-up' ? 'bg-[#172B3A] text-white border-b-2 border-[#1375e1]' : 'bg-[#11212d] text-gray-400'}`}
+                onClick={() => handleTabSwitch('signin')}
+                className={`flex-1 py-3 px-4 transition-colors ${activeTab === 'signin' ? 'bg-[#172B3A] text-white border-b-2 border-[#57FBA2]' : 'bg-[#11212d] text-gray-400'}`}
               >
                 Sign In
               </button>
               <button 
-                onClick={() => window.location.hash = '#sign-up'}
-                className={`flex-1 py-3 px-4 ${window.location.hash === '#sign-up' ? 'bg-[#172B3A] text-white border-b-2 border-[#1375e1]' : 'bg-[#11212d] text-gray-400'}`}
+                onClick={() => handleTabSwitch('signup')}
+                className={`flex-1 py-3 px-4 transition-colors ${activeTab === 'signup' ? 'bg-[#172B3A] text-white border-b-2 border-[#57FBA2]' : 'bg-[#11212d] text-gray-400'}`}
               >
                 Sign Up
               </button>
             </div>
             
             {/* Clerk Authentication Components */}
-            <div className="clerk-container" style={{ maxWidth: '100%' }}>
-              {window.location.hash === '#sign-up' ? (
+            <div className="clerk-container">
+              {activeTab === 'signup' ? (
                 <SignUp 
-                  routing="hash" 
                   redirectUrl="/"
+                  path="/auth/sign-up"
+                  signInUrl="/auth/sign-in"
                   appearance={{
                     elements: {
                       rootBox: 'mx-auto',
                       card: 'bg-transparent shadow-none',
-                      headerTitle: 'text-white',
-                      headerSubtitle: 'text-gray-400',
-                      socialButtonsBlockButton: 'bg-[#0f1a24] text-white border-[#243442] hover:bg-[#14212e]',
-                      socialButtonsBlockButtonText: 'text-white',
-                      dividerLine: 'bg-[#243442]',
-                      dividerText: 'text-gray-400',
-                      formFieldLabel: 'text-gray-300',
-                      formFieldInput: 'bg-[#0e1822] border-[#243442] text-white focus:border-[#1375e1] rounded',
-                      formButtonPrimary: 'bg-[#1375e1] hover:bg-[#1167c2] text-white',
-                      footerActionLink: 'text-[#1375e1] hover:text-[#1167c2]',
-                      alertText: 'text-white',
+                      headerTitle: 'hidden',
+                      headerSubtitle: 'hidden',
+                      footer: 'hidden',
                     }
                   }}
                 />
               ) : (
                 <SignIn 
-                  routing="hash" 
                   redirectUrl="/"
+                  path="/auth/sign-in"
+                  signUpUrl="/auth/sign-up"
                   appearance={{
                     elements: {
                       rootBox: 'mx-auto',
                       card: 'bg-transparent shadow-none',
-                      headerTitle: 'text-white',
-                      headerSubtitle: 'text-gray-400',
-                      socialButtonsBlockButton: 'bg-[#0f1a24] text-white border-[#243442] hover:bg-[#14212e]',
-                      socialButtonsBlockButtonText: 'text-white',
-                      dividerLine: 'bg-[#243442]',
-                      dividerText: 'text-gray-400',
-                      formFieldLabel: 'text-gray-300',
-                      formFieldInput: 'bg-[#0e1822] border-[#243442] text-white focus:border-[#1375e1] rounded',
-                      formButtonPrimary: 'bg-[#1375e1] hover:bg-[#1167c2] text-white',
-                      footerActionLink: 'text-[#1375e1] hover:text-[#1167c2]',
-                      alertText: 'text-white',
+                      headerTitle: 'hidden',
+                      headerSubtitle: 'hidden',
+                      footer: 'hidden',
                     }
                   }}
                 />
@@ -99,13 +91,13 @@ const AuthPage = () => {
               Join our community of players and enjoy a wide variety of casino games with provably fair mechanics.
             </p>
             <div className="flex space-x-3 mb-8">
-              <span className="w-3 h-3 rounded-full bg-green-500"></span>
+              <span className="w-3 h-3 rounded-full bg-[#57FBA2]"></span>
               <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
               <span className="w-3 h-3 rounded-full bg-blue-500"></span>
             </div>
             <div className="grid grid-cols-3 gap-4 w-full max-w-sm">
               <div className="bg-black/20 p-3 rounded-lg text-center">
-                <div className="text-xl font-bold text-green-400">99%</div>
+                <div className="text-xl font-bold text-[#57FBA2]">99%</div>
                 <div className="text-xs text-gray-400">Payout Rate</div>
               </div>
               <div className="bg-black/20 p-3 rounded-lg text-center">
