@@ -33,6 +33,7 @@ interface GameStateType {
 const CricketMinesGame = () => {
   const { getGameResult } = useProvablyFair('cricket-mines');
   const { rawBalance, placeBet, completeBet } = useBalance('INR');
+  const { toast } = useToast();
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
   const [betAmountStr, setBetAmountStr] = useState('10.00');
@@ -40,6 +41,7 @@ const CricketMinesGame = () => {
   const [tiles, setTiles] = useState<TileStatus[]>(Array(TOTAL_CELLS).fill('hidden'));
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
   const [currBetId, setCurrBetId] = useState<number | null>(null);
+  const [isPlacingBet, setIsPlacingBet] = useState(false);
 
   // New game state with the logic from the provided code
   const [gameState, setGameState] = useState<GameStateType | null>(null);
@@ -123,6 +125,9 @@ const CricketMinesGame = () => {
   // Start a new game
   const startGame = () => {
     if (gameState && !gameState.isGameOver) return;
+    if (isPlacingBet) return;
+    
+    setIsPlacingBet(true);
     
     const betAmount = parseFloat(betAmountStr) || 0.00000001;
     const outPositions = generateOutPositions(outCount);
@@ -144,33 +149,28 @@ const CricketMinesGame = () => {
     setSelectedTile(null);
     
     // Call the API to place a bet and deduct balance
+    console.log("Placing bet with data:", {
+      amount: betAmount,
+      gameId: 3, // Cricket Mines game id
+      clientSeed: Math.random().toString(36).substring(2, 15),
+      options: { outCount },
+      currency: 'INR'
+    });
+    
     placeBet.mutateAsync({
       amount: betAmount,
-      gameId: 2, // Cricket Mines game id
+      gameId: 3, // Cricket Mines game id - assuming this is ID 3
       clientSeed: Math.random().toString(36).substring(2, 15),
       options: { outCount },
       currency: 'INR'
     }).then(async (response) => {
+      console.log("Bet placed successfully with ID:", response.betId);
       if (!response || !response.betId) {
         throw new Error("Invalid response from server");
       }
       // Store bet ID for future reference
       setCurrBetId(response.betId);
       
-      // Wait for animation
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Complete the bet
-      if (response.betId) {
-        await completeBet.mutateAsync({
-          betId: response.betId,
-          outcome: {
-            selectedTiles: [],
-            outCount,
-            win: false
-          }
-        });
-      }
     }).catch(error => {
       // Reset game state on error
       setGameState(null);
@@ -455,7 +455,19 @@ const CricketMinesGame = () => {
   // Custom multiplier overlay display
   const renderMultiplierOverlay = () => {
     if (gameState && !gameState.isGameOver && gameState.sixesCollected > 0) {
-      const centerIndex = 12; // Middle of the 5x5 grid
+      // Calculate responsive overlay size based on viewport
+      const calculateOverlaySize = () => {
+        if (window.innerWidth < 640) {
+          return { width: 80, height: 80, fontSize: 16 }; // Mobile
+        } else if (window.innerWidth < 768) {
+          return { width: 100, height: 100, fontSize: 18 }; // Small tablets
+        } else {
+          return { width: 120, height: 120, fontSize: 20 }; // Desktop
+        }
+      };
+      
+      const { width, height, fontSize } = calculateOverlaySize();
+      
       return (
         <div 
           className={`absolute top-0 left-0 w-full h-full flex items-center justify-center
@@ -464,13 +476,15 @@ const CricketMinesGame = () => {
           <div 
             className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
                       bg-[#7bfa4c] bg-opacity-20 border-2 border-[#7bfa4c] rounded-md
-                      flex flex-col items-center justify-center p-4 w-32 h-32`}
+                      flex flex-col items-center justify-center p-2`}
             style={{
-              gridRowStart: Math.floor(centerIndex / GRID_SIZE) + 1,
-              gridColumnStart: (centerIndex % GRID_SIZE) + 1,
+              width: `${width}px`, 
+              height: `${height}px`
             }}
           >
-            <div className="text-xl font-bold text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</div>
+            <div className="font-bold text-[#7bfa4c]" style={{ fontSize: `${fontSize}px` }}>
+              {gameState.multiplier.toFixed(2)}x
+            </div>
             <div className="text-sm text-white flex items-center">
               {formatCrypto(gameState.betAmount)}
               <span className="text-green-400 ml-1">₹</span>
@@ -483,37 +497,61 @@ const CricketMinesGame = () => {
   };
   
   // Render the game grid with positioned tiles
-  const renderGameGrid = () => (
-    <div className="relative grid-container grid" style={{ 
-      gridTemplateColumns: 'repeat(5, 88px)', 
-      gridTemplateRows: 'repeat(5, 88px)', 
-      gap: '10px',
-      padding: '20px',
-      margin: 'auto',
-      marginTop: '20px' 
-    }}>
-      {tiles.map((status, index) => (
-        <button
-          key={index}
-          className={`
-            relative w-[88px] h-[88px] rounded-[10px] cursor-pointer tile flex items-center justify-center 
-            transition-all duration-200 ease-in
-            ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3a3a4d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
-            ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
-            ${status === 'out' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-explosion' : ''}
-            ${status === 'six' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
-          `}
-          onClick={() => handleTileClick(index)}
-          disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
-        >
-          {getTileContent(index, status)}
-        </button>
-      ))}
-      
-      {/* Multiplier overlay when game is active */}
-      {renderMultiplierOverlay()}
-    </div>
-  );
+  const renderGameGrid = () => {
+    // Calculate responsive tile sizes based on viewport
+    const calculateTileSize = () => {
+      // For smaller screens, we want smaller tiles to fit
+      if (window.innerWidth < 640) {
+        return 48; // 48px tiles for mobile
+      } else if (window.innerWidth < 768) {
+        return 60; // 60px tiles for small tablets
+      } else if (window.innerWidth < 1024) {
+        return 72; // 72px tiles for tablets
+      } else {
+        return 88; // 88px tiles for desktop
+      }
+    };
+    
+    const tileSize = calculateTileSize();
+    const gapSize = tileSize === 48 ? 4 : (tileSize === 60 ? 6 : 10);
+    
+    return (
+      <div className="relative grid-container grid" style={{ 
+        gridTemplateColumns: `repeat(5, ${tileSize}px)`, 
+        gridTemplateRows: `repeat(5, ${tileSize}px)`, 
+        gap: `${gapSize}px`,
+        padding: '10px',
+        margin: 'auto',
+        marginTop: '10px',
+        maxWidth: '100%',
+        overflow: 'hidden'
+      }}>
+        {tiles.map((status, index) => (
+          <button
+            key={index}
+            className={`
+              relative rounded-[6px] cursor-pointer tile flex items-center justify-center 
+              transition-all duration-200 ease-in
+              ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3a3a4d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
+              ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
+              ${status === 'out' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-explosion' : ''}
+              ${status === 'six' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
+            `}
+            style={{ width: `${tileSize}px`, height: `${tileSize}px` }}
+            onClick={() => handleTileClick(index)}
+            disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
+          >
+            <div className="w-full h-full flex items-center justify-center">
+              {getTileContent(index, status)}
+            </div>
+          </button>
+        ))}
+        
+        {/* Multiplier overlay when game is active */}
+        {renderMultiplierOverlay()}
+      </div>
+    );
+  };
   
   // Main render
   return (
@@ -552,10 +590,55 @@ const CricketMinesGame = () => {
       
       {/* Game Area */}
       <div className="flex-1 overflow-auto">
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="grid-wrapper flex items-center justify-center">
+        <div className="w-full h-full flex items-center justify-center p-2 md:p-4">
+          <div className="grid-wrapper flex flex-col items-center justify-center max-w-full">
+            {/* Mobile-only buttons at the top for smaller screens */}
+            <div className="lg:hidden w-full flex justify-between items-center mb-2">
+              {showCashout ? (
+                <Button 
+                  className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-10 rounded-[6px] transition-all duration-200"
+                  onClick={cashout}
+                >
+                  Cashout ({gameState?.multiplier.toFixed(2)}x)
+                </Button>
+              ) : (
+                <div className="text-sm text-white">
+                  {gameState ? `Collected: ${gameState.sixesCollected}` : 'Ready to Play'}
+                </div>
+              )}
+            </div>
+            
             {/* Game grid */}
             {renderGameGrid()}
+            
+            {/* Mobile-only bet controls at the bottom for smaller screens */}
+            <div className="lg:hidden w-full flex justify-between items-center mt-4">
+              <Input
+                type="text"
+                value={betAmountStr}
+                onChange={(e) => handleBetAmountChange(e.target.value)}
+                className="bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px] mr-2"
+                disabled={gameState && !gameState.isGameOver}
+                placeholder="0.00"
+                style={{ width: '100px' }}
+              />
+              {!gameState || gameState.isGameOver ? (
+                <Button 
+                  className="w-28 bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-10 rounded-[6px] transition-all duration-200"
+                  onClick={startGame}
+                  disabled={isPlacingBet}
+                >
+                  {isPlacingBet ? 'Betting...' : 'Bet'}
+                </Button>
+              ) : (
+                <Button 
+                  className="w-28 bg-[#1c1c2b] hover:bg-[#2f2f3d] text-white h-10 border border-[#333] rounded-[6px] transition-all duration-200"
+                  onClick={selectRandomTile}
+                >
+                  Random
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
