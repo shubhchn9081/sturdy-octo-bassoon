@@ -718,18 +718,13 @@ const WheelGame: React.FC = () => {
             ))}
           </div>
           
-          {/* Multiplier grid - more sleek layout */}
-          <div className="grid grid-cols-5 gap-x-1.5 gap-y-2 mt-4 mb-6 w-full max-w-md mx-auto px-2">
-            {[0, 1.5, 2, 2.5, 3, 
-              0, 1.5, 2, 2.5, 3, 
-              0, 1.5, 2, 2.5, 3, 
-              0, 1.5, 2, 2.5, 3,
-              0, 1.5, 2, 2.5, 3
-            ].map((value, i) => (
+          {/* Multiplier row - simplified to just one line */}
+          <div className="flex gap-x-1.5 mt-4 mb-6 w-full max-w-md mx-auto px-2 justify-center">
+            {[0, 1.5, 2, 2.5, 3, 0, 1.5].map((value, i) => (
               <div 
                 key={`mult-${i}`} 
                 className={`
-                  h-8 flex items-center justify-center rounded-sm
+                  h-8 w-12 flex items-center justify-center rounded-sm
                   ${value === 0 ? 'bg-red-800/90' : 
                     value <= 1.5 ? 'bg-purple-800/90' : 
                     value <= 2 ? 'bg-blue-700/90' : 
