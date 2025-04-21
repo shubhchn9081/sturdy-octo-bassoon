@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatCrypto } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
-import { motion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, BarChart3, TrendingUp } from 'lucide-react';
+import { Settings, BarChart3 } from 'lucide-react';
 
-// Constants
+// Game constants
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
-const ROW_OPTIONS = [8, 12, 16]; // From screenshot
+const ROW_OPTIONS = [8, 12, 16];
 
 // Multiplier tables based on screenshot from Stake.com
 const MULTIPLIER_TABLES = {
@@ -20,236 +16,293 @@ const MULTIPLIER_TABLES = {
   High: [110, 41, 10, 5, 2, 1.5, 1, 0.5, 0.5, 1, 1.5, 2, 5, 10, 41, 110]
 };
 
-// Colors for multipliers based on screenshot exactly
-const MULTIPLIER_COLORS: Record<string, string> = {
-  '0.2': 'bg-red-600', 
-  '0.3': 'bg-red-500',
-  '0.5': 'bg-orange-500',
-  '0.7': 'bg-amber-500',
-  '1': 'bg-amber-500',
-  '1.5': 'bg-yellow-500',
-  '2': 'bg-green-500',
-  '3': 'bg-green-500',
-  '5': 'bg-blue-500',
-  '10': 'bg-blue-600',
-  '41': 'bg-purple-500',
-  '110': 'bg-purple-600'
-};
-
-// Ball structure for animation
-type Ball = {
-  position: number; // Position index from left to right, starting at 0
-  row: number; // Current row, starting at 0
-  done: boolean; // If animation is complete
+// Multiplier colors
+const MULTIPLIER_COLORS: {[key: string]: string} = {
+  '0.2': '#ef4444', // red
+  '0.3': '#ef4444', // red
+  '0.5': '#f97316', // orange
+  '0.7': '#f59e0b', // amber
+  '1': '#f59e0b',   // amber
+  '1.5': '#eab308', // yellow
+  '2': '#22c55e',   // green
+  '3': '#22c55e',   // green
+  '5': '#3b82f6',   // blue
+  '10': '#2563eb',  // blue-600
+  '41': '#a855f7',  // purple
+  '110': '#9333ea'  // purple-600
 };
 
 const PlinkoGame: React.FC = () => {
   // Game state
-  const [risk, setRisk] = useState<string>('Medium');
-  const [rows, setRows] = useState<number>(16); // Default to 16 rows
-  const [betAmount, setBetAmount] = useState<string>('0.00000100'); // Default bet amount
-  const [isDropping, setIsDropping] = useState<boolean>(false);
-  const [multipliers, setMultipliers] = useState<number[]>(MULTIPLIER_TABLES.Medium);
-  const [result, setResult] = useState<number | null>(null);
-  const [isManualMode, setIsManualMode] = useState<boolean>(true);
-  const [balls, setBalls] = useState<Ball[]>([]);
-  const [currency, setCurrency] = useState<string>('BTC');
+  const [risk, setRisk] = useState('Medium');
+  const [rows, setRows] = useState(16);
+  const [betAmount, setBetAmount] = useState('0.00000100');
+  const [isDropping, setIsDropping] = useState(false);
+  const [currency, setCurrency] = useState('BTC');
+  const [isManualMode, setIsManualMode] = useState(true);
   
-  // Refs
-  const boardRef = useRef<HTMLDivElement>(null);
-  const betIdRef = useRef<number | null>(null);
+  // Canvas refs
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   
-  // Toast notifications
-  const { toast } = useToast();
+  // Multipliers
+  const multipliers = MULTIPLIER_TABLES[risk as keyof typeof MULTIPLIER_TABLES] || MULTIPLIER_TABLES.Medium;
   
   // Hooks
+  const { toast } = useToast();
   const { placeBet, completeBet, rawBalance } = useBalance(currency);
   const { getGameResult } = useProvablyFair('plinko');
   
-  // Update multipliers when risk changes
+  // Canvas dimensions
+  const width = 400;
+  const height = 500;
+  
+  // Initialize canvas
   useEffect(() => {
-    setMultipliers(MULTIPLIER_TABLES[risk]);
-  }, [risk]);
-  
-  // Calculate potential win amount
-  const potentialWinAmount = useMemo(() => {
-    const amount = parseFloat(betAmount) || 0;
-    return amount * Math.max(...multipliers);
-  }, [betAmount, multipliers]);
-  
-  // Main drop path generation logic
-  const generatePath = async (): Promise<number[]> => {
-    // Use provably fair result to generate path
-    const fairResult = await getGameResult();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     
-    // Map the path based on the rows
-    const path: number[] = [];
-    let currentPosition = 8; // Middle start position
+    // Set canvas dimensions
+    canvas.width = width;
+    canvas.height = height;
     
-    // Generate a path through the pins
-    for (let i = 0; i < rows; i++) {
-      // Use the random result to determine left or right
-      const random = typeof fairResult === 'number' ? fairResult : Math.random();
-      const direction = random < 0.5 ? 'left' : 'right';
-      
-      if (direction === 'left') {
-        currentPosition -= 1;
-      } else {
-        currentPosition += 1;
+    // Get context
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    canvasCtxRef.current = ctx;
+    
+    // Draw the initial game board
+    drawGameBoard();
+    
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
-      path.push(currentPosition);
+    };
+  }, [rows, risk]);
+  
+  // Draw the game board
+  const drawGameBoard = () => {
+    const ctx = canvasCtxRef.current;
+    if (!ctx) return;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw background
+    ctx.fillStyle = '#0E1C27';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Define pins layout
+    const pinSize = 6;
+    const pinSpacing = 24;
+    const startY = 40;
+    const endY = height - 60;
+    const rowHeight = (endY - startY) / (rows - 1);
+    
+    // Draw pins
+    for (let row = 0; row < rows; row++) {
+      const pinsInRow = row + 3;
+      const rowWidth = (pinsInRow - 1) * pinSpacing;
+      const startX = (width - rowWidth) / 2;
+      
+      for (let pin = 0; pin < pinsInRow; pin++) {
+        const x = startX + pin * pinSpacing;
+        const y = startY + row * rowHeight;
+        
+        // Draw pin
+        ctx.beginPath();
+        ctx.arc(x, y, pinSize / 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
     }
+    
+    // Draw multiplier buckets
+    const bucketHeight = 40;
+    const bucketY = height - bucketHeight;
+    const bucketWidth = width / multipliers.length;
+    
+    multipliers.forEach((multi, i) => {
+      const bucketX = i * bucketWidth;
+      const color = MULTIPLIER_COLORS[multi.toString()] || '#3b82f6';
+      
+      // Draw rounded rectangle for bucket
+      ctx.fillStyle = color;
+      roundRect(ctx, bucketX + 2, bucketY, bucketWidth - 4, bucketHeight, 4);
+      
+      // Draw multiplier text
+      ctx.fillStyle = 'white';
+      ctx.font = '12px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${multi}x`, bucketX + bucketWidth / 2, bucketY + bucketHeight / 2);
+    });
+  };
+  
+  // Helper to draw rounded rectangles
+  const roundRect = (
+    ctx: CanvasRenderingContext2D, 
+    x: number, 
+    y: number, 
+    width: number, 
+    height: number, 
+    radius: number
+  ) => {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+  };
+  
+  // Animate ball drop
+  const animateBallDrop = async () => {
+    const ctx = canvasCtxRef.current;
+    if (!ctx) return null;
+    
+    // Get provably fair result for path generation
+    const randomSeed = await getGameResult();
+    const path = generateBallPath(randomSeed);
+    
+    // Ball object
+    const ballSize = 12;
+    let currentIndex = 0;
+    let isDone = false;
+    
+    // Animation loop
+    const animate = () => {
+      // Clear previous render
+      drawGameBoard();
+      
+      // If we've reached the end, find bucket
+      if (currentIndex >= path.length - 1) {
+        isDone = true;
+        
+        // Calculate winning multiplier bucket
+        const finalPosition = path[path.length - 1];
+        const bucketWidth = width / multipliers.length;
+        const bucketIndex = Math.floor(finalPosition.x / bucketWidth);
+        const bucketMultiplier = multipliers[bucketIndex];
+        
+        // Draw ball in final position with glow
+        ctx.shadowColor = 'rgba(255, 140, 0, 0.8)';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(
+          finalPosition.x, 
+          finalPosition.y, 
+          ballSize / 2, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.fillStyle = '#ff6f03';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        return bucketMultiplier;
+      }
+      
+      // Get current position
+      const pos = path[currentIndex];
+      
+      // Draw ball
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, ballSize / 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff6f03';
+      ctx.fill();
+      
+      // Move to next point
+      currentIndex++;
+      
+      // Continue animation if not done
+      if (!isDone) {
+        setTimeout(() => {
+          animationFrameRef.current = requestAnimationFrame(animate);
+        }, 100);
+      }
+    };
+    
+    // Start animation
+    animate();
+    
+    // Wait for animation to complete and get result
+    return new Promise<number>(resolve => {
+      const checkCompletion = () => {
+        if (isDone) {
+          const bucketWidth = width / multipliers.length;
+          const finalPosition = path[path.length - 1];
+          const bucketIndex = Math.floor(finalPosition.x / bucketWidth);
+          resolve(multipliers[bucketIndex]);
+        } else {
+          setTimeout(checkCompletion, 100);
+        }
+      };
+      
+      setTimeout(checkCompletion, 100);
+    });
+  };
+  
+  // Generate ball path
+  const generateBallPath = (seed: number | null) => {
+    const pinSize = 6;
+    const pinSpacing = 24;
+    const startY = 40;
+    const endY = height - 60;
+    const bucketHeight = 40;
+    const rowHeight = (endY - startY) / (rows - 1);
+    
+    const path: {x: number, y: number}[] = [];
+    const startX = width / 2;
+    path.push({x: startX, y: 10}); // Starting position
+    
+    let currentX = startX;
+    const random = seed !== null ? () => (seed * 9301 + 49297) % 233280 / 233280 : Math.random;
+    
+    // Generate path through pins
+    for (let row = 0; row < rows; row++) {
+      const y = startY + row * rowHeight;
+      
+      // Determine left or right movement
+      const goLeft = random() < 0.5;
+      const xDelta = pinSpacing / 2;
+      
+      if (goLeft) {
+        currentX -= xDelta;
+      } else {
+        currentX += xDelta;
+      }
+      
+      // Keep ball within bounds
+      currentX = Math.max(pinSpacing, Math.min(width - pinSpacing, currentX));
+      
+      // Add point to path
+      path.push({x: currentX, y});
+    }
+    
+    // Final position in bucket
+    const bucketWidth = width / multipliers.length;
+    const bucketIndex = Math.floor(currentX / bucketWidth);
+    const finalX = bucketIndex * bucketWidth + bucketWidth / 2;
+    const finalY = height - bucketHeight / 2;
+    
+    path.push({x: finalX, y: finalY});
     
     return path;
   };
   
-  // Render the Plinko grid with pins based on the number of rows
-  const renderPlinkoGrid = () => {
-    // For a standard Plinko board, each row has row number + 1 pegs
-    return Array.from({ length: rows }).map((_, rowIndex) => (
-      <div 
-        key={`row-${rowIndex}`} 
-        className="flex justify-center"
-        style={{ paddingLeft: rowIndex % 2 === 0 ? 0 : '10px' }} // Offset for alternating rows
-      >
-        {Array.from({ length: rowIndex + 3 }).map((_, pegIndex) => (
-          <div 
-            key={`peg-${rowIndex}-${pegIndex}`} 
-            className="w-2 h-2 rounded-full bg-white mx-[18px]"
-          />
-        ))}
-      </div>
-    ));
-  };
-  
-  // Animated ball drop
-  const animateBallDrop = async (path: number[]) => {
-    if (path.length === 0) return;
+  // Format bet amount
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     
-    // Create a ball at the top center
-    const newBall: Ball = {
-      position: 8, // Start at middle
-      row: 0,
-      done: false
-    };
-    
-    setBalls([newBall]);
-    
-    // Animate through each row
-    for (let i = 0; i < path.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
-      setBalls(prev => {
-        const updatedBalls = [...prev];
-        updatedBalls[0] = {
-          ...updatedBalls[0],
-          position: path[i],
-          row: i + 1
-        };
-        return updatedBalls;
-      });
-    }
-    
-    // Mark animation as complete
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    setBalls(prev => {
-      const updatedBalls = [...prev];
-      updatedBalls[0] = {
-        ...updatedBalls[0],
-        done: true
-      };
-      return updatedBalls;
-    });
-    
-    // Clean up the ball after some time
-    setTimeout(() => {
-      setBalls(prev => {
-        const updatedBalls = [...prev];
-        updatedBalls[0] = {
-          ...updatedBalls[0],
-          position: -999 // Signal to fade out this ball
-        };
-        return updatedBalls;
-      });
-      
-      // Reset balls after fade out animation completes
-      setTimeout(() => {
-        if (!isDropping) {
-          setBalls([]);
-        }
-      }, 500);
-    }, 1500);
-  };
-  
-  // Bet function
-  const placePlinkobet = async () => {
-    if (isDropping) return;
-    
-    const betAmountValue = parseFloat(betAmount);
-    if (isNaN(betAmountValue) || betAmountValue <= 0) {
-      toast({
-        title: "Invalid Bet",
-        description: "Please enter a valid bet amount.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsDropping(true);
-    setResult(null);
-    
-    try {
-      // Place bet through the API
-      const betId = await placeBet(betAmountValue);
-      betIdRef.current = betId;
-      
-      // Generate path for animation
-      const path = await generatePath();
-      
-      // Begin animation
-      await animateBallDrop(path);
-      
-      // Calculate final position to determine win multiplier
-      const finalPosition = path[path.length - 1];
-      
-      // Map final position to a multiplier bucket
-      const bucketIndex = Math.floor((finalPosition + 8) / 2.5) % multipliers.length;
-      const winMultiplier = multipliers[bucketIndex];
-      
-      setResult(winMultiplier);
-      
-      // Calculate winnings
-      const winAmount = betAmountValue * winMultiplier;
-      
-      // Complete the bet with the backend
-      if (betIdRef.current !== null) {
-        await completeBet(betIdRef.current, winAmount > 0, winAmount);
-      }
-      
-      // Show toast notification for win/loss
-      toast({
-        title: winAmount > 0 ? "Win!" : "Better luck next time!",
-        description: winAmount > 0 
-          ? `You won ${formatCrypto(winAmount, currency)} ${currency}!` 
-          : "No win this time.",
-        variant: winAmount > 0 ? "success" : "destructive",
-      });
-      
-    } catch (error) {
-      console.error("Error placing bet:", error);
-      toast({
-        title: "Bet Failed",
-        description: "There was an error placing your bet. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDropping(false);
-    }
-  };
-  
-  // Format the bet amount to crypto precision
-  const handleAmountChange = (value: string) => {
     // Remove any non-numeric characters except decimal point
     let cleanedValue = value.replace(/[^0-9.]/g, '');
     
@@ -282,192 +335,190 @@ const PlinkoGame: React.FC = () => {
     }
   };
   
-  return (
-    <div className="flex flex-col bg-[#0F212E] text-white h-full">
-      {/* Main game container */}
-      <div className="flex-1 flex flex-col">
-        {/* Plinko Board */}
-        <div className="flex-grow flex items-center justify-center bg-[#0E1C27] p-4">
-          <div 
-            ref={boardRef} 
-            className="relative"
-          >
-            {/* Pins Grid */}
-            <div className="space-y-2">
-              {renderPlinkoGrid()}
-            </div>
-            
-            {/* Ball Animation */}
-            {balls.map((ball, index) => (
-              <motion.div
-                key={`ball-${index}`}
-                className="absolute top-0 left-1/2 w-4 h-4 bg-[#ff6f03] rounded-full z-10 shadow-lg"
-                initial={{ translateX: "-50%", translateY: 0, opacity: 1 }}
-                animate={{
-                  translateX: ball.position === -999 
-                    ? "-50%" 
-                    : `calc(-50% + ${(ball.position - 1) * 21}px)`,
-                  translateY: ball.position === -999 
-                    ? ball.row * 21 
-                    : ball.row * 21,
-                  opacity: ball.position === -999 ? 0 : 1,
-                  scale: ball.done ? 1.35 : 1,
-                  rotate: ball.position === -999 ? 0 : (ball.position * 15) % 30 - 15,
-                  boxShadow: ball.done ? '0 0 12px 4px rgba(255, 140, 0, 0.7)' : '0 0 5px 2px rgba(255, 111, 3, 0.5)'
-                }}
-                transition={{ 
-                  type: ball.done ? "spring" : "tween",
-                  duration: 0.2,
-                  ease: "easeOut",
-                  opacity: { duration: 0.4 },
-                  scale: { type: "spring", stiffness: 300, damping: 15 },
-                  rotate: { duration: 0.3 },
-                  boxShadow: { duration: 0.4 }
-                }}
-              />
-            ))}
-            
-            {/* Multiplier Buckets */}
-            <div className="flex justify-between mt-4">
-              {multipliers.map((multi, idx) => {
-                const isWinningMultiplier = result === multi && balls.length > 0 && balls[0].done;
-                
-                return (
-                  <motion.div 
-                    key={`multi-${idx}`} 
-                    className={`${MULTIPLIER_COLORS[multi.toString()] || 'bg-blue-500'} 
-                                text-white text-xs font-semibold py-1 px-1.5 rounded text-center min-w-[28px] mx-0.5
-                                ${isWinningMultiplier ? 'relative z-20' : ''}`}
-                    animate={isWinningMultiplier ? {
-                      scale: [1, 1.2, 1],
-                      boxShadow: [
-                        '0 0 0 rgba(255, 255, 255, 0)',
-                        '0 0 20px rgba(255, 255, 255, 0.5)',
-                        '0 0 0 rgba(255, 255, 255, 0)'
-                      ]
-                    } : {}}
-                    transition={isWinningMultiplier ? { 
-                      duration: 1.5, 
-                      repeat: 2,
-                      repeatType: 'loop'
-                    } : {}}
-                  >
-                    {multi}x
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+  // Handle placing a bet
+  const placePlinkobet = async () => {
+    if (isDropping) return;
+    
+    const betAmountValue = parseFloat(betAmount);
+    if (isNaN(betAmountValue) || betAmountValue <= 0) {
+      toast({
+        title: "Invalid Bet",
+        description: "Please enter a valid bet amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsDropping(true);
+    
+    try {
+      // Place bet with API
+      const betId = await placeBet(betAmountValue);
+      
+      // Animate the ball drop and get result
+      const winMultiplier = await animateBallDrop();
+      
+      if (winMultiplier) {
+        // Calculate winnings
+        const winAmount = betAmountValue * winMultiplier;
         
-        {/* Bet Controls Section - Exact match to screenshot */}
-        <div className="bg-[#172B3A] p-4">
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Bet Amount</div>
-            <div className="bg-[#0F212E] rounded-md flex items-center mb-2">
-              <input 
-                type="text" 
-                value={betAmount}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className="flex-1 bg-transparent border-none px-3 py-2 text-white outline-none"
-                placeholder="0.00000000"
-              />
-              <div className="bg-transparent px-4 py-2 border-l border-gray-700">
-                <span className="text-yellow-500 flex items-center">₿</span>
+        // Complete the bet with backend
+        await completeBet(betId, winAmount > 0, winAmount);
+        
+        // Show toast notification
+        toast({
+          title: winAmount > 0 ? "Win!" : "Better luck next time!",
+          description: winAmount > 0 
+            ? `You won ${formatCrypto(winAmount, currency)}` 
+            : "No win this time.",
+          variant: "destructive",
+        });
+      }
+      
+    } catch (error) {
+      console.error("Error placing bet:", error);
+      toast({
+        title: "Bet Failed",
+        description: "There was an error placing your bet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDropping(false);
+    }
+  };
+  
+  return (
+    <div className="bg-[#0F212E] flex flex-col h-full w-full text-white">
+      {/* Game area */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col w-full max-w-md">
+          {/* Canvas container - fixed width for exact Stake.com look */}
+          <div className="w-full flex justify-center bg-[#0E1C27] p-4">
+            <canvas 
+              ref={canvasRef} 
+              className="w-full max-w-md aspect-[4/5] bg-[#0E1C27]"
+            />
+          </div>
+          
+          {/* Controls section */}
+          <div className="bg-[#172B3A] p-4 rounded-b-lg">
+            {/* Bet Amount */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-1">
+                <div className="text-sm text-gray-400">Bet Amount</div>
+                <div className="text-sm text-right">$0.00</div>
+              </div>
+              <div className="flex mb-2">
+                <input
+                  type="text"
+                  value={betAmount}
+                  onChange={handleAmountChange}
+                  className="flex-1 bg-[#0F212E] border-0 rounded-l-md px-3 py-2.5 text-white"
+                />
+                <div className="bg-[#0F212E] rounded-r-md border-l border-gray-700 px-4 flex items-center">
+                  <span className="text-yellow-500">₿</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                <button 
+                  onClick={halfBetAmount}
+                  className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1A2C3A]"
+                >
+                  ½
+                </button>
+                <button 
+                  onClick={doubleBetAmount}
+                  className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1A2C3A]"
+                >
+                  2×
+                </button>
+                <button 
+                  className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1A2C3A]"
+                  onClick={() => setBetAmount(formatCrypto(rawBalance, currency))}
+                >
+                  Max
+                </button>
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-1">
-              <button 
-                onClick={halfBetAmount}
-                className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1E2F3E] transition-colors"
+            {/* Bet Button */}
+            <button 
+              onClick={placePlinkobet}
+              disabled={isDropping}
+              className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md mb-4 disabled:opacity-50"
+            >
+              {isDropping ? 'Dropping...' : 'Bet'}
+            </button>
+            
+            {/* Risk Selector */}
+            <div className="mb-4">
+              <div className="text-sm text-gray-400 mb-1">Risk</div>
+              <div className="relative">
+                <select 
+                  value={risk}
+                  onChange={(e) => setRisk(e.target.value)}
+                  className="w-full bg-[#0F212E] border-0 text-white py-2.5 px-3 pr-8 rounded-md appearance-none"
+                >
+                  {RISK_LEVELS.map(level => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            {/* Rows Selector */}
+            <div className="mb-4">
+              <div className="text-sm text-gray-400 mb-1">Rows</div>
+              <div className="relative">
+                <select 
+                  value={rows}
+                  onChange={(e) => setRows(parseInt(e.target.value))}
+                  className="w-full bg-[#0F212E] border-0 text-white py-2.5 px-3 pr-8 rounded-md appearance-none"
+                >
+                  {ROW_OPTIONS.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            {/* Manual/Auto Toggle */}
+            <div className="flex rounded-full overflow-hidden border border-gray-700 mb-4">
+              <button
+                className={`flex-1 py-3 text-center ${isManualMode ? 'bg-[#172B3A] text-white' : 'bg-[#0F212E] text-gray-400'}`}
+                onClick={() => setIsManualMode(true)}
               >
-                ½
+                Manual
               </button>
-              <button 
-                onClick={doubleBetAmount}
-                className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1E2F3E] transition-colors"
+              <button
+                className={`flex-1 py-3 text-center ${!isManualMode ? 'bg-[#172B3A] text-white' : 'bg-[#0F212E] text-gray-400'}`}
+                onClick={() => setIsManualMode(false)}
               >
-                2×
-              </button>
-              <button 
-                className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1E2F3E] transition-colors"
-                onClick={() => setBetAmount(formatCrypto(rawBalance, currency))}
-              >
-                Max
+                Auto
               </button>
             </div>
-          </div>
-          
-          {/* Bet Button */}
-          <button 
-            onClick={placePlinkobet}
-            disabled={isDropping || parseFloat(betAmount) <= 0}
-            className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isDropping ? 'Dropping...' : 'Bet'}
-          </button>
-          
-          {/* Risk Level */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Risk</div>
-            <Select value={risk} onValueChange={setRisk}>
-              <SelectTrigger className="w-full bg-[#0F212E] border-0 text-white">
-                <SelectValue placeholder="Select risk level">
-                  {risk}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-[#0F212E] border-[#243442] text-white">
-                {RISK_LEVELS.map((level) => (
-                  <SelectItem key={level} value={level}>{level}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Rows */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Rows</div>
-            <Select value={rows.toString()} onValueChange={(value) => setRows(parseInt(value))}>
-              <SelectTrigger className="w-full bg-[#0F212E] border-0 text-white">
-                <SelectValue placeholder="Select rows">
-                  {rows}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-[#0F212E] border-[#243442] text-white">
-                {ROW_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option.toString()}>{option}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Manual/Auto Toggle */}
-          <div className="flex mb-4 border border-gray-700 rounded-full overflow-hidden">
-            <button
-              className={`flex-1 py-3 text-center ${isManualMode ? 'bg-[#172B3A] text-white' : 'bg-[#0F212E] text-gray-400'}`}
-              onClick={() => setIsManualMode(true)}
-            >
-              Manual
-            </button>
-            <button
-              className={`flex-1 py-3 text-center ${!isManualMode ? 'bg-[#172B3A] text-white' : 'bg-[#0F212E] text-gray-400'}`}
-              onClick={() => setIsManualMode(false)}
-            >
-              Auto
-            </button>
-          </div>
-          
-          {/* Footer Icons */}
-          <div className="flex justify-between border-t border-gray-700 pt-4">
-            <button className="text-gray-400 hover:text-white">
-              <Settings className="h-5 w-5" />
-            </button>
-            <button className="text-gray-400 hover:text-white">
-              <BarChart3 className="h-5 w-5" />
-            </button>
-            <div className="text-right">
-              <span className="text-gray-400">Fairness</span>
+            
+            {/* Footer */}
+            <div className="flex justify-between pt-4 border-t border-gray-700">
+              <div className="flex space-x-6">
+                <button className="text-gray-400 hover:text-white">
+                  <Settings className="h-5 w-5" />
+                </button>
+                <button className="text-gray-400 hover:text-white">
+                  <BarChart3 className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="text-gray-400">Fairness</div>
             </div>
           </div>
         </div>
@@ -476,18 +527,34 @@ const PlinkoGame: React.FC = () => {
       {/* Mobile Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172B3A] border-t border-gray-800 flex justify-around py-3 z-50">
         <button className="flex flex-col items-center text-gray-400">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 mb-1" stroke="currentColor">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <span className="text-xs">Browse</span>
         </button>
         <button className="flex flex-col items-center text-green-500">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 mb-1" stroke="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <span className="text-xs">Casino</span>
         </button>
         <button className="flex flex-col items-center text-gray-400">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 mb-1" stroke="currentColor">
+            <path d="M16 8v8m-8-5v5m4-9v9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <span className="text-xs">Bets</span>
         </button>
         <button className="flex flex-col items-center text-gray-400">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 mb-1" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 8v4l3 3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <span className="text-xs">Sports</span>
         </button>
         <button className="flex flex-col items-center text-gray-400">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 mb-1" stroke="currentColor">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <span className="text-xs">Chat</span>
         </button>
       </div>
