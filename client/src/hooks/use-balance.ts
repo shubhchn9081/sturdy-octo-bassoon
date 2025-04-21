@@ -48,17 +48,32 @@ export const useBalance = (currency: SupportedCurrency) => {
   // Mutation to place a bet
   const placeBet = useMutation({
     mutationFn: async (params: PlaceBetParams) => {
-      // No need to specify userId, the server will get it from the session
+      // Format the bet data to match the server's expected schema
+      // We need userId, gameId, amount, clientSeed
       const betData = {
-        ...params,
+        gameId: params.gameId,
+        amount: params.amount,
+        clientSeed: params.clientSeed,
         options: {
           ...params.options,
           currency: params.currency || currency
         }
       };
       
-      const res = await apiRequest('POST', '/api/bets/place', betData);
-      return res.json();
+      try {
+        const res = await apiRequest('POST', '/api/bets/place', betData);
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error('Bet placement error:', errorData);
+          throw new Error(errorData.message || 'Error placing bet');
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error('Bet API error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       // Invalidate the balance query to fetch fresh balance after placing bet
@@ -69,12 +84,26 @@ export const useBalance = (currency: SupportedCurrency) => {
   // Mutation to complete a bet
   const completeBet = useMutation({
     mutationFn: async (params: CompleteBetParams) => {
-      const res = await apiRequest('POST', `/api/bets/${params.betId}/complete`, { outcome: params.outcome });
-      return res.json();
+      try {
+        const res = await apiRequest('POST', `/api/bets/${params.betId}/complete`, { outcome: params.outcome });
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error('Bet completion error:', errorData);
+          throw new Error(errorData.message || 'Error completing bet');
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error('Bet completion API error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       // Invalidate the balance query to fetch fresh balance after completing bet
       queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
+      // Also invalidate any bet history queries that might exist
+      queryClient.invalidateQueries({ queryKey: ['/api/bets'] });
     }
   });
 

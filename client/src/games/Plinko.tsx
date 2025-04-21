@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { Settings, BarChart3 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import gsap from 'gsap';
 import type { PlaceBetParams } from '@/hooks/use-balance';
 
@@ -439,13 +440,25 @@ const PlinkoGame: React.FC = () => {
     
     try {
       // First, we need to get the game ID for Plinko
-      const gamesResponse = await fetch('/api/games');
-      const games = await gamesResponse.json();
-      const plinkoGame = games.find((g: any) => g.slug === 'plinko');
+      // Use TanStack Query to consistently fetch the game data with proper caching
+      const plinkoGame = await queryClient.fetchQuery({
+        queryKey: ['/api/games', 'plinko'],
+        queryFn: async () => {
+          const res = await apiRequest('GET', '/api/games');
+          if (!res.ok) {
+            throw new Error("Failed to fetch games");
+          }
+          const games = await res.json();
+          const game = games.find((g: any) => g.slug === 'plinko');
+          if (!game) {
+            throw new Error("Plinko game not found");
+          }
+          return game;
+        },
+        staleTime: 60000 // Cache for 1 minute
+      });
       
-      if (!plinkoGame) {
-        throw new Error("Plinko game not found");
-      }
+      console.log("Found Plinko game:", plinkoGame);
       
       // Now place the bet with the correct gameId
       const betData: PlaceBetParams = {
@@ -456,8 +469,10 @@ const PlinkoGame: React.FC = () => {
           risk,
           rows
         },
-        currency: currency as any // Cast to match the SupportedCurrency type
+        currency: currency as any
       };
+      
+      console.log("Placing bet with data:", betData);
       
       // Place bet with API
       const result = await placeBet.mutateAsync(betData);
@@ -467,6 +482,7 @@ const PlinkoGame: React.FC = () => {
       }
       
       const betId = result.betId;
+      console.log("Bet placed successfully with ID:", betId);
       
       // Animate the ball drop and get result
       const winMultiplier = await animateBallDrop();
@@ -476,31 +492,51 @@ const PlinkoGame: React.FC = () => {
         const winAmount = betAmountValue * winMultiplier;
         const isWin = winAmount > 0;
         
-        // Complete the bet with backend
-        await completeBet.mutateAsync({
-          betId: betId,
-          outcome: {
-            win: isWin,
-            multiplier: winMultiplier,
-            amount: winAmount
-          }
+        console.log("Game result:", { 
+          multiplier: winMultiplier, 
+          winAmount, 
+          isWin 
         });
         
-        // Show toast notification
-        toast({
-          title: isWin ? "Win!" : "Better luck next time!",
-          description: isWin 
-            ? `You won ${formatCurrency(winAmount, currency)}` 
-            : "No win this time.",
-          variant: "destructive",
-        });
+        // Complete the bet with backend
+        try {
+          await completeBet.mutateAsync({
+            betId: betId,
+            outcome: {
+              win: isWin,
+              multiplier: winMultiplier,
+              amount: winAmount
+            }
+          });
+          
+          console.log("Bet completed successfully");
+          
+          // Show toast notification
+          toast({
+            title: isWin ? "Win!" : "Better luck next time!",
+            description: isWin 
+              ? `You won ${formatCurrency(winAmount, currency)}` 
+              : "No win this time.",
+            variant: isWin ? "default" : "destructive",
+          });
+          
+          // Refresh balance
+          queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
+        } catch (completeError: any) {
+          console.error("Error completing bet:", completeError);
+          toast({
+            title: "Error Completing Bet",
+            description: completeError.message || "Your bet was placed but we had trouble processing the result. Your balance will update shortly.",
+            variant: "destructive",
+          });
+        }
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error placing bet:", error);
       toast({
         title: "Bet Failed",
-        description: "There was an error placing your bet. Please try again.",
+        description: error.message || "There was an error placing your bet. Please try again.",
         variant: "destructive",
       });
     } finally {
