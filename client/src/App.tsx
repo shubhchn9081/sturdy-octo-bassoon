@@ -52,7 +52,11 @@ function Router() {
             <ProtectedRoute path="/casino" component={CasinoPage} />
             <ProtectedRoute path="/originals" component={Originals} />
             <ProtectedRoute path="/sports" component={SportsPage} />
-            <ProtectedRoute path="/admin" component={Admin} />
+            <Route path="/admin">
+              <AdminRoute>
+                <Admin />
+              </AdminRoute>
+            </Route>
             <Route path="/init-db" component={InitDb} />
             <Route path="/auth" component={AuthPage} />
             <ProtectedRoute path="/wallet" component={WalletPage} />
