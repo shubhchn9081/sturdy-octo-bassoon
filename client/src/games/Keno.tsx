@@ -293,62 +293,50 @@ const Keno: React.FC = () => {
       <div className="flex flex-col md:flex-row h-full pb-36 md:pb-0">
         {/* Game Header is now in the fixed panel */}
         
-        {/* Fixed Bottom Bet Panel for Mobile */}
-        <div className="fixed bottom-12 left-0 right-0 md:hidden">
-          {/* Game Name and Header */}
-          <div className="w-full bg-[#0F171E] px-4 py-2.5 flex items-center border-t border-[#243442]">
-            <div className="flex items-center">
-              <button onClick={() => window.history.back()} className="text-white pr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <span className="text-white text-lg font-medium">Keno</span>
+        {/* Fixed Bottom Bet Button for Mobile - Matches the screenshot exactly */}
+        <div className="fixed bottom-[72px] left-0 right-0 px-4 md:hidden">
+          <button 
+            className="w-full h-12 text-lg font-bold bg-[#5BE12C] hover:bg-[#4BC01C] text-black rounded transition-colors"
+            onClick={placeBetAction}
+            disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
+          >
+            {isPlaying ? 'Drawing...' : 'Bet'}
+          </button>
+        </div>
+        
+        {/* Bottom Navigation - Simplified version of the stake.com mobile navigation */}
+        <div className="fixed bottom-0 left-0 right-0 h-[72px] bg-[#0F171E] border-t border-[#243442] md:hidden">
+          <div className="grid grid-cols-5 h-full">
+            <div className="flex flex-col items-center justify-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span className="text-xs mt-1">Browse</span>
             </div>
-            <div className="ml-auto">
-              <button className="bg-[#00FF00] w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(0,255,0,0.4)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
+            <div className="flex flex-col items-center justify-center text-[#5BE12C]">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+              </svg>
+              <span className="text-xs mt-1">Casino</span>
             </div>
-          </div>
-          
-          {/* Bet Panel */}
-          <div className="bg-[#0F171E] px-4 py-3 border-t border-[#243442] flex flex-col">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col flex-grow">
-                <div className="text-xs text-gray-400 font-medium mb-0.5">Bet Amount</div>
-                <input 
-                  type="text" 
-                  value={betAmountDisplay}
-                  onChange={(e) => handleBetAmountChange(e.target.value)}
-                  className="bg-transparent border-none text-white outline-none text-lg font-bold w-full"
-                />
-              </div>
-              <div className="flex gap-1.5">
-                <button 
-                  onClick={halfBet}
-                  className="h-8 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
-                >
-                  ½
-                </button>
-                <button 
-                  onClick={doubleBet}
-                  className="h-8 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
-                >
-                  2×
-                </button>
-              </div>
+            <div className="flex flex-col items-center justify-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-xs mt-1">Bets</span>
             </div>
-            
-            <Button 
-              className="w-full h-12 mt-2 text-lg font-bold bg-[#00FF00] hover:bg-[#00CC00] text-black rounded-md transition-colors"
-              onClick={placeBetAction}
-              disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
-            >
-              {isPlaying ? 'Drawing...' : 'Bet'}
-            </Button>
+            <div className="flex flex-col items-center justify-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-xs mt-1">Sports</span>
+            </div>
+            <div className="flex flex-col items-center justify-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span className="text-xs mt-1">Chat</span>
+            </div>
           </div>
         </div>
         
