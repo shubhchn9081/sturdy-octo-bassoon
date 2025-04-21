@@ -546,7 +546,7 @@ const WheelGame: React.FC = () => {
       gameId: 4, // Wheel game ID
       amount: betValue,
       clientSeed: Math.random().toString(36).substring(2, 15),
-      options: { risk, segments, currency: activeCurrency }
+      options: { risk, segmentCount, currency: activeCurrency }
     }).then(response => {
       if (!response || !response.betId) {
         throw new Error("Invalid response from server");
@@ -561,11 +561,14 @@ const WheelGame: React.FC = () => {
       // Complete the bet after animation using promises
       setTimeout(() => {
         if (response.betId) {
+          // Get the current result multiplier
+          const resultMultiplier = targetMultiplierRef.current;
+          
           completeBet.mutateAsync({
             betId: response.betId,
             outcome: {
               segment: selectedSegment,
-              multiplier,
+              multiplier: resultMultiplier, 
               win: selectedSegment === winningSegment
             }
           });
@@ -808,8 +811,8 @@ const WheelGame: React.FC = () => {
           <div className="space-y-2">
             <span className="text-sm text-gray-400">Segments</span>
             <Select 
-              value={segments.toString()} 
-              onValueChange={(value) => setSegments(parseInt(value))}
+              value={segmentCount.toString()} 
+              onValueChange={(value) => setSegmentCount(parseInt(value))}
             >
               <SelectTrigger className="w-full bg-[#172532] border-0 text-white">
                 <SelectValue />
