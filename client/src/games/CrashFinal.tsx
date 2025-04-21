@@ -62,12 +62,13 @@ const CrashFinal: React.FC = () => {
     setCurrency(activeCurrency);
   }, [activeCurrency, setCurrency]);
   
-  // Make the balance hooks available to the store
+  // Make the balance hooks available to the store via global state
   useEffect(() => {
+    console.log("Setting up global bet functions");
     // Create a global reference to the balance methods
     // This approach is used to avoid circular dependencies
-    window.placeBetFunction = placeBetMutation;
-    window.completeBetFunction = completeBetMutation;
+    window.placeBetFunction = { placeBet: placeBetMutation };
+    window.completeBetFunction = { completeBet: completeBetMutation };
     
     return () => {
       // Clean up on unmount

@@ -197,10 +197,12 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       
       try {
         // Use the placeBet API function
-        const balance = window.placeBetFunction;
-        if (balance && typeof balance.placeBet === 'function') {
+        const placeBetFn = window.placeBetFunction;
+        
+        if (placeBetFn && placeBetFn.placeBet) {
+          console.log("Using real wallet integration for bet placement");
           // Use the placeBet mutation from the balance hook
-          balance.placeBet.mutate({
+          placeBetFn.placeBet.mutate({
             gameId,
             amount: betAmount,
             clientSeed,
@@ -267,10 +269,12 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       if (playerBet && playerBet.betId) {
         try {
           // Use the completeBet API function
-          const balance = window.completeBetFunction;
-          if (balance && typeof balance.completeBet === 'function') {
+          const completeBetFn = window.completeBetFunction;
+          
+          if (completeBetFn && completeBetFn.completeBet) {
+            console.log("Using real wallet integration for cashout");
             // Use the completeBet mutation from the balance hook
-            balance.completeBet.mutate({
+            completeBetFn.completeBet.mutate({
               betId: playerBet.betId,
               outcome: {
                 win: true,
