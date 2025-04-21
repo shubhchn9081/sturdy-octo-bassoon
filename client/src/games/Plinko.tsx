@@ -235,12 +235,16 @@ const PlinkoGame: React.FC = () => {
       if (!ballData.isDone) {
         animationFrameRef.current = requestAnimationFrame(animate);
       } else {
-        // Final position with bigger glow
-        ctx.shadowColor = 'rgba(255, 140, 0, 0.8)';
-        ctx.shadowBlur = 15;
+        // When the ball reaches its final destination, we want it to appear to fall 
+        // behind/inside the multiplier holder, so we'll only draw a small glow effect
+        // but not draw the actual ball, giving the illusion it fell into the bucket
+        
+        // Draw just a subtle glow where the ball disappeared
+        ctx.shadowColor = 'rgba(255, 140, 0, 0.5)';
+        ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
-        ctx.fillStyle = '#ff6f03';
+        ctx.arc(ball.x, ball.y - 5, ballRadius / 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 111, 3, 0.4)';
         ctx.fill();
         ctx.shadowBlur = 0;
       }
@@ -269,12 +273,40 @@ const PlinkoGame: React.FC = () => {
         : "power1.in"; // Accelerate due to gravity between pins
       
       // Add animation segment
-      tl.to(ball, {
-        x: point.x,
-        y: point.y,
-        duration: time,
-        ease: ease,
-      });
+      if (i === path.length - 1) {
+        // For the final segment, create a two-part animation
+        // First bounce into bucket
+        tl.to(ball, {
+          x: point.x,
+          y: point.y - 5, // Land slightly above final position
+          duration: time * 0.7,
+          ease: ease,
+        });
+        
+        // Then sink into bucket
+        tl.to(ball, {
+          x: point.x,
+          y: point.y + 10, // Sink below the visible area
+          opacity: 0, // Fade out as it sinks
+          scale: 0.5, // Shrink as it sinks
+          duration: time * 0.3,
+          ease: "power2.in", // Accelerate as it sinks
+          onComplete: () => {
+            // Set isDone after the ball has visually sunk into the bucket
+            setTimeout(() => {
+              ballData.isDone = true;
+            }, 100);
+          }
+        });
+      } else {
+        // For all other segments, just move normally
+        tl.to(ball, {
+          x: point.x,
+          y: point.y,
+          duration: time,
+          ease: ease,
+        });
+      }
     }
     
     // Wait for animation to complete and return result
@@ -414,14 +446,15 @@ const PlinkoGame: React.FC = () => {
         throw new Error("Plinko game not found");
       }
       
-      // Now place the bet with the correct gameId and userId
+      // Now place the bet with the correct gameId
       const betData = {
-        userId: user.id, // Include the user ID from the authenticated session
         gameId: plinkoGame.id,
         amount: betAmountValue,
         clientSeed: Math.random().toString(36).substring(2),
         options: {
-          currency: currency
+          currency,
+          risk,
+          rows
         }
       };
       
