@@ -597,11 +597,11 @@ const CricketMinesGame = () => {
   
   // Main render
   return (
-    <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
-      {/* Side Panel */}
-      <div className="w-full lg:w-[280px] p-2 bg-[#172B3A] border-r border-[#243442]/50">
+    <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
+      {/* Top Controls - Tabs and Betting Panel */}
+      <div className="w-full p-2 bg-[#172B3A] border-b border-[#243442]/50">
         <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
-          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0">
+          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0 max-w-sm mx-auto">
             <TabsTrigger 
               value="manual" 
               className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
@@ -617,13 +617,13 @@ const CricketMinesGame = () => {
           </TabsList>
           
           <TabsContent value="manual" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
+            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px] max-w-sm mx-auto">
               {renderManualControls()}
             </div>
           </TabsContent>
           
           <TabsContent value="auto" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
+            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px] max-w-sm mx-auto">
               {renderAutoControls()}
             </div>
           </TabsContent>
@@ -633,86 +633,19 @@ const CricketMinesGame = () => {
       {/* Game Area */}
       <div className="flex-1 overflow-auto">
         <div className="w-full h-full flex flex-col p-2 md:p-4">
-          {/* Game grid at the top */}
-          <div className="grid-wrapper flex flex-col items-center justify-center max-w-full mb-4">
+          {/* Game grid in the center */}
+          <div className="grid-wrapper flex flex-col items-center justify-center h-full max-w-full">
             {renderGameGrid()}
-          </div>
-          
-          {/* Bet controls below the game grid for all screen sizes */}
-          <div className="w-full flex flex-col md:flex-row md:items-center md:justify-center gap-4 mt-4">
-            <div className="w-full md:max-w-md bg-[#1c1c2b] p-3 rounded-[10px]">
-              {/* Show collected sixes count and multiplier if game is active */}
-              {gameState && !gameState.isGameOver && (
-                <div className="mb-4 text-center">
-                  <div className="text-sm text-[#546D7A]">
-                    Collected sixes: <span className="text-white">{gameState.sixesCollected}</span>
-                  </div>
-                  {gameState.sixesCollected > 0 && (
-                    <div className="text-sm text-[#546D7A]">
-                      Current multiplier: <span className="text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</span>
-                    </div>
-                  )}
+            
+            {/* Mobile-only stats displayed below the grid */}
+            {gameState && !gameState.isGameOver && gameState.sixesCollected > 0 && (
+              <div className="mt-4 text-center lg:hidden bg-[#1c1c2b] p-2 rounded-[6px] w-full max-w-sm">
+                <div className="text-sm text-white">
+                  Profit: <span className="text-[#7bfa4c]">{formatCrypto(totalProfit)} ₹</span> | 
+                  Multiplier: <span className="text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</span>
                 </div>
-              )}
-              
-              {/* Bet amount input and controls */}
-              <div className="flex items-center space-x-2 mb-4">
-                <Input
-                  type="text"
-                  value={betAmountStr}
-                  onChange={(e) => handleBetAmountChange(e.target.value)}
-                  className="bg-[#172B3A] border border-[#243442] text-white h-10 text-sm rounded-[6px]"
-                  disabled={gameState && !gameState.isGameOver}
-                  placeholder="0.00"
-                />
-                <Button 
-                  onClick={handleHalfBet} 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-transparent border-[#243442] text-white h-10 px-2 rounded-[6px]"
-                  disabled={gameState && !gameState.isGameOver}
-                >
-                  ½
-                </Button>
-                <Button 
-                  onClick={handleDoubleBet} 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-transparent border-[#243442] text-white h-10 px-2 rounded-[6px]"
-                  disabled={gameState && !gameState.isGameOver}
-                >
-                  2×
-                </Button>
               </div>
-              
-              {/* Bet or Cashout Button */}
-              {showCashout ? (
-                <Button 
-                  className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
-                  onClick={cashout}
-                >
-                  Cashout ({gameState?.multiplier.toFixed(2)}x)
-                </Button>
-              ) : (
-                <Button 
-                  className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
-                  onClick={startGame}
-                  disabled={isPlacingBet || (gameState && !gameState.isGameOver)}
-                >
-                  {isPlacingBet ? 'Placing Bet...' : 'Bet'}
-                </Button>
-              )}
-              
-              {/* Pick Random Tile Button (only shown during active game) */}
-              {gameState && !gameState.isGameOver && (
-                <Button 
-                  className="w-full mt-2 bg-[#172B3A] hover:bg-[#243442] text-white h-10 border border-[#243442] rounded-[6px] transition-all duration-200"
-                  onClick={selectRandomTile}
-                >
-                  Pick random tile
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
