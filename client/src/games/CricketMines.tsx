@@ -598,56 +598,53 @@ const CricketMinesGame = () => {
   // Main render
   return (
     <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
-      {/* Top Controls - Tabs and Betting Panel */}
-      <div className="w-full p-2 bg-[#172B3A] border-b border-[#243442]/50">
-        <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
-          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0 max-w-sm mx-auto">
-            <TabsTrigger 
-              value="manual" 
-              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
-            >
-              Manual
-            </TabsTrigger>
-            <TabsTrigger 
-              value="auto" 
-              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
-            >
-              Auto
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="manual" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px] max-w-sm mx-auto">
-              {renderManualControls()}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="auto" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px] max-w-sm mx-auto">
-              {renderAutoControls()}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-      
-      {/* Game Area */}
-      <div className="flex-1 overflow-auto">
-        <div className="w-full h-full flex flex-col p-2 md:p-4">
-          {/* Game grid in the center */}
-          <div className="grid-wrapper flex flex-col items-center justify-center h-full max-w-full">
-            {renderGameGrid()}
-            
-            {/* Mobile-only stats displayed below the grid */}
-            {gameState && !gameState.isGameOver && gameState.sixesCollected > 0 && (
-              <div className="mt-4 text-center lg:hidden bg-[#1c1c2b] p-2 rounded-[6px] w-full max-w-sm">
-                <div className="text-sm text-white">
-                  Profit: <span className="text-[#7bfa4c]">{formatCrypto(totalProfit)} ₹</span> | 
-                  Multiplier: <span className="text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</span>
-                </div>
-              </div>
-            )}
-          </div>
+      <div className="flex flex-col items-center p-2 h-full">
+        {/* Game Canvas First */}
+        <div className="w-full flex justify-center mb-4">
+          {renderGameGrid()}
         </div>
+        
+        {/* Betting Panel Below */}
+        <div className="w-full max-w-lg">
+          <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
+            <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0">
+              <TabsTrigger 
+                value="manual" 
+                className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
+              >
+                Manual
+              </TabsTrigger>
+              <TabsTrigger 
+                value="auto" 
+                className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
+              >
+                Auto
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="manual" className="mt-0">
+              <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
+                {renderManualControls()}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="auto" className="mt-0">
+              <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
+                {renderAutoControls()}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        {/* Game stats displayed below the grid on mobile */}
+        {gameState && !gameState.isGameOver && gameState.sixesCollected > 0 && (
+          <div className="mt-4 text-center lg:hidden bg-[#1c1c2b] p-2 rounded-[6px] w-full max-w-sm">
+            <div className="text-sm text-white">
+              Profit: <span className="text-[#7bfa4c]">{formatCrypto(totalProfit)} ₹</span> | 
+              Multiplier: <span className="text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
