@@ -9,6 +9,7 @@ import fs from "fs";
 import { insertBetSchema, insertUserSchema, clientBetSchema } from "@shared/schema";
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
 import { setupAuth } from "./auth";
+import { setupDevEndpoints } from "./adminSetup";
 
 // Configure multer storage
 const storage_config = multer.diskStorage({
@@ -42,6 +43,9 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication with Passport
   setupAuth(app);
+  
+  // Setup development endpoints (make-admin endpoint)
+  setupDevEndpoints(app);
   
   // prefix all routes with /api
 

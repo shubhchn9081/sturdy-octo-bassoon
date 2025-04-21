@@ -61,6 +61,7 @@ export interface IStorage {
   updateUserAdmin(id: number, isAdmin: boolean): Promise<User | undefined>;
   updateUserBanned(id: number, isBanned: boolean): Promise<User | undefined>;
   setUserBalance(id: number, currency: string, exactAmount: number): Promise<User | undefined>;
+  updateAdminStatus(id: number, isAdmin: boolean): Promise<User | undefined>;
   
   // Game settings methods
   getGameSettings(gameId: number): Promise<GameSettings | undefined>;
@@ -384,6 +385,11 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...user, balance: newBalance };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+  
+  async updateAdminStatus(id: number, isAdmin: boolean): Promise<User | undefined> {
+    // This is an alias for updateUserAdmin for backward compatibility
+    return this.updateUserAdmin(id, isAdmin);
   }
   
   // Game settings methods
