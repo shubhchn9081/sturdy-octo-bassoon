@@ -283,20 +283,159 @@ const Keno: React.FC = () => {
     // End playing state
     setIsPlaying(false);
   };
-  
-  // No need for mobile controls references or toggle functions anymore
-  // since we're using a fixed panel at the bottom
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#0F212E] text-white overflow-y-auto">
-      {/* Main Game Container */}
-      <div className="flex flex-col md:flex-row h-full pb-36 md:pb-0">
-        {/* Game Header is now in the fixed panel */}
-        
-        {/* Fixed Bottom Bet Button for Mobile - Matches the screenshot exactly */}
-        <div className="fixed bottom-[72px] left-0 right-0 px-4 md:hidden">
+    <div className="flex flex-col h-full bg-[#0F212E] text-white">
+      {/* Main content area - Game display */}
+      <div className="flex-1 overflow-auto pb-[260px] sm:pb-[220px]">
+        {/* Keno Grid */}
+        <div className="bg-[#0E1C27] rounded-lg flex items-center justify-center p-2 relative">
+          {/* Win Overlay - Only shown when winning */}
+          {result?.won && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <div className="bg-[#172B3A] text-[#5BE12C] font-bold text-5xl py-4 px-10 rounded-lg shadow-lg border-4 border-[#5BE12C] flex flex-col items-center">
+                <div className="flex items-center">
+                  {result.multiplier.toFixed(2)}x
+                </div>
+                <div className="h-px w-40 bg-gray-600 my-2"></div>
+                <div className="text-2xl flex items-center">
+                  <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(8) : '0.00000000'}</span> 
+                  <span className="ml-1">
+                    <span className="inline-flex items-center justify-center w-4 h-4 bg-[#F7931A] rounded-full text-white text-xs">₿</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="w-full max-w-4xl">
+            {/* Keno Game Board Grid */}
+            <div className="grid grid-cols-8 md:grid-cols-10 gap-2 md:gap-3">
+              {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
+                const isSelected = selectedNumbers.includes(num);
+                const isDrawn = drawnNumbers.includes(num);
+                const isMatch = isSelected && isDrawn;
+                
+                // Determine cell style based on state
+                let cellClass = "aspect-square rounded-md flex items-center justify-center font-bold text-lg transition-all duration-100";
+                
+                // Default state
+                if (!isSelected && !isDrawn) {
+                  cellClass += " bg-[#1B3346] text-white";
+                }
+                // Selected but not drawn yet
+                else if (isSelected && !isDrawn) {
+                  cellClass += " bg-[#3F5164] text-white ring-2 ring-[#78B0FF]";
+                }
+                // Drawn but not selected
+                else if (!isSelected && isDrawn) {
+                  cellClass += " bg-[#1B3346] text-[#FF3B3B]";
+                }
+                // Match - both selected and drawn
+                else if (isMatch) {
+                  cellClass += " bg-[#5BE12C] text-black";
+                }
+                
+                // Add purple background for certain numbers like in the mockup
+                if ([6, 7, 8, 15, 16, 23, 24].includes(num) && !isMatch) {
+                  cellClass = cellClass.replace("bg-[#1B3346]", "bg-[#8A44FB]");
+                }
+                
+                return (
+                  <button
+                    key={num}
+                    className={cellClass}
+                    onClick={() => toggleNumberSelection(num)}
+                    disabled={isPlaying}
+                  >
+                    {num}
+                  </button>
+                );
+              })}
+            </div>
+            
+            {/* Multiplier Display */}
+            <div className="grid grid-cols-7 gap-1 mt-2 text-xs">
+              {["0.00x", "4.00x", "11.00x", "55.00x", "500.0x", "800.0x", "1,000x"].map((mult, i) => (
+                <div key={i} className="text-center p-1 text-gray-400">
+                  {mult}
+                </div>
+              ))}
+            </div>
+            
+            {/* Hits Display */}
+            <div className="grid grid-cols-10 gap-1 mt-1 text-xs">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((hit, i) => (
+                <div key={i} className="text-center p-1 bg-[#1A2C3B] rounded-sm text-white">
+                  {hit}x
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Fixed bottom betting panel */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#0F212E] border-t border-[#243442] z-10">
+        {/* Quick Pick Buttons */}
+        <div className="flex justify-center space-x-2 px-4 pt-3">
           <button 
-            className="w-full h-12 text-lg font-bold bg-[#5BE12C] hover:bg-[#4BC01C] text-black rounded transition-colors"
+            onClick={autoPick}
+            className="w-full py-2 bg-[#172B3A] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
+            disabled={isPlaying}
+          >
+            Auto Pick
+          </button>
+          <button 
+            onClick={clearSelections}
+            className="w-full py-2 bg-[#172B3A] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
+            disabled={isPlaying}
+          >
+            Clear Table
+          </button>
+        </div>
+        
+        {/* Bet Amount Controls */}
+        <div className="px-4 pt-3">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-sm font-medium text-white">Bet Amount</div>
+            <div className="text-xs text-gray-400">{formatNumber(rawBalance)} BTC</div>
+          </div>
+          
+          <div className="flex items-center gap-2 mb-3">
+            <div className="relative flex-1">
+              <input 
+                type="text" 
+                value={betAmountDisplay}
+                onChange={(e) => handleBetAmountChange(e.target.value)}
+                disabled={isPlaying}
+                className="w-full bg-[#172B3A] border border-[#243442] rounded-md pl-8 pr-3 py-2 text-white"
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500">₿</div>
+            </div>
+            
+            <button 
+              className="w-12 h-10 bg-[#172B3A] border border-[#243442] rounded-md text-center"
+              onClick={halfBet}
+              disabled={isPlaying}
+            >
+              ½
+            </button>
+            
+            <button 
+              className="w-12 h-10 bg-[#172B3A] border border-[#243442] rounded-md text-center"
+              onClick={doubleBet}
+              disabled={isPlaying}
+            >
+              2×
+            </button>
+          </div>
+        </div>
+        
+        {/* Bet Button */}
+        <div className="px-4 pb-3">
+          <button 
+            className="w-full h-12 text-lg font-bold bg-[#5BE12C] hover:bg-[#4BC01C] text-black rounded-md"
             onClick={placeBetAction}
             disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
           >
@@ -304,371 +443,90 @@ const Keno: React.FC = () => {
           </button>
         </div>
         
-        {/* Bottom Navigation - Simplified version of the stake.com mobile navigation */}
-        <div className="fixed bottom-0 left-0 right-0 h-[72px] bg-[#0F171E] border-t border-[#243442] md:hidden">
-          <div className="grid grid-cols-5 h-full">
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        {/* Risk Level Selector */}
+        <div className="px-4 pb-3">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-sm font-medium text-white">Risk</div>
+          </div>
+          
+          <div className="relative">
+            <select 
+              value={risk}
+              onChange={(e) => setRisk(e.target.value as RiskType)}
+              disabled={isPlaying}
+              className="w-full bg-[#172B3A] border border-[#243442] rounded-md px-3 py-2 text-white appearance-none"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
-              <span className="text-xs mt-1">Browse</span>
-            </div>
-            <div className="flex flex-col items-center justify-center text-[#5BE12C]">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-              </svg>
-              <span className="text-xs mt-1">Casino</span>
-            </div>
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="text-xs mt-1">Bets</span>
-            </div>
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-xs mt-1">Sports</span>
-            </div>
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <span className="text-xs mt-1">Chat</span>
             </div>
           </div>
         </div>
         
-        {/* Right Side - Game Area - Shows first on mobile */}
-        <div className="w-full md:w-3/4 p-2 md:p-4 flex flex-col h-full order-first">
-          {/* Compact Game Stats for Mobile */}
-          <div className="md:hidden bg-gradient-to-r from-[#192B3A] to-[#222B36] p-3 rounded-lg flex justify-between mb-3 shadow-lg">
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-300 font-medium">Bet</div>
-              <div className="font-bold text-sm text-white">{betAmount.toFixed(2)}</div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-300 font-medium">Numbers</div>
-              <div className="font-bold text-sm text-white">{selectedNumbers.length}/10</div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-300 font-medium">Hits</div>
-              <div className="font-bold text-sm text-white">{matchedNumbers.length}/{selectedNumbers.length}</div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-300 font-medium">Win</div>
-              <div className="font-bold text-sm text-[#5BE12C]">{result ? result.payout.toFixed(2) : '0.00'}</div>
-            </div>
-          </div>
-
-          {/* Keno Grid */}
-          <div className="flex-grow bg-[#0E1C27] rounded-lg flex items-center justify-center p-2 relative">
-            {/* Win Overlay - Only shown when winning */}
-            {result?.won && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                <div className="bg-[#172B3A] text-[#5BE12C] font-bold text-5xl py-4 px-10 rounded-lg shadow-lg border-4 border-[#5BE12C] flex flex-col items-center">
-                  <div className="flex items-center">
-                    {result.multiplier.toFixed(2)}x
-                  </div>
-                  <div className="h-px w-40 bg-gray-600 my-2"></div>
-                  <div className="text-2xl flex items-center">
-                    <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(8) : '0.00000000'}</span> 
-                    <span className="ml-1">
-                      <span className="inline-flex items-center justify-center w-4 h-4 bg-[#F7931A] rounded-full text-white text-xs">₿</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="w-full max-w-4xl">
-              {/* Result Display - Shown when playing/winning */}
-              {result?.won && (
-                <div className="w-full max-w-[240px] mx-auto mb-6 bg-[#162129] border-2 border-[#00FF00] rounded-lg p-4 shadow-[0_0_15px_rgba(0,255,0,0.3)]">
-                  <div className="text-[#00FF00] text-center text-3xl font-bold mb-2">
-                    {result.multiplier.toFixed(2)}x
-                  </div>
-                  <div className="h-px w-full bg-[#1E3048] my-2"></div>
-                  <div className="text-[#00FF00] text-center text-xl font-semibold flex items-center justify-center">
-                    <span className="text-[#00FF00]">${(betAmount * result.multiplier).toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
-            
-              {/* Main Number Grid */}
-              <div className="grid grid-cols-8 gap-1.5 mb-6">
-                {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
-                  const isSelected = selectedNumbers.includes(num);
-                  const isDrawn = drawnNumbers.includes(num);
-                  const isMatched = isDrawn && isSelected;
-                  
-                  // Apply styling similar to the screenshot
-                  let bgColor = 'bg-[#1A262F]'; // Default dark background
-                  let borderColor = 'border-[#243442]'; // Default border
-                  let textColor = 'text-white';
-                  let highlightEffect = '';
-                  
-                  if (isSelected) {
-                    bgColor = 'bg-[#8833FF]'; // Purple for selected
-                    borderColor = 'border-[#AA66FF]';
-                    textColor = 'text-white';
-                    highlightEffect = 'shadow-[0_0_8px_rgba(136,51,255,0.6)]';
-                  }
-                  
-                  if (isDrawn) {
-                    if (isMatched) {
-                      bgColor = 'bg-[#00FF00]'; // Bright green for matches
-                      borderColor = 'border-[#33FF33]';
-                      textColor = 'text-black';
-                      highlightEffect = 'shadow-[0_0_8px_rgba(0,255,0,0.6)]';
-                    } else {
-                      bgColor = 'bg-[#FF3333]'; // Red for drawn but not matched
-                      borderColor = 'border-[#FF6666]';
-                    }
-                  }
-
-                  return (
-                    <div key={num} className="relative">
-                      <button
-                        onClick={() => toggleNumberSelection(num)}
-                        disabled={isPlaying}
-                        className={`
-                          w-full aspect-square rounded-md flex items-center justify-center 
-                          text-lg font-bold border-2 ${borderColor} ${bgColor} ${textColor}
-                          ${highlightEffect}
-                          ${isPlaying ? 'cursor-not-allowed' : 'hover:brightness-110'}
-                          transition-all duration-150
-                        `}
-                      >
-                        {num}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* Risk Level Display */}
-              <div className="mb-2 md:mb-4 md:hidden">
-                <div className="grid grid-cols-3 gap-1">
-                  {['Low', 'Medium', 'High'].map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => setRisk(r as RiskType)}
-                      className={`
-                        py-1 rounded-md text-sm font-medium
-                        ${risk === r ? 'bg-[#00CC00] text-black' : 'bg-[#172B3A] text-white'}
-                      `}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Risk Level Display (Desktop) */}
-              <div className="mb-4 hidden md:block">
-                <div className="grid grid-cols-3 gap-4">
-                  {['Low', 'Medium', 'High'].map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => setRisk(r as RiskType)}
-                      className={`
-                        py-2 rounded-md font-medium
-                        ${risk === r ? 'bg-[#00CC00] text-black' : 'bg-[#172B3A] text-white'}
-                      `}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Fixed Multiplier Values Display - Row 1 */}
-              <div className="grid grid-cols-8 gap-1.5 mb-1.5">
-                {[0, 0, 5, 20, 270, 600, 900].map((multiplier, index) => (
-                  <div
-                    key={`multiplier-row1-${index}`}
-                    className="py-1.5 text-center bg-[#1A262F] text-[#8c8c8c] text-xs rounded"
-                  >
-                    {multiplier > 0 ? `${multiplier}.0×` : "0.00×"}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Fixed Multiplier Values Display - Row 2 */}
-              <div className="grid grid-cols-8 gap-1.5 mb-6">
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((hits, index) => (
-                  <div
-                    key={`hits-row2-${index}`}
-                    className="py-1 text-center bg-[#1A262F] text-white text-xs rounded"
-                  >
-                    {hits}×
-                  </div>
-                ))}
-              </div>
-              
-              {/* Game Stats - Only on desktop */}
-              <div className="hidden md:grid grid-cols-2 gap-2 md:gap-4">
-                <div className="bg-[#172B3A] p-2 rounded">
-                  <div className="text-xs text-gray-400">Hits</div>
-                  <div className="text-lg md:text-xl font-bold">{matchedNumbers.length}/{selectedNumbers.length}</div>
-                </div>
-                <div className="bg-[#172B3A] p-2 rounded">
-                  <div className="text-xs text-gray-400">Win</div>
-                  <div className="text-lg md:text-xl font-bold flex items-center">
-                    <span className="truncate">{result ? result.payout.toFixed(8) : '0.00000000'}</span> 
-                    <span className="text-yellow-500 ml-1 flex-shrink-0">₿</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Left Side - Controls - Hidden on mobile, shown on desktop */}
-        <div className="hidden md:block md:w-1/4 p-2 bg-[#172B3A]">
-          {/* Game Mode Tabs */}
-          <div className="flex rounded-md overflow-hidden mb-2 bg-[#0F212E]">
-            <button 
-              className={`flex-1 py-1 text-center ${gameMode === 'Manual' ? 'bg-[#172B3A]' : ''}`}
+        {/* Game Mode Toggle */}
+        <div className="px-4 pb-3">
+          <div className="flex bg-[#172B3A] rounded-full p-1">
+            <button
+              className={`flex-1 py-2 rounded-full text-center text-sm font-medium transition ${
+                gameMode === 'Manual' 
+                  ? 'bg-[#243442] text-white' 
+                  : 'text-gray-400'
+              }`}
               onClick={() => setGameMode('Manual')}
             >
               Manual
             </button>
-            <button 
-              className={`flex-1 py-1 text-center ${gameMode === 'Auto' ? 'bg-[#172B3A]' : ''}`}
+            <button
+              className={`flex-1 py-2 rounded-full text-center text-sm font-medium transition ${
+                gameMode === 'Auto' 
+                  ? 'bg-[#243442] text-white' 
+                  : 'text-gray-400'
+              }`}
               onClick={() => setGameMode('Auto')}
             >
               Auto
             </button>
           </div>
-          
-          {/* Bet Amount */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Bet Amount</div>
-            <div className="bg-[#0F212E] p-2 rounded mb-2 relative">
-              <div className="flex items-center">
-                <span className="text-white">$0.00</span>
-              </div>
-              <input 
-                type="text" 
-                value={betAmountDisplay}
-                onChange={(e) => handleBetAmountChange(e.target.value)}
-                className="w-full bg-transparent border-none text-white outline-none"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex">
-                <button onClick={halfBet} className="px-2 text-gray-400 hover:text-white">½</button>
-                <button onClick={doubleBet} className="px-2 text-gray-400 hover:text-white">2×</button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Risk Level */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Risk</div>
-            <div className="bg-[#0F212E] p-2 rounded flex items-center">
-              <span className="text-white">Medium</span>
-              <div className="ml-auto">
-                <span className="text-gray-400">▼</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Quick buttons */}
-          <div className="mb-4 flex gap-2">
-            {/* Auto Pick Button with 3D effect */}
-            <div className="flex-1 relative">
-              {/* Shadow below button (3D effect) */}
-              <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
-              
-              <button 
-                onClick={autoPick}
-                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
-                disabled={isPlaying}
-              >
-                Auto Pick
-              </button>
-            </div>
-            
-            {/* Clear Table Button with 3D effect */}
-            <div className="flex-1 relative">
-              {/* Shadow below button (3D effect) */}
-              <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
-              
-              <button 
-                onClick={clearSelections}
-                className="w-full py-2 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
-                disabled={isPlaying}
-              >
-                Clear Table
-              </button>
-            </div>
-          </div>
-          
-          {/* Bet Button with 3D effect */}
-          <div className="mb-4 relative">
-            {/* Shadow below button (3D effect) */}
-            <div className="absolute bottom-[-6px] left-0 right-0 h-[6px] bg-[#277312]/70 rounded-b-md"></div>
-            
-            <Button 
-              className="w-full py-3 text-base font-bold bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md"
-              onClick={placeBetAction}
-              disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
-            >
-              {isPlaying ? 'Drawing...' : 'Bet'}
-            </Button>
-          </div>
-          
-          {/* Results */}
-          {result && (
-            <div className="mb-4 p-3 rounded bg-[#0F212E]">
-              <div className="text-sm text-gray-400 mb-1">Result</div>
-              <div className={`text-lg font-bold ${result.won ? 'text-[#5BE12C]' : 'text-[#FF3B3B]'}`}>
-                {result.won ? 'WIN!' : 'LOSS'}
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-sm text-gray-400">Matches:</span>
-                <span className="text-sm">{matchedNumbers.length}/{selectedNumbers.length}</span>
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-sm text-gray-400">Multiplier:</span>
-                <span className="text-sm">{result.multiplier}x</span>
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-sm text-gray-400">Payout:</span>
-                <span className="text-sm">{result.payout.toFixed(8)}</span>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
-      
-      {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172B3A] border-t border-gray-800 flex justify-around py-2 z-10">
-        <button className="flex flex-col items-center text-gray-400 hover:text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          <span className="text-xs">Home</span>
-        </button>
-        <button className="flex flex-col items-center text-green-500">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-          </svg>
-          <span className="text-xs">Casino</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-400 hover:text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          <span className="text-xs">Bets</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-400 hover:text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <span className="text-xs">Support</span>
-        </button>
+        
+        {/* Bottom Navigation Bar */}
+        <div className="border-t border-[#243442] grid grid-cols-5 h-[56px]">
+          <div className="flex flex-col items-center justify-center text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            <span className="text-xs mt-1">Browse</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-[#5BE12C]">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+            </svg>
+            <span className="text-xs mt-1">Casino</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-xs mt-1">Bets</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-xs mt-1">Sports</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <span className="text-xs mt-1">Chat</span>
+          </div>
+        </div>
       </div>
     </div>
   );
