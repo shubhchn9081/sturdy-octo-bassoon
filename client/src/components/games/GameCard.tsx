@@ -288,9 +288,9 @@ const GameCard = ({
         )}
       </div>
       
-      {/* Player count - with green dot and exact Stake.com styling */}
-      <div className="bg-[#0F212E] px-1 sm:px-2 py-0.5 text-[8px] sm:text-[10px] text-green-400 flex items-center justify-center">
-        <div className="w-1 h-1 rounded-full bg-green-400 mr-0.5 sm:mr-1"></div>
+      {/* Player count - exactly matching Stake.com styling */}
+      <div className="bg-[#172B3A] px-2 py-0.5 text-[10px] text-green-400 flex items-center justify-center">
+        <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1"></div>
         {activePlayers.toLocaleString()} playing
       </div>
     </div>
