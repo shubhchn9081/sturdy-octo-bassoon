@@ -627,42 +627,78 @@ const WheelGame: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-full bg-[#0B131C] text-white">
-      {/* Game area - appears first on mobile */}
-      <div className="flex-1 flex flex-col items-center justify-start p-4 relative order-first">
+    <div className="flex flex-col h-full bg-[#0B131C] text-white">
+      {/* Main game area - MOBILE FIRST! */}
+      <div className="flex-1 flex flex-col relative bg-[#0B131C] order-1 md:order-2">
         {/* Error message when bet placement fails */}
         {betError && (
           <div className="absolute top-4 left-0 right-0 mx-auto w-max bg-red-500 text-white p-3 rounded-md z-20">
             Failed to place bet: {betError}
           </div>
         )}
-        
-        {/* Main wheel display */}
-        <div className="relative mb-8 mt-4">
-          <canvas 
-            ref={canvasRef} 
-            width={CANVAS_SIZE} 
-            height={CANVAS_SIZE} 
-            className="w-full max-w-md h-auto"
-          />
-          
-          {/* Spin result overlay - appears after spin stops */}
-          {showResult && selectedSegment && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className={`
-                text-3xl md:text-5xl p-6 font-bold rounded-lg 
-                ${selectedSegment.multiplier > 1 ? 'bg-green-600/90 text-white' : 'bg-red-600/90 text-white'}
-                flex flex-col items-center shadow-lg border-2 border-white/20
-              `}>
-                <div>{selectedSegment.multiplier}x</div>
-                <div className="text-sm mt-2 font-normal">
-                  {winAmount > 0 
-                    ? `Won ${winAmount.toFixed(8)} BTC!` 
-                    : 'Better luck next time!'}
+      
+        {/* Game container - make sure it's properly sized and centered */}
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="relative flex items-center justify-center w-full" ref={wheelContainerRef}>
+            {/* Result display */}
+            {result !== null && (
+              <div className={`absolute top-4 left-0 right-0 z-10 text-center text-3xl font-bold ${result === 0 ? 'text-red-500' : 'text-green-400'}`}>
+                {result === 0 ? 'BUST!' : `${result.toFixed(1)}× WIN!`}
+              </div>
+            )}
+            
+            {/* Spinning animation elements */}
+            {isSpinning && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-blue-500/10 rounded-full animate-pulse" style={{ animationDuration: '1.5s' }}></div>
+              </div>
+            )}
+            
+            {/* Win animation */}
+            {sparkles && (
+              <div className="absolute inset-0 pointer-events-none">
+                <Sparkle className="absolute text-yellow-400 animate-ping w-8 h-8" style={{ top: '20%', left: '30%', animationDuration: '1s' }} />
+                <Sparkle className="absolute text-yellow-400 animate-ping w-6 h-6" style={{ top: '60%', left: '20%', animationDuration: '1.5s' }} />
+                <Sparkle className="absolute text-yellow-400 animate-ping w-10 h-10" style={{ top: '40%', left: '70%', animationDuration: '0.8s' }} />
+                <Sparkle className="absolute text-yellow-400 animate-ping w-5 h-5" style={{ top: '70%', left: '60%', animationDuration: '1.2s' }} />
+              </div>
+            )}
+            
+            {/* The wheel canvas - IMPORTANT: ensure mobile visibility */}
+            <div className="w-full flex justify-center">
+              <canvas 
+                ref={canvasRef} 
+                width={CANVAS_SIZE} 
+                height={CANVAS_SIZE} 
+                className="w-full max-w-[280px] sm:max-w-md h-auto rounded-full"
+                style={{ display: 'block' }} /* Ensure display block to avoid line height issues */
+              />
+            </div>
+            
+            {/* Spin result overlay - appears after spin stops */}
+            {showResult && selectedSegment && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`
+                  text-2xl sm:text-3xl md:text-5xl p-4 sm:p-6 font-bold rounded-lg 
+                  ${selectedSegment.multiplier > 1 ? 'bg-green-600/90 text-white' : 'bg-red-600/90 text-white'}
+                  flex flex-col items-center shadow-lg border-2 border-white/20
+                `}>
+                  <div>{selectedSegment.multiplier}x</div>
+                  <div className="text-xs sm:text-sm mt-2 font-normal">
+                    {winAmount > 0 
+                      ? `Won ${winAmount.toFixed(8)} BTC!` 
+                      : 'Better luck next time!'}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Hidden audio elements for preloading */}
+            <audio src="/sounds/wheel-spin.mp3" preload="auto" className="hidden" />
+            <audio src="/sounds/win.mp3" preload="auto" className="hidden" />
+            <audio src="/sounds/lose.mp3" preload="auto" className="hidden" />
+            <audio src="/sounds/click.mp3" preload="auto" className="hidden" />
+          </div>
           
           {/* Multiplier range buttons */}
           <div className="grid grid-cols-4 gap-1 mt-6 w-full max-w-md">
@@ -682,26 +718,26 @@ const WheelGame: React.FC = () => {
               </button>
             ))}
           </div>
-        </div>
-        
-        {/* Multiplier list */}
-        <div className="flex flex-wrap justify-center gap-2 mb-6 w-full max-w-lg">
-          {wheelSegments.map((segment, i) => (
-            <div 
-              key={`segment-${i}`} 
-              className={`
-                h-10 flex items-center justify-center px-3 rounded
-                ${segment.color} text-white text-sm font-medium
-              `}
-            >
-              {segment.multiplier}x
-            </div>
-          ))}
+          
+          {/* Multiplier list */}
+          <div className="flex flex-wrap justify-center gap-2 mt-4 mb-6 w-full max-w-lg">
+            {wheelSegments.map((segment, i) => (
+              <div 
+                key={`segment-${i}`} 
+                className={`
+                  h-10 flex items-center justify-center px-3 rounded
+                  ${segment.color} text-white text-sm font-medium
+                `}
+              >
+                {segment.multiplier}x
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       
-      {/* Sidebar - appears second on mobile */}
-      <div className="w-full md:w-64 bg-[#0B131C] p-0 z-10 border-r border-[#172532] order-last md:order-first">
+      {/* Controls area */}
+      <div className="w-full bg-[#0B131C] p-0 z-10 border-t md:border-t-0 md:border-r border-[#172532] order-2 md:order-1 md:w-72 md:h-full shrink-0">
         {/* Tab switch */}
         <div className="flex rounded-md m-4 bg-[#172532] p-1">
           <button 
@@ -732,41 +768,10 @@ const WheelGame: React.FC = () => {
                   placeholder="0.00000000"
                 />
                 
-                {/* Currency Switcher */}
-                <div className="relative inline-block">
-                  <Select 
-                    value={activeCurrency} 
-                    onValueChange={(value: string) => {
-                      // Ensure the value is one of our supported currencies
-                      const currencyValue = (value === 'BTC' || value === 'ETH' || value === 'USD' || 
-                                             value === 'INR' || value === 'USDT') 
-                                             ? value 
-                                             : 'BTC';
-                      
-                      setActiveCurrency(currencyValue as any);
-                      
-                      // Set a reasonable default bet for the new currency
-                      if (currencyValue === 'BTC' || currencyValue === 'ETH') {
-                        setBetAmount('0.00010000');
-                      } else {
-                        setBetAmount('10.00');
-                      }
-                    }}
-                  >
-                    <SelectTrigger 
-                      className="w-[80px] h-full bg-[#172532] border-0 text-white rounded-l-none rounded-r border-l border-[#0B131C]"
-                    >
-                      <div className="flex items-center">
-                        <span className="mr-1">{getCurrencySymbol(activeCurrency)}</span>
-                        <SelectValue />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="min-w-[80px] bg-[#172532] border-[#2a3642] text-white">
-                      <SelectItem value="BTC">BTC</SelectItem>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="INR">INR</SelectItem>
-                    </SelectContent>
-                  </Select>
+                {/* Simple Currency Display */}
+                <div className="w-[80px] h-full bg-[#172532] flex items-center justify-center text-white rounded-l-none rounded-r border-l border-[#0B131C]">
+                  <span className="mr-1">{getCurrencySymbol(activeCurrency)}</span>
+                  <span>{activeCurrency}</span>
                 </div>
               </div>
             </div>
@@ -840,85 +845,12 @@ const WheelGame: React.FC = () => {
           </button>
         </div>
         
-        {/* Fairness link at bottom */}
-        <div className="absolute bottom-4 left-4">
+        {/* Fairness link */}
+        <div className="p-4 flex justify-center md:justify-start md:absolute md:bottom-0 md:left-0">
           <button className="text-xs text-gray-400 hover:text-white flex items-center">
             <Settings className="h-3 w-3 mr-1" />
             Fairness
           </button>
-        </div>
-      </div>
-      
-      {/* Main game area - HIDDEN ON MOBILE */}
-      <div className="hidden md:flex flex-1 flex-col relative bg-[#0B131C]">
-        {/* Game container */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="relative w-full flex-1 flex items-center justify-center" ref={wheelContainerRef}>
-            {/* Result display */}
-            {result !== null && (
-              <div className={`absolute top-4 left-0 right-0 z-10 text-center text-3xl font-bold ${result === 0 ? 'text-red-500' : 'text-green-400'}`}>
-                {result === 0 ? 'BUST!' : `${result.toFixed(1)}× WIN!`}
-              </div>
-            )}
-            
-            {/* Spinning animation elements */}
-            {isSpinning && (
-              <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-blue-500/10 rounded-full animate-pulse" style={{ animationDuration: '1.5s' }}></div>
-              </div>
-            )}
-            
-            {/* Win animation */}
-            {sparkles && (
-              <div className="absolute inset-0 pointer-events-none">
-                <Sparkle className="absolute text-yellow-400 animate-ping w-8 h-8" style={{ top: '20%', left: '30%', animationDuration: '1s' }} />
-                <Sparkle className="absolute text-yellow-400 animate-ping w-6 h-6" style={{ top: '60%', left: '20%', animationDuration: '1.5s' }} />
-                <Sparkle className="absolute text-yellow-400 animate-ping w-10 h-10" style={{ top: '40%', left: '70%', animationDuration: '0.8s' }} />
-                <Sparkle className="absolute text-yellow-400 animate-ping w-5 h-5" style={{ top: '70%', left: '60%', animationDuration: '1.2s' }} />
-              </div>
-            )}
-            
-            {/* The wheel canvas */}
-            <canvas 
-              ref={canvasRef} 
-              width={400} 
-              height={400} 
-              className="rounded-full"
-            />
-            
-            {/* Hidden audio elements for preloading */}
-            <audio src="/sounds/wheel-spin.mp3" preload="auto" className="hidden" />
-            <audio src="/sounds/win.mp3" preload="auto" className="hidden" />
-            <audio src="/sounds/lose.mp3" preload="auto" className="hidden" />
-            <audio src="/sounds/click.mp3" preload="auto" className="hidden" />
-          </div>
-          
-          {/* Multiplier buttons */}
-          <div className="flex justify-center space-x-2 mb-6 mt-4 w-full px-4">
-            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
-              <span className="block text-lg font-medium">0.00×</span>
-            </button>
-            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
-              <span className="block text-lg font-medium">1.50×</span>
-              <span className="block h-1 bg-green-500 mt-1"></span>
-            </button>
-            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
-              <span className="block text-lg font-medium">1.70×</span>
-              <span className="block h-1 bg-green-500 mt-1"></span>
-            </button>
-            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
-              <span className="block text-lg font-medium">2.00×</span>
-              <span className="block h-1 bg-yellow-500 mt-1"></span>
-            </button>
-            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
-              <span className="block text-lg font-medium">3.00×</span>
-              <span className="block h-1 bg-purple-500 mt-1"></span>
-            </button>
-            <button className="bg-[#1B2631] text-white rounded py-2 px-3 flex-1 max-w-[120px] text-center hover:bg-[#243747] transition-colors">
-              <span className="block text-lg font-medium">4.00×</span>
-              <span className="block h-1 bg-orange-500 mt-1"></span>
-            </button>
-          </div>
         </div>
       </div>
     </div>
