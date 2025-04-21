@@ -279,9 +279,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       const playerBet = activeBets.find(bet => bet.isPlayer);
       
       // Mark as cashed out immediately to prevent multiple cashout attempts
+      // Important: Keep gameState as 'running' - only mark the player as cashed out
+      // This allows the game to continue running for other players
       set({ 
-        hasCashedOut: true,
-        gameState: 'cashed_out' // Update game state to cashed_out
+        hasCashedOut: true
       });
       
       if (playerBet && playerBet.betId) {
@@ -455,29 +456,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
           gameState
         } = get();
 
-        // If player has cashed out, end the game loop and reset the game after delay
-        if (gameState === 'cashed_out') {
-          if (gameInterval) {
-            window.clearInterval(gameInterval as number);
-            gameInterval = null;
-          }
-
-          // Add to history
-          const newHistoryItem = {
-            crashPoint: currentMultiplier,
-            timestamp: Date.now()
-          };
-
-          set(state => ({
-            gameHistory: [newHistoryItem, ...state.gameHistory.slice(0, 9)]
-          }));
-
-          // Reset game after a delay
-          setTimeout(() => {
-            get().resetGame();
-          }, 3000);
-          return;
-        }
+        // If player has cashed out, we still continue the game normally
+        // Instead of returning early based on game state (no more 'cashed_out' state),
+        // we'll use the hasCashedOut flag to determine player-specific behavior
         
         const elapsed = (Date.now() - startTime) / 1000;
         const newMultiplier = getLiveMultiplier(elapsed);
@@ -489,7 +470,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
             !hasCashedOut && 
             formattedMultiplier >= autoCashoutValue) {
           get().cashOut();
-          return; // Exit early since cashOut will change game state
+          // Don't return early - continue running the game even after cashout
         }
         
         // Calculate new data point for graph - matching exact trajectory from reference
