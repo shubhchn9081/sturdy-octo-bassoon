@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { User } from "@shared/schema";
+import { User, Game, UserGameControl } from "@shared/schema";
 // Create a typed balance interface
 interface UserBalance {
   BTC: number;
@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Ban, CheckCircle, ChevronsUpDown, Edit, Lock, Shield, Unlock, Users } from "lucide-react";
+import { AlertCircle, Ban, CheckCircle, ChevronsUpDown, Edit, Lock, Plus, RefreshCw, Shield, Trash2, Unlock, Users } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
@@ -40,6 +40,14 @@ export default function AdminPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [balanceAmount, setBalanceAmount] = useState("");
   const [currency, setCurrency] = useState("INR");
+  
+  // Game control state
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [forceOutcome, setForceOutcome] = useState<boolean>(false);
+  const [outcomeType, setOutcomeType] = useState<string>("win");
+  const [durationGames, setDurationGames] = useState<number>(1);
+  const [gameControlDialogOpen, setGameControlDialogOpen] = useState(false);
   
   // Redirect if not admin
   useEffect(() => {
@@ -126,6 +134,130 @@ export default function AdminPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to update user balance",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Fetch all games
+  const { data: games, isLoading: gamesLoading } = useQuery({
+    queryKey: ['/api/games'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/games");
+      return await response.json();
+    },
+    enabled: user?.isAdmin === true
+  });
+  
+  // Fetch user game controls
+  const { data: userGameControls, isLoading: controlsLoading, refetch: refetchControls } = useQuery({
+    queryKey: ['/api/admin/user-game-controls'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/user-game-controls");
+      return await response.json();
+    },
+    enabled: user?.isAdmin === true
+  });
+  
+  // Create user game control
+  const createGameControlMutation = useMutation({
+    mutationFn: async (data: { 
+      userId: number; 
+      gameId: number; 
+      forceOutcome: boolean; 
+      outcomeType: string;
+      durationGames: number;
+      forcedOutcomeValue?: any;
+    }) => {
+      const response = await apiRequest("POST", "/api/admin/user-game-controls", data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/user-game-controls'] });
+      setGameControlDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Game control created successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create game control",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update user game control
+  const updateGameControlMutation = useMutation({
+    mutationFn: async ({ id, data }: { 
+      id: number; 
+      data: {
+        forceOutcome?: boolean;
+        outcomeType?: string;
+        durationGames?: number;
+        forcedOutcomeValue?: any;
+      }
+    }) => {
+      const response = await apiRequest("PUT", `/api/admin/user-game-controls/${id}`, data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/user-game-controls'] });
+      toast({
+        title: "Success",
+        description: "Game control updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update game control",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Delete user game control
+  const deleteGameControlMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/admin/user-game-controls/${id}`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/user-game-controls'] });
+      toast({
+        title: "Success",
+        description: "Game control deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete game control",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Reset all user game controls
+  const resetAllControlsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/reset-all-user-game-controls");
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/user-game-controls'] });
+      toast({
+        title: "Success",
+        description: "All game controls have been reset",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset game controls",
         variant: "destructive",
       });
     }
