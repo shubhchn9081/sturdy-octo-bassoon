@@ -22,9 +22,11 @@ import {
   ChevronLeft,
   Settings,
   AlignJustify,
-  Bomb
+  Bomb,
+  ShieldCheck
 } from 'lucide-react';
 import { useSidebar } from '@/context/SidebarContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 
 type SidebarLinkProps = {
@@ -61,6 +63,7 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
 
 const Sidebar = () => {
   const { toggleSidebar } = useSidebar();
+  const { user } = useAuth();
   
   return (
     <aside className="w-56 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] overflow-y-auto m-0 p-0">
@@ -112,9 +115,11 @@ const Sidebar = () => {
             <SidebarLink href="/animation-examples" icon={<Sparkles className="h-4 w-4 text-[#57FBA2]" />}>
               Animations
             </SidebarLink>
-            <SidebarLink href="/admin" icon={<Settings className="h-4 w-4" />}>
-              Admin Panel
-            </SidebarLink>
+            {user?.isAdmin && (
+              <SidebarLink href="/admin" icon={<ShieldCheck className="h-4 w-4" />}>
+                Admin Panel
+              </SidebarLink>
+            )}
           </div>
           
           <div className="pt-1 border-t border-[#243442]">
