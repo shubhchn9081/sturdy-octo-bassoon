@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+// Types for our sports betting data
 export type Outcome = {
   id: string;
   name: string;
@@ -13,10 +14,10 @@ export type Outcome = {
 export type Market = {
   id: string;
   name: string;
-  outcomes: Outcome[];
   isLocked: boolean;
   startTime: string;
   endTime: string | null;
+  outcomes: Outcome[];
 };
 
 export type Event = {
@@ -26,24 +27,25 @@ export type Event = {
   leagueId: string;
   leagueName: string;
   startTime: string;
-  status: 'upcoming' | 'live' | 'ended';
+  status: 'live' | 'upcoming' | 'finished';
   homeTeam: string;
   awayTeam: string;
   homeScore: number | null;
   awayScore: number | null;
-  markets: Market[];
   isFeatured: boolean;
+  markets: Market[];
 };
 
 export type SportCategory = {
   id: string;
   name: string;
-  iconName: string;
-  events: Event[];
+  order: number;
   isActive: boolean;
+  icon?: string;
+  events: Event[];
 };
 
-export type BetSelection = {
+export type BetSlipSelection = {
   eventId: string;
   marketId: string;
   outcomeId: string;
@@ -54,138 +56,142 @@ export type BetSelection = {
 };
 
 export type BetSlip = {
-  selections: BetSelection[];
+  selections: BetSlipSelection[];
   stake: number;
   potentialWinnings: number;
 };
 
-export type SportsBettingState = {
+// Define the shape of our store
+interface SportsBettingStore {
   sportsCategories: SportCategory[];
   activeCategory: string | null;
-  betSlip: BetSlip;
-  isLoading: boolean;
-  error: string | null;
   featuredEvents: Event[];
   liveEvents: Event[];
   trendingEvents: Event[];
+  betSlip: BetSlip;
+  isLoading: boolean;
+  error: string | null;
+  
   // Actions
-  setActiveCategory: (categoryId: string) => void;
-  updateOdds: (sportId: string, eventId: string, marketId: string, outcomeId: string, newOdds: number) => void;
-  addToBetSlip: (selection: BetSelection) => void;
+  setActiveCategory: (category: string) => void;
+  addToBetSlip: (selection: BetSlipSelection) => void;
   removeFromBetSlip: (outcomeId: string) => void;
   clearBetSlip: () => void;
   setStake: (amount: number) => void;
-  loadSportsData: () => Promise<void>;
+  loadSportsData: () => void;
+  updateOdds: (sportId: string, eventId: string, marketId: string, outcomeId: string, newOdds: number) => void;
+}
+
+// Generate initial mock sports categories
+const generateMockSportsCategories = (): SportCategory[] => {
+  return [
+    {
+      id: 'soccer',
+      name: 'Soccer',
+      order: 1,
+      isActive: true,
+      events: []
+    },
+    {
+      id: 'basketball',
+      name: 'Basketball',
+      order: 2,
+      isActive: true,
+      events: []
+    },
+    {
+      id: 'tennis',
+      name: 'Tennis',
+      order: 3,
+      isActive: true,
+      events: []
+    },
+    {
+      id: 'cricket',
+      name: 'Cricket',
+      order: 4,
+      isActive: true,
+      events: []
+    },
+    {
+      id: 'american-football',
+      name: 'American Football',
+      order: 5,
+      isActive: true,
+      events: []
+    },
+    {
+      id: 'baseball',
+      name: 'Baseball',
+      order: 6,
+      isActive: true,
+      events: []
+    },
+    {
+      id: 'ice-hockey',
+      name: 'Ice Hockey',
+      order: 7,
+      isActive: true,
+      events: []
+    },
+    {
+      id: 'esports',
+      name: 'Esports',
+      order: 8,
+      isActive: true,
+      events: []
+    }
+  ];
 };
 
-// Mock data for initial state with realistic sports events
-const initialSportsCategories: SportCategory[] = [
-  {
-    id: 'soccer',
-    name: 'Soccer',
-    iconName: 'soccer-ball',
-    isActive: true,
-    events: []
-  },
-  {
-    id: 'basketball',
-    name: 'Basketball',
-    iconName: 'basketball',
-    isActive: false,
-    events: []
-  },
-  {
-    id: 'tennis',
-    name: 'Tennis',
-    iconName: 'tennis',
-    isActive: false,
-    events: []
-  },
-  {
-    id: 'cricket',
-    name: 'Cricket',
-    iconName: 'cricket',
-    isActive: false,
-    events: []
-  },
-  {
-    id: 'american-football',
-    name: 'American Football',
-    iconName: 'american-football',
-    isActive: false,
-    events: []
-  },
-  {
-    id: 'baseball',
-    name: 'Baseball',
-    iconName: 'baseball',
-    isActive: false,
-    events: []
-  },
-  {
-    id: 'ice-hockey',
-    name: 'Ice Hockey',
-    iconName: 'hockey',
-    isActive: false,
-    events: []
-  },
-  {
-    id: 'esports',
-    name: 'Esports',
-    iconName: 'gamepad',
-    isActive: false,
-    events: []
-  }
-];
-
-// Generate mock live events with realistic data
+// Generate mock live events
 const generateMockLiveEvents = (): Event[] => {
   return [
     {
       id: 'event-1',
-      name: 'Bayern Munich vs Real Madrid',
+      name: 'Real Madrid vs Barcelona',
       sportId: 'soccer',
-      leagueId: 'champions-league',
-      leagueName: 'UEFA Champions League',
-      startTime: new Date().toISOString(),
+      leagueId: 'la-liga',
+      leagueName: 'LaLiga',
+      startTime: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45 mins ago
       status: 'live',
-      homeTeam: 'Bayern Munich',
-      awayTeam: 'Real Madrid',
-      homeScore: 1,
-      awayScore: 2,
+      homeTeam: 'Real Madrid',
+      awayTeam: 'Barcelona',
+      homeScore: 2,
+      awayScore: 1,
       isFeatured: true,
       markets: [
         {
           id: 'market-1',
           name: 'Match Winner',
           isLocked: false,
-          startTime: new Date().toISOString(),
+          startTime: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
           endTime: null,
           outcomes: [
             {
               id: 'outcome-1',
-              name: 'Bayern Munich',
-              odds: 3.25,
-              previousOdds: 3.10,
-              probability: 0.31,
+              name: 'Real Madrid',
+              odds: 1.65,
+              previousOdds: 1.75,
+              probability: 0.6,
               isLocked: false,
               timestamp: Date.now()
             },
             {
               id: 'outcome-2',
               name: 'Draw',
-              odds: 3.50,
-              previousOdds: 3.60,
-              probability: 0.28,
+              odds: 3.20,
+              previousOdds: 3.10,
+              probability: 0.25,
               isLocked: false,
               timestamp: Date.now()
             },
             {
               id: 'outcome-3',
-              name: 'Real Madrid',
-              odds: 2.20,
-              previousOdds: 2.35,
-              probability: 0.41,
+              name: 'Barcelona',
+              odds: 5.50,
+              previousOdds: 5.00,
+              probability: 0.15,
               isLocked: false,
               timestamp: Date.now()
             }
@@ -195,24 +201,24 @@ const generateMockLiveEvents = (): Event[] => {
           id: 'market-2',
           name: 'Total Goals',
           isLocked: false,
-          startTime: new Date().toISOString(),
+          startTime: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
           endTime: null,
           outcomes: [
             {
               id: 'outcome-4',
-              name: 'Over 2.5',
-              odds: 1.85,
-              previousOdds: 1.90,
-              probability: 0.54,
+              name: 'Over 3.5',
+              odds: 1.95,
+              previousOdds: 2.10,
+              probability: 0.5,
               isLocked: false,
               timestamp: Date.now()
             },
             {
               id: 'outcome-5',
-              name: 'Under 2.5',
-              odds: 1.95,
-              previousOdds: 1.85,
-              probability: 0.46,
+              name: 'Under 3.5',
+              odds: 1.85,
+              previousOdds: 1.75,
+              probability: 0.5,
               isLocked: false,
               timestamp: Date.now()
             }
@@ -226,36 +232,36 @@ const generateMockLiveEvents = (): Event[] => {
       sportId: 'basketball',
       leagueId: 'nba',
       leagueName: 'NBA',
-      startTime: new Date().toISOString(),
+      startTime: new Date(Date.now() - 1000 * 60 * 20).toISOString(), // 20 mins ago
       status: 'live',
       homeTeam: 'Los Angeles Lakers',
       awayTeam: 'Boston Celtics',
-      homeScore: 89,
-      awayScore: 95,
+      homeScore: 45,
+      awayScore: 52,
       isFeatured: true,
       markets: [
         {
           id: 'market-3',
           name: 'Match Winner',
           isLocked: false,
-          startTime: new Date().toISOString(),
+          startTime: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
           endTime: null,
           outcomes: [
             {
               id: 'outcome-6',
               name: 'Los Angeles Lakers',
-              odds: 2.50,
-              previousOdds: 2.35,
-              probability: 0.40,
+              odds: 2.10,
+              previousOdds: 1.90,
+              probability: 0.48,
               isLocked: false,
               timestamp: Date.now()
             },
             {
               id: 'outcome-7',
               name: 'Boston Celtics',
-              odds: 1.55,
-              previousOdds: 1.65,
-              probability: 0.60,
+              odds: 1.75,
+              previousOdds: 1.95,
+              probability: 0.52,
               isLocked: false,
               timestamp: Date.now()
             }
@@ -265,24 +271,24 @@ const generateMockLiveEvents = (): Event[] => {
           id: 'market-4',
           name: 'Total Points',
           isLocked: false,
-          startTime: new Date().toISOString(),
+          startTime: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
           endTime: null,
           outcomes: [
             {
               id: 'outcome-8',
-              name: 'Over 215.5',
+              name: 'Over 200.5',
               odds: 1.90,
               previousOdds: 1.95,
-              probability: 0.52,
+              probability: 0.5,
               isLocked: false,
               timestamp: Date.now()
             },
             {
               id: 'outcome-9',
-              name: 'Under 215.5',
+              name: 'Under 200.5',
               odds: 1.90,
               previousOdds: 1.85,
-              probability: 0.48,
+              probability: 0.5,
               isLocked: false,
               timestamp: Date.now()
             }
@@ -292,40 +298,40 @@ const generateMockLiveEvents = (): Event[] => {
     },
     {
       id: 'event-3',
-      name: 'Novak Djokovic vs Rafael Nadal',
-      sportId: 'tennis',
-      leagueId: 'atp-masters',
-      leagueName: 'ATP Masters 1000',
-      startTime: new Date().toISOString(),
+      name: 'Mumbai Indians vs Chennai Super Kings',
+      sportId: 'cricket',
+      leagueId: 'ipl',
+      leagueName: 'Indian Premier League',
+      startTime: new Date(Date.now() - 1000 * 60 * 35).toISOString(), // 35 mins ago
       status: 'live',
-      homeTeam: 'Novak Djokovic',
-      awayTeam: 'Rafael Nadal',
-      homeScore: 1,
-      awayScore: 1,
+      homeTeam: 'Mumbai Indians',
+      awayTeam: 'Chennai Super Kings',
+      homeScore: 156,
+      awayScore: 112,
       isFeatured: true,
       markets: [
         {
           id: 'market-5',
           name: 'Match Winner',
           isLocked: false,
-          startTime: new Date().toISOString(),
+          startTime: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
           endTime: null,
           outcomes: [
             {
               id: 'outcome-10',
-              name: 'Novak Djokovic',
-              odds: 1.85,
-              previousOdds: 1.75,
-              probability: 0.54,
+              name: 'Mumbai Indians',
+              odds: 1.30,
+              previousOdds: 1.50,
+              probability: 0.75,
               isLocked: false,
               timestamp: Date.now()
             },
             {
               id: 'outcome-11',
-              name: 'Rafael Nadal',
-              odds: 1.95,
-              previousOdds: 2.05,
-              probability: 0.46,
+              name: 'Chennai Super Kings',
+              odds: 3.50,
+              previousOdds: 2.75,
+              probability: 0.25,
               isLocked: false,
               timestamp: Date.now()
             }
@@ -756,217 +762,282 @@ const generateMockUpcomingEvents = (): Event[] => {
   return allEvents;
 };
 
-// Mock events data
-const mockLiveEvents = generateMockLiveEvents();
-const mockUpcomingEvents = generateMockUpcomingEvents();
-
-// Combine all events
-const allEvents = [...mockLiveEvents, ...mockUpcomingEvents];
-
-// Distribute events to sports categories
-const categoriesWithEvents = initialSportsCategories.map(category => {
-  const categoryEvents = allEvents.filter(event => event.sportId === category.id);
-  return {
-    ...category,
-    events: categoryEvents
-  };
-});
-
-// Initial state for the bet slip
-const initialBetSlip: BetSlip = {
-  selections: [],
-  stake: 0,
-  potentialWinnings: 0
-};
-
-// Create and export the store
-export const useSportsBettingStore = create<SportsBettingState>((set, get) => ({
-  sportsCategories: categoriesWithEvents,
-  activeCategory: 'soccer',
-  betSlip: initialBetSlip,
-  isLoading: false,
+// Create the actual store with Zustand
+export const useSportsBettingStore = create<SportsBettingStore>((set, get) => ({
+  sportsCategories: generateMockSportsCategories(),
+  activeCategory: 'cricket', // Start with cricket as active category
+  featuredEvents: [],
+  liveEvents: [],
+  trendingEvents: [],
+  betSlip: {
+    selections: [],
+    stake: 0,
+    potentialWinnings: 0
+  },
+  isLoading: true,
   error: null,
-  featuredEvents: allEvents.filter(event => event.isFeatured),
-  liveEvents: mockLiveEvents,
-  trendingEvents: allEvents.slice(0, 3),
-
-  // Set active category
-  setActiveCategory: (categoryId: string) => {
-    set(state => ({
-      ...state,
-      activeCategory: categoryId,
-      sportsCategories: state.sportsCategories.map(category => ({
-        ...category,
-        isActive: category.id === categoryId
-      }))
-    }));
+  
+  // Set the active category
+  setActiveCategory: (category) => {
+    set({ activeCategory: category });
   },
-
-  // Update odds for a specific outcome
-  updateOdds: (sportId: string, eventId: string, marketId: string, outcomeId: string, newOdds: number) => {
-    set(state => {
-      // Create a deep copy of sportsCategories to avoid mutation
-      const updatedCategories = state.sportsCategories.map(category => {
-        if (category.id !== sportId) return category;
-
-        const updatedEvents = category.events.map(event => {
-          if (event.id !== eventId) return event;
-
-          const updatedMarkets = event.markets.map(market => {
-            if (market.id !== marketId) return market;
-
-            const updatedOutcomes = market.outcomes.map(outcome => {
-              if (outcome.id !== outcomeId) return outcome;
-
-              return {
-                ...outcome,
-                previousOdds: outcome.odds,
-                odds: newOdds,
-                timestamp: Date.now()
-              };
-            });
-
-            return { ...market, outcomes: updatedOutcomes };
-          });
-
-          return { ...event, markets: updatedMarkets };
-        });
-
-        return { ...category, events: updatedEvents };
-      });
-
-      // Also update the betSlip if the outcome is in the selections
-      const updatedBetSlip = { ...state.betSlip };
-      const selectionIndex = updatedBetSlip.selections.findIndex(s => s.outcomeId === outcomeId);
-      
-      if (selectionIndex !== -1) {
-        updatedBetSlip.selections[selectionIndex] = {
-          ...updatedBetSlip.selections[selectionIndex],
-          odds: newOdds
-        };
-        
-        // Recalculate potential winnings
-        const totalOdds = updatedBetSlip.selections.reduce((acc, s) => acc * s.odds, 1);
-        updatedBetSlip.potentialWinnings = updatedBetSlip.stake * totalOdds;
-      }
-
-      // Update featured and live events lists
-      const allEvents = updatedCategories.flatMap(c => c.events);
-      const featuredEvents = allEvents.filter(e => e.isFeatured);
-      const liveEvents = allEvents.filter(e => e.status === 'live');
-
-      return {
-        ...state,
-        sportsCategories: updatedCategories,
-        betSlip: updatedBetSlip,
-        featuredEvents,
-        liveEvents
-      };
-    });
-  },
-
-  // Add selection to bet slip
-  addToBetSlip: (selection: BetSelection) => {
-    set(state => {
-      // Check if selection already exists
-      const existingIndex = state.betSlip.selections.findIndex(
-        s => s.outcomeId === selection.outcomeId
+  
+  // Add a selection to the bet slip
+  addToBetSlip: (selection) => {
+    const { betSlip } = get();
+    
+    // Check if the selection is already in the bet slip
+    const existingIndex = betSlip.selections.findIndex(
+      (item) => item.outcomeId === selection.outcomeId
+    );
+    
+    let updatedSelections;
+    
+    if (existingIndex >= 0) {
+      // Remove the selection if it's already in the bet slip
+      updatedSelections = betSlip.selections.filter(
+        (_, index) => index !== existingIndex
       );
-
-      let newSelections = [...state.betSlip.selections];
-      
-      if (existingIndex !== -1) {
-        // Replace existing selection with updated odds
-        newSelections[existingIndex] = selection;
-      } else {
-        // Add new selection
-        newSelections = [...newSelections, selection];
+    } else {
+      // Add the selection to the bet slip
+      updatedSelections = [...betSlip.selections, selection];
+    }
+    
+    // Calculate potential winnings
+    const potentialWinnings = calculatePotentialWinnings(updatedSelections, betSlip.stake);
+    
+    set({
+      betSlip: {
+        ...betSlip,
+        selections: updatedSelections,
+        potentialWinnings
       }
-
-      // Calculate potential winnings
-      const totalOdds = newSelections.reduce((acc, s) => acc * s.odds, 1);
-      const potentialWinnings = state.betSlip.stake * totalOdds;
-
-      return {
-        ...state,
-        betSlip: {
-          ...state.betSlip,
-          selections: newSelections,
-          potentialWinnings
-        }
-      };
     });
   },
-
-  // Remove selection from bet slip
-  removeFromBetSlip: (outcomeId: string) => {
-    set(state => {
-      const newSelections = state.betSlip.selections.filter(
-        s => s.outcomeId !== outcomeId
-      );
-
-      // Calculate potential winnings
-      const totalOdds = newSelections.reduce((acc, s) => acc * s.odds, 1);
-      const potentialWinnings = state.betSlip.stake * totalOdds;
-
-      return {
-        ...state,
-        betSlip: {
-          ...state.betSlip,
-          selections: newSelections,
-          potentialWinnings
-        }
-      };
+  
+  // Remove a selection from the bet slip
+  removeFromBetSlip: (outcomeId) => {
+    const { betSlip } = get();
+    
+    const updatedSelections = betSlip.selections.filter(
+      (selection) => selection.outcomeId !== outcomeId
+    );
+    
+    // Calculate potential winnings
+    const potentialWinnings = calculatePotentialWinnings(updatedSelections, betSlip.stake);
+    
+    set({
+      betSlip: {
+        ...betSlip,
+        selections: updatedSelections,
+        potentialWinnings
+      }
     });
   },
-
-  // Clear bet slip
+  
+  // Clear all selections from the bet slip
   clearBetSlip: () => {
-    set(state => ({
-      ...state,
-      betSlip: initialBetSlip
-    }));
-  },
-
-  // Set stake amount
-  setStake: (amount: number) => {
-    set(state => {
-      const totalOdds = state.betSlip.selections.reduce((acc, s) => acc * s.odds, 1);
-      const potentialWinnings = amount * totalOdds;
-
-      return {
-        ...state,
-        betSlip: {
-          ...state.betSlip,
-          stake: amount,
-          potentialWinnings
-        }
-      };
+    set({
+      betSlip: {
+        selections: [],
+        stake: 0,
+        potentialWinnings: 0
+      }
     });
   },
-
-  // Load sports data (simulated API call)
+  
+  // Set the stake amount
+  setStake: (amount) => {
+    const { betSlip } = get();
+    
+    // Calculate potential winnings
+    const potentialWinnings = calculatePotentialWinnings(betSlip.selections, amount);
+    
+    set({
+      betSlip: {
+        ...betSlip,
+        stake: amount,
+        potentialWinnings
+      }
+    });
+  },
+  
+  // Load initial sports data
   loadSportsData: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true });
     
     try {
-      // In a real app, this would be an API call
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // In a real app, this would be an API call to get the sports data
+      // For now, we'll use the mock data
       
-      // Set state with mock data (in a real app, this would be data from the API)
+      // Get live events
+      const liveEvents = generateMockLiveEvents();
+      
+      // Get upcoming events
+      const upcomingEvents = generateMockUpcomingEvents();
+      
+      // Get all events
+      const allEvents = [...liveEvents, ...upcomingEvents];
+      
+      // Get featured events
+      const featuredEvents = allEvents.filter((event) => event.isFeatured);
+      
+      // Get trending events (just use random events for now)
+      const trendingEvents = allEvents
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 5);
+      
+      // Organize events by sports category
+      const { sportsCategories } = get();
+      const updatedCategories = sportsCategories.map((category) => {
+        return {
+          ...category,
+          events: allEvents.filter((event) => event.sportId === category.id)
+        };
+      });
+      
       set({
-        isLoading: false,
-        sportsCategories: categoriesWithEvents,
-        featuredEvents: allEvents.filter(event => event.isFeatured),
-        liveEvents: mockLiveEvents,
-        trendingEvents: allEvents.slice(0, 3)
+        sportsCategories: updatedCategories,
+        featuredEvents,
+        liveEvents,
+        trendingEvents,
+        isLoading: false
       });
     } catch (error) {
-      set({ 
-        isLoading: false, 
-        error: error instanceof Error ? error.message : 'An unknown error occurred' 
+      console.error('Error loading sports data:', error);
+      set({
+        isLoading: false,
+        error: 'Failed to load sports data. Please try again later.'
       });
+    }
+  },
+  
+  // Update odds for a specific outcome
+  updateOdds: (sportId, eventId, marketId, outcomeId, newOdds) => {
+    const { sportsCategories, betSlip } = get();
+    
+    // Find the category
+    const categoryIndex = sportsCategories.findIndex(
+      (category) => category.id === sportId
+    );
+    
+    if (categoryIndex >= 0) {
+      const category = sportsCategories[categoryIndex];
+      
+      // Find the event
+      const eventIndex = category.events.findIndex(
+        (event) => event.id === eventId
+      );
+      
+      if (eventIndex >= 0) {
+        const event = category.events[eventIndex];
+        
+        // Find the market
+        const marketIndex = event.markets.findIndex(
+          (market) => market.id === marketId
+        );
+        
+        if (marketIndex >= 0) {
+          const market = event.markets[marketIndex];
+          
+          // Find the outcome
+          const outcomeIndex = market.outcomes.findIndex(
+            (outcome) => outcome.id === outcomeId
+          );
+          
+          if (outcomeIndex >= 0) {
+            const outcome = market.outcomes[outcomeIndex];
+            
+            // Create a new outcome with updated odds
+            const updatedOutcome = {
+              ...outcome,
+              previousOdds: outcome.odds,
+              odds: newOdds,
+              timestamp: Date.now()
+            };
+            
+            // Create a new market with the updated outcome
+            const updatedMarket = {
+              ...market,
+              outcomes: [
+                ...market.outcomes.slice(0, outcomeIndex),
+                updatedOutcome,
+                ...market.outcomes.slice(outcomeIndex + 1)
+              ]
+            };
+            
+            // Create a new event with the updated market
+            const updatedEvent = {
+              ...event,
+              markets: [
+                ...event.markets.slice(0, marketIndex),
+                updatedMarket,
+                ...event.markets.slice(marketIndex + 1)
+              ]
+            };
+            
+            // Create a new category with the updated event
+            const updatedCategory = {
+              ...category,
+              events: [
+                ...category.events.slice(0, eventIndex),
+                updatedEvent,
+                ...category.events.slice(eventIndex + 1)
+              ]
+            };
+            
+            // Update the categories
+            const updatedCategories = [
+              ...sportsCategories.slice(0, categoryIndex),
+              updatedCategory,
+              ...sportsCategories.slice(categoryIndex + 1)
+            ];
+            
+            // Update the store
+            set({ sportsCategories: updatedCategories });
+            
+            // If the outcome is in the bet slip, update its odds there too
+            const selectionIndex = betSlip.selections.findIndex(
+              (selection) => selection.outcomeId === outcomeId
+            );
+            
+            if (selectionIndex >= 0) {
+              const updatedSelections = [...betSlip.selections];
+              updatedSelections[selectionIndex] = {
+                ...updatedSelections[selectionIndex],
+                odds: newOdds
+              };
+              
+              // Recalculate potential winnings
+              const potentialWinnings = calculatePotentialWinnings(
+                updatedSelections,
+                betSlip.stake
+              );
+              
+              set({
+                betSlip: {
+                  ...betSlip,
+                  selections: updatedSelections,
+                  potentialWinnings
+                }
+              });
+            }
+          }
+        }
+      }
     }
   }
 }));
+
+// Helper function to calculate potential winnings
+function calculatePotentialWinnings(selections: BetSlipSelection[], stake: number): number {
+  if (selections.length === 0 || stake <= 0) {
+    return 0;
+  }
+  
+  // Calculate the total odds (multiply all odds together)
+  const totalOdds = selections.reduce((acc, selection) => acc * selection.odds, 1);
+  
+  // Calculate potential winnings
+  return totalOdds * stake;
+}

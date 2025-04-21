@@ -30,6 +30,7 @@ const BetSlip: React.FC<BetSlipProps> = ({ onClose }) => {
   
   // Helper to format odds with proper precision
   const formatOdds = (odds: number) => {
+    if (typeof odds !== 'number') return odds;
     return odds < 10 ? odds.toFixed(2) : odds.toFixed(1);
   };
   

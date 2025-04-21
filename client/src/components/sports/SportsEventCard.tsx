@@ -78,7 +78,7 @@ const SportsEventCard: React.FC<SportsEventCardProps> = ({ event }) => {
       >
         <div className="text-xs text-gray-300 mb-1">{outcome.name}</div>
         <div className="flex items-center">
-          <span className="font-bold text-white">{outcome.odds.toFixed(2)}</span>
+          <span className="font-bold text-white">{typeof outcome.odds === 'number' ? outcome.odds.toFixed(2) : outcome.odds}</span>
           {changeIndicator}
         </div>
       </button>
