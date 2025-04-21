@@ -19,7 +19,12 @@ export function setupDevEndpoints(app: Express) {
       }
       
       // Update user to be an admin
-      const updatedUser = await storage.updateAdminStatus(user.id, true);
+      // Try to directly use database update instead of the unreliable storage method
+      const [updatedUser] = await db
+        .update(users)
+        .set({ isAdmin: true })
+        .where(eq(users.id, user.id))
+        .returning();
       
       res.json({
         message: `User '${username}' is now an admin`,
