@@ -18,13 +18,12 @@ export function setupDevEndpoints(app: Express) {
         return res.status(404).json({ message: `User '${username}' not found` });
       }
       
-      // Update user to be an admin
-      // Try to directly use database update instead of the unreliable storage method
-      const [updatedUser] = await db
-        .update(users)
-        .set({ isAdmin: true })
-        .where(eq(users.id, user.id))
-        .returning();
+      // Use the existing updateUserAdmin method from storage
+      const updatedUser = await storage.updateUserAdmin(user.id, true);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user admin status" });
+      }
       
       res.json({
         message: `User '${username}' is now an admin`,
