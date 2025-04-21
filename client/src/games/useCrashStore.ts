@@ -257,11 +257,11 @@ export const useCrashStore = create<CrashStore>((set, get) => {
     },
     
     cashOut: () => {
-      const { currentMultiplier, activeBets, hasPlacedBet, hasCashedOut } = get();
+      const { currentMultiplier, activeBets, hasPlacedBet, hasCashedOut, gameState } = get();
       
       // Prevent multiple cashouts or invalid cashout attempts
-      if (!hasPlacedBet || hasCashedOut) {
-        console.log("Cashout prevented - already cashed out or no bet placed");
+      if (!hasPlacedBet || hasCashedOut || gameState !== 'running') {
+        console.log("Cashout prevented - already cashed out, no bet placed, or game not running");
         return;
       }
       
@@ -269,7 +269,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       const playerBet = activeBets.find(bet => bet.isPlayer);
       
       // Mark as cashed out immediately to prevent multiple cashout attempts
-      set({ hasCashedOut: true });
+      set({ 
+        hasCashedOut: true,
+        gameState: 'cashed_out' // Update game state to cashed_out
+      });
       
       if (playerBet && playerBet.betId) {
         try {
@@ -438,8 +441,33 @@ export const useCrashStore = create<CrashStore>((set, get) => {
           autoCashoutValue, 
           hasPlacedBet,
           hasCashedOut,
-          dataPoints
+          dataPoints,
+          gameState
         } = get();
+
+        // If player has cashed out, end the game loop and reset the game after delay
+        if (gameState === 'cashed_out') {
+          if (gameInterval) {
+            window.clearInterval(gameInterval as number);
+            gameInterval = null;
+          }
+
+          // Add to history
+          const newHistoryItem = {
+            crashPoint: currentMultiplier,
+            timestamp: Date.now()
+          };
+
+          set(state => ({
+            gameHistory: [newHistoryItem, ...state.gameHistory.slice(0, 9)]
+          }));
+
+          // Reset game after a delay
+          setTimeout(() => {
+            get().resetGame();
+          }, 3000);
+          return;
+        }
         
         const elapsed = (Date.now() - startTime) / 1000;
         const newMultiplier = getLiveMultiplier(elapsed);
@@ -451,6 +479,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
             !hasCashedOut && 
             formattedMultiplier >= autoCashoutValue) {
           get().cashOut();
+          return; // Exit early since cashOut will change game state
         }
         
         // Calculate new data point for graph - matching exact trajectory from reference
@@ -493,7 +522,8 @@ export const useCrashStore = create<CrashStore>((set, get) => {
             currentMultiplier: formattedMultiplier,
             activeBets: finalBets,
             dataPoints: newDataPoints,
-            gameHistory: [newHistoryItem, ...state.gameHistory.slice(0, 9)]
+            gameHistory: [newHistoryItem, ...state.gameHistory.slice(0, 9)],
+            hasPlacedBet: false // Ensure bet state is reset
           }));
           
           // Reset game after delay
