@@ -1,63 +1,60 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { GAMES } from '@/games';
-import { Link, useLocation } from 'wouter';
-import { Card, CardContent } from '@/components/ui/card';
+import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Sparkles, Users } from 'lucide-react';
+import { Sparkles, Users, Search, Zap } from 'lucide-react';
+import GameCard from '@/components/games/GameCard';
 
 const CasinoPage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: apiGames = [], isLoading } = useQuery({
     queryKey: ['/api/games']
   });
   
-  // Combine API game data with our static game data for other props
-  const combinedGames = GAMES.map(game => {
-    const apiGame = Array.isArray(apiGames) ? 
-      apiGames.find((g: any) => g.id === game.id) : 
-      undefined;
-    return {
-      ...game,
-      imageUrl: apiGame?.imageUrl || null
-    };
-  });
+  // Filter games by search query
+  const filteredGames = GAMES.filter(game => 
+    game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    game.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
   return (
     <div className="min-h-screen bg-[#0E1821] text-white py-4 px-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Stake Originals</h1>
-        <p className="text-sm text-gray-400">Play our exclusive casino games</p>
+      {/* Search Bar */}
+      <div className="relative mb-3 px-2">
+        <input 
+          type="text" 
+          placeholder="Search your game" 
+          className="w-full bg-[#172B3A] rounded-lg py-2 px-9 text-sm md:text-base text-white border-none focus:outline-none focus:ring-1 focus:ring-[#0F212E]/80"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <Search className="h-4 w-4 md:h-5 md:w-5 text-gray-400 absolute left-4 top-3" />
       </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {combinedGames.map((game) => (
-          <Link key={game.id} href={`/games/${game.slug}`}>
-            <Card className="bg-[#172B3A] border-[#243442] hover:bg-[#1F3244] transition-colors cursor-pointer overflow-hidden h-full">
-              <div className="aspect-square relative overflow-hidden">
-                {game.imageUrl ? (
-                  <img
-                    src={game.imageUrl}
-                    alt={game.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className={cn("w-full h-full flex items-center justify-center", game.color)}>
-                    <Sparkles className="h-12 w-12 text-white" />
-                  </div>
-                )}
-              </div>
-              <CardContent className="p-3">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-medium text-sm">{game.name}</h3>
-                </div>
-                <div className="flex items-center mt-1 text-xs text-gray-400">
-                  <Users className="h-3 w-3 mr-1" />
-                  <span>{game.activePlayers.toLocaleString()}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+      <div className="mb-6">
+        <div className="flex items-center mb-3 px-2">
+          <Zap className="h-5 w-5 text-green-500 mr-2" />
+          <h2 className="text-xl font-medium text-white">Stake Originals</h2>
+        </div>
+        
+        {/* Game Grid - Optimized for mobile */}
+        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 p-1">
+          {filteredGames.map((game) => (
+            <GameCard
+              key={game.id}
+              id={game.id}
+              name={game.name}
+              slug={game.slug}
+              type={game.type}
+              activePlayers={game.activePlayers}
+              color={game.color}
+              iconType={game.iconType}
+              multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${game.maxMultiplier.toFixed(2)}x` : undefined}
+              imageUrl={apiGames.find((g: any) => g.id === game.id)?.imageUrl || null}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
