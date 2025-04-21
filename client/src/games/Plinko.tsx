@@ -51,8 +51,14 @@ const PlinkoGame: React.FC = () => {
   
   // Hooks
   const { toast } = useToast();
-  const { placeBet, completeBet, rawBalance } = useBalance(currency);
+  const queryClient = useQueryClient();
+  const { placeBet, completeBet, rawBalance } = useBalance(currency as any);
   const { getGameResult } = useProvablyFair('plinko');
+  
+  // Function to refresh balance
+  const refreshBalance = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
+  };
   
   // Canvas dimensions
   const width = 400;
@@ -352,8 +358,33 @@ const PlinkoGame: React.FC = () => {
     setIsDropping(true);
     
     try {
+      // First, we need to get the game ID for Plinko
+      const gamesResponse = await fetch('/api/games');
+      const games = await gamesResponse.json();
+      const plinkoGame = games.find((g: any) => g.slug === 'plinko');
+      
+      if (!plinkoGame) {
+        throw new Error("Plinko game not found");
+      }
+      
+      // Now place the bet with the correct gameId
+      const betData = {
+        gameId: plinkoGame.id,
+        amount: betAmountValue,
+        clientSeed: Math.random().toString(36).substring(2),
+        options: {
+          currency: currency
+        }
+      };
+      
       // Place bet with API
-      const betId = await placeBet(betAmountValue);
+      const result = await placeBet.mutateAsync(betData);
+      
+      if (!result || !result.betId) {
+        throw new Error("Failed to place bet");
+      }
+      
+      const betId = result.betId;
       
       // Animate the ball drop and get result
       const winMultiplier = await animateBallDrop();
@@ -361,14 +392,22 @@ const PlinkoGame: React.FC = () => {
       if (winMultiplier) {
         // Calculate winnings
         const winAmount = betAmountValue * winMultiplier;
+        const isWin = winAmount > 0;
         
         // Complete the bet with backend
-        await completeBet(betId, winAmount > 0, winAmount);
+        await completeBet.mutateAsync({
+          betId: betId,
+          outcome: {
+            win: isWin,
+            multiplier: winMultiplier,
+            amount: winAmount
+          }
+        });
         
         // Show toast notification
         toast({
-          title: winAmount > 0 ? "Win!" : "Better luck next time!",
-          description: winAmount > 0 
+          title: isWin ? "Win!" : "Better luck next time!",
+          description: isWin 
             ? `You won ${formatCrypto(winAmount, currency)}` 
             : "No win this time.",
           variant: "destructive",
