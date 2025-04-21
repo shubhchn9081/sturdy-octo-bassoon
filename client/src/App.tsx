@@ -20,6 +20,7 @@ import StakeSmartPage from "@/pages/stake-smart-page";
 import SupportPage from "@/pages/support-page";
 import AnimationExamples from "@/pages/animation-examples";
 import RecentPage from "@/pages/recent-page";
+import SportsPage from "@/pages/sports-page";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
@@ -40,6 +41,7 @@ function Router() {
             <ProtectedRoute path="/casino/games/:gameSlug" component={Game} />
             <ProtectedRoute path="/casino" component={CasinoPage} />
             <ProtectedRoute path="/originals" component={Originals} />
+            <ProtectedRoute path="/sports" component={SportsPage} />
             <ProtectedRoute path="/admin" component={Admin} />
             <Route path="/init-db" component={InitDb} />
             <Route path="/auth" component={AuthPage} />
