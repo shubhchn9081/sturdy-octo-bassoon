@@ -724,9 +724,15 @@ const PlinkoGame = () => {
   );
   
   return (
-    <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]">
-      {/* Side Panel - exact width from screenshot */}
-      <div className="w-full lg:w-[240px] p-4 bg-[#172B3A] border-r border-[#243442]/50">
+    <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]">
+      {/* Game Area - On mobile, this appears first */}
+      <div className="flex-1 flex justify-center items-center overflow-auto bg-[#0F212E] order-first">
+        <div className="w-full flex justify-center items-center pt-4 pb-2">
+      
+      {/* Game content moved up for mobile */}
+      
+      {/* Side Panel - On mobile, appears below the game */}
+      <div className="w-full p-3 bg-[#172B3A] border-t lg:border-t-0 lg:border-r border-[#243442]/50 order-last lg:order-first lg:w-[240px]">
         <Tabs defaultValue="Manual" className="w-full" onValueChange={(v) => setGameMode(v)}>
           <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-4 h-10 overflow-hidden rounded-none p-0">
             <TabsTrigger 
@@ -753,9 +759,7 @@ const PlinkoGame = () => {
         </Tabs>
       </div>
       
-      {/* Game Area - matches screenshot layout */}
-      <div className="flex-1 flex justify-center items-center overflow-auto bg-[#0F212E]">
-        <div className="w-full flex justify-center items-center">
+      {/* Game Area - content continues from above */}
           {/* Plinko Board */}
           <div 
             ref={boardRef} 

@@ -462,9 +462,19 @@ const MinesGame = () => {
   
   // Main render
   return (
-    <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
-      {/* Side Panel */}
-      <div className="w-full lg:w-[280px] p-2 bg-[#172B3A] border-r border-[#243442]/50">
+    <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
+      {/* Game Area - On mobile, this appears first */}
+      <div className="flex-1 overflow-auto order-first mb-4">
+        <div className="w-full h-full flex items-center justify-center p-2">
+          <div className="grid-wrapper flex items-center justify-center">
+            {/* Game grid */}
+            {renderGameGrid()}
+          </div>
+        </div>
+      </div>
+      
+      {/* Side Panel - On mobile, this appears second (below) */}
+      <div className="w-full p-2 bg-[#172B3A] border-t lg:border-t-0 lg:border-r border-[#243442]/50 order-last lg:order-first lg:w-[280px]">
         <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
           <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0">
             <TabsTrigger 
@@ -495,15 +505,14 @@ const MinesGame = () => {
         </Tabs>
       </div>
       
-      {/* Game Area */}
-      <div className="flex-1 overflow-auto">
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="grid-wrapper flex items-center justify-center">
-            {/* Game grid */}
-            {renderGameGrid()}
-          </div>
-        </div>
-      </div>
+      {/* On larger screens, revert to side-by-side layout */}
+      <style jsx>{`
+        @media (min-width: 1024px) {
+          .flex-col {
+            flex-direction: row;
+          }
+        }
+      `}</style>
     </div>
   );
 };

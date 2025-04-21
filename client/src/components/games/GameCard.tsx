@@ -253,14 +253,18 @@ const GameCard = ({
 
   return (
     <div 
-      className={cn("game-card", className)}
+      className={cn(
+        "game-card",
+        "w-full max-w-[146px] mx-auto", // Exact width from Stake.com, centered on mobile
+        className
+      )}
       onClick={() => window.location.href = `/games/${slug}`}
     >
       {/* Main card content - matching Stake.com layout - responsive height */}
       <div className="relative w-full h-[154px] sm:h-[164px] md:h-[174px] lg:h-[184px]">
         {/* Background gradient or image */}
         <div 
-          className="absolute inset-0 w-full h-full" 
+          className="absolute inset-0 w-full h-full rounded-t-lg" 
           style={!imageSource ? gradientStyle : undefined}
         ></div>
         
@@ -269,7 +273,7 @@ const GameCard = ({
           <img
             src={imageSource}
             alt={`${name} game background`}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
             onError={(e) => {
               // Fallback to gradient if image fails to load
               e.currentTarget.style.display = 'none';
@@ -289,7 +293,7 @@ const GameCard = ({
       </div>
       
       {/* Player count - exactly matching Stake.com styling */}
-      <div className="bg-[#172B3A] px-2 py-0.5 text-[10px] text-green-400 flex items-center justify-center">
+      <div className="bg-[#172B3A] px-2 py-0.5 text-[10px] text-green-400 flex items-center justify-center rounded-b-lg">
         <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1"></div>
         {activePlayers.toLocaleString()} playing
       </div>
