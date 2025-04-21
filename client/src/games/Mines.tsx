@@ -505,14 +505,7 @@ const MinesGame = () => {
         </Tabs>
       </div>
       
-      {/* On larger screens, revert to side-by-side layout */}
-      <style jsx>{`
-        @media (min-width: 1024px) {
-          .flex-col {
-            flex-direction: row;
-          }
-        }
-      `}</style>
+      {/* On larger screens, revert to side-by-side layout using Tailwind's responsive variants */}
     </div>
   );
 };
