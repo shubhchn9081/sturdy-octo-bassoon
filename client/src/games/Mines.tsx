@@ -383,12 +383,15 @@ const MinesGame = () => {
   );
   
   const getTileContent = (index: number, status: TileStatus) => {
+    // Calculate icon size as a percentage of the tile size
+    const iconSize = Math.max(Math.floor(tileSize * 0.6), 24); // Minimum size 24px
+    
     if (status === 'revealed') {
-      return <DiamondImage />;
+      return <div style={{ width: `${iconSize}px`, height: `${iconSize}px` }}><DiamondImage /></div>;
     } else if (status === 'mine') {
-      return <BombImage />;
+      return <div style={{ width: `${iconSize}px`, height: `${iconSize}px` }}><BombImage /></div>;
     } else if (status === 'gem') {
-      return <DarkerDiamondImage />;
+      return <div style={{ width: `${iconSize}px`, height: `${iconSize}px` }}><DarkerDiamondImage /></div>;
     } else if (selectedTile === index) {
       return (
         <div className="absolute inset-0 border-2 border-[#7bfa4c] rounded-md animate-pulse"></div>
@@ -401,6 +404,10 @@ const MinesGame = () => {
   const renderMultiplierOverlay = () => {
     if (gameState && !gameState.isGameOver && gameState.diamondsCollected > 0) {
       const centerIndex = 12; // Middle of the 5x5 grid
+      
+      // Calculate overlay size based on tile size (proportionally)
+      const overlaySize = Math.max(Math.min(tileSize * 2, 128), 80); // Min 80px, max 128px
+      
       return (
         <div 
           className={`absolute top-0 left-0 w-full h-full flex items-center justify-center
@@ -409,14 +416,18 @@ const MinesGame = () => {
           <div 
             className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
                       bg-[#7bfa4c] bg-opacity-20 border-2 border-[#7bfa4c] rounded-md
-                      flex flex-col items-center justify-center p-4 w-32 h-32`}
+                      flex flex-col items-center justify-center p-2`}
             style={{
               gridRowStart: Math.floor(centerIndex / GRID_SIZE) + 1,
               gridColumnStart: (centerIndex % GRID_SIZE) + 1,
+              width: `${overlaySize}px`,
+              height: `${overlaySize}px`
             }}
           >
-            <div className="text-xl font-bold text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</div>
-            <div className="text-sm text-white flex items-center">
+            <div className={`font-bold text-[#7bfa4c] ${overlaySize < 100 ? 'text-lg' : 'text-xl'}`}>
+              {gameState.multiplier.toFixed(2)}x
+            </div>
+            <div className={`text-white flex items-center ${overlaySize < 100 ? 'text-xs' : 'text-sm'}`}>
               {formatCrypto(gameState.betAmount)}
               <span className="text-amber-400 ml-1">₿</span>
             </div>
@@ -427,27 +438,61 @@ const MinesGame = () => {
     return null;
   };
   
+  // State for tile size
+  const [tileSize, setTileSize] = useState(58); // Default smaller size for mobile
+  const gridWrapperRef = React.useRef<HTMLDivElement>(null);
+  
+  // Effect to handle resize and adjust tile size
+  useEffect(() => {
+    const calculateTileSize = () => {
+      if (!gridWrapperRef.current) return;
+      
+      // Get container width and determine available space
+      const containerWidth = gridWrapperRef.current.clientWidth;
+      
+      // Calculate optimal tile size based on container width
+      // Leave space for grid gap (10px) and padding
+      const maxGridWidth = containerWidth - 40; // 20px padding on each side
+      const optimalTileSize = Math.floor((maxGridWidth - (GRID_SIZE - 1) * 10) / GRID_SIZE);
+      
+      // Set minimum tile size to ensure visibility
+      const newTileSize = Math.max(40, Math.min(optimalTileSize, 88)); // min 40px, max 88px
+      setTileSize(newTileSize);
+    };
+    
+    // Calculate initially
+    calculateTileSize();
+    
+    // Add resize listener
+    window.addEventListener('resize', calculateTileSize);
+    return () => window.removeEventListener('resize', calculateTileSize);
+  }, []);
+  
   // Render the game grid with positioned tiles
   const renderGameGrid = () => (
     <div className="relative grid-container grid" style={{ 
-      gridTemplateColumns: 'repeat(5, 88px)', 
-      gridTemplateRows: 'repeat(5, 88px)', 
+      gridTemplateColumns: `repeat(5, ${tileSize}px)`, 
+      gridTemplateRows: `repeat(5, ${tileSize}px)`, 
       gap: '10px',
       padding: '20px',
       margin: 'auto',
-      marginTop: '20px' 
+      marginTop: '20px'
     }}>
       {tiles.map((status, index) => (
         <button
           key={index}
           className={`
-            relative w-[88px] h-[88px] rounded-[10px] cursor-pointer tile flex items-center justify-center 
+            relative rounded-[10px] cursor-pointer tile flex items-center justify-center 
             transition-all duration-200 ease-in
             ${status === 'hidden' ? 'bg-[#2f2f3d] hover:bg-[#3a3a4d] shadow-[inset_0_0_5px_#1e1e2f]' : ''}
             ${status === 'revealed' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
             ${status === 'mine' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-explosion' : ''}
             ${status === 'gem' ? 'bg-[#2f2f3d] shadow-[inset_0_0_5px_#1e1e2f] animate-revealGem' : ''}
           `}
+          style={{
+            width: `${tileSize}px`,
+            height: `${tileSize}px`
+          }}
           onClick={() => handleTileClick(index)}
           disabled={!gameState || gameState.isGameOver || gameState.revealed[index]}
         >
@@ -466,7 +511,7 @@ const MinesGame = () => {
       {/* Game Area - On mobile, this appears first */}
       <div className="flex-1 overflow-auto order-first mb-4">
         <div className="w-full h-full flex items-center justify-center p-2">
-          <div className="grid-wrapper flex items-center justify-center">
+          <div ref={gridWrapperRef} className="grid-wrapper flex items-center justify-center max-w-full">
             {/* Game grid */}
             {renderGameGrid()}
           </div>
