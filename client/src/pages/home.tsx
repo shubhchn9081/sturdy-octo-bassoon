@@ -83,8 +83,8 @@ const HomePage = () => {
           <h2 className="text-base md:text-lg font-medium text-white">Featured Stake Originals</h2>
         </div>
         
-        {/* Featured Game Cards with minimal gap */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-[1px]">
+        {/* Featured Game Cards with proper spacing */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-x-4 gap-y-4">
           {featuredGames.map((game) => (
             <GameCard
               key={game.id}
@@ -115,8 +115,8 @@ const HomePage = () => {
           </div>
         </div>
         
-        {/* All Game Cards - With minimal gap to match Stake.com */}
-        <div className="flex flex-wrap gap-[1px] justify-center">
+        {/* All Game Cards - With proper spacing */}
+        <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-x-4 gap-y-4">
           {allGames.map((game) => (
             <GameCard
               key={game.id}

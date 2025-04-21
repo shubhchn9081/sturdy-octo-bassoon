@@ -71,7 +71,7 @@ const OriginalsPage = () => {
         </div>
       </div>
       
-      <div className="game-grid">
+      <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-x-4 gap-y-4">
         {originalsGames.map(game => (
           <GameCard
             key={game.id}
