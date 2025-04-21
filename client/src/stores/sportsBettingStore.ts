@@ -336,114 +336,424 @@ const generateMockLiveEvents = (): Event[] => {
   ];
 };
 
-// Generate mock upcoming events
-const generateMockUpcomingEvents = (): Event[] => {
-  return [
-    {
-      id: 'event-4',
-      name: 'Manchester City vs Liverpool',
-      sportId: 'soccer',
-      leagueId: 'premier-league',
-      leagueName: 'Premier League',
-      startTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-      status: 'upcoming',
-      homeTeam: 'Manchester City',
-      awayTeam: 'Liverpool',
-      homeScore: null,
-      awayScore: null,
-      isFeatured: true,
-      markets: [
-        {
-          id: 'market-6',
-          name: 'Match Winner',
-          isLocked: false,
-          startTime: new Date(Date.now() + 86400000).toISOString(),
-          endTime: null,
-          outcomes: [
-            {
-              id: 'outcome-12',
-              name: 'Manchester City',
-              odds: 1.85,
-              previousOdds: 1.90,
-              probability: 0.54,
-              isLocked: false,
-              timestamp: Date.now()
-            },
-            {
-              id: 'outcome-13',
-              name: 'Draw',
-              odds: 3.60,
-              previousOdds: 3.50,
-              probability: 0.28,
-              isLocked: false,
-              timestamp: Date.now()
-            },
-            {
-              id: 'outcome-14',
-              name: 'Liverpool',
-              odds: 4.25,
-              previousOdds: 4.35,
-              probability: 0.18,
-              isLocked: false,
-              timestamp: Date.now()
-            }
-          ]
-        }
+// Function to generate match events for each sport
+const generateSportEvents = (sport: string, count: number, isUpcoming: boolean = true): Event[] => {
+  const events: Event[] = [];
+  const now = Date.now();
+  const sportsData = {
+    'soccer': {
+      leagues: [
+        { id: 'premier-league', name: 'Premier League' },
+        { id: 'la-liga', name: 'La Liga' },
+        { id: 'bundesliga', name: 'Bundesliga' },
+        { id: 'serie-a', name: 'Serie A' },
+        { id: 'ligue-1', name: 'Ligue 1' },
+        { id: 'champions-league', name: 'Champions League' }
+      ],
+      teams: [
+        'Manchester City', 'Liverpool', 'Arsenal', 'Tottenham', 'Chelsea', 'Manchester United',
+        'Real Madrid', 'Barcelona', 'Atletico Madrid', 'Sevilla', 'Valencia',
+        'Bayern Munich', 'Borussia Dortmund', 'RB Leipzig', 'Bayer Leverkusen',
+        'Juventus', 'Inter Milan', 'AC Milan', 'Napoli', 'Roma',
+        'PSG', 'Marseille', 'Lyon', 'Monaco', 'Lille'
       ]
     },
-    {
-      id: 'event-5',
-      name: 'Arsenal vs Tottenham',
-      sportId: 'soccer',
-      leagueId: 'premier-league',
-      leagueName: 'Premier League',
-      startTime: new Date(Date.now() + 172800000).toISOString(), // Day after tomorrow
-      status: 'upcoming',
-      homeTeam: 'Arsenal',
-      awayTeam: 'Tottenham',
-      homeScore: null,
-      awayScore: null,
-      isFeatured: false,
-      markets: [
-        {
-          id: 'market-7',
-          name: 'Match Winner',
-          isLocked: false,
-          startTime: new Date(Date.now() + 172800000).toISOString(),
-          endTime: null,
-          outcomes: [
-            {
-              id: 'outcome-15',
-              name: 'Arsenal',
-              odds: 2.15,
-              previousOdds: 2.20,
-              probability: 0.47,
-              isLocked: false,
-              timestamp: Date.now()
-            },
-            {
-              id: 'outcome-16',
-              name: 'Draw',
-              odds: 3.40,
-              previousOdds: 3.35,
-              probability: 0.29,
-              isLocked: false,
-              timestamp: Date.now()
-            },
-            {
-              id: 'outcome-17',
-              name: 'Tottenham',
-              odds: 3.25,
-              previousOdds: 3.30,
-              probability: 0.24,
-              isLocked: false,
-              timestamp: Date.now()
-            }
-          ]
-        }
+    'basketball': {
+      leagues: [
+        { id: 'nba', name: 'NBA' },
+        { id: 'euroleague', name: 'EuroLeague' },
+        { id: 'ncaa', name: 'NCAA' }
+      ],
+      teams: [
+        'Los Angeles Lakers', 'Boston Celtics', 'Golden State Warriors', 'Brooklyn Nets', 'Chicago Bulls',
+        'Miami Heat', 'Phoenix Suns', 'Milwaukee Bucks', 'Dallas Mavericks', 'Denver Nuggets',
+        'Real Madrid', 'FC Barcelona', 'CSKA Moscow', 'Anadolu Efes', 'Fenerbahçe',
+        'Duke Blue Devils', 'Kentucky Wildcats', 'North Carolina Tar Heels', 'UCLA Bruins'
+      ]
+    },
+    'cricket': {
+      leagues: [
+        { id: 'ipl', name: 'Indian Premier League' },
+        { id: 'big-bash', name: 'Big Bash League' },
+        { id: 'cpl', name: 'Caribbean Premier League' },
+        { id: 'psl', name: 'Pakistan Super League' },
+        { id: 'international', name: 'International' }
+      ],
+      teams: [
+        'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore', 'Kolkata Knight Riders', 
+        'Delhi Capitals', 'Sunrisers Hyderabad', 'Punjab Kings', 'Rajasthan Royals', 'Gujarat Titans', 
+        'Lucknow Super Giants', 'Sydney Sixers', 'Perth Scorchers', 'Brisbane Heat', 
+        'Trinbago Knight Riders', 'Guyana Amazon Warriors', 'Lahore Qalandars', 'Karachi Kings',
+        'India', 'Australia', 'England', 'New Zealand', 'South Africa', 'Pakistan', 'West Indies'
+      ]
+    },
+    'tennis': {
+      leagues: [
+        { id: 'grand-slams', name: 'Grand Slams' },
+        { id: 'atp-masters', name: 'ATP Masters 1000' },
+        { id: 'wta-tour', name: 'WTA Tour' }
+      ],
+      teams: [
+        'Novak Djokovic', 'Rafael Nadal', 'Roger Federer', 'Andy Murray', 'Daniil Medvedev',
+        'Alexander Zverev', 'Stefanos Tsitsipas', 'Dominic Thiem', 'Carlos Alcaraz',
+        'Ashleigh Barty', 'Naomi Osaka', 'Serena Williams', 'Simona Halep', 'Bianca Andreescu'
+      ]
+    },
+    'american-football': {
+      leagues: [
+        { id: 'nfl', name: 'NFL' },
+        { id: 'ncaaf', name: 'NCAA Football' }
+      ],
+      teams: [
+        'Kansas City Chiefs', 'Tampa Bay Buccaneers', 'Buffalo Bills', 'Green Bay Packers',
+        'Dallas Cowboys', 'Los Angeles Rams', 'San Francisco 49ers', 'Baltimore Ravens',
+        'Alabama Crimson Tide', 'Georgia Bulldogs', 'Ohio State Buckeyes', 'Clemson Tigers'
+      ]
+    },
+    'baseball': {
+      leagues: [
+        { id: 'mlb', name: 'MLB' },
+        { id: 'npb', name: 'Nippon Professional Baseball' }
+      ],
+      teams: [
+        'New York Yankees', 'Los Angeles Dodgers', 'Boston Red Sox', 'Chicago Cubs',
+        'Houston Astros', 'Atlanta Braves', 'San Francisco Giants', 'St. Louis Cardinals',
+        'Yomiuri Giants', 'Hanshin Tigers', 'Fukuoka SoftBank Hawks', 'Hiroshima Toyo Carp'
+      ]
+    },
+    'ice-hockey': {
+      leagues: [
+        { id: 'nhl', name: 'NHL' },
+        { id: 'khl', name: 'KHL' }
+      ],
+      teams: [
+        'Tampa Bay Lightning', 'Colorado Avalanche', 'Vegas Golden Knights', 'Boston Bruins',
+        'Toronto Maple Leafs', 'Pittsburgh Penguins', 'New York Rangers', 'Washington Capitals',
+        'SKA Saint Petersburg', 'CSKA Moscow', 'Dynamo Moscow', 'Metallurg Magnitogorsk'
+      ]
+    },
+    'esports': {
+      leagues: [
+        { id: 'lol-worlds', name: 'LoL World Championship' },
+        { id: 'dota-international', name: 'The International' },
+        { id: 'cs-majors', name: 'CS:GO Majors' }
+      ],
+      teams: [
+        'T1', 'DWG KIA', 'G2 Esports', 'Fnatic', 'Cloud9', 'Team Liquid',
+        'PSG.LGD', 'OG', 'Team Spirit', 'Evil Geniuses',
+        'Natus Vincere', 'Astralis', 'FaZe Clan', 'Vitality'
       ]
     }
-  ];
+  };
+
+  // Special case for IPL Cricket - ensure at least 20 IPL matches if cricket is selected
+  if (sport === 'cricket') {
+    const iplCount = Math.min(20, count);
+    const iplTeams = sportsData.cricket.teams.slice(0, 10); // Just IPL teams
+    
+    for (let i = 0; i < iplCount; i++) {
+      // Create random matchups between IPL teams
+      const homeIndex = Math.floor(Math.random() * iplTeams.length);
+      let awayIndex = Math.floor(Math.random() * iplTeams.length);
+      while (awayIndex === homeIndex) {
+        awayIndex = Math.floor(Math.random() * iplTeams.length);
+      }
+      
+      const homeTeam = iplTeams[homeIndex];
+      const awayTeam = iplTeams[awayIndex];
+      
+      // Random time up to 7 days in the future (for upcoming) or random time +/- 3 hours (for live)
+      const timeOffset = isUpcoming 
+        ? Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)
+        : Math.floor(Math.random() * 6 * 60 * 60 * 1000) - 3 * 60 * 60 * 1000;
+      
+      const event: Event = {
+        id: `event-cricket-ipl-${i}`,
+        name: `${homeTeam} vs ${awayTeam}`,
+        sportId: sport,
+        leagueId: 'ipl',
+        leagueName: 'Indian Premier League',
+        startTime: new Date(now + timeOffset).toISOString(),
+        status: isUpcoming ? 'upcoming' : 'live',
+        homeTeam,
+        awayTeam,
+        homeScore: isUpcoming ? null : Math.floor(Math.random() * 200),
+        awayScore: isUpcoming ? null : Math.floor(Math.random() * 180),
+        isFeatured: Math.random() > 0.8, // 20% chance of being featured
+        markets: [
+          {
+            id: `market-cricket-ipl-${i}-1`,
+            name: 'Match Winner',
+            isLocked: false,
+            startTime: new Date(now + timeOffset).toISOString(),
+            endTime: null,
+            outcomes: [
+              {
+                id: `outcome-cricket-ipl-${i}-1`,
+                name: homeTeam,
+                odds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              },
+              {
+                id: `outcome-cricket-ipl-${i}-2`,
+                name: awayTeam,
+                odds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              }
+            ]
+          },
+          {
+            id: `market-cricket-ipl-${i}-2`,
+            name: 'Total Runs',
+            isLocked: false,
+            startTime: new Date(now + timeOffset).toISOString(),
+            endTime: null,
+            outcomes: [
+              {
+                id: `outcome-cricket-ipl-${i}-3`,
+                name: 'Over 320.5',
+                odds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              },
+              {
+                id: `outcome-cricket-ipl-${i}-4`,
+                name: 'Under 320.5',
+                odds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              }
+            ]
+          }
+        ]
+      };
+      
+      events.push(event);
+    }
+  }
+  
+  // Generate regular events for each sport
+  const remainingCount = sport === 'cricket' ? count - events.length : count;
+  
+  if (remainingCount > 0 && sportsData[sport as keyof typeof sportsData]) {
+    const sportLeagues = sportsData[sport as keyof typeof sportsData].leagues;
+    const sportTeams = sportsData[sport as keyof typeof sportsData].teams;
+    
+    for (let i = 0; i < remainingCount; i++) {
+      // Select random league
+      const league = sportLeagues[Math.floor(Math.random() * sportLeagues.length)];
+      
+      // Select random teams
+      const homeIndex = Math.floor(Math.random() * sportTeams.length);
+      let awayIndex = Math.floor(Math.random() * sportTeams.length);
+      while (awayIndex === homeIndex) {
+        awayIndex = Math.floor(Math.random() * sportTeams.length);
+      }
+      
+      const homeTeam = sportTeams[homeIndex];
+      const awayTeam = sportTeams[awayIndex];
+      
+      // Random time up to 7 days in the future (for upcoming) or random time +/- 3 hours (for live)
+      const timeOffset = isUpcoming 
+        ? Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)
+        : Math.floor(Math.random() * 6 * 60 * 60 * 1000) - 3 * 60 * 60 * 1000;
+      
+      // Generate home/away scores based on the sport
+      let homeScore = null;
+      let awayScore = null;
+      
+      if (!isUpcoming) {
+        switch(sport) {
+          case 'soccer':
+            homeScore = Math.floor(Math.random() * 4);
+            awayScore = Math.floor(Math.random() * 3);
+            break;
+          case 'basketball':
+            homeScore = Math.floor(Math.random() * 50) + 50;
+            awayScore = Math.floor(Math.random() * 50) + 50;
+            break;
+          case 'cricket':
+            homeScore = Math.floor(Math.random() * 200) + 100;
+            awayScore = Math.floor(Math.random() * 180) + 100;
+            break;
+          case 'tennis':
+            // Tennis scoring is complex, so we'll just use sets
+            homeScore = Math.floor(Math.random() * 3);
+            awayScore = Math.floor(Math.random() * 3);
+            break;
+          case 'american-football':
+            homeScore = Math.floor(Math.random() * 30) + 3;
+            awayScore = Math.floor(Math.random() * 30) + 3;
+            break;
+          case 'baseball':
+            homeScore = Math.floor(Math.random() * 8);
+            awayScore = Math.floor(Math.random() * 8);
+            break;
+          case 'ice-hockey':
+            homeScore = Math.floor(Math.random() * 5);
+            awayScore = Math.floor(Math.random() * 5);
+            break;
+          case 'esports':
+            homeScore = Math.floor(Math.random() * 2);
+            awayScore = Math.floor(Math.random() * 2);
+            break;
+          default:
+            homeScore = Math.floor(Math.random() * 3);
+            awayScore = Math.floor(Math.random() * 3);
+        }
+      }
+      
+      const event: Event = {
+        id: `event-${sport}-${league.id}-${i}`,
+        name: `${homeTeam} vs ${awayTeam}`,
+        sportId: sport,
+        leagueId: league.id,
+        leagueName: league.name,
+        startTime: new Date(now + timeOffset).toISOString(),
+        status: isUpcoming ? 'upcoming' : 'live',
+        homeTeam,
+        awayTeam,
+        homeScore,
+        awayScore,
+        isFeatured: Math.random() > 0.8, // 20% chance of being featured
+        markets: [
+          {
+            id: `market-${sport}-${league.id}-${i}-1`,
+            name: 'Match Winner',
+            isLocked: false,
+            startTime: new Date(now + timeOffset).toISOString(),
+            endTime: null,
+            outcomes: sport === 'soccer' ? [
+              {
+                id: `outcome-${sport}-${league.id}-${i}-1`,
+                name: homeTeam,
+                odds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              },
+              {
+                id: `outcome-${sport}-${league.id}-${i}-2`,
+                name: 'Draw',
+                odds: (Math.random() * 2 + 2.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() * 2 + 2.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              },
+              {
+                id: `outcome-${sport}-${league.id}-${i}-3`,
+                name: awayTeam,
+                odds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              }
+            ] : [
+              {
+                id: `outcome-${sport}-${league.id}-${i}-1`,
+                name: homeTeam,
+                odds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              },
+              {
+                id: `outcome-${sport}-${league.id}-${i}-2`,
+                name: awayTeam,
+                odds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() * 2 + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              }
+            ]
+          },
+          {
+            id: `market-${sport}-${league.id}-${i}-2`,
+            name: sport === 'soccer' ? 'Total Goals' : 
+                  sport === 'basketball' ? 'Total Points' : 
+                  sport === 'cricket' ? 'Total Runs' : 
+                  sport === 'tennis' ? 'Total Games' : 
+                  sport === 'american-football' ? 'Total Points' :
+                  sport === 'baseball' ? 'Total Runs' :
+                  sport === 'ice-hockey' ? 'Total Goals' :
+                  sport === 'esports' ? 'Total Maps' : 'Total Score',
+            isLocked: false,
+            startTime: new Date(now + timeOffset).toISOString(),
+            endTime: null,
+            outcomes: [
+              {
+                id: `outcome-${sport}-${league.id}-${i}-4`,
+                name: sport === 'soccer' ? 'Over 2.5' : 
+                      sport === 'basketball' ? 'Over, 195.5' : 
+                      sport === 'cricket' ? 'Over 320.5' : 
+                      sport === 'tennis' ? 'Over 22.5' : 
+                      sport === 'american-football' ? 'Over 45.5' :
+                      sport === 'baseball' ? 'Over 8.5' :
+                      sport === 'ice-hockey' ? 'Over 5.5' :
+                      sport === 'esports' ? 'Over 2.5' : 'Over',
+                odds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              },
+              {
+                id: `outcome-${sport}-${league.id}-${i}-5`,
+                name: sport === 'soccer' ? 'Under 2.5' : 
+                      sport === 'basketball' ? 'Under, 195.5' : 
+                      sport === 'cricket' ? 'Under 320.5' : 
+                      sport === 'tennis' ? 'Under 22.5' : 
+                      sport === 'american-football' ? 'Under 45.5' :
+                      sport === 'baseball' ? 'Under 8.5' :
+                      sport === 'ice-hockey' ? 'Under 5.5' :
+                      sport === 'esports' ? 'Under 2.5' : 'Under',
+                odds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                previousOdds: (Math.random() + 1.5).toFixed(2) as unknown as number,
+                probability: Math.random(),
+                isLocked: false,
+                timestamp: now
+              }
+            ]
+          }
+        ]
+      };
+      
+      events.push(event);
+    }
+  }
+  
+  return events;
+};
+
+// Generate mock events for all sports
+const generateMockUpcomingEvents = (): Event[] => {
+  const sportsCategories = ['soccer', 'basketball', 'tennis', 'cricket', 'american-football', 'baseball', 'ice-hockey', 'esports'];
+  let allEvents: Event[] = [];
+  
+  // Generate 50 events per sport as requested
+  sportsCategories.forEach(sport => {
+    // Generate 40 upcoming and 10 live events for each sport
+    const upcomingEvents = generateSportEvents(sport, 40, true);
+    const liveEvents = generateSportEvents(sport, 10, false);
+    allEvents = [...allEvents, ...upcomingEvents, ...liveEvents];
+  });
+  
+  return allEvents;
 };
 
 // Mock events data
