@@ -11,24 +11,82 @@ import Hilo from './Hilo';
 import Keno from './Keno';
 import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
-import Cases from './Cases';
 
 export const GAMES = [
   {
-    id: 15,
-    name: 'CASES',
-    slug: 'cases',
+    id: 4,
+    name: 'MINES',
+    slug: 'mines',
     type: 'STAKE ORIGINALS',
-    description: 'Open cases and win multipliers',
-    color: 'bg-blue-500',
-    iconType: 'cases',
-    component: Cases,
+    description: 'Find the gems, avoid the mines',
+    color: 'bg-blue-600',
+    iconType: 'mines',
+    component: Mines,
     minBet: 0.00000001,
     maxBet: 100,
-    rtp: 98,
-    maxMultiplier: 5.00,
-    activePlayers: 3421,
-    imageUrl: 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078621/Screenshot_2025-04-19_at_9.36.48_PM_k5e536.png'
+    rtp: 99,
+    maxMultiplier: 1000,
+    activePlayers: 3569
+  },
+  {
+    id: 5,
+    name: 'DICE',
+    slug: 'dice',
+    type: 'STAKE ORIGINALS',
+    description: 'Classic Dice game with 99% RTP',
+    color: 'bg-purple-600',
+    iconType: 'dice',
+    component: Dice,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: 99.00,
+    activePlayers: 3705
+  },
+  {
+    id: 2,
+    name: 'PLINKO',
+    slug: 'plinko',
+    type: 'STAKE ORIGINALS',
+    description: 'Drop balls and win multipliers',
+    color: 'bg-green-500',
+    iconType: 'plinko',
+    component: Plinko,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: 1000.00,
+    activePlayers: 7253
+  },
+  {
+    id: 11,
+    name: 'KENO',
+    slug: 'keno',
+    type: 'STAKE ORIGINALS',
+    description: 'Select numbers and win',
+    color: 'bg-blue-500',
+    iconType: 'keno',
+    component: Keno,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 390.00,
+    activePlayers: 6253
+  },
+  {
+    id: 12,
+    name: 'WHEEL',
+    slug: 'wheel',
+    type: 'STAKE ORIGINALS',
+    description: 'Spin the wheel and win multipliers',
+    color: 'bg-yellow-500',
+    iconType: 'wheel',
+    component: Wheel,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 10.00,
+    activePlayers: 3298
   },
   {
     id: 14,
@@ -62,21 +120,6 @@ export const GAMES = [
     activePlayers: 9876
   },
   {
-    id: 2,
-    name: 'PLINKO',
-    slug: 'plinko',
-    type: 'STAKE ORIGINALS',
-    description: 'Drop balls and win multipliers',
-    color: 'bg-green-500',
-    iconType: 'plinko',
-    component: Plinko,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 99,
-    maxMultiplier: 1000.00,
-    activePlayers: 7253
-  },
-  {
     id: 3,
     name: 'LIMBO',
     slug: 'limbo',
@@ -90,66 +133,6 @@ export const GAMES = [
     rtp: 99,
     maxMultiplier: Infinity,
     activePlayers: 10890
-  },
-  {
-    id: 4,
-    name: 'MINES',
-    slug: 'mines',
-    type: 'STAKE ORIGINALS',
-    description: 'Find the gems, avoid the mines',
-    color: 'bg-blue-600',
-    iconType: 'mines',
-    component: Mines,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 99,
-    maxMultiplier: 1000,
-    activePlayers: 3569
-  },
-  {
-    id: 5,
-    name: 'DICE',
-    slug: 'dice',
-    type: 'STAKE ORIGINALS',
-    description: 'Classic Dice game with 99% RTP',
-    color: 'bg-purple-600',
-    iconType: 'dice',
-    component: Dice,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 99,
-    maxMultiplier: 99.00,
-    activePlayers: 3705
-  },
-  {
-    id: 11,
-    name: 'KENO',
-    slug: 'keno',
-    type: 'STAKE ORIGINALS',
-    description: 'Select numbers and win',
-    color: 'bg-blue-500',
-    iconType: 'keno',
-    component: Keno,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 97,
-    maxMultiplier: 390.00,
-    activePlayers: 6253
-  },
-  {
-    id: 12,
-    name: 'WHEEL',
-    slug: 'wheel',
-    type: 'STAKE ORIGINALS',
-    description: 'Spin the wheel and win multipliers',
-    color: 'bg-yellow-500',
-    iconType: 'wheel',
-    component: Wheel,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 97,
-    maxMultiplier: 10.00,
-    activePlayers: 3298
   }
 ];
 
@@ -169,6 +152,5 @@ export default {
   Crash,
   Limbo,
   Keno,
-  Wheel,
-  Cases
+  Wheel
 };

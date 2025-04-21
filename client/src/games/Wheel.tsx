@@ -8,7 +8,6 @@ import { Sparkle, Settings, Users, Loader2, AlertCircle, Plus } from 'lucide-rea
 import { useToast } from "@/hooks/use-toast";
 import { getCurrencySymbol } from "@/lib/utils";
 import gsap from 'gsap';
-import pinImage from '@assets/image_1745250712825.png';
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
 
@@ -635,13 +634,11 @@ const WheelGame: React.FC = () => {
             
             {/* The wheel canvas with fixed sizing and pin indicator */}
             <div className="w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] relative">
-              {/* Pin on top of wheel */}
+              {/* Triangle indicator on top of wheel */}
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-                <img 
-                  src={pinImage} 
-                  alt="Wheel Indicator Pin" 
-                  className="w-8 h-10"
-                />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L22 22H2L12 2Z" fill="#FF9900" />
+                </svg>
               </div>
               
               <canvas 

@@ -10,7 +10,6 @@ import Crash from '@/games/CrashFinal';
 import Limbo from '@/games/LimboFinal';
 import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
-import Cases from '@/games/Cases';
 
 
 type Game = typeof GAMES[0];
@@ -23,8 +22,7 @@ const GameComponents: Record<string, React.ComponentType> = {
   crash: Crash,
   limbo: Limbo,
   keno: Keno,
-  wheel: Wheel,
-  'cases': Cases
+  wheel: Wheel
 };
 
 const GamePage = () => {
