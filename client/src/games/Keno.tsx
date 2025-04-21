@@ -329,7 +329,7 @@ const Keno: React.FC = () => {
         <div className="fixed bottom-20 right-4 md:hidden z-10">
           <button 
             onClick={toggleMobileControls}
-            className="bg-[#5BE12C] w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+            className="bg-[#00FF00] w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,255,0,0.5)] border border-[#33FF33] transition-all duration-200 hover:bg-[#00DD00]"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -340,74 +340,90 @@ const Keno: React.FC = () => {
         {/* Mobile Sliding Controls Panel */}
         <div 
           ref={mobileControlsRef}
-          className="fixed bottom-0 left-0 right-0 bg-[#172B3A] p-4 rounded-t-lg transform translate-y-full transition-transform duration-300 ease-in-out z-20 md:hidden"
+          className="fixed bottom-0 left-0 right-0 bg-[#0F171E] p-4 rounded-t-lg transform translate-y-full transition-transform duration-300 ease-in-out z-20 md:hidden"
           style={{height: 'auto', maxHeight: '80vh'}}
         >
-          <div className="w-16 h-1 bg-gray-600 rounded-full mx-auto mb-4"></div>
+          <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-3"></div>
           
-          {/* Bet Amount */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-2">Bet Amount</div>
-            <div className="bg-[#0F212E] p-2 rounded mb-2 relative">
-              <input 
-                type="text" 
-                value={betAmountDisplay}
-                onChange={(e) => handleBetAmountChange(e.target.value)}
-                className="w-full bg-transparent border-none text-white outline-none text-lg"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex">
-                <button onClick={halfBet} className="px-3 py-1 text-gray-400 hover:text-white bg-[#172B3A] rounded-l-md">½</button>
-                <button onClick={doubleBet} className="px-3 py-1 text-gray-400 hover:text-white bg-[#172B3A] rounded-r-md">2×</button>
+          {/* Bet Amount Label */}
+          <div className="mb-2">
+            <div className="text-xs font-medium text-gray-400">Bet Amount</div>
+          </div>
+          
+          {/* Bet Amount Input */}
+          <div className="relative mb-3">
+            <div className="bg-[#162129] border border-[#243442] rounded-md px-2 py-2.5 flex items-center">
+              <div className="flex-grow">
+                <input 
+                  type="text" 
+                  value={betAmountDisplay}
+                  onChange={(e) => handleBetAmountChange(e.target.value)}
+                  className="w-full bg-transparent border-none text-white outline-none text-lg font-bold"
+                />
               </div>
+              <div className="flex">
+                <button className="h-8 w-8 flex items-center justify-center text-[#00FF00] ml-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-8-6h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Quick Bet Controls */}
+            <div className="flex mt-2 gap-1.5">
+              <button 
+                onClick={halfBet}
+                className="flex-1 h-9 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
+              >
+                ½
+              </button>
+              <button 
+                onClick={doubleBet}
+                className="flex-1 h-9 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
+              >
+                2×
+              </button>
             </div>
           </div>
           
           {/* Risk Level */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-2">Risk Level</div>
-            <div className="grid grid-cols-3 gap-2">
-              {['Low', 'Medium', 'High'].map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRisk(r as RiskType)}
-                  className={`
-                    py-2 rounded-md font-medium
-                    ${risk === r ? 'bg-[#00CC00] text-black' : 'bg-[#172B3A] text-white'}
-                  `}
-                >
-                  {r}
-                </button>
-              ))}
+          <div className="mb-3">
+            <div className="text-xs font-medium text-gray-400 mb-1.5">Risk</div>
+            <div className="bg-[#162129] border border-[#243442] rounded-md px-3 py-2.5 flex items-center justify-between">
+              <span className="text-white font-medium">High</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
             </div>
           </div>
           
           {/* Quick buttons */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="flex gap-2 mb-3">
             <button 
               onClick={autoPick}
-              className="py-3 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
+              className="flex-1 h-10 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
               disabled={isPlaying}
             >
               Auto Pick
             </button>
             <button 
               onClick={clearSelections}
-              className="py-3 bg-[#0F212E] hover:bg-[#1A2C3C] rounded text-center text-white font-medium"
+              className="flex-1 h-10 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
               disabled={isPlaying}
             >
               Clear Table
             </button>
           </div>
           
-          {/* Bet Button with 3D effect */}
-          <div className="mb-2 relative">
-            <div className="absolute bottom-[-6px] left-0 right-0 h-[6px] bg-[#277312]/70 rounded-b-md"></div>
+          {/* Bet Button */}
+          <div className="mb-1">
             <Button 
-              className="w-full py-4 text-lg font-bold bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md"
+              className="w-full h-12 text-lg font-bold bg-[#00FF00] hover:bg-[#00CC00] text-black rounded-md transition-colors"
               onClick={placeBetAction}
               disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
             >
-              {isPlaying ? 'Drawing...' : 'BET'}
+              {isPlaying ? 'Drawing...' : 'Bet'}
             </Button>
           </div>
         </div>
@@ -415,22 +431,22 @@ const Keno: React.FC = () => {
         {/* Right Side - Game Area - Shows first on mobile */}
         <div className="w-full md:w-3/4 p-2 md:p-4 flex flex-col h-full order-first">
           {/* Compact Game Stats for Mobile */}
-          <div className="md:hidden bg-[#172B3A] p-2 rounded-lg flex justify-between mb-2">
+          <div className="md:hidden bg-gradient-to-r from-[#192B3A] to-[#222B36] p-3 rounded-lg flex justify-between mb-3 shadow-lg">
             <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400">Bet</div>
-              <div className="font-medium text-sm">{betAmount.toFixed(2)}</div>
+              <div className="text-xs text-gray-300 font-medium">Bet</div>
+              <div className="font-bold text-sm text-white">{betAmount.toFixed(2)}</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400">Numbers</div>
-              <div className="font-medium text-sm">{selectedNumbers.length}/10</div>
+              <div className="text-xs text-gray-300 font-medium">Numbers</div>
+              <div className="font-bold text-sm text-white">{selectedNumbers.length}/10</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400">Hits</div>
-              <div className="font-medium text-sm">{matchedNumbers.length}/{selectedNumbers.length}</div>
+              <div className="text-xs text-gray-300 font-medium">Hits</div>
+              <div className="font-bold text-sm text-white">{matchedNumbers.length}/{selectedNumbers.length}</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400">Win</div>
-              <div className="font-medium text-sm text-[#5BE12C]">{result ? result.payout.toFixed(2) : '0.00'}</div>
+              <div className="text-xs text-gray-300 font-medium">Win</div>
+              <div className="font-bold text-sm text-[#5BE12C]">{result ? result.payout.toFixed(2) : '0.00'}</div>
             </div>
           </div>
 
@@ -454,43 +470,60 @@ const Keno: React.FC = () => {
               </div>
             )}
             <div className="w-full max-w-4xl">
+              {/* Result Display - Shown when playing/winning */}
+              {result?.won && (
+                <div className="w-full max-w-[240px] mx-auto mb-6 bg-[#162129] border-2 border-[#00FF00] rounded-lg p-4 shadow-[0_0_15px_rgba(0,255,0,0.3)]">
+                  <div className="text-[#00FF00] text-center text-3xl font-bold mb-2">
+                    {result.multiplier.toFixed(2)}x
+                  </div>
+                  <div className="h-px w-full bg-[#1E3048] my-2"></div>
+                  <div className="text-[#00FF00] text-center text-xl font-semibold flex items-center justify-center">
+                    <span className="text-[#00FF00]">${(betAmount * result.multiplier).toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+            
               {/* Main Number Grid */}
-              <div className="grid grid-cols-5 gap-1 md:gap-2 mb-4">
+              <div className="grid grid-cols-8 gap-1.5 mb-6">
                 {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
                   const isSelected = selectedNumbers.includes(num);
                   const isDrawn = drawnNumbers.includes(num);
                   const isMatched = isDrawn && isSelected;
                   
-                  let bgColor = 'bg-[#172B3A]';
+                  // Apply styling similar to the screenshot
+                  let bgColor = 'bg-[#1A262F]'; // Default dark background
+                  let borderColor = 'border-[#243442]'; // Default border
                   let textColor = 'text-white';
+                  let highlightEffect = '';
                   
                   if (isSelected) {
-                    bgColor = 'bg-white';
-                    textColor = 'text-[#172B3A]';
+                    bgColor = 'bg-[#8833FF]'; // Purple for selected
+                    borderColor = 'border-[#AA66FF]';
+                    textColor = 'text-white';
+                    highlightEffect = 'shadow-[0_0_8px_rgba(136,51,255,0.6)]';
                   }
                   
                   if (isDrawn) {
                     if (isMatched) {
-                      bgColor = 'bg-[#5BE12C]';
+                      bgColor = 'bg-[#00FF00]'; // Bright green for matches
+                      borderColor = 'border-[#33FF33]';
                       textColor = 'text-black';
+                      highlightEffect = 'shadow-[0_0_8px_rgba(0,255,0,0.6)]';
                     } else {
-                      bgColor = 'bg-[#FF3B3B]';
-                      textColor = 'text-white';
+                      bgColor = 'bg-[#FF3333]'; // Red for drawn but not matched
+                      borderColor = 'border-[#FF6666]';
                     }
                   }
 
                   return (
                     <div key={num} className="relative">
-                      {/* Shadow below button (3D effect) */}
-                      <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
-                      
-                      {/* Main button */}
                       <button
                         onClick={() => toggleNumberSelection(num)}
                         disabled={isPlaying}
                         className={`
-                          w-full aspect-square rounded-md flex items-center justify-center text-sm md:text-lg font-bold
-                          ${bgColor} ${textColor}
+                          w-full aspect-square rounded-md flex items-center justify-center 
+                          text-lg font-bold border-2 ${borderColor} ${bgColor} ${textColor}
+                          ${highlightEffect}
                           ${isPlaying ? 'cursor-not-allowed' : 'hover:brightness-110'}
                           transition-all duration-150
                         `}
@@ -538,27 +571,28 @@ const Keno: React.FC = () => {
                 </div>
               </div>
               
-              {/* Multiplier Values Display */}
-              <div className="grid grid-cols-6 gap-1 md:gap-2 mb-2 md:mb-4">
-                {[0, 1, 2, 3, 4, 5].map((hits) => {
-                  const multiplier = getPayoutMultiplier(selectedNumbers.length, hits);
-                  const isActive = matchedNumbers.length === hits;
-                  const isCompleted = matchedNumbers.length > 0 && matchedNumbers.length >= hits;
-                  
-                  return (
-                    <div
-                      key={`multiplier-${hits}`}
-                      className={`
-                        py-1 px-1 md:px-2 rounded text-center
-                        ${isActive ? 'bg-[#5BE12C] text-black' : 'bg-[#172B3A]'}
-                        ${isCompleted && !isActive ? 'bg-[#2D4B5A]' : ''}
-                      `}
-                    >
-                      <div className="text-xs">{hits}</div>
-                      <div className="text-sm md:text-base font-bold">{multiplier.toFixed(2)}x</div>
-                    </div>
-                  );
-                })}
+              {/* Fixed Multiplier Values Display - Row 1 */}
+              <div className="grid grid-cols-8 gap-1.5 mb-1.5">
+                {[0, 0, 5, 20, 270, 600, 900].map((multiplier, index) => (
+                  <div
+                    key={`multiplier-row1-${index}`}
+                    className="py-1.5 text-center bg-[#1A262F] text-[#8c8c8c] text-xs rounded"
+                  >
+                    {multiplier > 0 ? `${multiplier}.0×` : "0.00×"}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Fixed Multiplier Values Display - Row 2 */}
+              <div className="grid grid-cols-8 gap-1.5 mb-6">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((hits, index) => (
+                  <div
+                    key={`hits-row2-${index}`}
+                    className="py-1 text-center bg-[#1A262F] text-white text-xs rounded"
+                  >
+                    {hits}×
+                  </div>
+                ))}
               </div>
               
               {/* Game Stats - Only on desktop */}
