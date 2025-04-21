@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
+import { useToast } from '@/hooks/use-toast';
 
 // Types for Risk level
 type RiskType = 'Low' | 'Medium' | 'High';
@@ -295,6 +296,9 @@ const Keno: React.FC = () => {
     finalizeResult(newDrawnNumbers);
   };
   
+  // Get toast utility
+  const { toast } = useToast();
+  
   // Calculate and display the final result
   const finalizeResult = async (drawnNumbers: number[]) => {
     // Calculate matches
@@ -339,12 +343,32 @@ const Keno: React.FC = () => {
         console.log(`Bet completed: ${won ? 'Win' : 'Loss'}, Multiplier: ${multiplier}x, Payout: ${payout}`);
         currentBetIdRef.current = null;
         
+        // Show a toast notification with the result
+        if (won) {
+          toast({
+            title: "You Won!",
+            description: `Multiplier: ${multiplier.toFixed(2)}x - Payout: ${payout.toFixed(8)} BTC`,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Better luck next time!",
+            description: "No win this round.",
+            variant: "destructive"
+          });
+        }
+        
         // The completeBet mutation will automatically invalidate the balance query
         // through the invalidateQueries call in its onSuccess callback in the useBalance hook
       } catch (error) {
         console.error("Error completing bet:", error);
-        // Even if there's an API error, we should reset the bet ID
+        // Even if there's an API error, we should reset the bet ID and show an error toast
         currentBetIdRef.current = null;
+        toast({
+          title: "Error",
+          description: "Failed to complete bet. Please try again.",
+          variant: "destructive"
+        });
       }
     }
     
@@ -404,11 +428,8 @@ const Keno: React.FC = () => {
                   cellClass += " bg-[#5BE12C] text-black";
                 }
                 
-                // Display visually different, but do not functionally preselect 
-                // Add purple background for certain numbers like in the mockup
-                if ([6, 7, 8, 15, 16, 23, 24].includes(num) && !isSelected && !isDrawn) {
-                  cellClass = cellClass.replace("bg-[#1B3346]", "bg-[#8A44FB]");
-                }
+                // Removed the auto-colored purple tiles that were confusing users
+                // Users should manually select all numbers they want to play
                 
                 return (
                   <button
