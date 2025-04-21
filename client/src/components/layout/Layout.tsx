@@ -1,5 +1,4 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import CollapsedSidebar from './CollapsedSidebar';
@@ -31,24 +30,14 @@ const Layout = ({ children }: LayoutProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Use auto-animate for smooth transitions with customized options
-  const [animationParent] = useAutoAnimate({
-    // Slightly slower animation for a more polished effect
-    duration: 250,
-    // Ease-out provides a smoother deceleration at the end
-    easing: 'ease-out'
-  });
-  
-  // Apply a CSS class for additional transition effects
-  // This provides a backup animation in case auto-animate is disrupted
+  // Simple CSS class for sidebar width
   const sidebarClass = collapsed ? 'w-16' : 'w-64';
 
   return (
     <div className="relative h-screen w-full overflow-hidden" style={{ margin: 0, padding: 0 }}>
       {/* Sidebar - absolutely positioned - hidden on mobile */}
       <div 
-        ref={animationParent} 
-        className={`absolute left-0 top-0 h-full ${sidebarClass} transition-all duration-300 ease-out hidden md:block`}
+        className={`absolute left-0 top-0 h-full ${sidebarClass} transition-all duration-200 ease-in-out hidden md:block`}
         style={{ margin: 0, padding: 0, zIndex: 10 }}
       >
         {collapsed ? <CollapsedSidebar /> : <Sidebar />}
@@ -56,12 +45,11 @@ const Layout = ({ children }: LayoutProps) => {
       
       {/* Content area - positioned to the right of sidebar on desktop, full width on mobile */}
       <div 
-        className="absolute top-0 right-0 bottom-0 overflow-y-auto md:pb-0 pb-20"
+        className={`absolute top-0 right-0 bottom-0 overflow-y-auto md:pb-0 pb-20 transition-all duration-200 ease-in-out`}
         style={{ 
-          left: isMobile ? 0 : (collapsed ? '4rem' : '16rem'), 
+          left: isMobile ? 0 : (collapsed ? '4rem' : '16rem'),
           margin: 0, 
-          padding: 0,
-          transition: 'left 0.3s ease-out'
+          padding: 0
         }}
       >
         <Header />
