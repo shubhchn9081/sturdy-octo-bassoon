@@ -74,6 +74,7 @@ const WheelGame: React.FC = () => {
   const [sparkles, setSparkles] = useState<boolean>(false);
   const [onlinePlayers] = useState<number>(Math.floor(Math.random() * 1000) + 500);
   const [isIdleSpinning, setIsIdleSpinning] = useState<boolean>(true);
+  const [betError, setBetError] = useState<string | null>(null);
   
   // Refs for animation
   const animationRef = useRef<number>();
@@ -314,6 +315,11 @@ const WheelGame: React.FC = () => {
   };
   
   const { toast } = useToast();
+  
+  // Helper method to clear error messages
+  const clearBetError = () => {
+    setBetError(null);
+  };
 
   const spinWheel = () => {
     if (isSpinning) return;
@@ -484,6 +490,9 @@ const WheelGame: React.FC = () => {
   };
 
   const handleBet = () => {
+    // Clear any existing error messages
+    clearBetError();
+    
     if (isSpinning) {
       toast({
         variant: "destructive",
@@ -536,11 +545,20 @@ const WheelGame: React.FC = () => {
         }
       }, 3000);
     }).catch(error => {
+        // Set the error message
+        setBetError(error.message || "Something went wrong");
+        
+        // Display toast notification
         toast({
           variant: "destructive",
           title: "Failed to place bet",
           description: error.message || "Something went wrong",
         });
+        
+        // Clear error after 5 seconds
+        setTimeout(() => {
+          setBetError(null);
+        }, 5000);
     });
   };
 
