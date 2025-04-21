@@ -133,7 +133,14 @@ const Keno: React.FC = () => {
   // Clear all selections
   const clearSelections = () => {
     if (isPlaying) return;
+    
+    // Reset selections to empty array
     setSelectedNumbers([]);
+    
+    // Also reset other game state that might be affected
+    setMatchedNumbers([]);
+    setDrawnNumbers([]);
+    setResult(null);
   };
   
   // Get the payout multiplier based on hits
@@ -192,6 +199,18 @@ const Keno: React.FC = () => {
   // Place a bet and start the draw
   const placeBetAction = async () => {
     if (isPlaying || selectedNumbers.length === 0 || betAmount <= 0) return;
+    
+    // Check if bet amount is valid
+    if (betAmount < gameInfo.minBet) {
+      console.error(`Bet amount must be at least ${gameInfo.minBet}`);
+      return;
+    }
+    
+    // Check if player has enough balance
+    if (rawBalance < betAmount) {
+      console.error('Insufficient balance');
+      return;
+    }
     
     setIsPlaying(true);
     setDrawnNumbers([]);
@@ -305,19 +324,27 @@ const Keno: React.FC = () => {
     // Complete the bet with the calculated result
     if (currentBetIdRef.current !== null) {
       try {
+        // Send completion request to update server state
         await completeBet.mutateAsync({
           betId: currentBetIdRef.current,
           outcome: {
             win: won,
             multiplier: multiplier,
             payout: payout,
-            matchedNumbers: matchedNumbers,
+            matchedNumbers: matches,
             drawnNumbers: drawnNumbers
           }
         });
+        
+        console.log(`Bet completed: ${won ? 'Win' : 'Loss'}, Multiplier: ${multiplier}x, Payout: ${payout}`);
         currentBetIdRef.current = null;
+        
+        // The completeBet mutation will automatically invalidate the balance query
+        // through the invalidateQueries call in its onSuccess callback in the useBalance hook
       } catch (error) {
         console.error("Error completing bet:", error);
+        // Even if there's an API error, we should reset the bet ID
+        currentBetIdRef.current = null;
       }
     }
     
@@ -377,8 +404,8 @@ const Keno: React.FC = () => {
                   cellClass += " bg-[#5BE12C] text-black";
                 }
                 
+                // Display visually different, but do not functionally preselect 
                 // Add purple background for certain numbers like in the mockup
-                // Only change the background color, don't auto-select them
                 if ([6, 7, 8, 15, 16, 23, 24].includes(num) && !isSelected && !isDrawn) {
                   cellClass = cellClass.replace("bg-[#1B3346]", "bg-[#8A44FB]");
                 }
