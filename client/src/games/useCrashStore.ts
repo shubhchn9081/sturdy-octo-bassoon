@@ -259,12 +259,17 @@ export const useCrashStore = create<CrashStore>((set, get) => {
     cashOut: () => {
       const { currentMultiplier, activeBets, hasPlacedBet, hasCashedOut } = get();
       
+      // Prevent multiple cashouts or invalid cashout attempts
       if (!hasPlacedBet || hasCashedOut) {
+        console.log("Cashout prevented - already cashed out or no bet placed");
         return;
       }
       
       // Find the player bet with server betId
       const playerBet = activeBets.find(bet => bet.isPlayer);
+      
+      // Mark as cashed out immediately to prevent multiple cashout attempts
+      set({ hasCashedOut: true });
       
       if (playerBet && playerBet.betId) {
         try {
@@ -272,7 +277,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
           const completeBetFn = window.completeBetFunction;
           
           if (completeBetFn && completeBetFn.completeBet) {
-            console.log("Using real wallet integration for cashout");
+            console.log("Using real wallet integration for cashout with bet ID:", playerBet.betId);
             // Use the completeBet mutation from the balance hook
             completeBetFn.completeBet.mutate({
               betId: playerBet.betId,
@@ -282,7 +287,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
               }
             }, {
               onSuccess: (response) => {
-                console.log("Bet completed successfully");
+                console.log("Bet completed successfully:", response);
                 
                 // Update player's bet
                 const updatedBets = activeBets.map(bet => {
@@ -297,13 +302,12 @@ export const useCrashStore = create<CrashStore>((set, get) => {
                   return bet;
                 });
                 
-                set({
-                  activeBets: updatedBets,
-                  hasCashedOut: true
-                });
+                set({ activeBets: updatedBets });
               },
               onError: (error) => {
                 console.error("Error completing bet:", error);
+                // Even if there's an error, we keep the UI state as cashed out
+                // since the bet might have been processed on the server already
               }
             });
           } else {
@@ -379,12 +383,8 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         isHidden: Math.random() > 0.5
       }));
       
-      // Keep player bet if it exists
-      const playerBet = get().activeBets.find(bet => bet.isPlayer);
-      const nextBets = playerBet 
-        ? [...newAIBets, { ...playerBet, status: 'active' as BetStatus, cashoutMultiplier: undefined, profit: undefined }] 
-        : newAIBets;
-      
+      // Always start a fresh round without player bets
+      // This ensures bets don't carry over between rounds automatically
       const newCrashPoint = generateCrashPoint();
       
       set({
@@ -393,9 +393,9 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         crashPoint: newCrashPoint,
         countdown: Math.floor(Math.random() * 3) + 3, // 3-5 seconds countdown
         dataPoints: [],
-        hasPlacedBet: playerBet ? true : false,
+        hasPlacedBet: false, // Always reset player bet state
         hasCashedOut: false,
-        activeBets: nextBets
+        activeBets: newAIBets // Use only AI bets
       });
       
       // Start countdown
