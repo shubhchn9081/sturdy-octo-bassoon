@@ -288,9 +288,65 @@ const Keno: React.FC = () => {
   return (
     <div className="flex flex-col h-screen w-full bg-[#0F212E] text-white overflow-hidden">
       {/* Main Game Container */}
-      <div className="flex flex-col md:flex-row h-full">
+      <div className="flex flex-col md:flex-row h-full pb-16 md:pb-0">
         {/* Right Side - Game Area - Shows first on mobile */}
-        <div className="w-full md:w-3/4 p-4 flex flex-col h-full order-first">
+        <div className="w-full md:w-3/4 p-2 md:p-4 flex flex-col h-full order-first">
+          {/* Bet Controls for Mobile - Visible at top on mobile, hidden on desktop */}
+          <div className="md:hidden w-full bg-[#172B3A] p-2 rounded-lg mb-2">
+            {/* Compact Betting Controls for Mobile */}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="text-xs text-gray-400">Bet:</div>
+              <input 
+                type="text" 
+                value={betAmountDisplay}
+                onChange={(e) => handleBetAmountChange(e.target.value)}
+                className="w-24 bg-[#0F212E] text-white text-sm p-1 rounded text-right"
+              />
+              <button onClick={halfBet} className="px-2 text-gray-400 hover:text-white bg-[#0F212E] rounded">½</button>
+              <button onClick={doubleBet} className="px-2 text-gray-400 hover:text-white bg-[#0F212E] rounded">2×</button>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="grid grid-cols-3 gap-1 flex-1">
+                {['Low', 'Medium', 'High'].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRisk(r as RiskType)}
+                    className={`py-1 text-xs rounded-md font-medium
+                      ${risk === r ? 'bg-[#00CC00] text-black' : 'bg-[#0F212E] text-white'}`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={placeBetAction}
+                disabled={isPlaying || selectedNumbers.length === 0}
+                className={`ml-1 px-3 py-1 rounded-md font-medium 
+                  ${isPlaying || selectedNumbers.length === 0 ? 'bg-gray-700 text-gray-400' : 'bg-[#00CC00] text-black'}`}
+              >
+                Bet
+              </button>
+            </div>
+            
+            {/* Quick Pick Buttons */}
+            <div className="flex gap-1">
+              <button 
+                onClick={autoPick}
+                className="flex-1 py-1 text-xs rounded-md bg-[#0F212E] text-white font-medium"
+                disabled={isPlaying}
+              >
+                Auto Pick
+              </button>
+              <button 
+                onClick={clearSelections}
+                className="flex-1 py-1 text-xs rounded-md bg-[#0F212E] text-white font-medium"
+                disabled={isPlaying}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
           {/* Keno Grid */}
           <div className="flex-grow bg-[#0E1C27] rounded-lg flex items-center justify-center p-2 relative">
             {/* Win Overlay - Only shown when winning */}
@@ -312,7 +368,7 @@ const Keno: React.FC = () => {
             )}
             <div className="w-full max-w-4xl">
               {/* Main Number Grid */}
-              <div className="grid grid-cols-5 md:grid-cols-8 gap-1 md:gap-4 mb-4">
+              <div className="grid grid-cols-5 gap-1 md:gap-2 mb-4">
                 {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
                   const isSelected = selectedNumbers.includes(num);
                   const isDrawn = drawnNumbers.includes(num);
@@ -339,14 +395,14 @@ const Keno: React.FC = () => {
                   return (
                     <div key={num} className="relative">
                       {/* Shadow below button (3D effect) */}
-                      <div className="absolute bottom-[-6px] left-0 right-0 h-[6px] bg-black/40 rounded-b-md"></div>
+                      <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
                       
                       {/* Main button */}
                       <button
                         onClick={() => toggleNumberSelection(num)}
                         disabled={isPlaying}
                         className={`
-                          w-full aspect-square rounded-md flex items-center justify-center text-xl font-bold
+                          w-full aspect-square rounded-md flex items-center justify-center text-sm md:text-lg font-bold
                           ${bgColor} ${textColor}
                           ${isPlaying ? 'cursor-not-allowed' : 'hover:brightness-110'}
                           transition-all duration-150
@@ -360,7 +416,25 @@ const Keno: React.FC = () => {
               </div>
               
               {/* Risk Level Display */}
-              <div className="mb-4">
+              <div className="mb-2 md:mb-4 md:hidden">
+                <div className="grid grid-cols-3 gap-1">
+                  {['Low', 'Medium', 'High'].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRisk(r as RiskType)}
+                      className={`
+                        py-1 rounded-md text-sm font-medium
+                        ${risk === r ? 'bg-[#00CC00] text-black' : 'bg-[#172B3A] text-white'}
+                      `}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Risk Level Display (Desktop) */}
+              <div className="mb-4 hidden md:block">
                 <div className="grid grid-cols-3 gap-4">
                   {['Low', 'Medium', 'High'].map((r) => (
                     <button
@@ -378,7 +452,7 @@ const Keno: React.FC = () => {
               </div>
               
               {/* Multiplier Values Display */}
-              <div className="grid grid-cols-6 gap-2 mb-4">
+              <div className="grid grid-cols-6 gap-1 md:gap-2 mb-2 md:mb-4">
                 {[0, 1, 2, 3, 4, 5].map((hits) => {
                   const multiplier = getPayoutMultiplier(selectedNumbers.length, hits);
                   const isActive = matchedNumbers.length === hits;
@@ -388,28 +462,29 @@ const Keno: React.FC = () => {
                     <div
                       key={`multiplier-${hits}`}
                       className={`
-                        py-1 px-2 rounded text-center
+                        py-1 px-1 md:px-2 rounded text-center
                         ${isActive ? 'bg-[#5BE12C] text-black' : 'bg-[#172B3A]'}
                         ${isCompleted && !isActive ? 'bg-[#2D4B5A]' : ''}
                       `}
                     >
                       <div className="text-xs">{hits}</div>
-                      <div className="font-bold">{multiplier.toFixed(2)}x</div>
+                      <div className="text-sm md:text-base font-bold">{multiplier.toFixed(2)}x</div>
                     </div>
                   );
                 })}
               </div>
               
               {/* Game Stats */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2 md:gap-4">
                 <div className="bg-[#172B3A] p-2 rounded">
                   <div className="text-xs text-gray-400">Hits</div>
-                  <div className="text-xl font-bold">{matchedNumbers.length}/{selectedNumbers.length}</div>
+                  <div className="text-lg md:text-xl font-bold">{matchedNumbers.length}/{selectedNumbers.length}</div>
                 </div>
                 <div className="bg-[#172B3A] p-2 rounded">
                   <div className="text-xs text-gray-400">Win</div>
-                  <div className="text-xl font-bold">
-                    {result ? result.payout.toFixed(8) : '0.00000000'} <span className="text-yellow-500">₿</span>
+                  <div className="text-lg md:text-xl font-bold flex items-center">
+                    <span className="truncate">{result ? result.payout.toFixed(8) : '0.00000000'}</span> 
+                    <span className="text-yellow-500 ml-1 flex-shrink-0">₿</span>
                   </div>
                 </div>
               </div>
