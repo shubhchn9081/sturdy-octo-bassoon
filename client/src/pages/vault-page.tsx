@@ -17,7 +17,7 @@ const depositSchema = z.object({
     (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
     { message: "Amount must be a positive number" }
   ),
-  currency: z.enum(["BTC", "ETH", "USDT", "LTC"]),
+  currency: z.enum(["INR", "BTC", "ETH", "USDT", "LTC"]),
 });
 
 const withdrawSchema = z.object({
@@ -25,7 +25,7 @@ const withdrawSchema = z.object({
     (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, 
     { message: "Amount must be a positive number" }
   ),
-  currency: z.enum(["BTC", "ETH", "USDT", "LTC"]),
+  currency: z.enum(["INR", "BTC", "ETH", "USDT", "LTC"]),
 });
 
 type DepositFormData = z.infer<typeof depositSchema>;
@@ -41,7 +41,7 @@ export default function VaultPage() {
     resolver: zodResolver(depositSchema),
     defaultValues: {
       amount: "",
-      currency: "BTC",
+      currency: "INR",
     },
   });
 
@@ -49,17 +49,19 @@ export default function VaultPage() {
     resolver: zodResolver(withdrawSchema),
     defaultValues: {
       amount: "",
-      currency: "BTC",
+      currency: "INR",
     },
   });
 
   // Calculate total vault balance (in this demo we'll show it as 20% of the total balance)
   const vaultBalance = user ? {
+    INR: user.balance.INR * 0.2,
     BTC: user.balance.BTC * 0.2,
     ETH: user.balance.ETH * 0.2,
     USDT: user.balance.USDT * 0.2,
     LTC: user.balance.LTC * 0.2
   } : {
+    INR: 0,
     BTC: 0,
     ETH: 0,
     USDT: 0,
@@ -133,6 +135,10 @@ export default function VaultPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-[#243442] pb-3">
+                  <span className="text-[#7F8990]">Indian Rupee (INR)</span>
+                  <span className="font-mono">₹{vaultBalance.INR.toFixed(2)}</span>
+                </div>
                 <div className="flex items-center justify-between border-b border-[#243442] pb-3">
                   <span className="text-[#7F8990]">Bitcoin (BTC)</span>
                   <span className="font-mono">{vaultBalance.BTC.toFixed(8)}</span>
@@ -245,14 +251,14 @@ export default function VaultPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Currency</FormLabel>
-                            <div className="grid grid-cols-4 gap-3">
-                              {["BTC", "ETH", "USDT", "LTC"].map((currency) => (
+                            <div className="grid grid-cols-5 gap-3">
+                              {["INR", "BTC", "ETH", "USDT", "LTC"].map((currency) => (
                                 <Button
                                   key={currency}
                                   type="button"
                                   variant={field.value === currency ? "default" : "outline"}
                                   className={field.value === currency 
-                                    ? "bg-[#1375e1] hover:bg-[#0e5dba]" 
+                                    ? currency === "INR" ? "bg-[#20b26c] hover:bg-[#1a9b5c]" : "bg-[#1375e1] hover:bg-[#0e5dba]" 
                                     : "border-[#243442] text-white hover:bg-[#243442]"
                                   }
                                   onClick={() => field.onChange(currency)}
@@ -271,9 +277,10 @@ export default function VaultPage() {
                         <p className="text-[#7F8990] mb-2">
                           {depositForm.watch("currency")}: {
                             user ? user.balance[depositForm.watch("currency") as keyof typeof user.balance].toFixed(
-                              depositForm.watch("currency") === "USDT" ? 2 : 8
+                              depositForm.watch("currency") === "USDT" || depositForm.watch("currency") === "INR" ? 2 : 8
                             ) : "0.00000000"
                           }
+                          {depositForm.watch("currency") === "INR" && " ₹"}
                         </p>
                         <p className="text-xs text-[#7F8990]">
                           * Funds in your vault cannot be used for betting until withdrawn
@@ -320,14 +327,14 @@ export default function VaultPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Currency</FormLabel>
-                            <div className="grid grid-cols-4 gap-3">
-                              {["BTC", "ETH", "USDT", "LTC"].map((currency) => (
+                            <div className="grid grid-cols-5 gap-3">
+                              {["INR", "BTC", "ETH", "USDT", "LTC"].map((currency) => (
                                 <Button
                                   key={currency}
                                   type="button"
                                   variant={field.value === currency ? "default" : "outline"}
                                   className={field.value === currency 
-                                    ? "bg-[#1375e1] hover:bg-[#0e5dba]" 
+                                    ? currency === "INR" ? "bg-[#20b26c] hover:bg-[#1a9b5c]" : "bg-[#1375e1] hover:bg-[#0e5dba]" 
                                     : "border-[#243442] text-white hover:bg-[#243442]"
                                   }
                                   onClick={() => field.onChange(currency)}
@@ -346,9 +353,10 @@ export default function VaultPage() {
                         <p className="text-[#7F8990] mb-2">
                           {withdrawForm.watch("currency")}: {
                             vaultBalance[withdrawForm.watch("currency") as keyof typeof vaultBalance].toFixed(
-                              withdrawForm.watch("currency") === "USDT" ? 2 : 8
+                              withdrawForm.watch("currency") === "USDT" || withdrawForm.watch("currency") === "INR" ? 2 : 8
                             )
                           }
+                          {withdrawForm.watch("currency") === "INR" && " ₹"}
                         </p>
                         <p className="text-xs text-[#7F8990]">
                           * Withdrawal will move funds back to your main wallet balance

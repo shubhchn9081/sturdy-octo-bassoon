@@ -837,11 +837,12 @@ const AccountPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currency" className="text-[#7F8990]">Display Currency</Label>
-                <Select defaultValue="usd">
+                <Select defaultValue="inr">
                   <SelectTrigger id="currency" className="bg-[#1A3045] border-[#243442]">
                     <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1A3045] border-[#243442] text-white">
+                    <SelectItem value="inr">INR (₹)</SelectItem>
                     <SelectItem value="usd">USD ($)</SelectItem>
                     <SelectItem value="eur">EUR (€)</SelectItem>
                     <SelectItem value="gbp">GBP (£)</SelectItem>
