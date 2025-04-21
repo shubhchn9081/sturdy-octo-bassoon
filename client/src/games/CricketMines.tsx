@@ -159,7 +159,7 @@ const CricketMinesGame = () => {
     
     placeBet.mutateAsync({
       amount: betAmount,
-      gameId: 3, // Cricket Mines game id - assuming this is ID 3
+      gameId: 3, // Cricket Mines game id
       clientSeed: Math.random().toString(36).substring(2, 15),
       options: { outCount },
       currency: 'INR'
@@ -241,7 +241,10 @@ const CricketMinesGame = () => {
     
     // Call the API to complete the bet if the game is over
     if (updatedGameState.isGameOver && currBetId) {
-      completeBet.mutate({
+      // Calculate profit for toast notification if we won
+      const profit = updatedGameState.isWon ? calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier) : 0;
+      
+      completeBet.mutateAsync({
         betId: currBetId,
         outcome: { 
           outPositions: updatedGameState.outPositions, 
@@ -249,6 +252,28 @@ const CricketMinesGame = () => {
           win: updatedGameState.isWon,
           multiplier: updatedGameState.multiplier
         }
+      }).then(() => {
+        // Show appropriate toast based on win/loss
+        if (updatedGameState.isWon) {
+          toast({
+            title: "Win!",
+            description: `You won ${formatCrypto(profit)} INR with a ${updatedGameState.multiplier.toFixed(2)}x multiplier!`,
+            variant: "default" 
+          });
+        } else {
+          toast({
+            title: "Game Over",
+            description: "Better luck next time!",
+            variant: "destructive" 
+          });
+        }
+      }).catch(error => {
+        console.error("Error completing bet:", error);
+        toast({
+          title: "Error completing bet",
+          description: error.message || "Failed to complete bet",
+          variant: "destructive"
+        });
       });
     }
   };
@@ -308,9 +333,12 @@ const CricketMinesGame = () => {
     setTiles(newTiles);
     setGameState(updatedGameState);
     
+    // Calculate profit for toast notification
+    const profit = calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
+    
     // Call the API to complete the bet and credit winnings
     if (currBetId) {
-      completeBet.mutate({
+      completeBet.mutateAsync({
         betId: currBetId,
         outcome: { 
           outPositions: updatedGameState.outPositions, 
@@ -318,10 +346,24 @@ const CricketMinesGame = () => {
           win: true,
           multiplier: updatedGameState.multiplier
         }
+      }).then(() => {
+        // Show success toast and force balance update
+        toast({
+          title: "Win!",
+          description: `You won ${formatCrypto(profit)} INR with a ${updatedGameState.multiplier.toFixed(2)}x multiplier!`,
+          variant: "default" 
+        });
+      }).catch(error => {
+        console.error("Error completing bet:", error);
+        toast({
+          title: "Error completing bet",
+          description: error.message || "Failed to complete bet",
+          variant: "destructive"
+        });
       });
     }
     
-    return calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
+    return profit;
   };
 
   const renderManualControls = () => (
@@ -590,52 +632,84 @@ const CricketMinesGame = () => {
       
       {/* Game Area */}
       <div className="flex-1 overflow-auto">
-        <div className="w-full h-full flex items-center justify-center p-2 md:p-4">
-          <div className="grid-wrapper flex flex-col items-center justify-center max-w-full">
-            {/* Mobile-only buttons at the top for smaller screens */}
-            <div className="lg:hidden w-full flex justify-between items-center mb-2">
+        <div className="w-full h-full flex flex-col p-2 md:p-4">
+          {/* Game grid at the top */}
+          <div className="grid-wrapper flex flex-col items-center justify-center max-w-full mb-4">
+            {renderGameGrid()}
+          </div>
+          
+          {/* Bet controls below the game grid for all screen sizes */}
+          <div className="w-full flex flex-col md:flex-row md:items-center md:justify-center gap-4 mt-4">
+            <div className="w-full md:max-w-md bg-[#1c1c2b] p-3 rounded-[10px]">
+              {/* Show collected sixes count and multiplier if game is active */}
+              {gameState && !gameState.isGameOver && (
+                <div className="mb-4 text-center">
+                  <div className="text-sm text-[#546D7A]">
+                    Collected sixes: <span className="text-white">{gameState.sixesCollected}</span>
+                  </div>
+                  {gameState.sixesCollected > 0 && (
+                    <div className="text-sm text-[#546D7A]">
+                      Current multiplier: <span className="text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Bet amount input and controls */}
+              <div className="flex items-center space-x-2 mb-4">
+                <Input
+                  type="text"
+                  value={betAmountStr}
+                  onChange={(e) => handleBetAmountChange(e.target.value)}
+                  className="bg-[#172B3A] border border-[#243442] text-white h-10 text-sm rounded-[6px]"
+                  disabled={gameState && !gameState.isGameOver}
+                  placeholder="0.00"
+                />
+                <Button 
+                  onClick={handleHalfBet} 
+                  variant="outline" 
+                  size="sm" 
+                  className="bg-transparent border-[#243442] text-white h-10 px-2 rounded-[6px]"
+                  disabled={gameState && !gameState.isGameOver}
+                >
+                  ½
+                </Button>
+                <Button 
+                  onClick={handleDoubleBet} 
+                  variant="outline" 
+                  size="sm" 
+                  className="bg-transparent border-[#243442] text-white h-10 px-2 rounded-[6px]"
+                  disabled={gameState && !gameState.isGameOver}
+                >
+                  2×
+                </Button>
+              </div>
+              
+              {/* Bet or Cashout Button */}
               {showCashout ? (
                 <Button 
-                  className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-10 rounded-[6px] transition-all duration-200"
+                  className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
                   onClick={cashout}
                 >
                   Cashout ({gameState?.multiplier.toFixed(2)}x)
                 </Button>
               ) : (
-                <div className="text-sm text-white">
-                  {gameState ? `Collected: ${gameState.sixesCollected}` : 'Ready to Play'}
-                </div>
-              )}
-            </div>
-            
-            {/* Game grid */}
-            {renderGameGrid()}
-            
-            {/* Mobile-only bet controls at the bottom for smaller screens */}
-            <div className="lg:hidden w-full flex justify-between items-center mt-4">
-              <Input
-                type="text"
-                value={betAmountStr}
-                onChange={(e) => handleBetAmountChange(e.target.value)}
-                className="bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px] mr-2"
-                disabled={gameState && !gameState.isGameOver}
-                placeholder="0.00"
-                style={{ width: '100px' }}
-              />
-              {!gameState || gameState.isGameOver ? (
                 <Button 
-                  className="w-28 bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-10 rounded-[6px] transition-all duration-200"
+                  className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
                   onClick={startGame}
-                  disabled={isPlacingBet}
+                  disabled={isPlacingBet || (gameState && !gameState.isGameOver)}
                 >
-                  {isPlacingBet ? 'Betting...' : 'Bet'}
+                  {isPlacingBet ? 'Placing Bet...' : 'Bet'}
                 </Button>
-              ) : (
+              )}
+              
+              {/* Pick Random Tile Button (only shown during active game) */}
+              {gameState && !gameState.isGameOver && (
                 <Button 
-                  className="w-28 bg-[#1c1c2b] hover:bg-[#2f2f3d] text-white h-10 border border-[#333] rounded-[6px] transition-all duration-200"
+                  className="w-full mt-2 bg-[#172B3A] hover:bg-[#243442] text-white h-10 border border-[#243442] rounded-[6px] transition-all duration-200"
                   onClick={selectRandomTile}
                 >
-                  Random
+                  Pick random tile
                 </Button>
               )}
             </div>
