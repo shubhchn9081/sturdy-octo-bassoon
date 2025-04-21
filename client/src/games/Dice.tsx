@@ -86,9 +86,6 @@ const DiceGame = () => {
       setRolling(true);
       setResult(null);
       setWon(null);
-    
-    setRolling(true);
-    setResult(null);
     setWon(null);
     
     try {
