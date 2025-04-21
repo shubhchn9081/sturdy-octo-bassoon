@@ -284,29 +284,8 @@ const Keno: React.FC = () => {
     setIsPlaying(false);
   };
   
-  // Reference for the mobile controls panel
-  const mobileControlsRef = useRef<HTMLDivElement>(null);
-
-  // Initialize mobile controls panel
-  useEffect(() => {
-    // Show panel by default on first load then hide after 1 second
-    const mobilePanel = mobileControlsRef.current;
-    if (mobilePanel) {
-      mobilePanel.classList.remove('translate-y-full');
-      
-      setTimeout(() => {
-        mobilePanel.classList.add('translate-y-full');
-      }, 1000);
-    }
-  }, []);
-
-  // Toggle mobile controls panel
-  const toggleMobileControls = () => {
-    const mobilePanel = mobileControlsRef.current;
-    if (mobilePanel) {
-      mobilePanel.classList.toggle('translate-y-full');
-    }
-  };
+  // No need for mobile controls references or toggle functions anymore
+  // since we're using a fixed panel at the bottom
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#0F212E] text-white overflow-y-auto">
@@ -325,107 +304,42 @@ const Keno: React.FC = () => {
           </div>
         </div>
         
-        {/* Floating Action Button for Mobile */}
-        <div className="fixed bottom-20 right-4 md:hidden z-10">
-          <button 
-            onClick={toggleMobileControls}
-            className="bg-[#00FF00] w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,255,0,0.5)] border border-[#33FF33] transition-all duration-200 hover:bg-[#00DD00]"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          </button>
-        </div>
-        
-        {/* Mobile Sliding Controls Panel */}
-        <div 
-          ref={mobileControlsRef}
-          className="fixed bottom-0 left-0 right-0 bg-[#0F171E] p-4 rounded-t-lg transform translate-y-full transition-transform duration-300 ease-in-out z-20 md:hidden"
-          style={{height: 'auto', maxHeight: '80vh'}}
-        >
-          <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-3"></div>
-          
-          {/* Bet Amount Label */}
-          <div className="mb-2">
-            <div className="text-xs font-medium text-gray-400">Bet Amount</div>
-          </div>
-          
-          {/* Bet Amount Input */}
-          <div className="relative mb-3">
-            <div className="bg-[#162129] border border-[#243442] rounded-md px-2 py-2.5 flex items-center">
-              <div className="flex-grow">
+        {/* Fixed Bottom Bet Panel for Mobile */}
+        <div className="fixed bottom-12 left-0 right-0 px-4 py-3 bg-[#0F171E] border-t border-[#243442] z-20 md:hidden">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex flex-col justify-center flex-grow">
+              <div className="text-xs text-gray-400 font-medium mb-0.5">Bet Amount</div>
+              <div className="flex items-center">
                 <input 
                   type="text" 
                   value={betAmountDisplay}
                   onChange={(e) => handleBetAmountChange(e.target.value)}
-                  className="w-full bg-transparent border-none text-white outline-none text-lg font-bold"
+                  className="bg-transparent border-none text-white outline-none text-lg font-bold w-full"
                 />
               </div>
-              <div className="flex">
-                <button className="h-8 w-8 flex items-center justify-center text-[#00FF00] ml-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-8-6h16" />
-                  </svg>
-                </button>
-              </div>
             </div>
-            
-            {/* Quick Bet Controls */}
-            <div className="flex mt-2 gap-1.5">
+            <div className="flex gap-1.5">
               <button 
                 onClick={halfBet}
-                className="flex-1 h-9 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
+                className="h-9 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
               >
                 ½
               </button>
               <button 
                 onClick={doubleBet}
-                className="flex-1 h-9 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
+                className="h-9 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
               >
                 2×
               </button>
             </div>
           </div>
-          
-          {/* Risk Level */}
-          <div className="mb-3">
-            <div className="text-xs font-medium text-gray-400 mb-1.5">Risk</div>
-            <div className="bg-[#162129] border border-[#243442] rounded-md px-3 py-2.5 flex items-center justify-between">
-              <span className="text-white font-medium">High</span>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-400">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-              </svg>
-            </div>
-          </div>
-          
-          {/* Quick buttons */}
-          <div className="flex gap-2 mb-3">
-            <button 
-              onClick={autoPick}
-              className="flex-1 h-10 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
-              disabled={isPlaying}
-            >
-              Auto Pick
-            </button>
-            <button 
-              onClick={clearSelections}
-              className="flex-1 h-10 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
-              disabled={isPlaying}
-            >
-              Clear Table
-            </button>
-          </div>
-          
-          {/* Bet Button */}
-          <div className="mb-1">
-            <Button 
-              className="w-full h-12 text-lg font-bold bg-[#00FF00] hover:bg-[#00CC00] text-black rounded-md transition-colors"
-              onClick={placeBetAction}
-              disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
-            >
-              {isPlaying ? 'Drawing...' : 'Bet'}
-            </Button>
-          </div>
+          <Button 
+            className="w-full h-12 text-lg font-bold bg-[#00FF00] hover:bg-[#00CC00] text-black rounded-md transition-colors"
+            onClick={placeBetAction}
+            disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
+          >
+            {isPlaying ? 'Drawing...' : 'Bet'}
+          </Button>
         </div>
         
         {/* Right Side - Game Area - Shows first on mobile */}
