@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCrashGame } from './useCrashStore';
 import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
+import { useBalance } from '@/hooks/use-balance';
+import { useCurrency } from '@/context/CurrencyContext';
 
 // Constants for the game - fixed size to ensure visibility
 const CANVAS_WIDTH = 800;
@@ -28,6 +30,12 @@ const MULTIPLIER_QUICKTABS = [
 ];
 
 const CrashFinal: React.FC = () => {
+  // Get active currency from context
+  const { activeCurrency } = useCurrency();
+  
+  // Use balance hook for wallet integration
+  const { placeBet: placeBetMutation, completeBet: completeBetMutation, rawBalance } = useBalance(activeCurrency);
+  
   // Use our Zustand store
   const { 
     gameState,
@@ -41,12 +49,32 @@ const CrashFinal: React.FC = () => {
     dataPoints,
     
     // Actions
-    placeBet,
-    cashOut,
+    placeBet: placeBetGame,
+    cashOut: cashOutGame,
     setBetAmount,
     setAutoCashoutValue,
-    initialize
+    initialize,
+    setCurrency
   } = useCrashGame();
+  
+  // Keep the store's currency in sync with the app's active currency
+  useEffect(() => {
+    setCurrency(activeCurrency);
+  }, [activeCurrency, setCurrency]);
+  
+  // Make the balance hooks available to the store
+  useEffect(() => {
+    // Create a global reference to the balance methods
+    // This approach is used to avoid circular dependencies
+    window.placeBetFunction = placeBetMutation;
+    window.completeBetFunction = completeBetMutation;
+    
+    return () => {
+      // Clean up on unmount
+      delete window.placeBetFunction;
+      delete window.completeBetFunction;
+    };
+  }, [placeBetMutation, completeBetMutation]);
   
   // Canvas ref
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
@@ -433,169 +461,26 @@ const CrashFinal: React.FC = () => {
             ))}
           </div>
           
-          {/* Desktop Only: Recent Games */}
-          <div className="hidden md:block bg-[#11232F] p-3 rounded mb-4">
+          {/* Recent Games */}
+          <div className="bg-[#11232F] p-3 rounded">
             <h3 className="text-sm font-semibold mb-2">Recent Games</h3>
             <div className="flex gap-2 overflow-x-auto pb-2">
               {[2.31, 1.02, 4.56, 1.68, 10.21, 1.08, 3.45, 7.89, 1.54, 2.01].map((value, i) => (
                 <div 
                   key={i}
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold ${
-                    value < 1.2 ? 'bg-[#FF3B3B]' : 
-                    value < 2 ? 'bg-[#FF6B00]' :
-                    value < 5 ? 'bg-[#FFC107]' : 'bg-[#5BE12C]'
-                  } ${value < 2 ? 'text-white' : 'text-black'}`}
+                    value < 1.5 ? 'bg-[#EB5757] text-white' : 'bg-[#5BE12C] text-black'
+                  }`}
                 >
                   {value.toFixed(2)}x
                 </div>
               ))}
             </div>
-            
-            <div className="flex justify-end text-xs text-gray-400 mt-2">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span>Network Status</span>
-              </div>
-            </div>
           </div>
         </div>
         
-        {/* Mobile Controls - Bottom section */}
-        <div className="w-full md:hidden p-4 bg-[#11232F]">
-          {/* Bet Button - Full width on mobile */}
-          <div className="mb-4">
-            {gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
-              <Button 
-                className="w-full py-4 text-lg bg-[#FF6B00] hover:bg-[#FF8F3F] rounded-md"
-                onClick={cashOut}
-              >
-                Cash Out @ {currentMultiplier.toFixed(2)}x
-              </Button>
-            ) : (
-              <Button 
-                className={`w-full py-4 text-lg ${
-                  gameState === 'waiting' 
-                    ? 'bg-[#5BE12C] hover:bg-[#4CC124] text-black'
-                    : 'bg-[#34505E] text-gray-300 cursor-not-allowed'
-                } rounded-md`}
-                onClick={placeBet}
-                disabled={gameState !== 'waiting' || hasPlacedBet}
-              >
-                {gameState === 'waiting' 
-                  ? (hasPlacedBet ? 'Bet Placed' : 'Bet (Next Round)') 
-                  : 'Waiting...'}
-              </Button>
-            )}
-          </div>
-          
-          {/* Mobile Betting Controls */}
-          <div className="space-y-4">
-            {/* Bet Amount */}
-            <div>
-              <label className="text-gray-400 text-sm mb-1 block">Bet Amount</label>
-              <div className="flex rounded-md overflow-hidden">
-                <input 
-                  type="number" 
-                  className="flex-1 bg-[#0F212E] border-none rounded-l p-3 text-white"
-                  value={betAmount}
-                  onChange={(e) => setBetAmount(Number(e.target.value))}
-                  disabled={hasPlacedBet || gameState === 'running'}
-                />
-                <div className="flex bg-[#0F212E] rounded-r">
-                  <button className="px-3 border-l border-gray-700">½</button>
-                  <button className="px-3 border-l border-gray-700">2×</button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Cashout At */}
-            <div>
-              <label className="text-gray-400 text-sm mb-1 block">Cashout At</label>
-              <div className="flex rounded-md overflow-hidden">
-                <input 
-                  type="number" 
-                  step="0.01"
-                  className="flex-1 bg-[#0F212E] border-none rounded-l p-3 text-white"
-                  value={autoCashoutValue || 2.00}
-                  onChange={(e) => setAutoCashoutValue(Number(e.target.value))}
-                  disabled={hasPlacedBet && !hasCashedOut && gameState === 'running'}
-                />
-                <div className="flex flex-col bg-[#0F212E] rounded-r">
-                  <button 
-                    className="px-3 border-l border-gray-700 pb-0"
-                    onClick={() => setAutoCashoutValue((autoCashoutValue || 2.00) + 0.01)}
-                  >▲</button>
-                  <button 
-                    className="px-3 border-l border-gray-700 pt-0"
-                    onClick={() => setAutoCashoutValue(Math.max(1.01, (autoCashoutValue || 2.00) - 0.01))}
-                  >▼</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Mobile Active Bets */}
-          <div className="mt-4">
-            <h3 className="text-sm font-semibold mb-2 text-gray-300">Active Bets</h3>
-            <div className="h-[200px] overflow-y-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-gray-400">
-                    <th className="text-left pb-2">User</th>
-                    <th className="text-right pb-2">Mult</th>
-                    <th className="text-right pb-2">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeBets
-                    .filter(bet => !bet.isHidden)
-                    .map((bet, i) => (
-                    <tr key={i} className="border-t border-gray-800">
-                      <td className="py-2">{bet.username}</td>
-                      <td className="text-right py-2">
-                        {bet.status === 'won' ? (
-                          <span className="text-green-500">{bet.cashoutMultiplier?.toFixed(2)}x</span>
-                        ) : bet.status === 'lost' ? (
-                          <span className="text-red-500">BUST</span>
-                        ) : (
-                          '-'
-                        )}
-                      </td>
-                      <td className="text-right py-2">{formatAmount(bet.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          
-          {/* Mobile Navigation - exact match to screenshot */}
-          <div className="fixed bottom-0 inset-x-0 bg-[#0e1c27] flex justify-between border-t border-gray-800 md:hidden py-2">
-            <button className="flex-1 flex flex-col items-center justify-center gap-1">
-              <BrowseIcon />
-              <span className="text-xs text-gray-400">Browse</span>
-            </button>
-            <button className="flex-1 flex flex-col items-center justify-center gap-1">
-              <CasinoIcon />
-              <span className="text-xs text-white">Casino</span>
-            </button>
-            <button className="flex-1 flex flex-col items-center justify-center gap-1">
-              <BetsIcon />
-              <span className="text-xs text-gray-400">Bets</span>
-            </button>
-            <button className="flex-1 flex flex-col items-center justify-center gap-1">
-              <SportsIcon />
-              <span className="text-xs text-gray-400">Sports</span>
-            </button>
-            <button className="flex-1 flex flex-col items-center justify-center gap-1">
-              <ChatIcon />
-              <span className="text-xs text-gray-400">Chat</span>
-            </button>
-          </div>
-        </div>
-        
-        {/* Desktop Controls - Right sidebar */}
-        <div className="hidden md:flex md:flex-col md:w-[260px] p-4 bg-[#11232F]">
+        {/* Game Controls - Side panel on desktop */}
+        <div className="flex flex-col w-full md:w-[260px] p-4 bg-[#11232F]">
           {/* Game Mode Toggle */}
           <div className="flex rounded-md overflow-hidden mb-4">
             <button 
@@ -610,6 +495,14 @@ const CrashFinal: React.FC = () => {
             </button>
           </div>
           
+          {/* Wallet Balance */}
+          <div className="mb-4 p-2 bg-[#0F212E] rounded-md">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-400">Balance</span>
+              <span className="font-mono">{formatAmount(rawBalance)} {activeCurrency}</span>
+            </div>
+          </div>
+          
           {/* Bet Amount */}
           <div className="mb-4">
             <label className="block text-sm mb-1">Bet Amount</label>
@@ -621,13 +514,22 @@ const CrashFinal: React.FC = () => {
                 onChange={(e) => setBetAmount(Number(e.target.value))}
                 disabled={hasPlacedBet || gameState === 'running'}
               />
-              <span className="ml-2">$0.00</span>
             </div>
             
             {/* Quick Amount Buttons */}
             <div className="flex gap-1">
-              <button className="bg-[#0F212E] px-2 py-1 rounded text-xs">½</button>
-              <button className="bg-[#0F212E] px-2 py-1 rounded text-xs">2×</button>
+              <button 
+                className="bg-[#0F212E] px-2 py-1 rounded text-xs"
+                onClick={() => setBetAmount(betAmount / 2)}
+              >
+                ½
+              </button>
+              <button 
+                className="bg-[#0F212E] px-2 py-1 rounded text-xs"
+                onClick={() => setBetAmount(betAmount * 2)}
+              >
+                2×
+              </button>
             </div>
           </div>
           
@@ -670,7 +572,7 @@ const CrashFinal: React.FC = () => {
                 value={calculateProfit()}
                 readOnly
               />
-              <span className="ml-2">$0.00</span>
+              <span className="ml-2">{activeCurrency}</span>
             </div>
           </div>
           
@@ -679,7 +581,7 @@ const CrashFinal: React.FC = () => {
             {gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
               <Button 
                 className="w-full py-4 text-lg bg-[#FF6B00] hover:bg-[#FF8F3F] rounded-md"
-                onClick={cashOut}
+                onClick={cashOutGame}
               >
                 Cash Out @ {currentMultiplier.toFixed(2)}x
               </Button>
@@ -690,8 +592,8 @@ const CrashFinal: React.FC = () => {
                     ? 'bg-[#5BE12C] hover:bg-[#4CC124] text-black'
                     : 'bg-[#34505E] text-gray-300 cursor-not-allowed'
                 } rounded-md`}
-                onClick={placeBet}
-                disabled={gameState !== 'waiting' || hasPlacedBet}
+                onClick={placeBetGame}
+                disabled={gameState !== 'waiting' || hasPlacedBet || rawBalance < betAmount}
               >
                 {gameState === 'waiting' 
                   ? (hasPlacedBet ? 'Bet Placed' : 'Bet (Next Round)') 
@@ -734,6 +636,25 @@ const CrashFinal: React.FC = () => {
               </table>
             </div>
           </div>
+        </div>
+        
+        {/* Mobile-only Bottom Navigation Bar */}
+        <div className="fixed bottom-0 left-0 right-0 h-14 bg-[#0F212E] border-t border-[#243442] flex justify-between items-center px-4 md:hidden">
+          <button className="text-[#5BE12C]">
+            <CasinoIcon />
+          </button>
+          <button className="text-white">
+            <BetsIcon />
+          </button>
+          <button className="text-white">
+            <BrowseIcon />
+          </button>
+          <button className="text-white">
+            <SportsIcon />
+          </button>
+          <button className="text-white">
+            <ChatIcon />
+          </button>
         </div>
       </div>
     </div>

@@ -356,6 +356,10 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       set({ autoCashoutValue: value });
     },
     
+    setCurrency: (currency: SupportedCurrency) => {
+      set({ currency });
+    },
+    
     resetGame: () => {
       // Clear any existing intervals
       if (gameInterval) window.clearInterval(gameInterval as number);
