@@ -131,6 +131,15 @@ export const UserProfileButton = () => {
           <Settings className="h-4 w-4 mr-3" />
           Settings
         </DropdownMenuItem>
+        {user.isAdmin && (
+          <DropdownMenuItem 
+            className="px-4 py-2 focus:bg-[#243442] cursor-pointer"
+            onClick={() => setLocation('/admin')}
+          >
+            <Shield className="h-4 w-4 mr-3" />
+            Admin Panel
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem 
           className="px-4 py-2 focus:bg-[#243442] cursor-pointer"
           onClick={() => setLocation('/stake-smart')}
