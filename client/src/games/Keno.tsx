@@ -4,6 +4,9 @@ import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../compo
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
 
+// Types for Risk level
+type RiskType = 'Low' | 'Medium' | 'High';
+
 // Component for Keno game based on the reference screenshots and logic
 const Keno: React.FC = () => {
   // Game state
@@ -16,6 +19,7 @@ const Keno: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [result, setResult] = useState<{ won: boolean; multiplier: number; payout: number } | null>(null);
   const [betHistory, setBetHistory] = useState<Array<{multiplier: number, won: boolean}>>([]);
+  const [risk, setRisk] = useState<RiskType>('Medium');
   
   // Maximum numbers player can select
   const MAX_SELECTIONS = 10;
@@ -49,250 +53,236 @@ const Keno: React.FC = () => {
     return num.toFixed(8).replace(/\.?0+$/, '');
   };
   
-  // Update displayed bet amount when changed
-  useEffect(() => {
-    setBetAmountDisplay(betAmount.toFixed(8));
-  }, [betAmount]);
-  
-  // Clean up autobet on unmount
-  useEffect(() => {
-    return () => {
-      if (autoBetIntervalRef.current) {
-        clearInterval(autoBetIntervalRef.current);
-      }
-    };
-  }, []);
-  
-  // Handle bet amount changes
+  // Handle bet amount change
   const handleBetAmountChange = (value: string) => {
-    const newAmount = parseFloat(value);
-    if (!isNaN(newAmount) && newAmount >= 0) {
-      setBetAmount(newAmount);
-      setBetAmountDisplay(value);
-    } else if (value === '' || value === '0') {
+    if (value === '' || value === '0') {
+      setBetAmountDisplay('0.00000000');
       setBetAmount(0);
-      setBetAmountDisplay(value);
+      return;
+    }
+    
+    // Remove non-numeric characters except decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = numericValue.split('.');
+    const formattedValue = parts[0] + (parts.length > 1 ? '.' + parts[1] : '');
+    
+    // Parse to number and update state
+    const numValue = parseFloat(formattedValue);
+    if (!isNaN(numValue)) {
+      setBetAmountDisplay(formattedValue);
+      setBetAmount(numValue);
     }
   };
   
-  // Half bet amount
+  // Half the bet amount
   const halfBet = () => {
-    const newAmount = betAmount / 2;
-    setBetAmount(newAmount);
-    setBetAmountDisplay(newAmount.toFixed(8));
+    if (betAmount > 0) {
+      const newAmount = betAmount / 2;
+      setBetAmount(newAmount);
+      setBetAmountDisplay(newAmount.toString());
+    }
   };
   
-  // Double bet amount
+  // Double the bet amount
   const doubleBet = () => {
-    const newAmount = betAmount * 2;
-    setBetAmount(newAmount);
-    setBetAmountDisplay(newAmount.toFixed(8));
-  };
-  
-  // Generate client seed
-  const generateClientSeed = () => {
-    return Math.random().toString(36).substring(2, 15);
+    if (betAmount > 0) {
+      const newAmount = betAmount * 2;
+      setBetAmount(newAmount);
+      setBetAmountDisplay(newAmount.toString());
+    }
   };
   
   // Toggle number selection
   const toggleNumberSelection = (num: number) => {
     if (isPlaying) return;
     
-    setSelectedNumbers(prev => {
-      // Create a copy of the current selections array
-      const newSelections = [...prev];
-      
-      // If already selected, remove it
-      const index = newSelections.indexOf(num);
-      if (index !== -1) {
-        newSelections.splice(index, 1);
-        return newSelections;
+    if (selectedNumbers.includes(num)) {
+      // Deselect the number
+      setSelectedNumbers(selectedNumbers.filter(n => n !== num));
+    } else {
+      // Check if max selections reached
+      if (selectedNumbers.length >= MAX_SELECTIONS) {
+        // Could display a message here
+        return;
       }
-      
-      // If max selections reached, don't add
-      if (newSelections.length >= MAX_SELECTIONS) {
-        console.log(`Max selections (${MAX_SELECTIONS}) reached`);
-        return newSelections;
-      }
-      
-      // Add number to selections
-      return [...newSelections, num];
-    });
+      // Select the number
+      setSelectedNumbers([...selectedNumbers, num]);
+    }
   };
   
-  // Clear all selected numbers and reset the game state
-  const clearSelections = () => {
-    if (isPlaying) return;
-    console.log("Clearing game state");
-    setSelectedNumbers([]);
-    setDrawnNumbers([]);
-    setMatchedNumbers([]);
-    setResult(null);
-  };
-  
-  // Auto pick random numbers
+  // Auto-pick random numbers
   const autoPick = () => {
     if (isPlaying) return;
     
-    // Generate an array of random numbers between 1 and TOTAL_NUMBERS
-    const count = Math.min(5, MAX_SELECTIONS); // Auto pick 5 numbers by default
-    const numbers: number[] = [];
+    // Clear current selections
+    setSelectedNumbers([]);
     
-    while (numbers.length < count) {
-      const num = Math.floor(Math.random() * TOTAL_NUMBERS) + 1;
-      if (!numbers.includes(num)) {
-        numbers.push(num);
+    // Generate random selections
+    const picks = [];
+    while (picks.length < 5) { // Auto-pick 5 numbers
+      const randomNum = Math.floor(Math.random() * TOTAL_NUMBERS) + 1;
+      if (!picks.includes(randomNum)) {
+        picks.push(randomNum);
       }
     }
     
-    setSelectedNumbers(numbers);
+    setSelectedNumbers(picks);
   };
   
-  // Get payout multiplier based on matches and selections
-  const getPayoutMultiplier = (selected: number, matched: number): number => {
-    // Payout table based on number of selections and matches
-    const payoutTable: Record<number, number[]> = {
-      1: [0, 3.8],
-      2: [0, 1, 5.7],
-      3: [0, 0, 2.1, 48],
-      4: [0, 0, 1, 5, 90],
-      5: [0, 0, 0.5, 3, 14, 200],
-      6: [0, 0, 0.5, 1.5, 3, 40, 500],
-      7: [0, 0, 0.5, 1, 2, 7, 30, 700],
-      8: [0, 0, 0.5, 0.8, 2, 5, 20, 80, 1000],
-      9: [0, 0, 0.5, 0.8, 1.5, 3, 10, 30, 300, 4000],
-      10: [0, 0, 0, 0.5, 1.5, 3, 5, 20, 100, 500, 5000],
+  // Clear all selections
+  const clearSelections = () => {
+    if (isPlaying) return;
+    setSelectedNumbers([]);
+  };
+  
+  // Get the payout multiplier based on hits
+  const getPayoutMultiplier = (selections: number, hits: number): number => {
+    // Simplified multiplier calculation - can be adjusted for different risk levels
+    const multiplierTable: { [key: string]: number[][] } = {
+      'Low': [
+        [0, 0, 0, 0, 0, 0], // 0 selections (not valid)
+        [0, 2.8, 0, 0, 0, 0], // 1 selection
+        [0, 1.4, 5.2, 0, 0, 0], // 2 selections
+        [0, 0, 2.2, 42, 0, 0], // 3 selections
+        [0, 0, 1.0, 8, 80, 0], // 4 selections
+        [0, 0, 0.5, 3, 14, 100], // 5 selections
+        [0, 0, 0, 2, 6, 40], // 6 selections
+        [0, 0, 0, 1.4, 4, 12], // 7 selections
+        [0, 0, 0, 1, 2.7, 8], // 8 selections
+        [0, 0, 0, 0.6, 1.8, 5], // 9 selections
+        [0, 0, 0, 0.5, 1.3, 3.5] // 10 selections
+      ],
+      'Medium': [
+        [0, 0, 0, 0, 0, 0], // 0 selections (not valid)
+        [0, 3.8, 0, 0, 0, 0], // 1 selection
+        [0, 1.8, 8.5, 0, 0, 0], // 2 selections
+        [0, 0, 2.8, 85, 0, 0], // 3 selections
+        [0, 0, 1.5, 12, 120, 0], // 4 selections
+        [0, 0, 0.8, 4, 22, 350], // 5 selections
+        [0, 0, 0, 3, 9, 55], // 6 selections
+        [0, 0, 0, 2, 5, 17], // 7 selections
+        [0, 0, 0, 1.5, 3.3, 10], // 8 selections
+        [0, 0, 0, 1, 2.3, 6.5], // 9 selections
+        [0, 0, 0, 0.8, 1.7, 4.5] // 10 selections
+      ],
+      'High': [
+        [0, 0, 0, 0, 0, 0], // 0 selections
+        [0, 5.9, 0, 0, 0, 0], // 1 selection
+        [0, 2.2, 16, 0, 0, 0], // 2 selections
+        [0, 0, 3.5, 200, 0, 0], // 3 selections
+        [0, 0, 1.8, 15, 200, 0], // 4 selections
+        [0, 0, 1, 5, 35, 740], // 5 selections
+        [0, 0, 0, 3.6, 11, 80], // 6 selections
+        [0, 0, 0, 2.5, 6, 22], // 7 selections
+        [0, 0, 0, 2, 4, 13], // 8 selections
+        [0, 0, 0, 1.4, 2.8, 9], // 9 selections
+        [0, 0, 0, 1, 2.1, 6] // 10 selections
+      ]
     };
     
-    // Default to zero if not in the table
-    if (!payoutTable[selected] || matched >= payoutTable[selected].length) {
+    // Return the multiplier or 0 if not found
+    if (selections <= 0 || selections > 10 || hits < 0 || hits > 5) {
       return 0;
     }
     
-    return payoutTable[selected][matched];
+    return multiplierTable[risk][selections][hits] || 0;
   };
   
-  // Handle bet placement (Manual mode)
+  // Place a bet and start the draw
   const placeBetAction = async () => {
-    if (isPlaying || selectedNumbers.length === 0) return;
+    if (isPlaying || selectedNumbers.length === 0 || betAmount <= 0) return;
+    
+    setIsPlaying(true);
+    setDrawnNumbers([]);
+    setMatchedNumbers([]);
+    setResult(null);
     
     try {
-      setIsPlaying(true);
-      setDrawnNumbers([]);
-      setMatchedNumbers([]);
-      setResult(null);
+      // Actually place the bet
+      const betId = await placeBet(betAmount);
+      currentBetIdRef.current = betId;
       
-      // Generate a client seed
-      const clientSeed = generateClientSeed();
-      
-      // Attempt to place bet with API, but don't block the demo on API errors
-      try {
-        await placeBet.mutateAsync({
-          gameId: gameInfo.id,
-          clientSeed,
-          amount: betAmount,
-          options: {
-            selectedNumbers
-          }
-        });
-      } catch (apiError) {
-        console.log("API error (continuing with demo)", apiError);
-      }
-      
-      // Set a mock response for the demo
-      const response = { betId: Math.floor(Math.random() * 10000) };
-      
-      // Store the bet ID from the response
-      if (response && typeof response === 'object' && 'betId' in response) {
-        currentBetIdRef.current = response.betId as number;
-      }
-      
-      // For Keno, we'll just generate random numbers
-      // We're not directly using getGameResult() since we need a specific format
-      // This is for demo purposes - in production this would come from a provably fair system
-      
-      // Draw 10 random numbers from 1-40 (for demo)
-      const drawn: number[] = [];
-      while (drawn.length < NUMBERS_DRAWN) {
-        const num = Math.floor(Math.random() * TOTAL_NUMBERS) + 1;
-        if (!drawn.includes(num)) {
-          drawn.push(num);
-        }
-      }
-      
-      // Simulate the drawing of numbers with animation
-      const drawAnimation = () => {
-        const drawnSoFar: number[] = [];
-        
-        const interval = setInterval(() => {
-          if (drawnSoFar.length >= NUMBERS_DRAWN) {
-            clearInterval(interval);
-            
-            // Calculate matches
-            const matches = selectedNumbers.filter(num => drawn.includes(num));
-            setMatchedNumbers(matches);
-            
-            // Calculate payout
-            const multiplier = getPayoutMultiplier(selectedNumbers.length, matches.length);
-            const payout = betAmount * multiplier;
-            const won = payout > 0;
-            
-            // Set result
-            setResult({
-              won,
-              multiplier,
-              payout
-            });
-            
-            // Add to history
-            setBetHistory(prev => [
-              { 
-                multiplier, 
-                won
-              }, 
-              ...prev.slice(0, 9)
-            ]);
-            
-            // Complete the bet
-            if (currentBetIdRef.current) {
-              try {
-                completeBet.mutate({
-                  betId: currentBetIdRef.current,
-                  outcome: {
-                    selectedNumbers,
-                    drawnNumbers: drawn,
-                    matches: matches.length,
-                    multiplier,
-                    win: won
-                  }
-                });
-              } catch (error) {
-                console.log("API error completing bet (demo continues)", error);
-              }
-              currentBetIdRef.current = null;
-            }
-            
-            // Game round complete
-            setTimeout(() => {
-              setIsPlaying(false);
-            }, 1000);
-            
-            return;
-          }
-          
-          const nextNumber = drawn[drawnSoFar.length];
-          drawnSoFar.push(nextNumber);
-          setDrawnNumbers([...drawnSoFar]);
-        }, 200); // Draw a new number every 200ms
-      };
-      
-      // Start animation after a short delay
-      setTimeout(drawAnimation, 500);
+      // Simulate drawing process
+      await drawNumbers();
       
     } catch (error) {
       console.error('Error placing bet:', error);
       setIsPlaying(false);
     }
+  };
+  
+  // Simulate drawing numbers with animation
+  const drawNumbers = async () => {
+    // Get provably fair result
+    const gameResult = await getGameResult();
+    
+    // Generate drawn numbers based on provably fair result
+    const newDrawnNumbers: number[] = [];
+    for (let i = 0; i < NUMBERS_DRAWN; i++) {
+      // Use the randomness from the result to generate a number 1-40
+      let num: number;
+      do {
+        num = 1 + Math.floor((gameResult.hashedServerSeed[i % 32].charCodeAt(0) / 255) * TOTAL_NUMBERS);
+      } while (newDrawnNumbers.includes(num));
+      
+      newDrawnNumbers.push(num);
+    }
+    
+    // Draw numbers one by one with animation
+    const drawnSequence: number[] = [];
+    for (const num of newDrawnNumbers) {
+      // Add a small delay for animation
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      drawnSequence.push(num);
+      setDrawnNumbers([...drawnSequence]);
+      
+      // Check if it matches any selected number
+      if (selectedNumbers.includes(num)) {
+        setMatchedNumbers(prev => [...prev, num]);
+      }
+    }
+    
+    // Calculate the result
+    finalizeResult(newDrawnNumbers);
+  };
+  
+  // Calculate and display the final result
+  const finalizeResult = async (drawnNumbers: number[]) => {
+    // Calculate matches
+    const matches = selectedNumbers.filter(num => drawnNumbers.includes(num));
+    
+    // Get multiplier based on selections and matches
+    const multiplier = getPayoutMultiplier(selectedNumbers.length, matches.length);
+    
+    // Calculate payout
+    const payout = betAmount * multiplier;
+    
+    // Determine if won
+    const won = payout > 0;
+    
+    // Set the result
+    const resultData = {
+      won,
+      multiplier,
+      payout
+    };
+    
+    setResult(resultData);
+    
+    // Record in bet history
+    setBetHistory(prev => [{ multiplier, won }, ...prev].slice(0, 10));
+    
+    // Complete the bet with the calculated result
+    if (currentBetIdRef.current !== null) {
+      await completeBet(currentBetIdRef.current, won, payout);
+      currentBetIdRef.current = null;
+    }
+    
+    // End playing state
+    setIsPlaying(false);
   };
   
   return (
@@ -375,7 +365,7 @@ const Keno: React.FC = () => {
                   {['Low', 'Medium', 'High'].map((r) => (
                     <button
                       key={r}
-                      onClick={() => setRisk(r as Risk)}
+                      onClick={() => setRisk(r as RiskType)}
                       className={`
                         py-2 rounded-md font-medium
                         ${risk === r ? 'bg-[#00CC00] text-black' : 'bg-[#172B3A] text-white'}
@@ -543,156 +533,29 @@ const Keno: React.FC = () => {
             </div>
           )}
         </div>
-        
-        {/* Right Side - Game Area */}
-        <div className="w-full md:w-3/4 p-4 flex flex-col h-full">
-          {/* Keno Grid */}
-          <div className="flex-grow bg-[#0E1C27] rounded-lg flex items-center justify-center p-2 relative">
-            {/* Win Overlay - Only shown when winning */}
-            {result?.won && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                <div className="bg-[#172B3A] text-[#5BE12C] font-bold text-5xl py-4 px-10 rounded-lg shadow-lg border-4 border-[#5BE12C] flex flex-col items-center">
-                  <div className="flex items-center">
-                    {result.multiplier.toFixed(2)}x
-                  </div>
-                  <div className="h-px w-40 bg-gray-600 my-2"></div>
-                  <div className="text-2xl flex items-center">
-                    <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(8) : '0.00000000'}</span> 
-                    <span className="ml-1">
-                      <span className="inline-flex items-center justify-center w-4 h-4 bg-[#F7931A] rounded-full text-white text-xs">₿</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="w-full max-w-4xl">
-              {/* Main Number Grid - 5x8 layout */}
-              <div className="grid grid-cols-8 gap-4 mb-4">
-                {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
-                  const isSelected = selectedNumbers.includes(num);
-                  const isDrawn = drawnNumbers.includes(num);
-                  const isMatched = isDrawn && isSelected;
-                  
-                  // Colors based on screenshots - reproducing exact styles
-                  let bgColor = 'bg-[#172B3A]'; // Default dark blue
-                  let textColor = 'text-white';
-                  
-                  if (isSelected && !isDrawn) {
-                    // Purple for selected but not yet drawn
-                    bgColor = 'bg-[#9333EA]';
-                  } else if (isMatched) {
-                    // Green with black text for matched (selected and drawn)
-                    bgColor = 'bg-[#5BE12C]';
-                    textColor = 'text-[#2A8617]';
-                  } else if (isDrawn) {
-                    // For drawn but not selected, show it as red text on dark bg
-                    bgColor = 'bg-[#172B3A]';
-                    textColor = 'text-[#FF3B3B]';
-                  }
-                  
-                  // Border styling for different states
-                  let borderClass = '';
-                  if (isSelected && !isMatched) {
-                    borderClass = 'border-4 border-[#9333EA]';
-                  } else if (isMatched) {
-                    borderClass = 'border-4 border-[#9333EA]';
-                  }
-                  
-                  return (
-                    <div key={num} className="relative">
-                      {/* Shadow below button (3D effect) */}
-                      <div className="absolute bottom-[-6px] left-0 right-0 h-[6px] bg-black/40 rounded-b-md"></div>
-                      
-                      {/* Main button */}
-                      <button
-                        className={`
-                          w-full h-full aspect-square rounded-md flex items-center justify-center text-xl font-bold
-                          ${bgColor} ${textColor} ${borderClass}
-                          ${isPlaying ? 'cursor-not-allowed' : 'cursor-pointer'}
-                          ${isMatched ? 'bg-gradient-to-br from-[#5BE12C] to-[#3DA61F]' : ''}
-                        `}
-                        onClick={() => toggleNumberSelection(num)}
-                        disabled={isPlaying}
-                      >
-                        {num}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* Multiplier Displays */}
-              <div className="grid grid-cols-6 gap-2 mb-2">
-                {/* Creating 3D effect for all multiplier buttons */}
-                {[0.00, 0.00, 1.40, 4.00, 14.00, 390.00].map((multiplier, index) => (
-                  <div key={index} className="relative">
-                    {/* Shadow below button (3D effect) */}
-                    <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
-                    
-                    {/* Main button */}
-                    <div className={`
-                      aspect-[3/1] bg-[#172B3A] rounded-md flex items-center justify-center text-center
-                      ${result?.multiplier === multiplier ? 'border-2 border-[#5BE12C]' : ''}
-                    `}>
-                      <span className={`text-sm ${result?.multiplier === multiplier ? 'text-[#5BE12C] font-bold' : ''}`}>
-                        {multiplier.toFixed(2)}x
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Hits Counter */}
-              <div className="grid grid-cols-6 gap-2">
-                {/* Adding 3D effect to hit counter buttons */}
-                {[0, 1, 2, 3, 4, 5].map((hits) => (
-                  <div key={hits} className="relative">
-                    {/* Shadow below button (3D effect) */}
-                    <div className="absolute bottom-[-4px] left-0 right-0 h-[4px] bg-black/40 rounded-b-md"></div>
-                    
-                    {/* Main button */}
-                    <div className="aspect-[3/1] bg-[#0F212E] rounded-md flex items-center justify-center text-center">
-                      <span className="text-xs text-gray-400">{hits}x</span>
-                      <div className={`w-3 h-3 ml-1 rounded-full 
-                        ${matchedNumbers.length === hits ? 
-                          (hits === 0 ? 'bg-white' : 'bg-[#5BE12C]') : 
-                          'bg-[#172B3A]'}
-                      `}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Selection info */}
-              <div className="mt-4 text-center text-gray-400 text-sm">
-                Select 1-{MAX_SELECTIONS} numbers to play • {selectedNumbers.length} selected
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
       
-      {/* Mobile Navigation (hidden on desktop) */}
-      <div className="fixed bottom-0 inset-x-0 bg-[#0E1C27] flex justify-between border-t border-gray-800 md:hidden py-2">
-        <button className="flex-1 flex flex-col items-center justify-center gap-1">
-          <BrowseIcon />
-          <span className="text-xs text-gray-400">Browse</span>
+      {/* Mobile Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172B3A] border-t border-gray-800 flex justify-around py-2">
+        <button className="flex flex-col items-center text-gray-400 hover:text-white">
+          <BrowseIcon className="h-6 w-6 mb-1" />
+          <span className="text-xs">Browse</span>
         </button>
-        <button className="flex-1 flex flex-col items-center justify-center gap-1">
-          <CasinoIcon />
-          <span className="text-xs text-white">Casino</span>
+        <button className="flex flex-col items-center text-green-500">
+          <CasinoIcon className="h-6 w-6 mb-1" />
+          <span className="text-xs">Casino</span>
         </button>
-        <button className="flex-1 flex flex-col items-center justify-center gap-1">
-          <BetsIcon />
-          <span className="text-xs text-gray-400">Bets</span>
+        <button className="flex flex-col items-center text-gray-400 hover:text-white">
+          <BetsIcon className="h-6 w-6 mb-1" />
+          <span className="text-xs">Bets</span>
         </button>
-        <button className="flex-1 flex flex-col items-center justify-center gap-1">
-          <SportsIcon />
-          <span className="text-xs text-gray-400">Sports</span>
+        <button className="flex flex-col items-center text-gray-400 hover:text-white">
+          <SportsIcon className="h-6 w-6 mb-1" />
+          <span className="text-xs">Sports</span>
         </button>
-        <button className="flex-1 flex flex-col items-center justify-center gap-1">
-          <ChatIcon />
-          <span className="text-xs text-gray-400">Chat</span>
+        <button className="flex flex-col items-center text-gray-400 hover:text-white">
+          <ChatIcon className="h-6 w-6 mb-1" />
+          <span className="text-xs">Chat</span>
         </button>
       </div>
     </div>
