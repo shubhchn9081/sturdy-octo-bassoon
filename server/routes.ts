@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { z } from "zod";
 import multer from "multer";
@@ -785,6 +786,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-
+  
+  // Setup WebSocket server for real-time sports betting updates
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Keep track of clients and their subscriptions
+  const clients = new Map<WebSocket, { topics: Set<string> }>();
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    // Initialize client data
+    clients.set(ws, { topics: new Set() });
+    
+    // Handle messages from clients
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('Received WebSocket message:', data);
+        
+        if (data.action === 'subscribe' && data.topic) {
+          const clientData = clients.get(ws);
+          if (clientData) {
+            clientData.topics.add(data.topic);
+            console.log(`Client subscribed to topic: ${data.topic}`);
+          }
+        } else if (data.action === 'unsubscribe' && data.topic) {
+          const clientData = clients.get(ws);
+          if (clientData) {
+            clientData.topics.delete(data.topic);
+            console.log(`Client unsubscribed from topic: ${data.topic}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    });
+    
+    // Handle client disconnection
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      clients.delete(ws);
+    });
+    
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({
+      type: 'connection',
+      status: 'connected',
+      message: 'Successfully connected to the Stake sports betting WebSocket server'
+    }));
+  });
+  
+  // Setup function to broadcast messages to subscribed clients
+  const broadcastToTopic = (topic: string, payload: any) => {
+    clients.forEach((clientData, client) => {
+      if (client.readyState === WebSocket.OPEN && clientData.topics.has(topic)) {
+        client.send(JSON.stringify({
+          topic,
+          timestamp: Date.now(),
+          payload
+        }));
+      }
+    });
+  };
+  
+  // Simulate live odds updates
+  const simulateOddsChanges = () => {
+    const sportCategories = ['soccer', 'basketball', 'tennis', 'cricket', 'american-football', 'baseball', 'ice-hockey', 'esports'];
+    
+    // Update odds every 5-15 seconds for random events
+    setInterval(() => {
+      const sportId = sportCategories[Math.floor(Math.random() * sportCategories.length)];
+      const eventId = `event-${Math.floor(Math.random() * 5) + 1}`;
+      const marketId = `market-${Math.floor(Math.random() * 7) + 1}`;
+      const outcomeId = `outcome-${Math.floor(Math.random() * 17) + 1}`;
+      
+      // Generate a small change in odds (up or down)
+      const direction = Math.random() > 0.5 ? 1 : -1;
+      const change = direction * (Math.random() * 0.2 + 0.01); // Change between 0.01 and 0.21
+      
+      // Base odds between 1.5 and 4.0
+      const baseOdds = Math.random() * 2.5 + 1.5;
+      const newOdds = Math.max(1.01, parseFloat((baseOdds + change).toFixed(2)));
+      
+      // Create odds update
+      const update = {
+        sportId,
+        eventId,
+        marketId,
+        outcomeId,
+        odds: newOdds,
+        timestamp: Date.now()
+      };
+      
+      // Broadcast to specific topic and general sports updates
+      broadcastToTopic(`odds.${sportId}`, update);
+      broadcastToTopic('sports.odds.all', update);
+      
+      console.log(`Odds updated: ${sportId} - ${outcomeId} - new odds: ${newOdds}`);
+    }, Math.floor(Math.random() * 10000) + 5000); // Random interval between 5-15 seconds
+    
+    // Simulate random match events (goals, points, etc.)
+    setInterval(() => {
+      if (Math.random() > 0.7) { // 30% chance of an event happening
+        const sportId = sportCategories[Math.floor(Math.random() * sportCategories.length)];
+        const eventId = `event-${Math.floor(Math.random() * 5) + 1}`;
+        
+        // Generate a game event
+        const eventTypes: Record<string, string[]> = {
+          'soccer': ['goal', 'yellow-card', 'red-card', 'corner', 'free-kick'],
+          'basketball': ['2pt', '3pt', 'free-throw', 'block', 'steal'],
+          'tennis': ['ace', 'fault', 'break-point', 'game-point', 'set-point'],
+          'cricket': ['wicket', 'six', 'four', 'no-ball', 'wide'],
+          'american-football': ['touchdown', 'field-goal', 'interception', 'fumble', 'sack'],
+          'baseball': ['home-run', 'base-hit', 'strike', 'ball', 'out'],
+          'ice-hockey': ['goal', 'penalty', 'power-play', 'save', 'assist'],
+          'esports': ['kill', 'objective', 'ultimate', 'tower', 'baron']
+        };
+        
+        const eventType = eventTypes[sportId]?.[Math.floor(Math.random() * 5)] || 'score';
+        const teamIndex = Math.random() > 0.5 ? 'home' : 'away';
+        
+        const gameEvent = {
+          sportId,
+          eventId,
+          type: eventType,
+          team: teamIndex,
+          time: Math.floor(Math.random() * 90) + 1,
+          description: `${teamIndex === 'home' ? 'Home' : 'Away'} team ${eventType} at ${Math.floor(Math.random() * 90) + 1}'`,
+          timestamp: Date.now()
+        };
+        
+        // Broadcast to specific topic and general game events
+        broadcastToTopic(`events.${sportId}.${eventId}`, gameEvent);
+        broadcastToTopic('sports.events.all', gameEvent);
+        
+        console.log(`Game event: ${sportId} - ${eventId} - ${eventType}`);
+      }
+    }, 30000); // Check for events every 30 seconds
+  };
+  
+  // Start simulating odds changes
+  simulateOddsChanges();
+  
   return httpServer;
 }
