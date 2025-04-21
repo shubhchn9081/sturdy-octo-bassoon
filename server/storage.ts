@@ -13,7 +13,10 @@ import {
   type InsertTransaction,
   gameSettings,
   type GameSettings,
-  type InsertGameSettings
+  type InsertGameSettings,
+  userGameControls,
+  type UserGameControl,
+  type InsertUserGameControl
 } from "@shared/schema";
 import { GAMES } from "../client/src/games";
 import { db } from "./db";

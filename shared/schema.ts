@@ -224,6 +224,32 @@ export type DiceGameSettings = {
   forcedResult: number; // Force a specific dice result (0-100)
 };
 
+// User specific game outcome control table
+export const userGameControls = pgTable("user_game_controls", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  gameId: integer("game_id").notNull(),
+  forceOutcome: boolean("force_outcome").default(false).notNull(),
+  outcomeType: varchar("outcome_type", { length: 20 }).notNull(), // "win", "loss", or "none"
+  durationGames: integer("duration_games").default(1).notNull(), // How many games this control applies to (1 = next game only)
+  gamesPlayed: integer("games_played").default(0).notNull(), // Counter for how many games played under this control
+  forcedOutcomeValue: jsonb("forced_outcome_value"), // Game-specific settings
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserGameControlsSchema = createInsertSchema(userGameControls).pick({
+  userId: true,
+  gameId: true,
+  forceOutcome: true,
+  outcomeType: true,
+  durationGames: true,
+  forcedOutcomeValue: true,
+});
+
+export type UserGameControl = typeof userGameControls.$inferSelect;
+export type InsertUserGameControl = z.infer<typeof insertUserGameControlsSchema>;
+
 // Admin-specific types
 export type AdminAction = {
   id: number;
