@@ -6,9 +6,10 @@ import { useBalance } from '@/hooks/use-balance';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Settings, BarChart3, TrendingUp } from 'lucide-react';
 
+// Constants
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
 const ROW_OPTIONS = [8, 12, 16]; // From screenshot
 
@@ -35,14 +36,6 @@ const MULTIPLIER_COLORS: Record<string, string> = {
   '110': 'bg-purple-600'
 };
 
-// Node structure for implementing the path logic
-type PathNode = {
-  leftProb: number;
-  rightProb: number;
-  col: number;
-  row: number;
-};
-
 // Ball structure for animation
 type Ball = {
   position: number; // Position index from left to right, starting at 0
@@ -58,22 +51,13 @@ const PlinkoGame: React.FC = () => {
   const [isDropping, setIsDropping] = useState<boolean>(false);
   const [multipliers, setMultipliers] = useState<number[]>(MULTIPLIER_TABLES.Medium);
   const [result, setResult] = useState<number | null>(null);
-  const [gameMode, setGameMode] = useState<string>('Manual');
+  const [isManualMode, setIsManualMode] = useState<boolean>(true);
   const [balls, setBalls] = useState<Ball[]>([]);
   const [currency, setCurrency] = useState<string>('BTC');
-  const [autoSettings, setAutoSettings] = useState({
-    numberOfBets: 1,
-    stopOnProfit: 0,
-    stopOnLoss: 0,
-  });
   
   // Refs
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const betIdRef = useRef<number | null>(null);
-  
-  // Animation timer ref
-  const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Toast notifications
   const { toast } = useToast();
@@ -89,7 +73,8 @@ const PlinkoGame: React.FC = () => {
   
   // Calculate potential win amount
   const potentialWinAmount = useMemo(() => {
-    return parseFloat(betAmount) * Math.max(...multipliers);
+    const amount = parseFloat(betAmount) || 0;
+    return amount * Math.max(...multipliers);
   }, [betAmount, multipliers]);
   
   // Main drop path generation logic
@@ -97,17 +82,16 @@ const PlinkoGame: React.FC = () => {
     // Use provably fair result to generate path
     const fairResult = await getGameResult();
     
-    if (!fairResult) return []; // Fallback for demo mode
-    
     // Map the path based on the rows
     const path: number[] = [];
     let currentPosition = 8; // Middle start position
     
     // Generate a path through the pins
     for (let i = 0; i < rows; i++) {
-      // Use the next character from the hash to determine left or right
-      // This is a simplified example
-      const direction = fairResult % 2 === 0 ? 'left' : 'right';
+      // Use the random result to determine left or right
+      const random = typeof fairResult === 'number' ? fairResult : Math.random();
+      const direction = random < 0.5 ? 'left' : 'right';
+      
       if (direction === 'left') {
         currentPosition -= 1;
       } else {
@@ -121,7 +105,6 @@ const PlinkoGame: React.FC = () => {
   
   // Render the Plinko grid with pins based on the number of rows
   const renderPlinkoGrid = () => {
-    // Calculate total rows and grid display
     // For a standard Plinko board, each row has row number + 1 pegs
     return Array.from({ length: rows }).map((_, rowIndex) => (
       <div 
@@ -132,7 +115,7 @@ const PlinkoGame: React.FC = () => {
         {Array.from({ length: rowIndex + 3 }).map((_, pegIndex) => (
           <div 
             key={`peg-${rowIndex}-${pegIndex}`} 
-            className="w-3 h-3 rounded-full bg-[#172B3A] mx-[18px]"
+            className="w-2 h-2 rounded-full bg-white mx-[18px]"
           />
         ))}
       </div>
@@ -183,7 +166,6 @@ const PlinkoGame: React.FC = () => {
     setTimeout(() => {
       setBalls(prev => {
         const updatedBalls = [...prev];
-        // Update the ball position to a special value indicating removal
         updatedBalls[0] = {
           ...updatedBalls[0],
           position: -999 // Signal to fade out this ball
@@ -200,16 +182,26 @@ const PlinkoGame: React.FC = () => {
     }, 1500);
   };
   
-  // Placeholder for bet logic connected to backend
+  // Bet function
   const placePlinkobet = async () => {
     if (isDropping) return;
+    
+    const betAmountValue = parseFloat(betAmount);
+    if (isNaN(betAmountValue) || betAmountValue <= 0) {
+      toast({
+        title: "Invalid Bet",
+        description: "Please enter a valid bet amount.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsDropping(true);
     setResult(null);
     
     try {
       // Place bet through the API
-      const betId = await placeBet(parseFloat(betAmount));
+      const betId = await placeBet(betAmountValue);
       betIdRef.current = betId;
       
       // Generate path for animation
@@ -222,14 +214,13 @@ const PlinkoGame: React.FC = () => {
       const finalPosition = path[path.length - 1];
       
       // Map final position to a multiplier bucket
-      // This is a simplified mapping - in reality would be more precise
       const bucketIndex = Math.floor((finalPosition + 8) / 2.5) % multipliers.length;
       const winMultiplier = multipliers[bucketIndex];
       
       setResult(winMultiplier);
       
       // Calculate winnings
-      const winAmount = parseFloat(betAmount) * winMultiplier;
+      const winAmount = betAmountValue * winMultiplier;
       
       // Complete the bet with the backend
       if (betIdRef.current !== null) {
@@ -291,160 +282,22 @@ const PlinkoGame: React.FC = () => {
     }
   };
   
-  // Render the manual betting controls
-  const renderManualControls = () => {
-    return (
-      <div className="space-y-4">
-        {/* Bet Amount Input */}
-        <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">Bet Amount</div>
-          <div className="relative rounded-md shadow-sm">
-            <Input 
-              type="text" 
-              value={betAmount}
-              onChange={(e) => handleAmountChange(e.target.value)}
-              className="block w-full rounded-md border-0 py-2.5 bg-[#0F212E] text-white shadow-sm placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center">
-              <div className="h-full flex items-center border-l border-[#243442] px-4 text-white">
-                {currency}
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            <Button onClick={halfBetAmount} variant="outline" className="bg-[#0F212E] border-[#243442] text-sm hover:bg-[#172B3A]">½</Button>
-            <Button onClick={doubleBetAmount} variant="outline" className="bg-[#0F212E] border-[#243442] text-sm hover:bg-[#172B3A]">2×</Button>
-            <Button 
-              onClick={() => setBetAmount(formatCrypto(rawBalance, currency))} 
-              variant="outline" 
-              className="bg-[#0F212E] border-[#243442] text-sm hover:bg-[#172B3A]"
-            >
-              Max
-            </Button>
-          </div>
-        </div>
-        
-        {/* Currency Selector */}
-        <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">Currency</div>
-          <Select value={currency} onValueChange={(value) => setCurrency(value)}>
-            <SelectTrigger className="w-full bg-[#0F212E] border-[#243442] text-white">
-              <SelectValue>{currency}</SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-[#0F212E] border-[#243442] text-white">
-              <SelectItem value="BTC">BTC</SelectItem>
-              <SelectItem value="ETH">ETH</SelectItem>
-              <SelectItem value="USDT">USDT</SelectItem>
-              <SelectItem value="USD">USD</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Risk Level */}
-        <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">Risk</div>
-          <Select value={risk} onValueChange={setRisk}>
-            <SelectTrigger className="w-full bg-[#0F212E] border-[#243442] text-white">
-              <SelectValue>{risk}</SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-[#0F212E] border-[#243442] text-white">
-              {RISK_LEVELS.map((level) => (
-                <SelectItem key={level} value={level}>{level}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Rows */}
-        <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">Rows</div>
-          <Select value={rows.toString()} onValueChange={(value) => setRows(parseInt(value))}>
-            <SelectTrigger className="w-full bg-[#0F212E] border-[#243442] text-white">
-              <SelectValue>{rows}</SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-[#0F212E] border-[#243442] text-white">
-              {ROW_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option.toString()}>{option}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Win Amount */}
-        <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">Potential Win</div>
-          <div className="bg-[#0F212E] rounded-md p-3 text-white">
-            {potentialWinAmount > 0 
-              ? `${formatCrypto(potentialWinAmount, currency)} ${currency}` 
-              : '0.00000000'}
-          </div>
-        </div>
-        
-        {/* Bet Button */}
-        <div className="pt-2">
-          <Button 
-            onClick={placePlinkobet}
-            disabled={isDropping || parseFloat(betAmount) <= 0}
-            className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-medium"
-          >
-            {isDropping ? 'Dropping...' : 'BET'}
-          </Button>
-        </div>
-      </div>
-    );
-  };
-  
-  // Auto bet controls placeholder
-  const renderAutoControls = () => {
-    return (
-      <div className="text-sm text-muted-foreground">Auto mode is coming soon</div>
-    );
-  };
-  
   return (
-    <div className="flex flex-col lg:flex-row w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]">
-      {/* Side Panel - On mobile, appears below the game */}
-      <div className="w-full p-3 bg-[#172B3A] border-t lg:border-t-0 lg:border-r border-[#243442]/50 order-last lg:order-first lg:w-[240px]">
-        <Tabs defaultValue="Manual" className="w-full" onValueChange={(v) => setGameMode(v)}>
-          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-4 h-10 overflow-hidden rounded-none p-0">
-            <TabsTrigger 
-              value="Manual" 
-              className="h-full rounded-none text-sm data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
-            >
-              Manual
-            </TabsTrigger>
-            <TabsTrigger 
-              value="Auto" 
-              className="h-full rounded-none text-sm data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
-            >
-              Auto
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="Manual" className="mt-0">
-            {renderManualControls()}
-          </TabsContent>
-          
-          <TabsContent value="Auto" className="mt-0">
-            {renderAutoControls()}
-          </TabsContent>
-        </Tabs>
-      </div>
-      
-      {/* Game Area - On mobile, this appears first */}
-      <div className="flex-1 flex justify-center items-center overflow-auto bg-[#0F212E] order-first">
-        <div className="w-full flex justify-center items-center pt-4 pb-2">
-          {/* Plinko Board */}
+    <div className="flex flex-col bg-[#0F212E] text-white h-full">
+      {/* Main game container */}
+      <div className="flex-1 flex flex-col">
+        {/* Plinko Board */}
+        <div className="flex-grow flex items-center justify-center bg-[#0E1C27] p-4">
           <div 
             ref={boardRef} 
-            className="relative flex flex-col space-y-3 py-4"
+            className="relative"
           >
             {/* Pins Grid */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               {renderPlinkoGrid()}
             </div>
             
-            {/* Ball Animation - improved with transitions and fade out */}
+            {/* Ball Animation */}
             {balls.map((ball, index) => (
               <motion.div
                 key={`ball-${index}`}
@@ -452,39 +305,31 @@ const PlinkoGame: React.FC = () => {
                 initial={{ translateX: "-50%", translateY: 0, opacity: 1 }}
                 animate={{
                   translateX: ball.position === -999 
-                    ? "-50%" // Final position offscreen
-                    : `calc(-50% + ${(ball.position - 1) * 21}px)`, // Adjusted for 3-pin start (middle is 1)
+                    ? "-50%" 
+                    : `calc(-50% + ${(ball.position - 1) * 21}px)`,
                   translateY: ball.position === -999 
-                    ? ball.row * 21 // Stay in same row before fading
-                    : ball.row * 21, // Match the grid spacing
-                  opacity: ball.position === -999 ? 0 : 1, // Fade out when position is -999
-                  scale: ball.done ? 1.35 : 1, // Enhanced impact animation when done
-                  // Add subtle rotation for more dynamic movement
+                    ? ball.row * 21 
+                    : ball.row * 21,
+                  opacity: ball.position === -999 ? 0 : 1,
+                  scale: ball.done ? 1.35 : 1,
                   rotate: ball.position === -999 ? 0 : (ball.position * 15) % 30 - 15,
-                  // Add glow effect when ball hits final position
                   boxShadow: ball.done ? '0 0 12px 4px rgba(255, 140, 0, 0.7)' : '0 0 5px 2px rgba(255, 111, 3, 0.5)'
                 }}
                 transition={{ 
-                  // Enhanced transitions for smoother, more natural movement
-                  type: ball.done ? "spring" : "tween", // Spring physics for final impact
-                  duration: 0.2, // Shorter duration for more responsive feel
-                  ease: "easeOut", // Smooth easing
-                  opacity: { duration: 0.4 }, // Gentle fade out
-                  scale: { 
-                    type: "spring", 
-                    stiffness: 300, 
-                    damping: 15 
-                  }, // Bouncy impact effect
-                  rotate: { duration: 0.3 }, // Smooth rotation
-                  boxShadow: { duration: 0.4 } // Smooth glow transition
+                  type: ball.done ? "spring" : "tween",
+                  duration: 0.2,
+                  ease: "easeOut",
+                  opacity: { duration: 0.4 },
+                  scale: { type: "spring", stiffness: 300, damping: 15 },
+                  rotate: { duration: 0.3 },
+                  boxShadow: { duration: 0.4 }
                 }}
               />
             ))}
             
-            {/* Multiplier Buckets - with animation for winning multiplier */}
-            <div className="flex justify-between mt-6">
+            {/* Multiplier Buckets */}
+            <div className="flex justify-between mt-4">
               {multipliers.map((multi, idx) => {
-                // Check if this is the winning multiplier
                 const isWinningMultiplier = result === multi && balls.length > 0 && balls[0].done;
                 
                 return (
@@ -514,6 +359,137 @@ const PlinkoGame: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        {/* Bet Controls Section - Exact match to screenshot */}
+        <div className="bg-[#172B3A] p-4">
+          <div className="mb-4">
+            <div className="text-sm text-gray-400 mb-1">Bet Amount</div>
+            <div className="bg-[#0F212E] rounded-md flex items-center mb-2">
+              <input 
+                type="text" 
+                value={betAmount}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                className="flex-1 bg-transparent border-none px-3 py-2 text-white outline-none"
+                placeholder="0.00000000"
+              />
+              <div className="bg-transparent px-4 py-2 border-l border-gray-700">
+                <span className="text-yellow-500 flex items-center">₿</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-1">
+              <button 
+                onClick={halfBetAmount}
+                className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1E2F3E] transition-colors"
+              >
+                ½
+              </button>
+              <button 
+                onClick={doubleBetAmount}
+                className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1E2F3E] transition-colors"
+              >
+                2×
+              </button>
+              <button 
+                className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1E2F3E] transition-colors"
+                onClick={() => setBetAmount(formatCrypto(rawBalance, currency))}
+              >
+                Max
+              </button>
+            </div>
+          </div>
+          
+          {/* Bet Button */}
+          <button 
+            onClick={placePlinkobet}
+            disabled={isDropping || parseFloat(betAmount) <= 0}
+            className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isDropping ? 'Dropping...' : 'Bet'}
+          </button>
+          
+          {/* Risk Level */}
+          <div className="mb-4">
+            <div className="text-sm text-gray-400 mb-1">Risk</div>
+            <Select value={risk} onValueChange={setRisk}>
+              <SelectTrigger className="w-full bg-[#0F212E] border-0 text-white">
+                <SelectValue placeholder="Select risk level">
+                  {risk}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-[#0F212E] border-[#243442] text-white">
+                {RISK_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>{level}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Rows */}
+          <div className="mb-4">
+            <div className="text-sm text-gray-400 mb-1">Rows</div>
+            <Select value={rows.toString()} onValueChange={(value) => setRows(parseInt(value))}>
+              <SelectTrigger className="w-full bg-[#0F212E] border-0 text-white">
+                <SelectValue placeholder="Select rows">
+                  {rows}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-[#0F212E] border-[#243442] text-white">
+                {ROW_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option.toString()}>{option}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Manual/Auto Toggle */}
+          <div className="flex mb-4 border border-gray-700 rounded-full overflow-hidden">
+            <button
+              className={`flex-1 py-3 text-center ${isManualMode ? 'bg-[#172B3A] text-white' : 'bg-[#0F212E] text-gray-400'}`}
+              onClick={() => setIsManualMode(true)}
+            >
+              Manual
+            </button>
+            <button
+              className={`flex-1 py-3 text-center ${!isManualMode ? 'bg-[#172B3A] text-white' : 'bg-[#0F212E] text-gray-400'}`}
+              onClick={() => setIsManualMode(false)}
+            >
+              Auto
+            </button>
+          </div>
+          
+          {/* Footer Icons */}
+          <div className="flex justify-between border-t border-gray-700 pt-4">
+            <button className="text-gray-400 hover:text-white">
+              <Settings className="h-5 w-5" />
+            </button>
+            <button className="text-gray-400 hover:text-white">
+              <BarChart3 className="h-5 w-5" />
+            </button>
+            <div className="text-right">
+              <span className="text-gray-400">Fairness</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172B3A] border-t border-gray-800 flex justify-around py-3 z-50">
+        <button className="flex flex-col items-center text-gray-400">
+          <span className="text-xs">Browse</span>
+        </button>
+        <button className="flex flex-col items-center text-green-500">
+          <span className="text-xs">Casino</span>
+        </button>
+        <button className="flex flex-col items-center text-gray-400">
+          <span className="text-xs">Bets</span>
+        </button>
+        <button className="flex flex-col items-center text-gray-400">
+          <span className="text-xs">Sports</span>
+        </button>
+        <button className="flex flex-col items-center text-gray-400">
+          <span className="text-xs">Chat</span>
+        </button>
       </div>
     </div>
   );
