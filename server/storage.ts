@@ -68,6 +68,24 @@ export interface IStorage {
   updateGameSettings(gameId: number, settings: Partial<GameSettings>): Promise<GameSettings | undefined>;
   getAllGameSettings(): Promise<GameSettings[]>;
   
+  // User game control methods
+  getUserGameControl(id: number): Promise<UserGameControl | undefined>;
+  getUserGameControlByUserAndGame(userId: number, gameId: number): Promise<UserGameControl | undefined>;
+  createUserGameControl(control: InsertUserGameControl): Promise<UserGameControl>;
+  updateUserGameControl(id: number, control: Partial<UserGameControl>): Promise<UserGameControl | undefined>;
+  deleteUserGameControl(id: number): Promise<boolean>;
+  getAllUserGameControls(): Promise<UserGameControl[]>;
+  getUserGameControls(userId: number): Promise<UserGameControl[]>;
+  incrementUserGameControlCounter(id: number): Promise<UserGameControl | undefined>;
+  resetAllUserGameControls(): Promise<boolean>;
+  
+  // Transaction management (admin)
+  getTransactionsByStatus(status: string): Promise<Transaction[]>;
+  updateTransactionStatus(id: number, status: string): Promise<Transaction | undefined>;
+  getAllTransactions(limit?: number): Promise<Transaction[]>;
+  getDepositTransactions(): Promise<Transaction[]>;
+  getWithdrawalTransactions(): Promise<Transaction[]>;
+  
   // Session store for authentication
   sessionStore: session.Store;
 }
@@ -77,10 +95,14 @@ export class MemStorage implements IStorage {
   private games: Map<number, Game>;
   private bets: Map<number, Bet>;
   private transactions: Map<number, Transaction>;
+  private userGameControls: Map<number, UserGameControl>;
+  private gameSettings: Map<number, GameSettings>;
   
   private userIdCounter: number;
   private betIdCounter: number;
   private transactionIdCounter: number;
+  private userGameControlIdCounter: number;
+  private gameSettingsIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -89,10 +111,14 @@ export class MemStorage implements IStorage {
     this.games = new Map();
     this.bets = new Map();
     this.transactions = new Map();
+    this.userGameControls = new Map();
+    this.gameSettings = new Map();
     
     this.userIdCounter = 1;
     this.betIdCounter = 1;
     this.transactionIdCounter = 1;
+    this.userGameControlIdCounter = 1;
+    this.gameSettingsIdCounter = 1;
     
     // Initialize session store
     const MemoryStore = createMemoryStore(session);
@@ -361,9 +387,6 @@ export class MemStorage implements IStorage {
   }
   
   // Game settings methods
-  private gameSettings: Map<number, GameSettings> = new Map();
-  private gameSettingsIdCounter: number = 1;
-  
   async getGameSettings(gameId: number): Promise<GameSettings | undefined> {
     return Array.from(this.gameSettings.values()).find(
       (settings) => settings.gameId === gameId
@@ -400,6 +423,139 @@ export class MemStorage implements IStorage {
   async getAllGameSettings(): Promise<GameSettings[]> {
     return Array.from(this.gameSettings.values());
   }
+  
+  // User game control methods
+  async getUserGameControl(id: number): Promise<UserGameControl | undefined> {
+    return this.userGameControls.get(id);
+  }
+  
+  async getUserGameControlByUserAndGame(userId: number, gameId: number): Promise<UserGameControl | undefined> {
+    return Array.from(this.userGameControls.values()).find(
+      control => control.userId === userId && control.gameId === gameId
+    );
+  }
+  
+  async createUserGameControl(control: InsertUserGameControl): Promise<UserGameControl> {
+    // First, check if control already exists for this user and game
+    const existingControl = await this.getUserGameControlByUserAndGame(control.userId, control.gameId);
+    
+    if (existingControl) {
+      // Update the existing control instead of creating a new one
+      return await this.updateUserGameControl(existingControl.id, {
+        forceOutcome: control.forceOutcome,
+        outcomeType: control.outcomeType,
+        durationGames: control.durationGames,
+        forcedOutcomeValue: control.forcedOutcomeValue,
+        gamesPlayed: 0 // Reset games played counter
+      }) as UserGameControl;
+    }
+    
+    const id = this.userGameControlIdCounter++;
+    const newControl: UserGameControl = {
+      ...control,
+      id,
+      gamesPlayed: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.userGameControls.set(id, newControl);
+    return newControl;
+  }
+  
+  async updateUserGameControl(id: number, control: Partial<UserGameControl>): Promise<UserGameControl | undefined> {
+    const existingControl = this.userGameControls.get(id);
+    if (!existingControl) return undefined;
+    
+    const updatedControl: UserGameControl = {
+      ...existingControl,
+      ...control,
+      updatedAt: new Date()
+    };
+    
+    this.userGameControls.set(id, updatedControl);
+    return updatedControl;
+  }
+  
+  async deleteUserGameControl(id: number): Promise<boolean> {
+    return this.userGameControls.delete(id);
+  }
+  
+  async getAllUserGameControls(): Promise<UserGameControl[]> {
+    return Array.from(this.userGameControls.values());
+  }
+  
+  async getUserGameControls(userId: number): Promise<UserGameControl[]> {
+    return Array.from(this.userGameControls.values())
+      .filter(control => control.userId === userId);
+  }
+  
+  async incrementUserGameControlCounter(id: number): Promise<UserGameControl | undefined> {
+    const control = this.userGameControls.get(id);
+    if (!control) return undefined;
+    
+    // Check if control has expired
+    if (control.gamesPlayed >= control.durationGames) {
+      // The control has already been used for the specified number of games
+      this.userGameControls.delete(id);
+      return undefined;
+    }
+    
+    // Increment the counter
+    const updatedControl: UserGameControl = {
+      ...control,
+      gamesPlayed: control.gamesPlayed + 1,
+      updatedAt: new Date()
+    };
+    
+    this.userGameControls.set(id, updatedControl);
+    
+    // If the updated control has now reached its limit, clean it up
+    if (updatedControl.gamesPlayed >= updatedControl.durationGames) {
+      this.userGameControls.delete(id);
+    }
+    
+    return updatedControl;
+  }
+  
+  async resetAllUserGameControls(): Promise<boolean> {
+    this.userGameControls.clear();
+    return true;
+  }
+  
+  // Transaction management (admin)
+  async getTransactionsByStatus(status: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .filter(transaction => transaction.status === status)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async updateTransactionStatus(id: number, status: string): Promise<Transaction | undefined> {
+    const transaction = this.transactions.get(id);
+    if (!transaction) return undefined;
+    
+    const updatedTransaction: Transaction = { ...transaction, status };
+    this.transactions.set(id, updatedTransaction);
+    return updatedTransaction;
+  }
+  
+  async getAllTransactions(limit: number = 100): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
+  }
+  
+  async getDepositTransactions(): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .filter(transaction => transaction.type === "deposit")
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async getWithdrawalTransactions(): Promise<Transaction[]> {
+    return Array.from(this.transactions.values())
+      .filter(transaction => transaction.type === "withdrawal")
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -411,6 +567,161 @@ export class DatabaseStorage implements IStorage {
       pool,
       createTableIfMissing: true
     });
+  }
+  
+  // User game control methods
+  async getUserGameControl(id: number): Promise<UserGameControl | undefined> {
+    const [control] = await db.select().from(userGameControls).where(eq(userGameControls.id, id));
+    return control || undefined;
+  }
+  
+  async getUserGameControlByUserAndGame(userId: number, gameId: number): Promise<UserGameControl | undefined> {
+    const [control] = await db.select()
+      .from(userGameControls)
+      .where(
+        and(
+          eq(userGameControls.userId, userId),
+          eq(userGameControls.gameId, gameId)
+        )
+      );
+    return control || undefined;
+  }
+  
+  async createUserGameControl(control: InsertUserGameControl): Promise<UserGameControl> {
+    // First, check if control already exists for this user and game
+    const existingControl = await this.getUserGameControlByUserAndGame(control.userId, control.gameId);
+    
+    if (existingControl) {
+      // Update the existing control instead of creating a new one
+      return await this.updateUserGameControl(existingControl.id, {
+        forceOutcome: control.forceOutcome,
+        outcomeType: control.outcomeType,
+        durationGames: control.durationGames,
+        forcedOutcomeValue: control.forcedOutcomeValue,
+        gamesPlayed: 0 // Reset games played counter
+      }) as UserGameControl;
+    }
+    
+    const [newControl] = await db
+      .insert(userGameControls)
+      .values({
+        ...control,
+        gamesPlayed: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return newControl;
+  }
+  
+  async updateUserGameControl(id: number, control: Partial<UserGameControl>): Promise<UserGameControl | undefined> {
+    const [updatedControl] = await db
+      .update(userGameControls)
+      .set({
+        ...control,
+        updatedAt: new Date()
+      })
+      .where(eq(userGameControls.id, id))
+      .returning();
+      
+    return updatedControl || undefined;
+  }
+  
+  async deleteUserGameControl(id: number): Promise<boolean> {
+    const result = await db
+      .delete(userGameControls)
+      .where(eq(userGameControls.id, id))
+      .returning({ deleted: userGameControls.id });
+      
+    return result.length > 0;
+  }
+  
+  async getAllUserGameControls(): Promise<UserGameControl[]> {
+    return await db.select().from(userGameControls);
+  }
+  
+  async getUserGameControls(userId: number): Promise<UserGameControl[]> {
+    return await db.select()
+      .from(userGameControls)
+      .where(eq(userGameControls.userId, userId));
+  }
+  
+  async incrementUserGameControlCounter(id: number): Promise<UserGameControl | undefined> {
+    const control = await this.getUserGameControl(id);
+    if (!control) return undefined;
+    
+    // Check if control has expired
+    if (control.gamesPlayed >= control.durationGames) {
+      // The control has already been used for the specified number of games
+      // We could either delete it or disable it
+      await this.deleteUserGameControl(id);
+      return undefined;
+    }
+    
+    // Increment the counter
+    const [updatedControl] = await db
+      .update(userGameControls)
+      .set({
+        gamesPlayed: control.gamesPlayed + 1,
+        updatedAt: new Date()
+      })
+      .where(eq(userGameControls.id, id))
+      .returning();
+      
+    // If the updated control has now reached its limit, you might want to clean it up
+    if (updatedControl && updatedControl.gamesPlayed >= updatedControl.durationGames) {
+      await this.deleteUserGameControl(id);
+    }
+    
+    return updatedControl || undefined;
+  }
+  
+  async resetAllUserGameControls(): Promise<boolean> {
+    const result = await db
+      .delete(userGameControls)
+      .returning({ deleted: userGameControls.id });
+      
+    return result.length > 0;
+  }
+  
+  // Transaction admin methods
+  async getTransactionsByStatus(status: string): Promise<Transaction[]> {
+    return await db.select()
+      .from(transactions)
+      .where(eq(transactions.status, status))
+      .orderBy(desc(transactions.createdAt));
+  }
+  
+  async updateTransactionStatus(id: number, status: string): Promise<Transaction | undefined> {
+    const [updatedTransaction] = await db
+      .update(transactions)
+      .set({ status })
+      .where(eq(transactions.id, id))
+      .returning();
+      
+    return updatedTransaction || undefined;
+  }
+  
+  async getAllTransactions(limit: number = 100): Promise<Transaction[]> {
+    return await db.select()
+      .from(transactions)
+      .orderBy(desc(transactions.createdAt))
+      .limit(limit);
+  }
+  
+  async getDepositTransactions(): Promise<Transaction[]> {
+    return await db.select()
+      .from(transactions)
+      .where(eq(transactions.type, "deposit"))
+      .orderBy(desc(transactions.createdAt));
+  }
+  
+  async getWithdrawalTransactions(): Promise<Transaction[]> {
+    return await db.select()
+      .from(transactions)
+      .where(eq(transactions.type, "withdrawal"))
+      .orderBy(desc(transactions.createdAt));
   }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
