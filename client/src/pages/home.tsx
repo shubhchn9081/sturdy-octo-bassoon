@@ -77,14 +77,14 @@ const HomePage = () => {
       </div>
 
       {/* Featured Section */}
-      <div className="mb-6">
+      <div className="mb-8 px-2">
         <div className="flex items-center mb-3 px-2">
-          <Zap className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2" />
-          <h2 className="text-base md:text-lg font-medium text-white">Featured Stake Originals</h2>
+          <Zap className="h-5 w-5 text-green-500 mr-2" />
+          <h2 className="text-xl font-medium text-white">Featured Stake Originals</h2>
         </div>
         
         {/* Featured Game Cards with proper spacing */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-x-4 gap-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-x-2 gap-y-2">
           {featuredGames.map((game) => (
             <GameCard
               key={game.id}
@@ -116,7 +116,7 @@ const HomePage = () => {
         </div>
         
         {/* All Game Cards - With proper spacing */}
-        <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-x-4 gap-y-4">
+        <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-x-2 gap-y-2">
           {allGames.map((game) => (
             <GameCard
               key={game.id}

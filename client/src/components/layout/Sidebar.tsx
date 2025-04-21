@@ -65,12 +65,12 @@ const Sidebar = () => {
   return (
     <aside className="w-56 h-full flex-shrink-0 bg-[#0F1923] border-r border-[#1d2a35] overflow-y-auto m-0 p-0">
       <div className="p-3">
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-5 mt-2">
           <div 
             className="flex-1 flex items-center justify-center cursor-pointer"
             onClick={() => window.location.href = '/'}
           >
-            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-8" />
+            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-12" />
           </div>
         </div>
         
