@@ -184,8 +184,15 @@ const PlinkoGame: React.FC = () => {
     // Get provably fair result for path generation
     // Note: getGameResult for plinko returns a function, not a direct value
     const generatePath = getGameResult();
-    // Generate a random number between 0 and 1 for our path seed
-    const randomSeed = Math.random();
+    
+    // Generate a truly random seed that will vary with each play
+    // Combine current time, a random number, and user interaction timing for entropy
+    const timestamp = Date.now();
+    const randomValue = Math.random();
+    // Create a different seed each time by using various entropy sources
+    const randomSeed = ((timestamp % 1000) / 1000) * randomValue * (1 + Math.sin(timestamp));
+    
+    // Generate the ball path with our random seed
     const path = generateBallPath(randomSeed);
     
     // Ball object properties
@@ -331,7 +338,7 @@ const PlinkoGame: React.FC = () => {
     });
   };
   
-  // Generate ball path
+  // Generate ball path with true randomness
   const generateBallPath = (seed: number | null) => {
     const pinSize = 6;
     const pinSpacing = 24;
@@ -344,16 +351,40 @@ const PlinkoGame: React.FC = () => {
     const startX = width / 2;
     path.push({x: startX, y: 10}); // Starting position
     
-    let currentX = startX;
-    const random = seed !== null ? () => (seed * 9301 + 49297) % 233280 / 233280 : Math.random;
+    // Create a seed-based pseudorandom generator function
+    // We'll use a more complex seeding method for better randomness
+    const createRandom = (initialSeed: number) => {
+      let s = initialSeed || Math.random();
+      return () => {
+        s = Math.sin(s * 12.9898) * 43758.5453;
+        return s - Math.floor(s);
+      };
+    };
     
-    // Generate path through pins
+    // Use either seeded random or default to Math.random
+    const randomFn = seed !== null 
+      ? createRandom(seed)
+      : () => Math.random();
+    
+    // Slight bias to create more variance
+    const leftBias = Math.random() * 0.1; // 0-10% bias in either direction
+    
+    let currentX = startX;
+    
+    // Generate path through pins with varying probability
     for (let row = 0; row < rows; row++) {
       const y = startY + row * rowHeight;
       
+      // Add some variability to the chance of going left vs right
+      // This makes different paths more likely
+      const leftProbability = 0.5 + (row % 2 === 0 ? leftBias : -leftBias);
+      
       // Determine left or right movement
-      const goLeft = random() < 0.5;
-      const xDelta = pinSpacing / 2;
+      const goLeft = randomFn() < leftProbability;
+      
+      // Vary the distance traveled for more natural movement
+      const variance = 0.9 + randomFn() * 0.2; // 90-110% of normal distance
+      const xDelta = pinSpacing / 2 * variance;
       
       if (goLeft) {
         currentX -= xDelta;
@@ -364,16 +395,27 @@ const PlinkoGame: React.FC = () => {
       // Keep ball within bounds
       currentX = Math.max(pinSpacing, Math.min(width - pinSpacing, currentX));
       
-      // Add point to path
-      path.push({x: currentX, y});
+      // Add point to path with slight horizontal jitter for visual interest
+      const jitter = (randomFn() - 0.5) * 3;
+      path.push({x: currentX + jitter, y});
     }
     
-    // Final position in bucket
+    // Determine final bucket - with extra randomness to ensure varied results
     const bucketWidth = width / multipliers.length;
-    const bucketIndex = Math.floor(currentX / bucketWidth);
-    const finalX = bucketIndex * bucketWidth + bucketWidth / 2;
+    
+    // Use a different randomization approach for the final position
+    // This makes each bucket truly possible to land in
+    const randomBucketOffset = randomFn() * 0.8 + 0.1; // 10-90% of a bucket width
+    const finalBucketIndex = Math.floor((currentX + (randomBucketOffset - 0.5) * bucketWidth) / bucketWidth);
+    
+    // Make sure the bucket index is valid 
+    const safeBucketIndex = Math.max(0, Math.min(multipliers.length - 1, finalBucketIndex));
+    
+    // Calculate final coordinates
+    const finalX = safeBucketIndex * bucketWidth + bucketWidth / 2;
     const finalY = height - bucketHeight / 2;
     
+    // Add final point
     path.push({x: finalX, y: finalY});
     
     return path;
