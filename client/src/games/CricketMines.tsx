@@ -6,6 +6,7 @@ import { useBalance } from '@/hooks/use-balance';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 // Import SVG components for Cricket (Six and Out)
 import { OutImage, SixImage, DarkerSixImage } from '@/assets/cricketMinesSvgComponents';
