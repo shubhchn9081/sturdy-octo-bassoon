@@ -237,21 +237,21 @@ const AccountPage = () => {
                 <div className="flex items-center">
                   {activity.type === 'bet' ? (
                     <div className={`p-2 rounded-full mr-3 ${activity.outcome === 'win' ? 'bg-green-900/30 text-green-500' : 'bg-red-900/30 text-red-500'}`}>
-                      {activity.outcome === 'win' ? '+' : '-'} ${Math.abs(activity.profit).toFixed(2)}
+                      {activity.outcome === 'win' ? '+' : '-'} ₹{Math.abs(activity.profit).toFixed(2)}
                     </div>
                   ) : activity.type === 'deposit' ? (
                     <div className="p-2 rounded-full mr-3 bg-green-900/30 text-green-500">
-                      + ${activity.amount.toFixed(2)}
+                      + ₹{activity.amount.toFixed(2)}
                     </div>
                   ) : (
                     <div className="p-2 rounded-full mr-3 bg-orange-900/30 text-orange-500">
-                      - ${activity.amount.toFixed(2)}
+                      - ₹{activity.amount.toFixed(2)}
                     </div>
                   )}
                   <div>
                     <p className="font-medium">
                       {activity.type === 'bet' 
-                        ? `${activity.game} - ${activity.outcome === 'win' ? 'Won' : 'Lost'} $${activity.amount}`
+                        ? `${activity.game} - ${activity.outcome === 'win' ? 'Won' : 'Lost'} ₹${activity.amount}`
                         : activity.type === 'deposit' 
                           ? `Deposit - ${activity.method}`
                           : `Withdrawal - ${activity.method}`
