@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { formatCrypto } from '@/lib/utils';
+import { formatCrypto, formatCurrency } from '@/lib/utils';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, BarChart3 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Game constants
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
@@ -408,7 +409,7 @@ const PlinkoGame: React.FC = () => {
         toast({
           title: isWin ? "Win!" : "Better luck next time!",
           description: isWin 
-            ? `You won ${formatCrypto(winAmount, currency)}` 
+            ? `You won ${formatCurrency(winAmount, currency)}` 
             : "No win this time.",
           variant: "destructive",
         });
@@ -473,7 +474,7 @@ const PlinkoGame: React.FC = () => {
                 </button>
                 <button 
                   className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1A2C3A]"
-                  onClick={() => setBetAmount(formatCrypto(rawBalance, currency))}
+                  onClick={() => setBetAmount(formatCurrency(rawBalance, currency))}
                 >
                   Max
                 </button>
