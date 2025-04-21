@@ -39,8 +39,8 @@ const Footer = () => {
         <div>
           <h4 className="font-medium mb-2 text-foreground">Support</h4>
           <ul className="space-y-1">
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/help-center'}>Help Center</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/fairness'}>Fairness</div></li>
+            <li><Link href="/help-center" className="hover:text-foreground cursor-pointer">Help Center</Link></li>
+            <li><Link href="/fairness" className="hover:text-foreground cursor-pointer">Fairness</Link></li>
           </ul>
         </div>
         <div>

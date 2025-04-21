@@ -2,8 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
-import { ArrowLeft, Award, Star, Users } from 'lucide-react';
-import { SiUfc, SiFcbarcelona, SiFormula1 } from 'react-icons/si';
+import { ArrowLeft, Award, Star, Users, CircleDollarSign } from 'lucide-react';
+import { SiUfc } from 'react-icons/si';
 
 export default function SponsorshipsPage() {
   const [, setLocation] = useLocation();
@@ -60,7 +60,7 @@ export default function SponsorshipsPage() {
             <Card className="bg-[#0F212E] border-[#243442] text-white">
               <CardContent className="p-6">
                 <div className="h-40 bg-[#172B3A] rounded-md flex items-center justify-center mb-4">
-                  <SiFcbarcelona className="text-[#1375e1] h-20 w-20" />
+                  <Star className="text-[#1375e1] h-20 w-20" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">FC Barcelona</h3>
                 <p className="text-[#7F8990] mb-4">
@@ -76,7 +76,7 @@ export default function SponsorshipsPage() {
             <Card className="bg-[#0F212E] border-[#243442] text-white">
               <CardContent className="p-6">
                 <div className="h-40 bg-[#172B3A] rounded-md flex items-center justify-center mb-4">
-                  <SiFormula1 className="text-[#1375e1] h-20 w-20" />
+                  <CircleDollarSign className="text-[#1375e1] h-20 w-20" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Formula 1</h3>
                 <p className="text-[#7F8990] mb-4">

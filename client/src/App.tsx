@@ -22,6 +22,12 @@ import AnimationExamples from "@/pages/animation-examples";
 import RecentPage from "@/pages/recent-page";
 import SportsPage from "@/pages/sports-page";
 import ChatPage from "@/pages/chat-page";
+import HelpCenterPage from "@/pages/help-center-page";
+import FairnessPage from "@/pages/fairness-page";
+import VIPClubPage from "@/pages/vip-club-page";
+import SponsorshipsPage from "@/pages/sponsorships-page";
+import PaymentInfoPage from "@/pages/payment-info-page";
+import GuidesPage from "@/pages/guides-page";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
@@ -58,6 +64,12 @@ function Router() {
             <ProtectedRoute path="/stake-smart" component={StakeSmartPage} />
             <ProtectedRoute path="/support" component={SupportPage} />
             <ProtectedRoute path="/chat" component={ChatPage} />
+            <ProtectedRoute path="/help-center" component={HelpCenterPage} />
+            <ProtectedRoute path="/fairness" component={FairnessPage} />
+            <ProtectedRoute path="/vip-club" component={VIPClubPage} />
+            <ProtectedRoute path="/sponsorships" component={SponsorshipsPage} />
+            <ProtectedRoute path="/payment-info" component={PaymentInfoPage} />
+            <ProtectedRoute path="/guides" component={GuidesPage} />
             <Route path="/animation-examples" component={AnimationExamples} />
             {/* Fallback to 404 */}
             <Route component={NotFound} />
