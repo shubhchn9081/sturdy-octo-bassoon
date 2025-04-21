@@ -18,6 +18,7 @@ import SettingsPage from "@/pages/settings-page";
 import StakeSmartPage from "@/pages/stake-smart-page";
 import SupportPage from "@/pages/support-page";
 import AnimationExamples from "@/pages/animation-examples";
+import RecentPage from "@/pages/recent-page";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
@@ -47,6 +48,7 @@ function Router() {
             <ProtectedRoute path="/statistics" component={StatisticsPage} />
             <ProtectedRoute path="/transactions" component={TransactionsPage} />
             <ProtectedRoute path="/bets" component={BetsPage} />
+            <ProtectedRoute path="/recent" component={RecentPage} />
             <ProtectedRoute path="/settings" component={SettingsPage} />
             <ProtectedRoute path="/stake-smart" component={StakeSmartPage} />
             <ProtectedRoute path="/support" component={SupportPage} />
