@@ -299,8 +299,136 @@ const Keno: React.FC = () => {
     <div className="flex flex-col h-screen w-full bg-[#0F212E] text-white overflow-hidden">
       {/* Main Game Container */}
       <div className="flex flex-col md:flex-row h-full">
-        {/* Left Side - Controls */}
-        <div className="w-full md:w-1/4 p-2 bg-[#172B3A]">
+        {/* Right Side - Game Area - Shows first on mobile */}
+        <div className="w-full md:w-3/4 p-4 flex flex-col h-full order-first">
+          {/* Keno Grid */}
+          <div className="flex-grow bg-[#0E1C27] rounded-lg flex items-center justify-center p-2 relative">
+            {/* Win Overlay - Only shown when winning */}
+            {result?.won && (
+              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                <div className="bg-[#172B3A] text-[#5BE12C] font-bold text-5xl py-4 px-10 rounded-lg shadow-lg border-4 border-[#5BE12C] flex flex-col items-center">
+                  <div className="flex items-center">
+                    {result.multiplier.toFixed(2)}x
+                  </div>
+                  <div className="h-px w-40 bg-gray-600 my-2"></div>
+                  <div className="text-2xl flex items-center">
+                    <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(8) : '0.00000000'}</span> 
+                    <span className="ml-1">
+                      <span className="inline-flex items-center justify-center w-4 h-4 bg-[#F7931A] rounded-full text-white text-xs">₿</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="w-full max-w-4xl">
+              {/* Main Number Grid */}
+              <div className="grid grid-cols-5 md:grid-cols-8 gap-1 md:gap-4 mb-4">
+                {Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1).map(num => {
+                  const isSelected = selectedNumbers.includes(num);
+                  const isDrawn = drawnNumbers.includes(num);
+                  const isMatched = isDrawn && isSelected;
+                  
+                  let bgColor = 'bg-[#172B3A]';
+                  let textColor = 'text-white';
+                  
+                  if (isSelected) {
+                    bgColor = 'bg-white';
+                    textColor = 'text-[#172B3A]';
+                  }
+                  
+                  if (isDrawn) {
+                    if (isMatched) {
+                      bgColor = 'bg-[#5BE12C]';
+                      textColor = 'text-black';
+                    } else {
+                      bgColor = 'bg-[#FF3B3B]';
+                      textColor = 'text-white';
+                    }
+                  }
+
+                  return (
+                    <div key={num} className="relative">
+                      {/* Shadow below button (3D effect) */}
+                      <div className="absolute bottom-[-6px] left-0 right-0 h-[6px] bg-black/40 rounded-b-md"></div>
+                      
+                      {/* Main button */}
+                      <button
+                        onClick={() => toggleNumberSelection(num)}
+                        disabled={isPlaying}
+                        className={`
+                          w-full aspect-square rounded-md flex items-center justify-center text-xl font-bold
+                          ${bgColor} ${textColor}
+                          ${isPlaying ? 'cursor-not-allowed' : 'hover:brightness-110'}
+                          transition-all duration-150
+                        `}
+                      >
+                        {num}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Risk Level Display */}
+              <div className="mb-4">
+                <div className="grid grid-cols-3 gap-4">
+                  {['Low', 'Medium', 'High'].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRisk(r as Risk)}
+                      className={`
+                        py-2 rounded-md font-medium
+                        ${risk === r ? 'bg-[#00CC00] text-black' : 'bg-[#172B3A] text-white'}
+                      `}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Multiplier Values Display */}
+              <div className="grid grid-cols-6 gap-2 mb-4">
+                {[0, 1, 2, 3, 4, 5].map((hits) => {
+                  const multiplier = getPayoutMultiplier(selectedNumbers.length, hits);
+                  const isActive = matchedNumbers.length === hits;
+                  const isCompleted = matchedNumbers.length > 0 && matchedNumbers.length >= hits;
+                  
+                  return (
+                    <div
+                      key={`multiplier-${hits}`}
+                      className={`
+                        py-1 px-2 rounded text-center
+                        ${isActive ? 'bg-[#5BE12C] text-black' : 'bg-[#172B3A]'}
+                        ${isCompleted && !isActive ? 'bg-[#2D4B5A]' : ''}
+                      `}
+                    >
+                      <div className="text-xs">{hits}</div>
+                      <div className="font-bold">{multiplier.toFixed(2)}x</div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Game Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[#172B3A] p-2 rounded">
+                  <div className="text-xs text-gray-400">Hits</div>
+                  <div className="text-xl font-bold">{matchedNumbers.length}/{selectedNumbers.length}</div>
+                </div>
+                <div className="bg-[#172B3A] p-2 rounded">
+                  <div className="text-xs text-gray-400">Win</div>
+                  <div className="text-xl font-bold">
+                    {result ? result.payout.toFixed(8) : '0.00000000'} <span className="text-yellow-500">₿</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Left Side - Controls - Shows second on mobile */}
+        <div className="w-full md:w-1/4 p-2 bg-[#172B3A] order-last">
           {/* Game Mode Tabs */}
           <div className="flex rounded-md overflow-hidden mb-2 bg-[#0F212E]">
             <button 
