@@ -3,6 +3,7 @@ import { formatCrypto, formatCurrency } from '@/lib/utils';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { Settings, BarChart3 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -53,6 +54,7 @@ const PlinkoGame: React.FC = () => {
   // Hooks
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { placeBet, completeBet, rawBalance } = useBalance(currency as any);
   const { getGameResult } = useProvablyFair('plinko');
   
@@ -346,6 +348,16 @@ const PlinkoGame: React.FC = () => {
   const placePlinkobet = async () => {
     if (isDropping) return;
     
+    // Check if user is logged in
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to place a bet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const betAmountValue = parseFloat(betAmount);
     if (isNaN(betAmountValue) || betAmountValue <= 0) {
       toast({
@@ -368,8 +380,9 @@ const PlinkoGame: React.FC = () => {
         throw new Error("Plinko game not found");
       }
       
-      // Now place the bet with the correct gameId
+      // Now place the bet with the correct gameId and userId
       const betData = {
+        userId: user.id, // Include the user ID from the authenticated session
         gameId: plinkoGame.id,
         amount: betAmountValue,
         clientSeed: Math.random().toString(36).substring(2),
