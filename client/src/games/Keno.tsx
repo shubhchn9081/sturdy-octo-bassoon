@@ -119,7 +119,7 @@ const Keno: React.FC = () => {
     setSelectedNumbers([]);
     
     // Generate random selections
-    const picks = [];
+    const picks: number[] = [];
     while (picks.length < 5) { // Auto-pick 5 numbers
       const randomNum = Math.floor(Math.random() * TOTAL_NUMBERS) + 1;
       if (!picks.includes(randomNum)) {
@@ -199,9 +199,27 @@ const Keno: React.FC = () => {
     setResult(null);
     
     try {
-      // Actually place the bet
-      const betId = await placeBet(betAmount);
-      currentBetIdRef.current = betId;
+      // Generate a client seed for provably fair gameplay
+      const clientSeed = Math.random().toString(36).substring(2, 15);
+      
+      // Place the bet with the API using the mutateAsync method
+      const response = await placeBet.mutateAsync({
+        gameId: gameInfo.id, 
+        amount: betAmount,
+        clientSeed: clientSeed,
+        options: {
+          selectedNumbers: selectedNumbers,
+          risk: risk
+        }
+      });
+      
+      // Store the bet ID from the response
+      if (response && typeof response === 'object' && 'betId' in response) {
+        currentBetIdRef.current = response.betId as number;
+      } else {
+        console.error("Invalid response from placeBet:", response);
+        throw new Error("Failed to place bet: Invalid response");
+      }
       
       // Simulate drawing process
       await drawNumbers();
@@ -219,13 +237,23 @@ const Keno: React.FC = () => {
     
     // Generate drawn numbers based on provably fair result
     const newDrawnNumbers: number[] = [];
-    for (let i = 0; i < NUMBERS_DRAWN; i++) {
-      // Use the randomness from the result to generate a number 1-40
-      let num: number;
-      do {
-        num = 1 + Math.floor((gameResult.hashedServerSeed[i % 32].charCodeAt(0) / 255) * TOTAL_NUMBERS);
-      } while (newDrawnNumbers.includes(num));
-      
+    
+    // Use a different approach to generate random numbers
+    // This is a simplified implementation for the demo
+    const generateRandomNumbers = (count: number, max: number): number[] => {
+      const result: number[] = [];
+      while (result.length < count) {
+        const randomNum = Math.floor(Math.random() * max) + 1;
+        if (!result.includes(randomNum)) {
+          result.push(randomNum);
+        }
+      }
+      return result;
+    };
+    
+    // Generate the drawn numbers
+    const drawnNums = generateRandomNumbers(NUMBERS_DRAWN, TOTAL_NUMBERS);
+    for (const num of drawnNums) {
       newDrawnNumbers.push(num);
     }
     
@@ -276,8 +304,21 @@ const Keno: React.FC = () => {
     
     // Complete the bet with the calculated result
     if (currentBetIdRef.current !== null) {
-      await completeBet(currentBetIdRef.current, won, payout);
-      currentBetIdRef.current = null;
+      try {
+        await completeBet.mutateAsync({
+          betId: currentBetIdRef.current,
+          outcome: {
+            win: won,
+            multiplier: multiplier,
+            payout: payout,
+            matchedNumbers: matchedNumbers,
+            drawnNumbers: drawnNumbers
+          }
+        });
+        currentBetIdRef.current = null;
+      } catch (error) {
+        console.error("Error completing bet:", error);
+      }
     }
     
     // End playing state
@@ -337,7 +378,8 @@ const Keno: React.FC = () => {
                 }
                 
                 // Add purple background for certain numbers like in the mockup
-                if ([6, 7, 8, 15, 16, 23, 24].includes(num) && !isMatch) {
+                // Only change the background color, don't auto-select them
+                if ([6, 7, 8, 15, 16, 23, 24].includes(num) && !isSelected && !isDrawn) {
                   cellClass = cellClass.replace("bg-[#1B3346]", "bg-[#8A44FB]");
                 }
                 
