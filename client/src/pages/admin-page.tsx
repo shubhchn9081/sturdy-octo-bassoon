@@ -28,7 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/context/UserContext";
+import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 
 export default function AdminPage() {
