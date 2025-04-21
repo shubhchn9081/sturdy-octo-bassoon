@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Settings, BarChart3 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import gsap from 'gsap';
+import type { PlaceBetParams } from '@/hooks/use-balance';
 
 // Game constants
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
@@ -447,15 +448,15 @@ const PlinkoGame: React.FC = () => {
       }
       
       // Now place the bet with the correct gameId
-      const betData = {
+      const betData: PlaceBetParams = {
         gameId: plinkoGame.id,
         amount: betAmountValue,
         clientSeed: Math.random().toString(36).substring(2),
         options: {
-          currency,
           risk,
           rows
-        }
+        },
+        currency: currency as any // Cast to match the SupportedCurrency type
       };
       
       // Place bet with API

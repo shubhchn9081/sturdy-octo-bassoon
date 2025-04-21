@@ -13,7 +13,7 @@ type BalanceResponse = {
 };
 
 // Types for bet placement and completion
-type PlaceBetParams = {
+export type PlaceBetParams = {
   gameId: number;
   clientSeed: string;
   amount: number;
@@ -21,7 +21,7 @@ type PlaceBetParams = {
   currency?: SupportedCurrency;
 };
 
-type CompleteBetParams = {
+export type CompleteBetParams = {
   betId: number;
   outcome: Record<string, any>;
 };

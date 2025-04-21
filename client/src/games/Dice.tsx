@@ -80,7 +80,6 @@ const DiceGame = () => {
       
       // First place the bet and get the bet ID
       const response = await placeBet.mutateAsync({
-        userId: user?.id,
         gameId: 5, // Dice game ID
         amount: betAmount,
         clientSeed,
