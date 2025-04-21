@@ -4,6 +4,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Game from "@/pages/game";
 import Originals from "@/pages/originals";
+import CasinoPage from "@/pages/casino";
 import Admin from "@/pages/admin";
 import InitDb from "@/pages/InitDb";
 import AuthPage from "@/pages/auth-page";
@@ -37,6 +38,7 @@ function Router() {
             <ProtectedRoute path="/" component={Home} />
             <ProtectedRoute path="/games/:gameSlug" component={Game} />
             <ProtectedRoute path="/casino/games/:gameSlug" component={Game} />
+            <ProtectedRoute path="/casino" component={CasinoPage} />
             <ProtectedRoute path="/originals" component={Originals} />
             <ProtectedRoute path="/admin" component={Admin} />
             <Route path="/init-db" component={InitDb} />
