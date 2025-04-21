@@ -29,6 +29,7 @@ import SponsorshipsPage from "@/pages/sponsorships-page";
 import PaymentInfoPage from "@/pages/payment-info-page";
 import GuidesPage from "@/pages/guides-page";
 import PromotionsPage from "@/pages/promotions-page";
+import AccountPage from "@/pages/account-page";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
@@ -72,6 +73,7 @@ function Router() {
             <ProtectedRoute path="/payment-info" component={PaymentInfoPage} />
             <ProtectedRoute path="/guides" component={GuidesPage} />
             <ProtectedRoute path="/promotions" component={PromotionsPage} />
+            <ProtectedRoute path="/account" component={AccountPage} />
             <Route path="/animation-examples" component={AnimationExamples} />
             {/* Fallback to 404 */}
             <Route component={NotFound} />
