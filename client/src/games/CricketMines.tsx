@@ -600,14 +600,24 @@ const CricketMinesGame = () => {
   // Main render
   return (
     <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="flex flex-col items-center justify-between p-0 h-full max-w-md mx-auto">
+      <div className="flex flex-col h-full max-w-sm mx-auto">
         {/* Game Canvas First */}
-        <div className="w-full flex justify-center p-4">
+        <div className="flex-1 flex items-center justify-center pb-0">
           {renderGameGrid()}
         </div>
         
-        {/* Betting Panel Below */}
-        <div className="w-full p-2">
+        {/* Game stats displayed when collecting */}
+        {gameState && !gameState.isGameOver && gameState.sixesCollected > 0 && (
+          <div className="text-center bg-[#1c1c2b] p-1 rounded-[6px] mb-2 text-sm">
+            <div className="text-white">
+              Profit: <span className="text-[#7bfa4c]">{formatCrypto(totalProfit)} ₹</span> | 
+              Multiplier: <span className="text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Betting Panel Below - No Gap */}
+        <div className="mb-2">
           <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
             <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0">
               <TabsTrigger 
@@ -637,16 +647,6 @@ const CricketMinesGame = () => {
             </TabsContent>
           </Tabs>
         </div>
-        
-        {/* Game stats displayed below the grid on mobile */}
-        {gameState && !gameState.isGameOver && gameState.sixesCollected > 0 && (
-          <div className="mt-4 text-center lg:hidden bg-[#1c1c2b] p-2 rounded-[6px] w-full max-w-sm">
-            <div className="text-sm text-white">
-              Profit: <span className="text-[#7bfa4c]">{formatCrypto(totalProfit)} ₹</span> | 
-              Multiplier: <span className="text-[#7bfa4c]">{gameState.multiplier.toFixed(2)}x</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
