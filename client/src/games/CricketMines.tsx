@@ -544,29 +544,31 @@ const CricketMinesGame = () => {
     const calculateTileSize = () => {
       // For smaller screens, we want smaller tiles to fit
       if (window.innerWidth < 640) {
-        return 48; // 48px tiles for mobile
+        return 56; // Increased from 48px for mobile
       } else if (window.innerWidth < 768) {
-        return 60; // 60px tiles for small tablets
+        return 68; // Increased from 60px for small tablets
       } else if (window.innerWidth < 1024) {
-        return 72; // 72px tiles for tablets
+        return 80; // Increased from 72px for tablets
       } else {
-        return 88; // 88px tiles for desktop
+        return 96; // Increased from 88px for desktop
       }
     };
     
     const tileSize = calculateTileSize();
-    const gapSize = tileSize === 48 ? 4 : (tileSize === 60 ? 6 : 10);
+    const gapSize = tileSize < 60 ? 4 : (tileSize < 80 ? 6 : 8);
     
     return (
       <div className="relative grid-container grid" style={{ 
         gridTemplateColumns: `repeat(5, ${tileSize}px)`, 
         gridTemplateRows: `repeat(5, ${tileSize}px)`, 
         gap: `${gapSize}px`,
-        padding: '10px',
+        padding: '16px',
         margin: 'auto',
         marginTop: '10px',
         maxWidth: '100%',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        background: '#0c1923',
+        borderRadius: '12px'
       }}>
         {tiles.map((status, index) => (
           <button
@@ -598,14 +600,14 @@ const CricketMinesGame = () => {
   // Main render
   return (
     <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="flex flex-col items-center p-2 h-full">
+      <div className="flex flex-col items-center justify-between p-0 h-full max-w-md mx-auto">
         {/* Game Canvas First */}
-        <div className="w-full flex justify-center mb-4">
+        <div className="w-full flex justify-center p-4">
           {renderGameGrid()}
         </div>
         
         {/* Betting Panel Below */}
-        <div className="w-full max-w-lg">
+        <div className="w-full p-2">
           <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
             <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0">
               <TabsTrigger 
