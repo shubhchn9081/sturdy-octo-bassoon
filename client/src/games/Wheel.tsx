@@ -267,39 +267,7 @@ const WheelGame: React.FC = () => {
     ctx.lineWidth = 1;
     ctx.stroke();
     
-    // Draw pointer/indicator at the top (pink/red teardrop shape)
-    const pointerHeight = radius * 0.15;
-    const pointerWidth = radius * 0.08;
-    
-    // Draw pointer base (rectangle with rounded bottom)
-    ctx.beginPath();
-    
-    // Create a slightly rounded teardrop/marker shape
-    ctx.moveTo(radius, radius - innerRadius - pointerHeight);
-    ctx.arc(radius, radius - innerRadius - pointerHeight * 0.7, pointerHeight * 0.3, Math.PI, 0, true);
-    ctx.lineTo(radius + pointerWidth / 2, radius - innerRadius);
-    ctx.lineTo(radius - pointerWidth / 2, radius - innerRadius);
-    ctx.closePath();
-    
-    // Create gradient for 3D effect
-    const pointerGradient = ctx.createLinearGradient(
-      radius, radius - innerRadius - pointerHeight,
-      radius, radius - innerRadius
-    );
-    pointerGradient.addColorStop(0, '#FF4971'); // Brighter pink at top
-    pointerGradient.addColorStop(1, '#E93963'); // Deeper pink at bottom
-    
-    // Fill pointer with gradient
-    ctx.fillStyle = pointerGradient;
-    ctx.fill();
-    
-    // Add shine/highlight for more 3D effect
-    ctx.beginPath();
-    ctx.moveTo(radius, radius - innerRadius - pointerHeight);
-    ctx.arc(radius, radius - innerRadius - pointerHeight * 0.7, pointerHeight * 0.2, Math.PI, 0, true);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.fill();
+    // No pointer drawing code here anymore - using image pin instead
   };
   
   // Create animated sparkles
