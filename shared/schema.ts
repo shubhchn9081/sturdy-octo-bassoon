@@ -65,6 +65,11 @@ export const insertBetSchema = createInsertSchema(bets).pick({
   clientSeed: true,
 });
 
+// Client-side bet schema (omits userId which is added server-side from session)
+export const clientBetSchema = insertBetSchema.omit({ 
+  userId: true 
+});
+
 export const insertGameSchema = createInsertSchema(games).pick({
   name: true,
   slug: true,

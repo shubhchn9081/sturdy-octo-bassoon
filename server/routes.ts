@@ -5,7 +5,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { insertBetSchema, insertUserSchema } from "@shared/schema";
+import { insertBetSchema, insertUserSchema, clientBetSchema } from "@shared/schema";
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
 import { setupAuth } from "./auth";
 
@@ -342,8 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate request body
-      // Create a modified schema that doesn't require userId since we'll get it from session
-      const betSchema = insertBetSchema.omit({ userId: true }).extend({
+      // Use the client-side schema that doesn't include userId
+      const betSchema = clientBetSchema.extend({
         options: z.record(z.any()).optional()
       });
       
