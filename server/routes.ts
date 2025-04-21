@@ -10,6 +10,7 @@ import { insertBetSchema, insertUserSchema, clientBetSchema } from "@shared/sche
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
 import { setupAuth } from "./auth";
 import { setupDevEndpoints } from "./adminSetup";
+import { isAdmin } from "./middleware/admin";
 
 // Configure multer storage
 const storage_config = multer.diskStorage({
