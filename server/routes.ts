@@ -342,7 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate request body
-      const betSchema = insertBetSchema.extend({
+      // Create a modified schema that doesn't require userId since we'll get it from session
+      const betSchema = insertBetSchema.omit({ userId: true }).extend({
         options: z.record(z.any()).optional()
       });
       

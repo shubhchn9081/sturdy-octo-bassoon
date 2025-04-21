@@ -182,7 +182,10 @@ const PlinkoGame: React.FC = () => {
     if (!ctx) return null;
     
     // Get provably fair result for path generation
-    const randomSeed = await getGameResult();
+    // Note: getGameResult for plinko returns a function, not a direct value
+    const generatePath = getGameResult();
+    // Generate a random number between 0 and 1 for our path seed
+    const randomSeed = Math.random();
     const path = generateBallPath(randomSeed);
     
     // Ball object properties

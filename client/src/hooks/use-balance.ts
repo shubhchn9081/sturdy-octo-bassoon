@@ -19,6 +19,8 @@ export type PlaceBetParams = {
   amount: number;
   options?: Record<string, any>;
   currency?: SupportedCurrency;
+  // Note: userId is NOT required on the client side
+  // The server gets it from the authenticated session
 };
 
 export type CompleteBetParams = {
