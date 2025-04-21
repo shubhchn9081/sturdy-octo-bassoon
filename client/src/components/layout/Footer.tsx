@@ -23,17 +23,17 @@ const Footer = () => {
         <div>
           <h4 className="font-medium mb-2 text-foreground">Casino</h4>
           <ul className="space-y-1">
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/casino-games'}>Casino Games</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/slots'}>Slots</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/live-casino'}>Live Casino</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/game-providers'}>Game Providers</div></li>
+            <li><Link href="/casino" className="hover:text-foreground cursor-pointer">Casino Games</Link></li>
+            <li><Link href="/casino" className="hover:text-foreground cursor-pointer">Slots</Link></li>
+            <li><Link href="/casino" className="hover:text-foreground cursor-pointer">Live Casino</Link></li>
+            <li><Link href="/casino" className="hover:text-foreground cursor-pointer">Game Providers</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="font-medium mb-2 text-foreground">Sports</h4>
           <ul className="space-y-1">
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/sportsbook'}>Sportsbook</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/live-sports'}>Live Sports</div></li>
+            <li><Link href="/sports" className="hover:text-foreground cursor-pointer">Sportsbook</Link></li>
+            <li><Link href="/sports" className="hover:text-foreground cursor-pointer">Live Sports</Link></li>
           </ul>
         </div>
         <div>
@@ -46,24 +46,24 @@ const Footer = () => {
         <div>
           <h4 className="font-medium mb-2 text-foreground">About Us</h4>
           <ul className="space-y-1">
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/vip-club'}>VIP Club</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/affiliate'}>Affiliate</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/sponsorships'}>Sponsorships</div></li>
+            <li><Link href="/vip-club" className="hover:text-foreground cursor-pointer">VIP Club</Link></li>
+            <li><Link href="/affiliate" className="hover:text-foreground cursor-pointer">Affiliate</Link></li>
+            <li><Link href="/sponsorships" className="hover:text-foreground cursor-pointer">Sponsorships</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="font-medium mb-2 text-foreground">Payment Info</h4>
           <ul className="space-y-1">
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/deposits-withdrawals'}>Deposit & Withdrawals</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/crypto-guide'}>Crypto Guide</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/currency-converter'}>Currency Converter</div></li>
+            <li><Link href="/payment-info" className="hover:text-foreground cursor-pointer">Deposit & Withdrawals</Link></li>
+            <li><Link href="/payment-info" className="hover:text-foreground cursor-pointer">Crypto Guide</Link></li>
+            <li><Link href="/payment-info" className="hover:text-foreground cursor-pointer">Currency Converter</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="font-medium mb-2 text-foreground">How-to Guides</h4>
           <ul className="space-y-1">
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/guides'}>How-to Guides</div></li>
-            <li><div className="hover:text-foreground cursor-pointer" onClick={() => window.location.href = '/casino-guide'}>Online Casino Guide</div></li>
+            <li><Link href="/guides" className="hover:text-foreground cursor-pointer">How-to Guides</Link></li>
+            <li><Link href="/guides" className="hover:text-foreground cursor-pointer">Online Casino Guide</Link></li>
           </ul>
         </div>
       </div>
