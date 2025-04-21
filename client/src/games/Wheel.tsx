@@ -506,20 +506,21 @@ const WheelGame: React.FC = () => {
     }
     
     // Place the bet through the API
-    placeBet.mutate({
+    placeBet.mutateAsync({
       gameId: 4, // Wheel game ID
       amount: betValue,
-      clientSeed: 'seed',
+      clientSeed: Math.random().toString(36).substring(2, 15),
       options: { risk, segments, currency: activeCurrency }
-    }, {
-      onSuccess: (data) => {
-        // Store the bet ID for later use when completing the bet
-        setBetId(data.betId);
-        // Start spinning the wheel
-        playSound('click');
-        spinWheel();
-      },
-      onError: (error) => {
+    }).then(response => {
+      if (!response || !response.betId) {
+        throw new Error("Invalid response from server");
+      }
+      // Store the bet ID for later use when completing the bet
+      setBetId(response.betId);
+      // Start spinning the wheel
+      playSound('click');
+      spinWheel();
+    }).catch(error => {
         toast({
           variant: "destructive",
           title: "Failed to place bet",

@@ -66,25 +66,26 @@ const DiceGame = () => {
   const handleBet = async () => {
     if (rolling || betAmount <= 0) return;
     
-    // Validate bet amount
-    if (betAmount <= 0) {
-      toast({
-        title: "Invalid bet amount",
-        description: "Please enter a valid bet amount",
-        variant: "destructive"
+    try {
+      // First place the bet and get the bet ID
+      const response = await placeBet.mutateAsync({
+        gameId: 1, // Dice game ID
+        amount: betAmount,
+        clientSeed: Math.random().toString(36).substring(2, 15),
+        options: {
+          target,
+          rollMode
+        }
       });
-      return;
-    }
-    
-    // Check if user has enough balance
-    if (betAmount > rawBalance) {
-      toast({
-        title: "Insufficient balance",
-        description: "You don't have enough balance to place this bet",
-        variant: "destructive"
-      });
-      return;
-    }
+
+      if (!response || !response.betId) {
+        throw new Error("Invalid response from server");
+      }
+
+      setCurrentBetId(response.betId);
+      setRolling(true);
+      setResult(null);
+      setWon(null);
     
     setRolling(true);
     setResult(null);

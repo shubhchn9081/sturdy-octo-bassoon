@@ -143,22 +143,27 @@ const CricketMinesGame = () => {
     setSelectedTile(null);
     
     // Call the API to place a bet and deduct balance
-    placeBet.mutate({
+    placeBet.mutateAsync({
       amount: betAmount,
       gameId: 2, // Cricket Mines game id
-      clientSeed: 'seed',
+      clientSeed: Math.random().toString(36).substring(2, 15),
       options: { outCount },
       currency: 'INR'
-    }, {
-      onSuccess: (response) => {
-        // Store bet ID for future reference
-        setCurrBetId(response.id);
-      },
-      onError: (error) => {
-        // Reset game state on error
-        setGameState(null);
-        console.error("Error placing bet:", error);
+    }).then(response => {
+      if (!response || !response.betId) {
+        throw new Error("Invalid response from server");
       }
+      // Store bet ID for future reference
+      setCurrBetId(response.betId);
+    }).catch(error => {
+      // Reset game state on error
+      setGameState(null);
+      console.error("Error placing bet:", error);
+      toast({
+        title: "Error placing bet",
+        description: error.message || "Failed to place bet",
+        variant: "destructive"
+      });
     });
   };
   
