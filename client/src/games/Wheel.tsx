@@ -34,7 +34,7 @@ const WheelGame: React.FC = () => {
   const wheelContainerRef = useRef<HTMLDivElement>(null);
   const [betAmount, setBetAmount] = useState<string>('0.00010000');
   const [risk, setRisk] = useState<RiskLevel>('Medium');
-  const [segments, setSegments] = useState<number>(30);
+  const [segmentCount, setSegmentCount] = useState<number>(30);
   const [activeTab, setActiveTab] = useState<'Manual' | 'Auto'>('Manual');
   const [activeCurrency, setActiveCurrency] = useState<'BTC' | 'USD' | 'INR' | 'ETH' | 'USDT'>('INR');
   const { rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
@@ -66,7 +66,34 @@ const WheelGame: React.FC = () => {
     Medium: [0.0, 1.5, 1.7, 2.0, 3.0, 4.0],
     High: [0.0, 0.0, 1.5, 3.0, 5.0, 10.0]
   };
+  
+  // Define canvas size for the wheel
+  const CANVAS_SIZE = 600; // Default canvas size
+  
+  // Define multiplier ranges for selection
+  const multiplierRanges = ['Low', 'Medium', 'High', 'Custom'];
+  const [selectedMultiplierRange, setSelectedMultiplierRange] = useState<string>('Medium');
+  
+  // Data for the selected segment
+  const [selectedSegment, setSelectedSegment] = useState<{multiplier: number} | null>(null);
+  const [showResult, setShowResult] = useState<boolean>(false);
+  const [winAmount, setWinAmount] = useState<number>(0);
+  const [winningSegment, setWinningSegment] = useState<{multiplier: number} | null>(null);
 
+  // Define wheel segments
+  interface WheelSegment {
+    multiplier: number;
+    color: string;
+  }
+  
+  // Create actual segment data
+  const [wheelSegments, setWheelSegments] = useState<WheelSegment[]>(
+    Array.from({ length: 30 }, (_, i) => ({
+      multiplier: (i % 5 === 0) ? 0 : (1 + (i % 5) * 0.5),
+      color: colors[i % colors.length],
+    }))
+  );
+  
   // Game state
   const [rotation, setRotation] = useState<number>(0);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
@@ -104,7 +131,7 @@ const WheelGame: React.FC = () => {
       canvas.height = containerSize * 0.9;
     }
     
-    drawWheel(ctx, canvas.width, segments, rotation);
+    drawWheel(ctx, canvas.width, segmentCount, rotation);
     
     return () => {
       if (animationRef.current) {
@@ -114,7 +141,7 @@ const WheelGame: React.FC = () => {
         cancelAnimationFrame(idleAnimationRef.current);
       }
     };
-  }, [segments, rotation]);
+  }, [segmentCount, rotation]);
   
   // Start idle spinning animation when component mounts using GSAP
   useEffect(() => {
@@ -159,12 +186,12 @@ const WheelGame: React.FC = () => {
       canvas.height = containerSize * 0.9;
       
       const ctx = canvas.getContext('2d');
-      if (ctx) drawWheel(ctx, canvas.width, segments, rotation);
+      if (ctx) drawWheel(ctx, canvas.width, segmentCount, rotation);
     };
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [segments, rotation]);
+  }, [segmentCount, rotation]);
 
   const drawWheel = (ctx: CanvasRenderingContext2D, canvasWidth: number, segmentCount: number, rotationAngle: number) => {
     const radius = canvasWidth / 2;
@@ -381,8 +408,8 @@ const WheelGame: React.FC = () => {
     targetMultiplierRef.current = resultMultiplier;
     
     // Calculate how many full rotations plus the angle to the target segment
-    const segmentAngle = (2 * Math.PI) / segments;
-    const targetSegmentIndex = randomMultiplierIndex % segments;
+    const segmentAngle = (2 * Math.PI) / segmentCount;
+    const targetSegmentIndex = randomMultiplierIndex % segmentCount;
     const targetAngle = segmentAngle * targetSegmentIndex;
     
     // Add 8-10 full rotations plus the target segment angle
@@ -656,7 +683,7 @@ const WheelGame: React.FC = () => {
         
         {/* Multiplier list */}
         <div className="flex flex-wrap justify-center gap-2 mb-6 w-full max-w-lg">
-          {segments.map((segment, i) => (
+          {wheelSegments.map((segment, i) => (
             <div 
               key={`segment-${i}`} 
               className={`
