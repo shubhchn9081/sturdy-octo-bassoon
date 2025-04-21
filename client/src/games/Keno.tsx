@@ -290,26 +290,35 @@ const Keno: React.FC = () => {
   return (
     <div className="flex flex-col h-screen w-full bg-[#0F212E] text-white overflow-y-auto">
       {/* Main Game Container */}
-      <div className="flex flex-col md:flex-row h-full pb-20 md:pb-0">
-        {/* Game Header with Back Button */}
-        <div className="w-full p-2 bg-[#172B3A] md:hidden">
-          <div className="flex items-center justify-between">
-            <button onClick={() => window.history.back()} className="text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-xl font-bold">Keno</h1>
-            <div className="w-6"></div> {/* For balance */}
-          </div>
-        </div>
+      <div className="flex flex-col md:flex-row h-full pb-36 md:pb-0">
+        {/* Game Header is now in the fixed panel */}
         
         {/* Fixed Bottom Bet Panel for Mobile */}
-        <div className="fixed bottom-12 left-0 right-0 px-4 py-3 bg-[#0F171E] border-t border-[#243442] z-20 md:hidden">
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex flex-col justify-center flex-grow">
-              <div className="text-xs text-gray-400 font-medium mb-0.5">Bet Amount</div>
-              <div className="flex items-center">
+        <div className="fixed bottom-12 left-0 right-0 md:hidden">
+          {/* Game Name and Header */}
+          <div className="w-full bg-[#0F171E] px-4 py-2.5 flex items-center border-t border-[#243442]">
+            <div className="flex items-center">
+              <button onClick={() => window.history.back()} className="text-white pr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <span className="text-white text-lg font-medium">Keno</span>
+            </div>
+            <div className="ml-auto">
+              <button className="bg-[#00FF00] w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(0,255,0,0.4)]">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          {/* Bet Panel */}
+          <div className="bg-[#0F171E] px-4 py-3 border-t border-[#243442] flex flex-col">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col flex-grow">
+                <div className="text-xs text-gray-400 font-medium mb-0.5">Bet Amount</div>
                 <input 
                   type="text" 
                   value={betAmountDisplay}
@@ -317,29 +326,30 @@ const Keno: React.FC = () => {
                   className="bg-transparent border-none text-white outline-none text-lg font-bold w-full"
                 />
               </div>
+              <div className="flex gap-1.5">
+                <button 
+                  onClick={halfBet}
+                  className="h-8 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
+                >
+                  ½
+                </button>
+                <button 
+                  onClick={doubleBet}
+                  className="h-8 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
+                >
+                  2×
+                </button>
+              </div>
             </div>
-            <div className="flex gap-1.5">
-              <button 
-                onClick={halfBet}
-                className="h-9 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
-              >
-                ½
-              </button>
-              <button 
-                onClick={doubleBet}
-                className="h-9 px-3 bg-[#1A262F] text-white hover:bg-[#243442] rounded text-sm font-medium"
-              >
-                2×
-              </button>
-            </div>
+            
+            <Button 
+              className="w-full h-12 mt-2 text-lg font-bold bg-[#00FF00] hover:bg-[#00CC00] text-black rounded-md transition-colors"
+              onClick={placeBetAction}
+              disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
+            >
+              {isPlaying ? 'Drawing...' : 'Bet'}
+            </Button>
           </div>
-          <Button 
-            className="w-full h-12 text-lg font-bold bg-[#00FF00] hover:bg-[#00CC00] text-black rounded-md transition-colors"
-            onClick={placeBetAction}
-            disabled={isPlaying || selectedNumbers.length === 0 || betAmount <= 0}
-          >
-            {isPlaying ? 'Drawing...' : 'Bet'}
-          </Button>
         </div>
         
         {/* Right Side - Game Area - Shows first on mobile */}
