@@ -785,6 +785,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Game Control routes for admin panel
+  app.get('/api/admin/user-game-controls', isAdmin, async (req, res) => {
+    try {
+      const controls = await storage.getAllUserGameControls();
+      res.json(controls);
+    } catch (error) {
+      console.error('Error getting user game controls:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/user-game-controls/:userId', isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const controls = await storage.getUserGameControls(userId);
+      res.json(controls);
+    } catch (error) {
+      console.error('Error getting user game controls:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.post('/api/admin/user-game-controls', isAdmin, async (req, res) => {
+    try {
+      const { userId, gameId, forceOutcome, outcomeType, durationGames, forcedOutcomeValue } = req.body;
+      
+      if (!userId || !gameId || forceOutcome === undefined || !outcomeType) {
+        return res.status(400).json({ message: 'Missing required parameters' });
+      }
+      
+      const control = await storage.createUserGameControl({
+        userId,
+        gameId,
+        forceOutcome,
+        outcomeType,
+        durationGames: durationGames || 1,
+        forcedOutcomeValue
+      });
+      
+      res.status(201).json(control);
+    } catch (error) {
+      console.error('Error creating user game control:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.put('/api/admin/user-game-controls/:id', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { forceOutcome, outcomeType, durationGames, forcedOutcomeValue } = req.body;
+      
+      const existingControl = await storage.getUserGameControl(id);
+      if (!existingControl) {
+        return res.status(404).json({ message: 'User game control not found' });
+      }
+      
+      const updatedControl = await storage.updateUserGameControl(id, {
+        forceOutcome,
+        outcomeType,
+        durationGames,
+        forcedOutcomeValue
+      });
+      
+      res.json(updatedControl);
+    } catch (error) {
+      console.error('Error updating user game control:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.delete('/api/admin/user-game-controls/:id', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const deleted = await storage.deleteUserGameControl(id);
+      if (!deleted) {
+        return res.status(404).json({ message: 'User game control not found' });
+      }
+      
+      res.json({ success: true, message: 'User game control deleted' });
+    } catch (error) {
+      console.error('Error deleting user game control:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.post('/api/admin/reset-all-user-game-controls', isAdmin, async (req, res) => {
+    try {
+      const result = await storage.resetAllUserGameControls();
+      res.json({ success: result, message: 'All user game controls have been reset' });
+    } catch (error) {
+      console.error('Error resetting user game controls:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server for real-time sports betting updates
