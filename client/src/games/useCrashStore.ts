@@ -175,16 +175,19 @@ export const useCrashStore = create<CrashStore>((set, get) => {
     placeBet: () => {
       const { gameState, betAmount, currency } = get();
       
+      // Don't place bet if the game is in progress
       if (gameState !== 'waiting') {
+        console.warn("Cannot place bet - game in progress");
         return;
       }
       
+      // Validate bet amount
       if (!betAmount || betAmount <= 0) {
         console.error("Please enter a valid bet amount");
         return;
       }
       
-      // Generate a random client seed
+      // Generate a random client seed for provably fair gaming
       const generateClientSeed = () => {
         return Math.random().toString(36).substring(2, 15);
       };
@@ -196,11 +199,15 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       const gameId = 1;
       
       try {
-        // Use the placeBet API function
+        // Use the placeBet API function from the window global
         const placeBetFn = window.placeBetFunction;
         
         if (placeBetFn && placeBetFn.placeBet) {
           console.log("Using real wallet integration for bet placement");
+          
+          // Set waiting state immediately to prevent double bets
+          set({ hasPlacedBet: true });
+          
           // Use the placeBet mutation from the balance hook
           placeBetFn.placeBet.mutate({
             gameId,
@@ -225,16 +232,19 @@ export const useCrashStore = create<CrashStore>((set, get) => {
               };
               
               set(state => ({
-                hasPlacedBet: true,
                 activeBets: [newBet, ...state.activeBets]
               }));
             },
             onError: (error) => {
               console.error("Error placing bet:", error);
+              // Reset the betting state on error so player can try again
+              set({ hasPlacedBet: false });
             }
           });
         } else {
           // If the global balance object isn't available, use a fallback approach
+          console.warn("Using fallback bet placement - wallet integration may not work");
+          
           // Add player bet to active bets
           const newBet: Bet = {
             id: Date.now(),
@@ -248,11 +258,11 @@ export const useCrashStore = create<CrashStore>((set, get) => {
             hasPlacedBet: true,
             activeBets: [newBet, ...state.activeBets]
           }));
-          
-          console.warn("Using fallback bet placement - wallet integration may not work");
         }
       } catch (error) {
         console.error("Error in placeBet:", error);
+        // Reset the betting state on any error
+        set({ hasPlacedBet: false });
       }
     },
     
