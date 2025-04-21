@@ -257,7 +257,7 @@ const GameCard = ({
       onClick={() => window.location.href = `/games/${slug}`}
     >
       {/* Main card content - matching Stake.com layout - responsive height */}
-      <div className="relative w-full h-[110px] sm:h-[125px] md:h-[140px] lg:h-[154px]">
+      <div className="relative w-full h-[154px] sm:h-[164px] md:h-[174px] lg:h-[184px]">
         {/* Background gradient or image */}
         <div 
           className="absolute inset-0 w-full h-full" 

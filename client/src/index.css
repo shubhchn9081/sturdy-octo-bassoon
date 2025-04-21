@@ -78,11 +78,11 @@
 @layer components {
   /* Game grid layout styles - Stake.com exact match */
   .game-grid {
-    @apply grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] gap-1 p-1 justify-items-center items-start;
+    @apply grid grid-cols-[repeat(auto-fill,minmax(146px,1fr))] gap-4 p-1 justify-items-center items-start;
   }
   
   .game-card {
-    @apply w-[132px] h-[176px] rounded-sm shadow-md overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out bg-[#0F1923];
+    @apply w-[146px] h-[196px] rounded-lg shadow-lg overflow-hidden flex flex-col cursor-pointer hover:scale-[1.02] transition-transform duration-200 ease-in-out bg-[#1E1F24];
   }
   
   /* Specific styles for game titles */

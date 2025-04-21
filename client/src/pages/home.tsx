@@ -115,8 +115,8 @@ const HomePage = () => {
           </div>
         </div>
         
-        {/* All Game Cards - With minimal gap */}
-        <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-[1px]">
+        {/* All Game Cards - With appropriate gap */}
+        <div className="flex flex-wrap gap-4 justify-center">
           {allGames.map((game) => (
             <GameCard
               key={game.id}
