@@ -5,7 +5,7 @@ import Home from "@/pages/home";
 import Game from "@/pages/game";
 import Originals from "@/pages/originals";
 import CasinoPage from "@/pages/casino";
-import Admin from "@/pages/admin";
+import AdminPage from "@/pages/admin-page";
 import InitDb from "@/pages/InitDb";
 import AuthPage from "@/pages/auth-page";
 import WalletPage from "@/pages/wallet-page";
@@ -54,7 +54,7 @@ function Router() {
             <ProtectedRoute path="/sports" component={SportsPage} />
             <Route path="/admin">
               <AdminRoute>
-                <Admin />
+                <AdminPage />
               </AdminRoute>
             </Route>
             <Route path="/init-db" component={InitDb} />
