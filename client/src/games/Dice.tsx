@@ -155,105 +155,9 @@ const DiceGame = () => {
 
   return (
     <div className="flex flex-1 flex-col bg-[#0F212E] min-h-screen">
-      <div className="flex flex-1 p-4 space-x-4">
-        {/* Left side panel (controls) */}
-        <div className="w-[210px] shrink-0">
-          <div className="bg-[#172B3A] rounded-lg overflow-hidden">
-            <div className="p-4">
-              {/* Manual/Auto toggle */}
-              <div className="bg-[#0F212E] rounded-full p-1 flex mb-4">
-                <button 
-                  className={`flex-1 py-2 rounded-full text-sm font-medium ${mode === 'manual' ? 'bg-[#172B3A] text-white' : 'text-[#7F8990]'}`}
-                  onClick={() => setMode('manual')}
-                >
-                  Manual
-                </button>
-                <button 
-                  className={`flex-1 py-2 rounded-full text-sm font-medium ${mode === 'auto' ? 'bg-[#172B3A] text-white' : 'text-[#7F8990]'}`}
-                  onClick={() => setMode('auto')}
-                >
-                  Auto
-                </button>
-              </div>
-              
-              {/* Bet Amount */}
-              <div className="mb-3">
-                <div className="flex justify-between mb-1">
-                  <div className="text-xs text-[#7F8990]">Bet Amount</div>
-                  <div className="text-xs text-[#7F8990]">$0.00</div>
-                </div>
-                <div className="bg-[#0F212E] rounded flex items-center">
-                  <div className="pl-2.5 pr-1">
-                    <div className="w-5 h-5 rounded-full bg-[#FFB119] text-center text-xs font-bold text-black leading-5">₿</div>
-                  </div>
-                  <input
-                    type="text"
-                    value={formatCryptoAmount(betAmount)}
-                    onChange={handleBetAmountChange}
-                    className="bg-transparent border-none outline-none h-9 text-sm text-white px-0 flex-1 min-w-0"
-                  />
-                  <div className="flex h-full">
-                    <button 
-                      onClick={handleHalfBet}
-                      className="h-9 w-8 text-[#7F8990] hover:text-white border-l border-[#172B3A] flex items-center justify-center"
-                    >
-                      ½
-                    </button>
-                    <button 
-                      onClick={handleDoubleBet}
-                      className="h-9 w-8 text-[#7F8990] hover:text-white border-l border-[#172B3A] flex items-center justify-center"
-                    >
-                      2×
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Profit on Win */}
-              <div className="mb-4">
-                <div className="flex justify-between mb-1">
-                  <div className="text-xs text-[#7F8990]">Profit on Win</div>
-                  <div className="text-xs text-[#7F8990]">$0.00</div>
-                </div>
-                <div className="bg-[#0F212E] rounded flex items-center">
-                  <div className="pl-2.5 pr-1">
-                    <div className="w-5 h-5 rounded-full bg-[#FFB119] text-center text-xs font-bold text-black leading-5">₿</div>
-                  </div>
-                  <input
-                    value={formatCryptoAmount(profit)}
-                    readOnly
-                    className="bg-transparent border-none outline-none h-9 text-sm text-white px-0 flex-1"
-                  />
-                </div>
-              </div>
-              
-              {/* Bet and keyboard shortcuts */}
-              <div className="space-y-4">
-                <button 
-                  onClick={handleBet}
-                  disabled={rolling || betAmount <= 0}
-                  className="w-full bg-[#00E700] hover:bg-[#00D100] text-black font-medium h-10 rounded text-sm transition-colors"
-                >
-                  {rolling ? 'Rolling...' : 'BET'}
-                </button>
-                
-                <div className="text-xs text-[#7F8990] bg-[#0F212E] rounded p-3">
-                  <div className="mb-2">Keyboard shortcuts:</div>
-                  <div className="flex items-center space-x-3">
-                    <div className="flex space-x-1">
-                      <div className="w-5 h-5 bg-[#172B3A] flex items-center justify-center rounded">↑</div>
-                      <div className="w-5 h-5 bg-[#172B3A] flex items-center justify-center rounded">↓</div>
-                    </div>
-                    <span>Adjust target</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Right side (game interface) */}
-        <div className="flex-1 flex flex-col gap-4">
+      <div className="flex flex-col lg:flex-row flex-1 p-4 space-y-4 lg:space-y-0 lg:space-x-4">
+        {/* Game interface - appears first on mobile */}
+        <div className="flex-1 flex flex-col gap-4 order-first">
           <div className="bg-[#172B3A] rounded-lg flex-1 flex flex-col p-5">
             <div className="flex-1 flex flex-col">
             
@@ -290,6 +194,7 @@ const DiceGame = () => {
                   </tbody>
                 </table>
               </div>
+              
               {/* Slider scale numbers */}
               <div className="flex justify-between text-white text-sm font-bold mb-1">
                 <span>0</span>
@@ -385,20 +290,105 @@ const DiceGame = () => {
                   <div>
                     <div className="text-[#7F8990] mb-3 text-sm">Win Chance</div>
                     <div className="bg-[#0F212E] flex items-center justify-between rounded p-3 h-12">
-                      <span className="text-white font-medium">{winChance.toFixed(4)}</span>
-                      <span className="text-[#7F8990] ml-0.5 text-xl">%</span>
+                      <span className="text-white font-medium">{winChance.toFixed(2)}%</span>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Bet controls - appears second (below) on mobile */}
+        <div className="w-full lg:w-[210px] lg:shrink-0 order-last">
+          <div className="bg-[#172B3A] rounded-lg overflow-hidden">
+            <div className="p-4">
+              {/* Manual/Auto toggle */}
+              <div className="bg-[#0F212E] rounded-full p-1 flex mb-4">
+                <button 
+                  className={`flex-1 py-2 rounded-full text-sm font-medium ${mode === 'manual' ? 'bg-[#172B3A] text-white' : 'text-[#7F8990]'}`}
+                  onClick={() => setMode('manual')}
+                >
+                  Manual
+                </button>
+                <button 
+                  className={`flex-1 py-2 rounded-full text-sm font-medium ${mode === 'auto' ? 'bg-[#172B3A] text-white' : 'text-[#7F8990]'}`}
+                  onClick={() => setMode('auto')}
+                >
+                  Auto
+                </button>
+              </div>
               
-              {/* Bottom toolbar */}
-              <div className="flex justify-between items-center mt-4">
-                <div>
-                  <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10 opacity-30" />
+              {/* Bet Amount */}
+              <div className="mb-3">
+                <div className="flex justify-between mb-1">
+                  <div className="text-xs text-[#7F8990]">Bet Amount</div>
+                  <div className="text-xs text-[#7F8990]">$0.00</div>
                 </div>
-                <div className="text-xs text-[#7F8990]">
-                  <span className="cursor-pointer hover:text-white">Fairness</span>
+                <div className="bg-[#0F212E] rounded flex items-center">
+                  <div className="pl-2.5 pr-1">
+                    <div className="w-5 h-5 rounded-full bg-[#FFB119] text-center text-xs font-bold text-black leading-5">₿</div>
+                  </div>
+                  <input
+                    type="text"
+                    value={formatCryptoAmount(betAmount)}
+                    onChange={handleBetAmountChange}
+                    className="bg-transparent border-none outline-none h-9 text-sm text-white px-0 flex-1 min-w-0"
+                  />
+                  <div className="flex h-full">
+                    <button 
+                      onClick={handleHalfBet}
+                      className="h-9 w-8 text-[#7F8990] hover:text-white border-l border-[#172B3A] flex items-center justify-center"
+                    >
+                      ½
+                    </button>
+                    <button 
+                      onClick={handleDoubleBet}
+                      className="h-9 w-8 text-[#7F8990] hover:text-white border-l border-[#172B3A] flex items-center justify-center"
+                    >
+                      2×
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Profit on Win */}
+              <div className="mb-4">
+                <div className="flex justify-between mb-1">
+                  <div className="text-xs text-[#7F8990]">Profit on Win</div>
+                  <div className="text-xs text-[#7F8990]">$0.00</div>
+                </div>
+                <div className="bg-[#0F212E] rounded flex items-center">
+                  <div className="pl-2.5 pr-1">
+                    <div className="w-5 h-5 rounded-full bg-[#FFB119] text-center text-xs font-bold text-black leading-5">₿</div>
+                  </div>
+                  <input
+                    value={formatCryptoAmount(profit)}
+                    readOnly
+                    className="bg-transparent border-none outline-none h-9 text-sm text-white px-0 flex-1"
+                  />
+                </div>
+              </div>
+              
+              {/* Bet and keyboard shortcuts */}
+              <div className="space-y-4">
+                <button 
+                  onClick={handleBet}
+                  disabled={rolling || betAmount <= 0}
+                  className="w-full bg-[#00E700] hover:bg-[#00D100] text-black font-medium h-10 rounded text-sm transition-colors"
+                >
+                  {rolling ? 'Rolling...' : 'BET'}
+                </button>
+                
+                <div className="text-xs text-[#7F8990] bg-[#0F212E] rounded p-3">
+                  <div className="mb-2">Keyboard shortcuts:</div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex space-x-1">
+                      <div className="w-5 h-5 bg-[#172B3A] flex items-center justify-center rounded">↑</div>
+                      <div className="w-5 h-5 bg-[#172B3A] flex items-center justify-center rounded">↓</div>
+                    </div>
+                    <span>Adjust target</span>
+                  </div>
                 </div>
               </div>
             </div>
