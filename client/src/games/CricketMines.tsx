@@ -155,6 +155,21 @@ const CricketMinesGame = () => {
       }
       // Store bet ID for future reference
       setCurrBetId(response.betId);
+      
+      // Wait for animation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Complete the bet
+      if (response.betId) {
+        await completeBet.mutateAsync({
+          betId: response.betId,
+          outcome: {
+            selectedTiles: [],
+            outCount,
+            win: false
+          }
+        });
+      }
     }).catch(error => {
       // Reset game state on error
       setGameState(null);
@@ -164,6 +179,8 @@ const CricketMinesGame = () => {
         description: error.message || "Failed to place bet",
         variant: "destructive"
       });
+    }).finally(() => {
+      setIsPlacingBet(false);
     });
   };
   

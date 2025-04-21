@@ -86,9 +86,36 @@ const DiceGame = () => {
       setRolling(true);
       setResult(null);
       setWon(null);
-    setWon(null);
-    
-    try {
+      
+      // Generate dice result
+      const diceResult = getGameResult() as number;
+      const formattedResult = parseFloat((diceResult * 100).toFixed(2));
+      
+      // Wait for animation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setResult(formattedResult);
+      
+      // Check if win
+      const isWin = rollMode === 'over' 
+        ? formattedResult > target 
+        : formattedResult < target;
+        
+      setWon(isWin);
+      
+      // Complete the bet
+      if (response.betId) {
+        await completeBet.mutateAsync({
+          betId: response.betId,
+          outcome: {
+            result: formattedResult,
+            target,
+            rollMode,
+            win: isWin,
+            multiplier: isWin ? multiplier : 0
+          }
+        });
+      }
       // First place the bet and get the bet ID
       const clientSeed = Math.random().toString(36).substring(2, 15);
       const response = await placeBet.mutateAsync({

@@ -517,9 +517,24 @@ const WheelGame: React.FC = () => {
       }
       // Store the bet ID for later use when completing the bet
       setBetId(response.betId);
+      
       // Start spinning the wheel
       playSound('click');
       spinWheel();
+      
+      // Complete the bet after animation
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      if (response.betId) {
+        await completeBet.mutateAsync({
+          betId: response.betId,
+          outcome: {
+            segment: selectedSegment,
+            multiplier,
+            win: selectedSegment === winningSegment
+          }
+        });
+      }
     }).catch(error => {
         toast({
           variant: "destructive",
