@@ -664,14 +664,13 @@ const WheelGame: React.FC = () => {
               </div>
             )}
             
-            {/* The wheel canvas - IMPORTANT: ensure mobile visibility */}
-            <div className="w-full flex justify-center">
+            {/* The wheel canvas with fixed sizing */}
+            <div className="w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] relative">
               <canvas 
                 ref={canvasRef} 
                 width={CANVAS_SIZE} 
                 height={CANVAS_SIZE} 
-                className="w-full max-w-[280px] sm:max-w-md h-auto rounded-full"
-                style={{ display: 'block' }} /* Ensure display block to avoid line height issues */
+                className="absolute inset-0 w-full h-full rounded-full"
               />
             </div>
             
@@ -719,17 +718,27 @@ const WheelGame: React.FC = () => {
             ))}
           </div>
           
-          {/* Multiplier list */}
-          <div className="flex flex-wrap justify-center gap-2 mt-4 mb-6 w-full max-w-lg">
-            {wheelSegments.map((segment, i) => (
+          {/* Multiplier grid - more sleek layout */}
+          <div className="grid grid-cols-5 gap-x-1.5 gap-y-2 mt-4 mb-6 w-full max-w-md mx-auto px-2">
+            {[0, 1.5, 2, 2.5, 3, 
+              0, 1.5, 2, 2.5, 3, 
+              0, 1.5, 2, 2.5, 3, 
+              0, 1.5, 2, 2.5, 3,
+              0, 1.5, 2, 2.5, 3
+            ].map((value, i) => (
               <div 
-                key={`segment-${i}`} 
+                key={`mult-${i}`} 
                 className={`
-                  h-10 flex items-center justify-center px-3 rounded
-                  ${segment.color} text-white text-sm font-medium
+                  h-8 flex items-center justify-center rounded-sm
+                  ${value === 0 ? 'bg-red-800/90' : 
+                    value <= 1.5 ? 'bg-purple-800/90' : 
+                    value <= 2 ? 'bg-blue-700/90' : 
+                    value <= 2.5 ? 'bg-green-700/90' : 
+                    'bg-orange-700/90'} 
+                  text-white text-sm font-medium tracking-wider
                 `}
               >
-                {segment.multiplier}x
+                {value}x
               </div>
             ))}
           </div>
