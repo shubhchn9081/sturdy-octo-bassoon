@@ -522,26 +522,25 @@ const WheelGame: React.FC = () => {
       playSound('click');
       spinWheel();
       
-      // Complete the bet after animation
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      if (response.betId) {
-        await completeBet.mutateAsync({
-          betId: response.betId,
-          outcome: {
-            segment: selectedSegment,
-            multiplier,
-            win: selectedSegment === winningSegment
-          }
-        });
-      }
+      // Complete the bet after animation using promises
+      setTimeout(() => {
+        if (response.betId) {
+          completeBet.mutateAsync({
+            betId: response.betId,
+            outcome: {
+              segment: selectedSegment,
+              multiplier,
+              win: selectedSegment === winningSegment
+            }
+          });
+        }
+      }, 3000);
     }).catch(error => {
         toast({
           variant: "destructive",
           title: "Failed to place bet",
           description: error.message || "Something went wrong",
         });
-      }
     });
   };
 

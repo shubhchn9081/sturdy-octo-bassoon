@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useBalance } from '@/hooks/use-balance';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Simple formatCrypto implementation to avoid dependency
 const formatCryptoAmount = (amount: number): string => {
@@ -13,6 +15,8 @@ const DiceGame = () => {
   const { getGameResult } = useProvablyFair('dice');
   const { rawBalance, placeBet, completeBet } = useBalance('INR');
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   
   // Local state for bet amount
   const [betAmount, setBetAmount] = useState(0.00000000);
@@ -67,14 +71,23 @@ const DiceGame = () => {
     if (rolling || betAmount <= 0) return;
     
     try {
+      setRolling(true);
+      setResult(null);
+      setWon(null);
+      
+      // Generate client seed
+      const clientSeed = Math.random().toString(36).substring(2, 15);
+      
       // First place the bet and get the bet ID
       const response = await placeBet.mutateAsync({
-        gameId: 1, // Dice game ID
+        userId: user?.id,
+        gameId: 5, // Dice game ID
         amount: betAmount,
-        clientSeed: Math.random().toString(36).substring(2, 15),
+        clientSeed,
         options: {
           target,
-          rollMode
+          rollMode,
+          currency: 'INR'
         }
       });
 
@@ -83,9 +96,6 @@ const DiceGame = () => {
       }
 
       setCurrentBetId(response.betId);
-      setRolling(true);
-      setResult(null);
-      setWon(null);
       
       // Generate dice result
       const diceResult = getGameResult() as number;
@@ -104,67 +114,16 @@ const DiceGame = () => {
       setWon(isWin);
       
       // Complete the bet
-      if (response.betId) {
-        await completeBet.mutateAsync({
-          betId: response.betId,
-          outcome: {
-            result: formattedResult,
-            target,
-            rollMode,
-            win: isWin,
-            multiplier: isWin ? multiplier : 0
-          }
-        });
-      }
-      // First place the bet and get the bet ID
-      const clientSeed = Math.random().toString(36).substring(2, 15);
-      const response = await placeBet.mutateAsync({
-        gameId: 5, // Dice game ID
-        clientSeed,
-        amount: betAmount,
-        options: {
+      await completeBet.mutateAsync({
+        betId: response.betId,
+        outcome: {
+          result: formattedResult,
           target,
-          rollMode
+          rollMode,
+          win: isWin,
+          multiplier: isWin ? multiplier : 0
         }
       });
-      
-      // Store the bet ID from the response
-      if (response && typeof response === 'object' && 'betId' in response) {
-        setCurrentBetId(response.betId as number);
-      } else {
-        console.error("Invalid response from placeBet:", response);
-        throw new Error("Invalid server response");
-      }
-      
-      // Generate dice result (this would normally come from the server)
-      const diceResult = getGameResult() as number;
-      const formattedResult = parseFloat((diceResult * 100).toFixed(2));
-      
-      // Wait a bit to show the animation
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setResult(formattedResult);
-      
-      // Check if win
-      const isWin = rollMode === 'over' 
-        ? formattedResult > target 
-        : formattedResult < target;
-        
-      setWon(isWin);
-      
-      // Call completeBet to update wallet balance
-      if (currentBetId !== null) {
-        completeBet.mutate({
-          betId: response.betId as number,
-          outcome: {
-            result: formattedResult,
-            target,
-            rollMode,
-            win: isWin,
-            multiplier: isWin ? multiplier : 0
-          }
-        });
-      }
       
     } catch (error) {
       console.error('Error rolling dice:', error);

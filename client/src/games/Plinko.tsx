@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { Settings, BarChart3 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import gsap from 'gsap';
 
 // Game constants
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
@@ -173,7 +174,7 @@ const PlinkoGame: React.FC = () => {
     ctx.fill();
   };
   
-  // Animate ball drop
+  // Animate ball drop using GSAP for smoother physics
   const animateBallDrop = async () => {
     const ctx = canvasCtxRef.current;
     if (!ctx) return null;
@@ -182,81 +183,114 @@ const PlinkoGame: React.FC = () => {
     const randomSeed = await getGameResult();
     const path = generateBallPath(randomSeed);
     
-    // Ball object
+    // Ball object properties
     const ballSize = 12;
-    let currentIndex = 0;
-    let isDone = false;
+    const ballRadius = ballSize / 2;
+    const ballData = { 
+      currentPosition: { x: path[0].x, y: path[0].y },
+      index: 0,
+      isDone: false
+    };
+
+    // Physics settings
+    const gravity = 0.3;
+    const bounciness = 0.7;
+    const damping = 0.95;
     
-    // Animation loop
+    // Ball object for GSAP animation
+    const ball = {
+      x: path[0].x,
+      y: path[0].y,
+      vx: 0,
+      vy: 0
+    };
+    
+    // Create a timeline for the ball animation
+    const tl = gsap.timeline({ 
+      onComplete: () => {
+        ballData.isDone = true;
+      } 
+    });
+    
+    // Animation loop with requestAnimationFrame for smooth rendering
     const animate = () => {
-      // Clear previous render
+      // Clear and redraw gameboard
       drawGameBoard();
       
-      // If we've reached the end, find bucket
-      if (currentIndex >= path.length - 1) {
-        isDone = true;
-        
-        // Calculate winning multiplier bucket
-        const finalPosition = path[path.length - 1];
-        const bucketWidth = width / multipliers.length;
-        const bucketIndex = Math.floor(finalPosition.x / bucketWidth);
-        const bucketMultiplier = multipliers[bucketIndex];
-        
-        // Draw ball in final position with glow
-        ctx.shadowColor = 'rgba(255, 140, 0, 0.8)';
-        ctx.shadowBlur = 15;
-        ctx.beginPath();
-        ctx.arc(
-          finalPosition.x, 
-          finalPosition.y, 
-          ballSize / 2, 
-          0, 
-          Math.PI * 2
-        );
-        ctx.fillStyle = '#ff6f03';
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        return bucketMultiplier;
-      }
-      
-      // Get current position
-      const pos = path[currentIndex];
-      
-      // Draw ball
+      // Draw the ball at current position
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, ballSize / 2, 0, Math.PI * 2);
+      ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
       ctx.fillStyle = '#ff6f03';
       ctx.fill();
       
-      // Move to next point
-      currentIndex++;
+      // Add a subtle glow effect
+      ctx.shadowColor = 'rgba(255, 111, 3, 0.5)';
+      ctx.shadowBlur = 5;
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff9340';
+      ctx.fill();
+      ctx.shadowBlur = 0;
       
-      // Continue animation if not done
-      if (!isDone) {
-        setTimeout(() => {
-          animationFrameRef.current = requestAnimationFrame(animate);
-        }, 100);
+      if (!ballData.isDone) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        // Final position with bigger glow
+        ctx.shadowColor = 'rgba(255, 140, 0, 0.8)';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#ff6f03';
+        ctx.fill();
+        ctx.shadowBlur = 0;
       }
     };
     
-    // Start animation
+    // Start the animation loop
     animate();
     
-    // Wait for animation to complete and get result
+    // Create GSAP animations to move through all path points
+    for (let i = 1; i < path.length; i++) {
+      const point = path[i];
+      const prevPoint = path[i-1];
+      
+      // Calculate distance and apply physics
+      const distance = Math.sqrt(
+        Math.pow(point.x - prevPoint.x, 2) + 
+        Math.pow(point.y - prevPoint.y, 2)
+      );
+      
+      // Time depends on distance, longer distances take more time
+      const time = Math.min(0.3, distance / 200);
+      
+      // Physics-based easing
+      const ease = i === path.length - 1 
+        ? "bounce.out" // Bounce when landing in final bucket
+        : "power1.in"; // Accelerate due to gravity between pins
+      
+      // Add animation segment
+      tl.to(ball, {
+        x: point.x,
+        y: point.y,
+        duration: time,
+        ease: ease,
+      });
+    }
+    
+    // Wait for animation to complete and return result
     return new Promise<number>(resolve => {
       const checkCompletion = () => {
-        if (isDone) {
+        if (ballData.isDone) {
           const bucketWidth = width / multipliers.length;
           const finalPosition = path[path.length - 1];
           const bucketIndex = Math.floor(finalPosition.x / bucketWidth);
           resolve(multipliers[bucketIndex]);
         } else {
-          setTimeout(checkCompletion, 100);
+          setTimeout(checkCompletion, 50);
         }
       };
       
-      setTimeout(checkCompletion, 100);
+      setTimeout(checkCompletion, 50);
     });
   };
   

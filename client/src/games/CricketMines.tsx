@@ -149,7 +149,7 @@ const CricketMinesGame = () => {
       clientSeed: Math.random().toString(36).substring(2, 15),
       options: { outCount },
       currency: 'INR'
-    }).then(response => {
+    }).then(async (response) => {
       if (!response || !response.betId) {
         throw new Error("Invalid response from server");
       }
