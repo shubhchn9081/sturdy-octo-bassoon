@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { useCallback } from 'react';
+import { useBalance } from '@/hooks/use-balance';
+import { SupportedCurrency } from '@/context/CurrencyContext'; 
 
 // Game state types
 export type GameState = 'waiting' | 'running' | 'crashed' | 'cashed_out';
@@ -15,6 +17,7 @@ interface Bet {
   cashoutMultiplier?: number;
   profit?: number;
   isHidden?: boolean;
+  betId?: number; // Server-side bet ID
 }
 
 interface HistoryItem {
@@ -39,12 +42,14 @@ interface CrashStore {
   autoCashoutValue: number | null;
   activeBets: Bet[];
   gameHistory: HistoryItem[];
+  currency: SupportedCurrency;
   
   // Actions
   placeBet: () => void;
   cashOut: () => void;
   setBetAmount: (amount: number) => void;
   setAutoCashoutValue: (value: number | null) => void;
+  setCurrency: (currency: SupportedCurrency) => void;
   resetGame: () => void;
   startGame: () => void;
 }
@@ -164,10 +169,11 @@ export const useCrashStore = create<CrashStore>((set, get) => {
     autoCashoutValue: null,
     activeBets: createInitialBets(),
     gameHistory: [],
+    currency: 'BTC' as SupportedCurrency,
     
     // Actions
     placeBet: () => {
-      const { gameState, betAmount } = get();
+      const { gameState, betAmount, currency } = get();
       
       if (gameState !== 'waiting') {
         return;
@@ -178,19 +184,74 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         return;
       }
       
-      // Add player bet to active bets
-      const newBet: Bet = {
-        id: Date.now(),
-        username: "Player",
-        amount: betAmount,
-        isPlayer: true,
-        status: 'active'
+      // Generate a random client seed
+      const generateClientSeed = () => {
+        return Math.random().toString(36).substring(2, 15);
       };
       
-      set(state => ({
-        hasPlacedBet: true,
-        activeBets: [newBet, ...state.activeBets]
-      }));
+      // Create a clientSeed for provably fair gaming
+      const clientSeed = generateClientSeed();
+      
+      // Get the game ID for Crash (should be 1 based on the schema)
+      const gameId = 1;
+      
+      try {
+        // Use the placeBet API function
+        const balance = window.placeBetFunction;
+        if (balance && typeof balance.placeBet === 'function') {
+          // Use the placeBet mutation from the balance hook
+          balance.placeBet.mutate({
+            gameId,
+            amount: betAmount,
+            clientSeed,
+            currency,
+            options: {
+              autoExit: get().autoCashoutValue
+            }
+          }, {
+            onSuccess: (response) => {
+              console.log("Bet placed successfully with ID:", response.betId);
+              
+              // Add player bet to active bets with the server betId
+              const newBet: Bet = {
+                id: Date.now(),
+                username: "Player",
+                amount: betAmount,
+                isPlayer: true,
+                status: 'active',
+                betId: response.betId
+              };
+              
+              set(state => ({
+                hasPlacedBet: true,
+                activeBets: [newBet, ...state.activeBets]
+              }));
+            },
+            onError: (error) => {
+              console.error("Error placing bet:", error);
+            }
+          });
+        } else {
+          // If the global balance object isn't available, use a fallback approach
+          // Add player bet to active bets
+          const newBet: Bet = {
+            id: Date.now(),
+            username: "Player",
+            amount: betAmount,
+            isPlayer: true,
+            status: 'active'
+          };
+          
+          set(state => ({
+            hasPlacedBet: true,
+            activeBets: [newBet, ...state.activeBets]
+          }));
+          
+          console.warn("Using fallback bet placement - wallet integration may not work");
+        }
+      } catch (error) {
+        console.error("Error in placeBet:", error);
+      }
     },
     
     cashOut: () => {
@@ -200,23 +261,91 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         return;
       }
       
-      // Update player's bet
-      const updatedBets = activeBets.map(bet => {
-        if (bet.isPlayer) {
-          return {
-            ...bet,
-            status: 'won' as BetStatus,
-            cashoutMultiplier: currentMultiplier,
-            profit: bet.amount * currentMultiplier
-          };
-        }
-        return bet;
-      });
+      // Find the player bet with server betId
+      const playerBet = activeBets.find(bet => bet.isPlayer);
       
-      set({
-        activeBets: updatedBets,
-        hasCashedOut: true
-      });
+      if (playerBet && playerBet.betId) {
+        try {
+          // Use the completeBet API function
+          const balance = window.completeBetFunction;
+          if (balance && typeof balance.completeBet === 'function') {
+            // Use the completeBet mutation from the balance hook
+            balance.completeBet.mutate({
+              betId: playerBet.betId,
+              outcome: {
+                win: true,
+                multiplier: currentMultiplier
+              }
+            }, {
+              onSuccess: (response) => {
+                console.log("Bet completed successfully");
+                
+                // Update player's bet
+                const updatedBets = activeBets.map(bet => {
+                  if (bet.isPlayer) {
+                    return {
+                      ...bet,
+                      status: 'won' as BetStatus,
+                      cashoutMultiplier: currentMultiplier,
+                      profit: bet.amount * currentMultiplier
+                    };
+                  }
+                  return bet;
+                });
+                
+                set({
+                  activeBets: updatedBets,
+                  hasCashedOut: true
+                });
+              },
+              onError: (error) => {
+                console.error("Error completing bet:", error);
+              }
+            });
+          } else {
+            // If the global balance object isn't available, use a fallback approach
+            // Update player's bet locally without API integration
+            const updatedBets = activeBets.map(bet => {
+              if (bet.isPlayer) {
+                return {
+                  ...bet,
+                  status: 'won' as BetStatus,
+                  cashoutMultiplier: currentMultiplier,
+                  profit: bet.amount * currentMultiplier
+                };
+              }
+              return bet;
+            });
+            
+            set({
+              activeBets: updatedBets,
+              hasCashedOut: true
+            });
+            
+            console.warn("Using fallback cashout - wallet integration may not work");
+          }
+        } catch (error) {
+          console.error("Error in cashOut:", error);
+        }
+      } else {
+        // If no server betId is available, just update the UI
+        const updatedBets = activeBets.map(bet => {
+          if (bet.isPlayer) {
+            return {
+              ...bet,
+              status: 'won' as BetStatus,
+              cashoutMultiplier: currentMultiplier,
+              profit: bet.amount * currentMultiplier
+            };
+          }
+          return bet;
+        });
+        
+        set({
+          activeBets: updatedBets,
+          hasCashedOut: true
+        });
+      }
     },
     
     setBetAmount: (amount: number) => {
