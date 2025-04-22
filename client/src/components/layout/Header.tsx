@@ -74,6 +74,14 @@ const Header = () => {
           <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
             <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10 md:h-16" />
           </div>
+          
+          {isSignedIn && (
+            <div className="md:hidden ml-2 bg-[#1C2C39] rounded text-xs cursor-pointer" onClick={() => setLocation('/wallet')}>
+              <span className="text-white px-2 py-1 font-mono">
+                {activeCurrency === 'INR' ? `₹${parseFloat(balance).toFixed(2)}` : balance}
+              </span>
+            </div>
+          )}
         </div>
         
         <div className="flex items-center space-x-4">
@@ -194,6 +202,16 @@ const Header = () => {
       
       {showMobileMenu && (
         <div className="md:hidden bg-[#0F212E] border-t border-[#172B3A] p-3">
+          {isSignedIn && (
+            <div className="flex items-center bg-[#1C2C39] rounded text-xs mb-3 cursor-pointer" onClick={() => setLocation('/wallet')}>
+              <span className="text-white px-2 py-2 font-mono flex-1">
+                {activeCurrency === 'INR' ? `₹${parseFloat(balance).toFixed(2)}` : balance}
+              </span>
+              <div className="border-l border-[#0B131C] pl-2 py-2 pr-2 flex items-center">
+                <CurrencySwitcher variant="header" currencies={['BTC', 'USD', 'INR']} />
+              </div>
+            </div>
+          )}
           <div className="relative mb-3">
             <Input 
               placeholder="Search games..." 
