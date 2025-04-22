@@ -31,7 +31,12 @@ interface GameStateType {
 
 const MinesGame = () => {
   const { getGameResult } = useProvablyFair('mines');
-  const { balance, placeBet } = useBalance();
+  const { useCurrency } = require('@/context/CurrencyContext');
+  const { activeCurrency } = useCurrency();
+  const { balance, rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
+  const { updateUserBalance } = require('@/context/UserContext').useAuth();
+  const [currBetId, setCurrBetId] = useState<number | null>(null);
+  const { toast } = require('@/hooks/use-toast');
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
   const [betAmountStr, setBetAmountStr] = useState('0.00000001');
@@ -103,39 +108,73 @@ const MinesGame = () => {
   }
   
   // Start a new game
-  const startGame = () => {
+  const startGame = async () => {
     if (gameState && !gameState.isGameOver) return;
     
     const betAmount = parseFloat(betAmountStr) || 0.00000001;
+    
+    // Check if user has enough balance
+    if (betAmount > rawBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough funds to place this bet.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Generate mine positions
     const minePositions = generateMinePositions(mineCount);
     
-    // Create new game state
-    const newGameState: GameStateType = {
-      betAmount,
-      numberOfMines: mineCount,
-      minePositions,
-      revealed: Array(TOTAL_CELLS).fill(false),
-      isGameOver: false,
-      isWon: false,
-      diamondsCollected: 0,
-      multiplier: 1,
-    };
-    
-    setGameState(newGameState);
-    setTiles(Array(TOTAL_CELLS).fill('hidden'));
-    setSelectedTile(null);
-    
-    // In a real app, this would call the API to place a bet
-    // const response = await placeBet.mutateAsync({
-    //   amount: betAmount,
-    //   gameId: 2, // Mines game id
-    //   clientSeed: 'seed',
-    //   options: { mineCount }
-    // });
+    try {
+      // Deduct bet amount from balance
+      await updateUserBalance(activeCurrency, -betAmount);
+      
+      // Create new game state
+      const newGameState: GameStateType = {
+        betAmount,
+        numberOfMines: mineCount,
+        minePositions,
+        revealed: Array(TOTAL_CELLS).fill(false),
+        isGameOver: false,
+        isWon: false,
+        diamondsCollected: 0,
+        multiplier: 1,
+      };
+      
+      setGameState(newGameState);
+      setTiles(Array(TOTAL_CELLS).fill('hidden'));
+      setSelectedTile(null);
+      
+      // In a real app with backend integration:
+      // try {
+      //   const response = await placeBet.mutateAsync({
+      //     amount: betAmount,
+      //     gameId: 2, // Mines game id
+      //     clientSeed: 'seed',
+      //     options: { mineCount }
+      //   });
+      //   setCurrBetId(response.id);
+      // } catch (error) {
+      //   console.error('Error placing bet:', error);
+      //   toast({
+      //     title: "Bet Failed",
+      //     description: "Failed to place your bet. Please try again.",
+      //     variant: "destructive"
+      //   });
+      // }
+    } catch (error) {
+      console.error('Error updating balance:', error);
+      toast({
+        title: "Balance Update Failed",
+        description: "Failed to update your balance. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Reveal a cell
-  const revealCell = (cellIndex: number) => {
+  const revealCell = async (cellIndex: number) => {
     if (!gameState || gameState.isGameOver || gameState.revealed[cellIndex]) return;
     
     // Create copy of current game state
@@ -166,6 +205,14 @@ const MinesGame = () => {
       }
       
       setTiles(newTiles);
+      
+      // Show loss message
+      toast({
+        title: "Game Over",
+        description: "You hit a mine! Better luck next time.",
+        variant: "destructive"
+      });
+      
     } else {
       // Clicked on a diamond
       updatedGameState.diamondsCollected++;
@@ -179,16 +226,32 @@ const MinesGame = () => {
       newTiles[cellIndex] = 'revealed';
       setTiles(newTiles);
       
-      // Check if all diamonds are collected
+      // Check if all diamonds are collected (auto cashout)
       if (updatedGameState.diamondsCollected === TOTAL_CELLS - updatedGameState.numberOfMines) {
         updatedGameState.isGameOver = true;
         updatedGameState.isWon = true;
+        
+        try {
+          // Calculate the profit
+          const profit = calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
+          
+          // Add the winnings to the user's balance
+          await updateUserBalance(activeCurrency, profit);
+          
+          toast({
+            title: "All Gems Collected!",
+            description: `You won ${profit.toFixed(8)} ${activeCurrency}!`,
+            variant: "default"
+          });
+        } catch (error) {
+          console.error('Error updating balance after all gems collected:', error);
+        }
       }
     }
     
     setGameState(updatedGameState);
     
-    // In a real app, this would call the API to complete the bet
+    // In a real app with backend integration:
     // if (updatedGameState.isGameOver) {
     //   completeBet.mutate({
     //     betId: currBetId!,
@@ -230,7 +293,7 @@ const MinesGame = () => {
   };
   
   // Cash out and end the game
-  const cashout = () => {
+  const cashout = async () => {
     if (!gameState || gameState.isGameOver || gameState.diamondsCollected === 0) return;
     
     // Create copy of current game state
@@ -238,35 +301,60 @@ const MinesGame = () => {
     updatedGameState.isGameOver = true;
     updatedGameState.isWon = true;
     
-    // Reveal all tiles for visual effect
-    const newTiles = [...tiles];
+    // Calculate the profit
+    const profit = calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
     
-    // Reveal all mines
-    gameState.minePositions.forEach(pos => {
-      newTiles[pos] = 'mine';
-    });
-    
-    // Reveal all gems that weren't clicked
-    for (let i = 0; i < TOTAL_CELLS; i++) {
-      if (!gameState.minePositions.includes(i) && !gameState.revealed[i]) {
-        newTiles[i] = 'gem';
+    try {
+      // Add the winnings to the user's balance
+      await updateUserBalance(activeCurrency, profit);
+      
+      toast({
+        title: "Win!",
+        description: `You won ${profit.toFixed(8)} ${activeCurrency}!`,
+        variant: "default"
+      });
+      
+      // Reveal all tiles for visual effect
+      const newTiles = [...tiles];
+      
+      // Reveal all mines
+      gameState.minePositions.forEach(pos => {
+        newTiles[pos] = 'mine';
+      });
+      
+      // Reveal all gems that weren't clicked
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        if (!gameState.minePositions.includes(i) && !gameState.revealed[i]) {
+          newTiles[i] = 'gem';
+        }
       }
+      
+      setTiles(newTiles);
+      setGameState(updatedGameState);
+      
+      // In a real app with backend integration:
+      // try {
+      //   completeBet.mutate({
+      //     betId: currBetId!,
+      //     outcome: { 
+      //       minePositions: updatedGameState.minePositions, 
+      //       revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
+      //       win: true 
+      //     }
+      //   });
+      // } catch (error) {
+      //   console.error('Error completing bet:', error);
+      // }
+      
+      return profit;
+    } catch (error) {
+      console.error('Error updating balance after cashout:', error);
+      toast({
+        title: "Cashout Failed",
+        description: "Failed to update your balance. Please try again.",
+        variant: "destructive"
+      });
     }
-    
-    setTiles(newTiles);
-    setGameState(updatedGameState);
-    
-    // In a real app, this would call the API to complete the bet
-    // completeBet.mutate({
-    //   betId: currBetId!,
-    //   outcome: { 
-    //     minePositions: updatedGameState.minePositions, 
-    //     revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
-    //     win: true 
-    //   }
-    // });
-    
-    return calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
   };
 
   const renderManualControls = () => (
