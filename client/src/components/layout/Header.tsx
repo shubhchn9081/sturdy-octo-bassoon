@@ -80,7 +80,9 @@ const Header = () => {
           <div className="hidden md:block">
             {isSignedIn && (
               <div className="flex items-center bg-[#1C2C39] rounded text-xs relative cursor-pointer" onClick={() => setLocation('/wallet')}>
-                <span className="text-white px-2 py-1.5 font-mono">{balance}</span>
+                <span className="text-white px-2 py-1.5 font-mono">
+                  {activeCurrency === 'INR' ? `₹${parseFloat(balance).toFixed(2)}` : balance}
+                </span>
                 {/* Removed the first chevron down icon */}
                 <div className="border-l border-[#0B131C] pl-2 py-1.5 pr-2 flex items-center">
                   <CurrencySwitcher variant="header" currencies={['BTC', 'USD', 'INR']} />
@@ -131,7 +133,9 @@ const Header = () => {
                           Guest
                         </p>
                         <p className="text-xs leading-4 text-[#7F8990] mt-1">
-                          {balance} {activeCurrency}
+                          {activeCurrency === 'INR' 
+                            ? `₹${parseFloat(balance).toFixed(2)} ${activeCurrency}` 
+                            : `${balance} ${activeCurrency}`}
                         </p>
                       </div>
                       
