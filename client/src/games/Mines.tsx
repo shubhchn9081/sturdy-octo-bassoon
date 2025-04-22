@@ -6,6 +6,9 @@ import { useBalance } from '@/hooks/use-balance';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { useCurrency } from '@/context/CurrencyContext';
+import { useAuth } from '@/context/UserContext';
+import { toast } from '@/hooks/use-toast';
 
 // Import SVG components for Gems and Bombs
 import { BombImage, DiamondImage, DarkerDiamondImage } from '@/assets/minesSvgComponents';
@@ -31,12 +34,10 @@ interface GameStateType {
 
 const MinesGame = () => {
   const { getGameResult } = useProvablyFair('mines');
-  const { useCurrency } = require('@/context/CurrencyContext');
   const { activeCurrency } = useCurrency();
+  const { updateUserBalance } = useAuth();
   const { balance, rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
-  const { updateUserBalance } = require('@/context/UserContext').useAuth();
   const [currBetId, setCurrBetId] = useState<number | null>(null);
-  const { toast } = require('@/hooks/use-toast');
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
   const [betAmountStr, setBetAmountStr] = useState('0.00000001');
@@ -88,12 +89,14 @@ const MinesGame = () => {
       return result(TOTAL_CELLS, numberOfMines);
     } else {
       // Fallback to simple random algorithm
-      const positions = new Set<number>();
-      while (positions.size < numberOfMines) {
+      const positions: number[] = [];
+      while (positions.length < numberOfMines) {
         const randomPos = Math.floor(Math.random() * TOTAL_CELLS);
-        positions.add(randomPos);
+        if (!positions.includes(randomPos)) {
+          positions.push(randomPos);
+        }
       }
-      return [...positions];
+      return positions;
     }
   }
 
@@ -368,7 +371,7 @@ const MinesGame = () => {
             value={betAmountStr}
             onChange={(e) => handleBetAmountChange(e.target.value)}
             className="bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px]"
-            disabled={gameState && !gameState.isGameOver}
+            disabled={gameState ? !gameState.isGameOver : false}
             style={{ padding: '10px', fontSize: '14px', width: '100%' }}
           />
           <Button 
@@ -376,7 +379,7 @@ const MinesGame = () => {
             variant="outline" 
             size="sm" 
             className="bg-transparent border-[#333] text-white h-10 px-2 rounded-[6px]"
-            disabled={gameState && !gameState.isGameOver}
+            disabled={gameState ? !gameState.isGameOver : false}
           >
             ½
           </Button>
@@ -385,7 +388,7 @@ const MinesGame = () => {
             variant="outline" 
             size="sm" 
             className="bg-transparent border-[#333] text-white h-10 px-2 rounded-[6px]"
-            disabled={gameState && !gameState.isGameOver}
+            disabled={gameState ? !gameState.isGameOver : false}
           >
             2×
           </Button>
@@ -398,7 +401,7 @@ const MinesGame = () => {
           <Select 
             value={mineCount.toString()} 
             onValueChange={handleMineCountChange}
-            disabled={gameState && !gameState.isGameOver}
+            disabled={gameState ? !gameState.isGameOver : false}
           >
             <SelectTrigger className="w-full bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px]" style={{ padding: '10px', fontSize: '14px' }}>
               <SelectValue placeholder="Select" />
@@ -456,7 +459,7 @@ const MinesGame = () => {
         <Button 
           className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
           onClick={startGame}
-          disabled={gameState && !gameState.isGameOver}
+          disabled={gameState ? !gameState.isGameOver : false}
         >
           Bet
         </Button>
@@ -598,47 +601,36 @@ const MinesGame = () => {
     <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Game Area - On mobile, this appears first */}
       <div className="flex-1 overflow-auto order-first mb-4">
-        <div className="w-full h-full flex items-center justify-center p-2">
-          <div ref={gridWrapperRef} className="grid-wrapper flex items-center justify-center max-w-full">
-            {/* Game grid */}
-            {renderGameGrid()}
-          </div>
+        <div ref={gridWrapperRef} className="flex items-center justify-center w-full h-full">
+          {renderGameGrid()}
         </div>
       </div>
       
       {/* Side Panel - On mobile, this appears second (below) */}
       <div className="w-full p-2 bg-[#172B3A] border-t lg:border-t-0 lg:border-r border-[#243442]/50 order-last lg:order-first lg:w-[280px]">
-        <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
-          <TabsList className="w-full grid grid-cols-2 bg-[#0F212E] mb-2 h-8 overflow-hidden rounded-md p-0">
-            <TabsTrigger 
-              value="manual" 
-              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
-            >
-              Manual
-            </TabsTrigger>
-            <TabsTrigger 
-              value="auto" 
-              className="h-full rounded-none data-[state=active]:bg-[#172B3A] data-[state=active]:text-white"
-            >
-              Auto
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="manual" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
+        <div className="p-4 bg-[#131F29] rounded-[10px]">
+          <Tabs defaultValue="manual" className="w-full" onValueChange={(v) => setGameMode(v as GameMode)}>
+            <TabsList className="mb-6 grid w-full grid-cols-2 gap-2 bg-transparent">
+              <TabsTrigger 
+                value="manual" 
+                className="bg-[#1c1c2b] hover:bg-[#2f2f3d] data-[state=active]:bg-[#2f2f3d] data-[state=active]:shadow-none rounded-[6px] border border-[#333] data-[state=active]:border-[#4a4a5e]">
+                Manual
+              </TabsTrigger>
+              <TabsTrigger 
+                value="auto" 
+                className="bg-[#1c1c2b] hover:bg-[#2f2f3d] data-[state=active]:bg-[#2f2f3d] data-[state=active]:shadow-none rounded-[6px] border border-[#333] data-[state=active]:border-[#4a4a5e]">
+                Auto
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="manual">
               {renderManualControls()}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="auto" className="mt-0">
-            <div className="controls bg-[#1c1c2b] p-3 rounded-[10px]">
+            </TabsContent>
+            <TabsContent value="auto">
               {renderAutoControls()}
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-      
-      {/* On larger screens, revert to side-by-side layout using Tailwind's responsive variants */}
     </div>
   );
 };
