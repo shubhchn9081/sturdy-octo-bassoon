@@ -364,14 +364,13 @@ const MinesGame = () => {
     <div className="space-y-4">
       <div>
         <div className="text-xs text-[#546D7A] mb-1">Bet Amount</div>
-        <div className="mb-1 text-sm px-3 py-2 text-right bg-[#1c1c2b] border border-[#333] rounded-[6px]">$0.00</div>
         <div className="flex items-center space-x-1 mb-2">
           <Input
             type="text"
             value={betAmountStr}
             onChange={(e) => handleBetAmountChange(e.target.value)}
             className="bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px]"
-            disabled={gameState && !gameState.isGameOver}
+            disabled={!!gameState && !gameState.isGameOver}
             style={{ padding: '10px', fontSize: '14px', width: '100%' }}
           />
           <Button 
@@ -379,7 +378,7 @@ const MinesGame = () => {
             variant="outline" 
             size="sm" 
             className="bg-transparent border-[#333] text-white h-10 px-2 rounded-[6px]"
-            disabled={gameState && !gameState.isGameOver}
+            disabled={!!gameState && !gameState.isGameOver}
           >
             ½
           </Button>
@@ -388,7 +387,7 @@ const MinesGame = () => {
             variant="outline" 
             size="sm" 
             className="bg-transparent border-[#333] text-white h-10 px-2 rounded-[6px]"
-            disabled={gameState && !gameState.isGameOver}
+            disabled={!!gameState && !gameState.isGameOver}
           >
             2×
           </Button>
@@ -401,7 +400,7 @@ const MinesGame = () => {
           <Select 
             value={mineCount.toString()} 
             onValueChange={handleMineCountChange}
-            disabled={gameState && !gameState.isGameOver}
+            disabled={!!gameState && !gameState.isGameOver}
           >
             <SelectTrigger className="w-full bg-[#1c1c2b] border border-[#333] text-white h-10 text-sm rounded-[6px]" style={{ padding: '10px', fontSize: '14px' }}>
               <SelectValue placeholder="Select" />
@@ -459,7 +458,7 @@ const MinesGame = () => {
         <Button 
           className="w-full bg-[#00ff5a] hover:bg-[#00e050] text-black font-bold h-12 rounded-[6px] transition-all duration-200"
           onClick={startGame}
-          disabled={gameState && !gameState.isGameOver}
+          disabled={!!gameState && !gameState.isGameOver}
         >
           Bet
         </Button>
