@@ -61,7 +61,22 @@ const MinesGame = () => {
   
   const handleBetAmountChange = (value: string) => {
     if (gameState && !gameState.isGameOver) return;
-    setBetAmountStr(value);
+    
+    // Allow empty input for easier editing
+    if (value === '') {
+      setBetAmountStr('');
+      return;
+    }
+    
+    // Only allow valid numeric inputs
+    // Replace commas with periods for internationalization
+    const sanitizedValue = value.replace(',', '.');
+    
+    // Only allow numbers with up to 8 decimal places
+    const regex = /^[0-9]*\.?[0-9]{0,8}$/;
+    if (regex.test(sanitizedValue)) {
+      setBetAmountStr(sanitizedValue);
+    }
   };
   
   const handleHalfBet = () => {
