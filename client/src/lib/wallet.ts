@@ -4,7 +4,7 @@ import { SupportedCurrency } from '@/context/CurrencyContext';
 
 // Types
 export interface WalletBalance {
-  INR: number;
+  balance: number;
 }
 
 export interface TransactionHistory {

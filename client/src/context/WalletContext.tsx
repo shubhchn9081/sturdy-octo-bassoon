@@ -21,7 +21,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 // Provider component
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Get user auth context to check authentication status
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   // Use our custom wallet hook to fetch balance
@@ -36,7 +36,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const currency: SupportedCurrency = 'INR';
   
   // Get balance value or default to 0
-  const balance = walletData?.balance || 0;
+  const balance = walletData ? walletData.balance : 0;
+  
+  // Check if user is authenticated
+  const isAuthenticated = !!user;
   
   // Format the balance for display
   const formattedBalance = formatWalletAmount(balance, currency);

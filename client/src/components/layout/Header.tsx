@@ -29,6 +29,7 @@ import { useUser } from '@/context/UserContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/use-auth';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useWallet } from '@/context/WalletContext';
 import { useBalance } from '@/hooks/use-balance';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
 // Currency switcher removed as we only support INR now
@@ -40,7 +41,16 @@ const Header = () => {
   const isLoaded = !isLoading;
   const { collapsed, toggleSidebar } = useSidebar();
   const { activeCurrency } = useCurrency();
-  const { balance = "0.00", rawBalance = 0 } = useBalance(activeCurrency);
+  
+  // Using the new wallet context instead of useBalance
+  const { balance: walletBalance, formattedBalance, symbol } = useWallet();
+  
+  // Keeping useBalance for backward compatibility
+  const { balance: oldBalance = "0.00", rawBalance = 0 } = useBalance(activeCurrency);
+  
+  // Use new wallet balance but fallback to old system if needed
+  const balance = formattedBalance || oldBalance;
+  
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -78,7 +88,7 @@ const Header = () => {
           {isSignedIn && (
             <div className="md:hidden ml-2 bg-[#1C2C39] rounded text-xs cursor-pointer" onClick={() => setLocation('/wallet')}>
               <span className="text-white px-2 py-1 font-mono">
-                {activeCurrency === 'INR' ? `₹${parseFloat(balance).toFixed(2)}` : balance}
+                {symbol}{balance}
               </span>
             </div>
           )}
@@ -89,7 +99,7 @@ const Header = () => {
             {isSignedIn && (
               <div className="flex items-center bg-[#1C2C39] rounded text-xs relative cursor-pointer" onClick={() => setLocation('/wallet')}>
                 <span className="text-white px-2 py-1.5 font-mono">
-                  {activeCurrency === 'INR' ? `₹${parseFloat(balance).toFixed(2)}` : balance}
+                  {symbol}{balance}
                 </span>
                 {/* Removed the first chevron down icon */}
                 <div className="border-l border-[#0B131C] pl-2 py-1.5 pr-2 flex items-center">
@@ -141,9 +151,7 @@ const Header = () => {
                           Guest
                         </p>
                         <p className="text-xs leading-4 text-[#7F8990] mt-1">
-                          {activeCurrency === 'INR' 
-                            ? `₹${parseFloat(balance).toFixed(2)} ${activeCurrency}` 
-                            : `${balance} ${activeCurrency}`}
+                          {symbol}{balance} INR
                         </p>
                       </div>
                       
@@ -205,7 +213,7 @@ const Header = () => {
           {isSignedIn && (
             <div className="flex items-center bg-[#1C2C39] rounded text-xs mb-3 cursor-pointer" onClick={() => setLocation('/wallet')}>
               <span className="text-white px-2 py-2 font-mono flex-1">
-                {activeCurrency === 'INR' ? `₹${parseFloat(balance).toFixed(2)}` : balance}
+                {symbol}{balance}
               </span>
               <div className="border-l border-[#0B131C] pl-2 py-2 pr-2 flex items-center">
                 <span className="text-gray-400 text-xs ml-1">INR</span>
