@@ -32,7 +32,8 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserBalance(id: number, amount: number): Promise<User | undefined>;
+  updateUserBalance(id: number, amount: number, currency?: string): Promise<User | undefined>;
+  setUserBalance(id: number, exactAmount: number, currency?: string): Promise<User | undefined>;
   
   // Game methods
   getGame(id: number): Promise<Game | undefined>;
@@ -60,7 +61,6 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserAdmin(id: number, isAdmin: boolean): Promise<User | undefined>;
   updateUserBanned(id: number, isBanned: boolean): Promise<User | undefined>;
-  setUserBalance(id: number, exactAmount: number, currency?: string): Promise<User | undefined>;
   updateAdminStatus(id: number, isAdmin: boolean): Promise<User | undefined>;
   
   // Game settings methods
@@ -238,7 +238,7 @@ export class MemStorage implements IStorage {
     return user;
   }
   
-  async updateUserBalance(id: number, amount: number): Promise<User | undefined> {
+  async updateUserBalance(id: number, amount: number, currency: string = 'INR'): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
     
@@ -246,26 +246,34 @@ export class MemStorage implements IStorage {
     let updatedBalance: any;
     
     if (typeof user.balance === 'number') {
-      // Handle numeric balance
-      let newBalance = user.balance + amount;
-      if (newBalance < 0) newBalance = 0; // Don't allow negative balances
-      updatedBalance = newBalance;
-      
+      // Handle numeric balance (legacy format, treated as INR only)
+      if (currency === 'INR') {
+        let newBalance = user.balance + amount;
+        if (newBalance < 0) newBalance = 0; // Don't allow negative balances
+        updatedBalance = newBalance;
+      } else {
+        // Converting from numeric to JSONB format for adding a new currency
+        updatedBalance = {
+          INR: user.balance,
+          [currency]: Math.max(0, amount) // Don't allow negative values
+        };
+      }
     } else if (typeof user.balance === 'object' && user.balance !== null) {
       // Handle JSONB object balance (with multiple currencies)
       const currentBalance = user.balance as Record<string, number>;
       
-      // Update INR balance (default currency for all games)
-      const currentINR = currentBalance.INR || 0;
-      let newINR = currentINR + amount;
-      if (newINR < 0) newINR = 0; // Don't allow negative balances
+      // Get current amount for the specified currency (default to 0 if not found)
+      const currentAmount = currentBalance[currency] || 0;
       
-      // Create new balance object with updated INR
-      updatedBalance = { ...currentBalance, INR: newINR };
+      // Calculate new amount (ensure it's not negative)
+      let newAmount = currentAmount + amount;
+      if (newAmount < 0) newAmount = 0;
       
+      // Create new balance object with updated currency amount
+      updatedBalance = { ...currentBalance, [currency]: newAmount };
     } else {
       // Handle unexpected balance format (create a new balance object)
-      updatedBalance = { INR: Math.max(0, amount) };
+      updatedBalance = { [currency]: Math.max(0, amount) };
     }
     
     // Update the user record with the new balance
@@ -393,17 +401,34 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
   
-  async setUserBalance(id: number, currency: string, exactAmount: number): Promise<User | undefined> {
+  async setUserBalance(id: number, exactAmount: number, currency: string = 'INR'): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
     
-    // Create a new balance object with the updated currency amount
-    const newBalance = { ...user.balance };
-    if (currency in newBalance) {
-      newBalance[currency] = exactAmount;
+    let updatedBalance: any;
+    
+    if (typeof user.balance === 'number') {
+      // Handle numeric balance (legacy format)
+      if (currency === 'INR') {
+        // If setting INR balance for a numeric balance, just set the value
+        updatedBalance = exactAmount;
+      } else {
+        // Convert to object format with both currencies
+        updatedBalance = {
+          INR: user.balance,
+          [currency]: exactAmount
+        };
+      }
+    } else if (typeof user.balance === 'object' && user.balance !== null) {
+      // Handle JSONB object balance
+      const balanceObj = user.balance as Record<string, number>;
+      updatedBalance = { ...balanceObj, [currency]: exactAmount };
+    } else {
+      // Handle unexpected format, create a new object
+      updatedBalance = { [currency]: exactAmount };
     }
     
-    const updatedUser = { ...user, balance: newBalance };
+    const updatedUser = { ...user, balance: updatedBalance };
     this.users.set(id, updatedUser);
     return updatedUser;
   }
@@ -783,7 +808,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserBalance(id: number, amount: number): Promise<User | undefined> {
+  async updateUserBalance(id: number, amount: number, currency: string = 'INR'): Promise<User | undefined> {
     const user = await this.getUser(id);
     if (!user) return undefined;
     
@@ -791,27 +816,35 @@ export class DatabaseStorage implements IStorage {
     let updatedBalance;
     
     if (typeof user.balance === 'number') {
-      // Handle numeric balance
-      let newBalance = user.balance + amount;
-      if (newBalance < 0) newBalance = 0; // Don't allow negative balances
-      updatedBalance = newBalance;
-      
+      // Handle numeric balance (legacy format, treated as INR only)
+      if (currency === 'INR') {
+        let newBalance = user.balance + amount;
+        if (newBalance < 0) newBalance = 0; // Don't allow negative balances
+        updatedBalance = newBalance;
+      } else {
+        // Converting from numeric to JSONB format for adding a new currency
+        updatedBalance = {
+          INR: user.balance,
+          [currency]: Math.max(0, amount) // Don't allow negative values
+        };
+      }
     } else if (typeof user.balance === 'object' && user.balance !== null) {
       // Handle JSONB object balance (with multiple currencies)
       const currentBalance = { ...user.balance }; // Clone the object
       
-      // Update INR balance (default currency for all games)
-      const currentINR = currentBalance.INR || 0;
-      let newINR = currentINR + amount;
-      if (newINR < 0) newINR = 0; // Don't allow negative balances
+      // Get current amount for the specified currency (default to 0 if not found)
+      const currentAmount = currentBalance[currency] || 0;
       
-      // Update the INR field
-      currentBalance.INR = newINR;
+      // Calculate new amount (ensure it's not negative)
+      let newAmount = currentAmount + amount;
+      if (newAmount < 0) newAmount = 0;
+      
+      // Update the currency field
+      currentBalance[currency] = newAmount;
       updatedBalance = currentBalance;
-      
     } else {
       // Handle unexpected balance format (create a new balance object)
-      updatedBalance = { INR: Math.max(0, amount) };
+      updatedBalance = { [currency]: Math.max(0, amount) };
     }
     
     // Update the user record with the new balance
@@ -845,6 +878,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user || undefined;
+  }
+  
+  async updateAdminStatus(id: number, isAdmin: boolean): Promise<User | undefined> {
+    // This is an alias for updateUserAdmin for backward compatibility
+    return this.updateUserAdmin(id, isAdmin);
   }
   
   async setUserBalance(id: number, exactAmount: number, currency: string = 'INR'): Promise<User | undefined> {

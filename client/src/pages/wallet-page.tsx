@@ -105,10 +105,15 @@ export default function WalletPage() {
                 <>
                   <span className="text-5xl font-bold font-mono mb-1">
                     {balance !== null ? balance.toFixed(2) : 
-                     (typeof user?.balance === 'object' && user?.balance?.INR ? user.balance.INR.toFixed(2) : 
-                     (typeof user?.balance === 'number' ? user.balance.toFixed(2) : "0.00"))}
+                     (user?.balance ? (
+                       typeof user.balance === 'object' ? 
+                         // Handle JSONB object with INR field
+                         (user.balance.INR !== undefined ? Number(user.balance.INR).toFixed(2) : "0.00") :
+                         // Handle numeric balance
+                         (typeof user.balance === 'number' ? user.balance.toFixed(2) : "0.00")
+                     ) : "0.00")}
                   </span>
-                  <span className="text-[#7F8990] text-lg">Credits</span>
+                  <span className="text-[#7F8990] text-lg">INR</span>
                 </>
               )}
             </div>
