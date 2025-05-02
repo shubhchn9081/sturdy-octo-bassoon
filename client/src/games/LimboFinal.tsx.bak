@@ -164,43 +164,6 @@ const LimboFinal: React.FC = () => {
     return Math.random().toString(36).substring(2, 15);
   };
   
-  // Start/stop autobet
-  const toggleAutobet = useCallback(() => {
-    if (autoRunning) {
-      setAutoRunning(false);
-      if (autoBetIntervalRef.current) {
-        clearInterval(autoBetIntervalRef.current);
-        autoBetIntervalRef.current = null;
-      }
-    } else {
-      setAutoRunning(true);
-      
-      // Start with one bet immediately
-      handleAutoBet();
-      
-      // Set up interval for subsequent bets
-      autoBetIntervalRef.current = setInterval(() => {
-        // Stop if we've reached the number of bets
-        if (numberBets > 0 && betHistory.length >= numberBets) {
-          setAutoRunning(false);
-          if (autoBetIntervalRef.current) {
-            clearInterval(autoBetIntervalRef.current);
-            autoBetIntervalRef.current = null;
-          }
-          return;
-        }
-        
-        // Check profit/loss stop conditions
-        // (In a real implementation, this would check actual profit/loss)
-        
-        // If not stopped by conditions, place another bet
-        if (!isAnimating) {
-          handleAutoBet();
-        }
-      }, 2000); // Wait 2 seconds between bets
-    }
-  }, [autoRunning, numberBets, betHistory.length, isAnimating]);
-  
   // Handle single bet (Manual mode)
   const handleManualBet = async () => {
     if (isAnimating) return;
@@ -303,9 +266,42 @@ const LimboFinal: React.FC = () => {
       });
     }
   };
+  
+  // Move toggleAutobet declaration before it's used
+  const toggleAutobet = () => {
+    if (autoRunning) {
+      setAutoRunning(false);
+      if (autoBetIntervalRef.current) {
+        clearInterval(autoBetIntervalRef.current);
+        autoBetIntervalRef.current = null;
+      }
+    } else {
+      setAutoRunning(true);
+      
+      // Start with one bet immediately
+      handleAutoBet();
+      
+      // Set up interval for subsequent bets
+      autoBetIntervalRef.current = setInterval(() => {
+        // Stop if we've reached the number of bets
+        if (numberBets > 0 && betHistory.length >= numberBets) {
+          toggleAutobet();
+          return;
+        }
+        
+        // Check profit/loss stop conditions
+        // (In a real implementation, this would check actual profit/loss)
+        
+        // If not stopped by conditions, place another bet
+        if (!isAnimating) {
+          handleAutoBet();
+        }
+      }, 2000); // Wait 2 seconds between bets
+    }
+  };
 
   // Handle auto betting
-  const handleAutoBet = async () => {
+  const handleAutoBet = useCallback(async () => {
     // Validate bet amount
     if (betAmount <= 0) {
       toast({
@@ -323,10 +319,8 @@ const LimboFinal: React.FC = () => {
         description: "You don't have enough funds to place this bet",
         variant: "destructive"
       });
-      setAutoRunning(false);
-      if (autoBetIntervalRef.current) {
-        clearInterval(autoBetIntervalRef.current);
-        autoBetIntervalRef.current = null;
+      if (autoRunning) {
+        toggleAutobet(); // Stop auto betting
       }
       return;
     }
@@ -408,7 +402,7 @@ const LimboFinal: React.FC = () => {
         variant: "destructive"
       });
     }
-  };
+  }, [betAmount, targetMultiplier, onWinIncrease, onLossIncrease, getGameResult, animateMultiplier, placeGameBet, completeGameBet, refreshBalance, balance, autoRunning, toast]);
   
   // Get color for multiplier based on value
   const getMultiplierColor = () => {
@@ -451,6 +445,7 @@ const LimboFinal: React.FC = () => {
               </div>
             )}
             
+
             {/* Center Multiplier Display */}
             <div className="text-center">
               <div className={`text-9xl font-bold ${getMultiplierColor()}`}>
