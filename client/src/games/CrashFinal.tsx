@@ -482,20 +482,6 @@ const CrashFinal: React.FC = () => {
         
         {/* Game Controls - Side panel on desktop */}
         <div className="flex flex-col w-full md:w-[260px] p-4 bg-[#11232F]">
-          {/* Game Mode Toggle */}
-          <div className="flex rounded-md overflow-hidden mb-4">
-            <button 
-              className={`flex-1 py-2 text-center bg-[#0F212E]`}
-            >
-              Manual
-            </button>
-            <button 
-              className={`flex-1 py-2 text-center bg-[#11232F]`}
-            >
-              Auto
-            </button>
-          </div>
-          
           {/* Wallet Balance */}
           <div className="mb-4 p-2 bg-[#0F212E] rounded-md">
             <div className="flex justify-between items-center">
@@ -504,91 +490,79 @@ const CrashFinal: React.FC = () => {
             </div>
           </div>
           
-          {/* Bet Amount */}
+          {/* Simplified Betting Panel - Mobile Friendly */}
           <div className="mb-4">
-            <label className="block text-sm mb-1">Bet Amount</label>
-            <div className="flex items-center mb-2">
+            {/* Quick Amount Buttons */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {[10, 50, 100, 500, 1000, 2000].map((amount) => (
+                <button 
+                  key={amount}
+                  className={`py-2 px-1 rounded text-center ${
+                    betAmount === amount ? 'bg-[#5BE12C] text-black' : 'bg-[#0F212E] text-white'
+                  }`}
+                  onClick={() => setBetAmount(amount)}
+                  disabled={hasPlacedBet || gameState === 'running'}
+                >
+                  {amount}
+                </button>
+              ))}
+            </div>
+            
+            {/* Custom Amount Input */}
+            <div className="flex items-center mb-4">
               <input 
                 type="number" 
-                className="w-full bg-[#0F212E] border-none rounded p-2 text-white"
+                className="w-full bg-[#0F212E] border-none rounded p-3 text-white text-center"
+                placeholder="Custom amount"
                 value={betAmount}
                 onChange={(e) => setBetAmount(Number(e.target.value))}
                 disabled={hasPlacedBet || gameState === 'running'}
               />
             </div>
-            
-            {/* Quick Amount Buttons */}
-            <div className="flex gap-1">
-              <button 
-                className="bg-[#0F212E] px-2 py-1 rounded text-xs"
-                onClick={() => setBetAmount(betAmount / 2)}
-              >
-                ½
-              </button>
-              <button 
-                className="bg-[#0F212E] px-2 py-1 rounded text-xs"
-                onClick={() => setBetAmount(betAmount * 2)}
-              >
-                2×
-              </button>
-            </div>
           </div>
           
-          {/* Cashout At */}
+          {/* Auto Cashout - Simplified */}
           <div className="mb-4">
-            <label className="block text-sm mb-1">Cashout At</label>
-            <div className="relative mb-2">
+            <div className="flex items-center gap-2 mb-2">
+              <input 
+                type="checkbox"
+                id="auto-cashout-toggle"
+                className="w-4 h-4" 
+                checked={!!autoCashoutValue}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setAutoCashoutValue(2.00);
+                  } else {
+                    setAutoCashoutValue(null);
+                  }
+                }}
+                disabled={hasPlacedBet || gameState === 'running'}
+              />
+              <label htmlFor="auto-cashout-toggle" className="text-sm">Auto Cashout @ </label>
               <input 
                 type="number" 
                 step="0.01"
                 className="w-full bg-[#0F212E] border-none rounded p-2 text-white"
-                value={autoCashoutValue || 2.00}
-                onChange={(e) => setAutoCashoutValue(Number(e.target.value))}
-                disabled={hasPlacedBet && !hasCashedOut && gameState === 'running'}
+                placeholder="2.00"
+                value={autoCashoutValue || ''}
+                onChange={(e) => setAutoCashoutValue(Number(e.target.value) || null)}
+                disabled={!autoCashoutValue || hasPlacedBet || gameState === 'running'}
               />
-              <div className="absolute right-2 top-2 flex">
-                <button 
-                  className="bg-transparent px-1"
-                  onClick={() => setAutoCashoutValue(Math.max(1.01, (autoCashoutValue || 2.00) - 0.01))}
-                >
-                  ▼
-                </button>
-                <button 
-                  className="bg-transparent px-1"
-                  onClick={() => setAutoCashoutValue((autoCashoutValue || 2.00) + 0.01)}
-                >
-                  ▲
-                </button>
-              </div>
             </div>
           </div>
           
-          {/* Profit on Win */}
-          <div className="mb-4">
-            <label className="block text-sm mb-1">Profit on Win</label>
-            <div className="flex items-center mb-4">
-              <input 
-                type="number" 
-                className="w-full bg-[#0F212E] border-none rounded p-2 text-white"
-                value={calculateProfit()}
-                readOnly
-              />
-              <span className="ml-2">{activeCurrency}</span>
-            </div>
-          </div>
-          
-          {/* Bet Button */}
+          {/* Bet Button - Larger for Mobile */}
           <div className="mb-4">
             {gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
               <Button 
-                className="w-full py-4 text-lg bg-[#FF6B00] hover:bg-[#FF8F3F] rounded-md"
+                className="w-full py-5 text-lg font-bold bg-[#FF6B00] hover:bg-[#FF8F3F] rounded-md"
                 onClick={cashOutGame}
               >
                 Cash Out @ {currentMultiplier.toFixed(2)}x
               </Button>
             ) : (
               <Button 
-                className={`w-full py-4 text-lg ${
+                className={`w-full py-5 text-lg font-bold ${
                   gameState === 'waiting' 
                     ? 'bg-[#5BE12C] hover:bg-[#4CC124] text-black'
                     : 'bg-[#34505E] text-gray-300 cursor-not-allowed'
@@ -597,7 +571,7 @@ const CrashFinal: React.FC = () => {
                 disabled={gameState !== 'waiting' || hasPlacedBet || rawBalance < betAmount}
               >
                 {gameState === 'waiting' 
-                  ? (hasPlacedBet ? 'Bet Placed' : 'Bet (Next Round)') 
+                  ? (hasPlacedBet ? 'Bet Placed' : 'Bet Now') 
                   : 'Waiting...'}
               </Button>
             )}
