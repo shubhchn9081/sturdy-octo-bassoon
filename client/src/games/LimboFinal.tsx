@@ -2,15 +2,16 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
-import { useBalance } from '@/hooks/use-balance';
-import { useCurrency } from '@/context/CurrencyContext';
+import { useGameBet } from '@/hooks/use-game-bet';
+import { useWallet } from '@/context/WalletContext';
+import { useToast } from '@/hooks/use-toast';
 
 // Component for Limbo game based on the reference screenshots
 const LimboFinal: React.FC = () => {
   // Game state
   const [gameMode, setGameMode] = useState<'Manual' | 'Auto'>('Manual');
-  const [betAmount, setBetAmount] = useState<number>(0.00000001);
-  const [betAmountDisplay, setBetAmountDisplay] = useState<string>("0.00000000");
+  const [betAmount, setBetAmount] = useState<number>(10.00);
+  const [betAmountDisplay, setBetAmountDisplay] = useState<string>("10.00");
   const [targetMultiplier, setTargetMultiplier] = useState<number>(2.00);
   const [winChance, setWinChance] = useState<number>(49.5);
   const [currentMultiplier, setCurrentMultiplier] = useState<number>(1.00);
@@ -26,8 +27,9 @@ const LimboFinal: React.FC = () => {
   
   // Hooks for actual game logic
   const { getGameResult } = useProvablyFair('limbo');
-  const { activeCurrency } = useCurrency();
-  const { balance, placeBet, completeBet } = useBalance(activeCurrency);
+  const { balance, symbol, refreshBalance } = useWallet();
+  const { placeBet: placeGameBet, completeBet: completeGameBet } = useGameBet(3); // Limbo gameId is 3
+  const { toast } = useToast();
   
   // Fixed game info for Limbo
   const gameInfo = {
@@ -166,36 +168,50 @@ const LimboFinal: React.FC = () => {
   const handleManualBet = async () => {
     if (isAnimating) return;
     
+    // Validate bet amount
+    if (betAmount <= 0) {
+      toast({
+        title: "Invalid Bet",
+        description: "Please enter a valid bet amount",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check if player has enough balance
+    if (betAmount > balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough funds to place this bet",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
-      // In a real implementation, the bet would be placed via API
-      // For demo purposes, we'll simulate the bet locally
+      console.log("Placing Limbo bet with:", {
+        amount: betAmount,
+        targetMultiplier: targetMultiplier
+      });
       
-      // Generate a client seed
-      const clientSeed = generateClientSeed();
+      // Place bet using our unified wallet system
+      const response = await placeGameBet({
+        amount: betAmount,
+        options: {
+          targetMultiplier: targetMultiplier
+        },
+        autoCashout: null
+      });
       
-      // Attempt to place bet with API, but don't block the demo on API errors
-      try {
-        await placeBet.mutateAsync({
-          gameId: gameInfo.id,
-          clientSeed,
-          amount: betAmount,
-          options: {
-            targetMultiplier
-          }
-        });
-      } catch (apiError) {
-        console.log("API error (continuing with demo)", apiError);
+      if (!response || !response.betId) {
+        throw new Error("Failed to place bet");
       }
       
-      // Set a mock response for the demo
-      const response = { betId: Math.floor(Math.random() * 10000) };
+      // Store the bet ID for later use
+      currentBetIdRef.current = response.betId;
+      console.log("Bet placed successfully with ID:", response.betId);
       
-      // Store the bet ID from the response
-      if (response && typeof response === 'object' && 'betId' in response) {
-        currentBetIdRef.current = response.betId as number;
-      }
-      
-      // Generate game result (this would normally come from the server)
+      // Generate game result using provably fair mechanism
       const result = getGameResult() as number;
       const limboResult = parseFloat(result.toFixed(2));
       
@@ -213,15 +229,29 @@ const LimboFinal: React.FC = () => {
       setTimeout(() => {
         if (currentBetIdRef.current) {
           try {
-            completeBet.mutate({
-              betId: currentBetIdRef.current,
-              outcome: {
-                ...outcome,
-                multiplier: outcome.win ? targetMultiplier : 0
-              }
+            // Complete the bet with our wallet system
+            completeGameBet(currentBetIdRef.current, {
+              win: outcome.win,
+              multiplier: outcome.win ? targetMultiplier : 0,
+              payout: outcome.win ? betAmount * targetMultiplier : 0,
+              result: limboResult
             });
+            
+            // Update UI
+            if (outcome.win) {
+              toast({
+                title: "You Won!",
+                description: `You won ${symbol}${(betAmount * targetMultiplier).toFixed(2)}!`,
+                variant: "default"
+              });
+            }
+            
+            // Refresh the wallet balance
+            refreshBalance();
+            
+            console.log("Bet completed:", outcome);
           } catch (error) {
-            console.log("API error completing bet (demo continues)", error);
+            console.error("Error completing bet:", error);
           }
           currentBetIdRef.current = null;
         }
@@ -229,41 +259,61 @@ const LimboFinal: React.FC = () => {
       
     } catch (error) {
       console.error('Error placing bet:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while placing your bet",
+        variant: "destructive"
+      });
     }
   };
   
   // Handle auto betting
   const handleAutoBet = useCallback(async () => {
+    // Validate bet amount
+    if (betAmount <= 0) {
+      toast({
+        title: "Invalid Bet",
+        description: "Please enter a valid bet amount",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check if player has enough balance
+    if (betAmount > balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough funds to place this bet",
+        variant: "destructive"
+      });
+      toggleAutobet(); // Stop auto betting
+      return;
+    }
+    
     try {
-      // In a real implementation, the bet would be placed via API
-      // For demo purposes, we'll simulate the bet locally
+      console.log("Placing auto Limbo bet with:", {
+        amount: betAmount,
+        targetMultiplier: targetMultiplier
+      });
       
-      // Generate a client seed
-      const clientSeed = generateClientSeed();
+      // Place bet using our unified wallet system
+      const response = await placeGameBet({
+        amount: betAmount,
+        options: {
+          targetMultiplier: targetMultiplier
+        },
+        autoCashout: null
+      });
       
-      // Attempt to place bet with API, but don't block the demo on API errors
-      try {
-        await placeBet.mutateAsync({
-          gameId: gameInfo.id,
-          clientSeed,
-          amount: betAmount,
-          options: {
-            targetMultiplier
-          }
-        });
-      } catch (apiError) {
-        console.log("API error in auto bet (continuing with demo)", apiError);
+      if (!response || !response.betId) {
+        throw new Error("Failed to place bet");
       }
       
-      // Set a mock response for the demo
-      const response = { betId: Math.floor(Math.random() * 10000) };
+      // Store the bet ID
+      currentBetIdRef.current = response.betId;
+      console.log("Auto bet placed successfully with ID:", response.betId);
       
-      // Store the bet ID from the response
-      if (response && typeof response === 'object' && 'betId' in response) {
-        currentBetIdRef.current = response.betId as number;
-      }
-      
-      // Generate game result
+      // Generate game result using provably fair mechanism
       const result = getGameResult() as number;
       const limboResult = parseFloat(result.toFixed(2));
       
@@ -281,33 +331,43 @@ const LimboFinal: React.FC = () => {
       setTimeout(() => {
         if (currentBetIdRef.current) {
           try {
-            completeBet.mutate({
-              betId: currentBetIdRef.current,
-              outcome: {
-                ...outcome,
-                multiplier: outcome.win ? targetMultiplier : 0
-              }
+            // Complete the bet with our wallet system
+            completeGameBet(currentBetIdRef.current, {
+              win: outcome.win,
+              multiplier: outcome.win ? targetMultiplier : 0,
+              payout: outcome.win ? betAmount * targetMultiplier : 0,
+              result: limboResult
             });
+            
+            // Refresh the wallet balance
+            refreshBalance();
+            
+            console.log("Auto bet completed:", outcome);
+            currentBetIdRef.current = null;
+            
+            // Adjust bet amount based on win/loss if set
+            if (outcome.win && onWinIncrease > 0) {
+              const newAmount = betAmount * (1 + onWinIncrease / 100);
+              setBetAmount(parseFloat(newAmount.toFixed(2)));
+            } else if (!outcome.win && onLossIncrease > 0) {
+              const newAmount = betAmount * (1 + onLossIncrease / 100);
+              setBetAmount(parseFloat(newAmount.toFixed(2)));
+            }
           } catch (error) {
-            console.log("API error completing auto bet (demo continues)", error);
-          }
-          currentBetIdRef.current = null;
-          
-          // Adjust bet amount based on win/loss if set
-          if (outcome.win && onWinIncrease > 0) {
-            const newAmount = betAmount * (1 + onWinIncrease / 100);
-            setBetAmount(parseFloat(newAmount.toFixed(8)));
-          } else if (!outcome.win && onLossIncrease > 0) {
-            const newAmount = betAmount * (1 + onLossIncrease / 100);
-            setBetAmount(parseFloat(newAmount.toFixed(8)));
+            console.error("Error completing auto bet:", error);
           }
         }
       }, 1000);
       
     } catch (error) {
-      console.error('Error placing bet:', error);
+      console.error('Error placing auto bet:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while placing your bet",
+        variant: "destructive"
+      });
     }
-  }, [betAmount, targetMultiplier, onWinIncrease, onLossIncrease, placeBet, getGameResult, animateMultiplier, completeBet, gameInfo]);
+  }, [betAmount, targetMultiplier, onWinIncrease, onLossIncrease, getGameResult, animateMultiplier, placeGameBet, completeGameBet, refreshBalance, balance, toggleAutobet, toast]);
   
   // Start/stop autobet
   const toggleAutobet = () => {
