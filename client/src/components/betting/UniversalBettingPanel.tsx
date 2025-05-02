@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { useBalance } from '@/hooks/use-balance';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useWallet } from '@/context/WalletContext';
 import { useAuth } from '@/hooks/use-auth';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
@@ -29,7 +30,11 @@ export const UniversalBettingPanel: React.FC<UniversalBettingPanelProps> = ({
   // Get currency and balance from contexts/hooks
   const { activeCurrency } = useCurrency();
   const { rawBalance } = useBalance(activeCurrency);
+  const { balance: walletBalance, symbol, formattedBalance } = useWallet(); 
   const { user } = useAuth();
+  
+  // Use the wallet balance as the source of truth
+  const currentBalance = walletBalance;
   
   // State for bet amount and auto-cashout
   const [betAmount, setBetAmount] = useState<number>(10);
@@ -78,7 +83,7 @@ export const UniversalBettingPanel: React.FC<UniversalBettingPanelProps> = ({
       return;
     }
     
-    if (betAmount > rawBalance) {
+    if (betAmount > currentBalance) {
       toast({
         title: "Insufficient Balance",
         description: "You don't have enough balance to place this bet",
@@ -92,13 +97,13 @@ export const UniversalBettingPanel: React.FC<UniversalBettingPanelProps> = ({
   
   // Apply % of balance
   const applyPercentage = (percentage: number) => {
-    const newAmount = Math.floor(rawBalance * percentage) / 100;
+    const newAmount = Math.floor(currentBalance * percentage) / 100;
     setBetAmount(newAmount);
   };
   
   // Set maximum bet amount based on balance
   const setMaxBet = () => {
-    setBetAmount(rawBalance);
+    setBetAmount(currentBalance);
   };
   
   return (
@@ -108,7 +113,7 @@ export const UniversalBettingPanel: React.FC<UniversalBettingPanelProps> = ({
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-white font-semibold">Place Bet</h3>
           <div className="text-[#7F8990]">
-            Balance: <span className="text-white font-mono">₹{formatCurrency(rawBalance, activeCurrency)}</span>
+            Balance: <span className="text-white font-mono">{symbol}{formattedBalance}</span>
           </div>
         </div>
         
@@ -199,7 +204,7 @@ export const UniversalBettingPanel: React.FC<UniversalBettingPanelProps> = ({
           <Button 
             className="w-full bg-green-600 hover:bg-green-700 text-white"
             onClick={placeBet}
-            disabled={disabled || betAmount <= 0 || betAmount > rawBalance}
+            disabled={disabled || betAmount <= 0 || betAmount > currentBalance}
           >
             Place Bet
           </Button>

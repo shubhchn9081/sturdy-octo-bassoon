@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useWallet } from '@/context/WalletContext';
+import { useGameBet } from '@/hooks/use-game-bet';
 
 // Simple formatCrypto implementation to avoid dependency
 const formatCryptoAmount = (amount: number): string => {
@@ -19,6 +21,12 @@ const DiceGame = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Get wallet data
+  const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
+  
+  // Use the new game bet hooks for consistent betting
+  const { betAmount: gameBetAmount, setBetAmount: setGameBetAmount, placeBet: placeGameBet } = useGameBet(5); // 5 is Dice game ID
   
   // Local state for bet amount
   const [betAmount, setBetAmount] = useState(0.00000000);
@@ -80,16 +88,14 @@ const DiceGame = () => {
       // Generate client seed
       const clientSeed = Math.random().toString(36).substring(2, 15);
       
-      // First place the bet and get the bet ID
-      const response = await placeBet.mutateAsync({
-        gameId: 5, // Dice game ID
+      // Use the centralized game bet hook to place the bet
+      const response = await placeGameBet({
         amount: betAmount,
-        clientSeed,
         options: {
           target,
-          rollMode,
-          currency: activeCurrency
-        }
+          rollMode
+        },
+        autoCashout: null
       });
 
       if (!response || !response.betId) {
@@ -114,17 +120,22 @@ const DiceGame = () => {
         
       setWon(isWin);
       
-      // Complete the bet
-      await completeBet.mutateAsync({
-        betId: response.betId,
-        outcome: {
-          result: formattedResult,
-          target,
-          rollMode,
-          win: isWin,
-          multiplier: isWin ? multiplier : 0
-        }
+      // Calculate profit
+      const winAmount = isWin ? betAmount * multiplier : 0;
+      const profitAmount = isWin ? betAmount * (multiplier - 1) : -betAmount;
+      
+      // Update the game bet outcome
+      await response.completeBet({
+        result: formattedResult,
+        target,
+        rollMode,
+        win: isWin,
+        multiplier: isWin ? multiplier : 0,
+        payout: winAmount
       });
+      
+      // Refresh the balance to show updated wallet
+      refreshBalance();
       
     } catch (error) {
       console.error('Error rolling dice:', error);
