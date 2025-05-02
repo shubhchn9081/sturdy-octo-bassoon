@@ -104,14 +104,26 @@ export default function WalletPage() {
               ) : (
                 <>
                   <span className="text-5xl font-bold font-mono mb-1">
-                    {balance !== null ? balance.toFixed(2) : 
-                     (user?.balance ? (
-                       typeof user.balance === 'object' ? 
-                         // Handle JSONB object with INR field
-                         (user.balance.INR !== undefined ? Number(user.balance.INR).toFixed(2) : "0.00") :
-                         // Handle numeric balance
-                         (typeof user.balance === 'number' ? user.balance.toFixed(2) : "0.00")
-                     ) : "0.00")}
+                    {(() => {
+                      // Helper function to safely extract INR balance
+                      const getINRBalance = () => {
+                        if (!user?.balance) return 0;
+                        
+                        if (typeof user.balance === 'number') {
+                          // Handle numeric balance (legacy format)
+                          return user.balance;
+                        } else if (typeof user.balance === 'object' && user.balance !== null) {
+                          // Handle JSONB balance format
+                          const balanceObj = user.balance as Record<string, number>;
+                          return balanceObj['INR'] || 0;
+                        }
+                        return 0;
+                      };
+                      
+                      // Use provided balance first, then fall back to calculated balance
+                      const displayBalance = balance !== null ? balance : getINRBalance();
+                      return displayBalance.toFixed(2);
+                    })()}
                   </span>
                   <span className="text-[#7F8990] text-lg">INR</span>
                 </>
