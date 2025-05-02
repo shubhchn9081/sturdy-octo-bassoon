@@ -514,18 +514,6 @@ const LimboFinal: React.FC = () => {
             {/* Quick amount buttons in a grid */}
             <div className="grid grid-cols-4 gap-2 mb-2">
               <button 
-                onClick={() => setBetAmount(10)}
-                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
-              >
-                10
-              </button>
-              <button 
-                onClick={() => setBetAmount(50)}
-                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
-              >
-                50
-              </button>
-              <button 
                 onClick={() => setBetAmount(100)}
                 className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
               >
@@ -536,6 +524,28 @@ const LimboFinal: React.FC = () => {
                 className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
               >
                 500
+              </button>
+              <button 
+                onClick={() => setBetAmount(1000)}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                1000
+              </button>
+              <button 
+                onClick={() => setBetAmount(5000)}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                5000
+              </button>
+            </div>
+            
+            {/* Additional larger bet amount */}
+            <div className="mb-2">
+              <button 
+                onClick={() => setBetAmount(10000)}
+                className="w-full py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                10000
               </button>
             </div>
             
