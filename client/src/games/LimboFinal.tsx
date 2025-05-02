@@ -480,7 +480,7 @@ const LimboFinal: React.FC = () => {
           </div>
         </div>
         
-        {/* Right Side - Controls */}
+        {/* Right Side - Controls - Optimized for mobile */}
         <div className="w-full md:w-1/4 p-2 bg-[#172B3A]">
           {/* Game Mode Tabs */}
           <div className="flex rounded-md overflow-hidden mb-2 bg-[#0F212E]">
@@ -498,38 +498,95 @@ const LimboFinal: React.FC = () => {
             </button>
           </div>
           
-          {/* Bet Amount */}
-          <div className="mb-4">
+          {/* Simplified Bet Amount with Quick Amount Buttons */}
+          <div className="mb-3">
             <div className="text-sm text-gray-400 mb-1">Bet Amount</div>
             <div className="bg-[#0F212E] p-2 rounded mb-2 relative">
-              <div className="flex items-center">
-                <span className="text-white">$0.00</span>
-              </div>
               <input 
                 type="text" 
                 value={betAmountDisplay}
                 onChange={(e) => handleBetAmountChange(e.target.value)}
-                className="w-full bg-transparent border-none text-white outline-none"
+                className="w-full bg-transparent border-none text-white outline-none text-center"
+                placeholder="Enter amount"
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex">
-                <button onClick={halfBet} className="px-2 text-gray-400 hover:text-white">½</button>
-                <button onClick={doubleBet} className="px-2 text-gray-400 hover:text-white">2×</button>
-              </div>
+            </div>
+            
+            {/* Quick amount buttons in a grid */}
+            <div className="grid grid-cols-4 gap-2 mb-2">
+              <button 
+                onClick={() => setBetAmount(10)}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                10
+              </button>
+              <button 
+                onClick={() => setBetAmount(50)}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                50
+              </button>
+              <button 
+                onClick={() => setBetAmount(100)}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                100
+              </button>
+              <button 
+                onClick={() => setBetAmount(500)}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                500
+              </button>
+            </div>
+            
+            {/* Half and Double buttons in one row */}
+            <div className="grid grid-cols-2 gap-2">
+              <button 
+                onClick={halfBet}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                ½
+              </button>
+              <button 
+                onClick={doubleBet}
+                className="py-1 text-xs bg-[#0F212E] rounded-md text-white hover:bg-[#1a2c3d]"
+              >
+                2×
+              </button>
             </div>
           </div>
           
-          {/* Number of Bets (Auto mode only) */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Number of Bets</div>
-            <div className="bg-[#0F212E] p-2 rounded mb-2 relative">
+          {/* Target Multiplier - Always visible */}
+          <div className="mb-3">
+            <div className="text-sm text-gray-400 mb-1">Target Multiplier</div>
+            <div className="bg-[#0F212E] p-2 rounded mb-1 relative flex items-center">
               <input 
-                type="number"
-                min="0" 
-                value={numberBets}
-                onChange={(e) => setNumberBets(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-transparent border-none text-white outline-none"
+                type="number" 
+                min="1.01"
+                step="0.01"
+                value={targetMultiplier}
+                onChange={(e) => setTargetMultiplier(Math.max(1.01, parseFloat(e.target.value)))}
+                className="w-full bg-transparent border-none text-white outline-none text-center"
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            </div>
+            <div className="text-xs text-gray-400 text-center">
+              Win Chance: {winChance.toFixed(2)}%
+            </div>
+          </div>
+          
+          {/* Only show simple number of bets in Auto mode */}
+          {gameMode === 'Auto' && (
+            <div className="mb-3">
+              <div className="text-sm text-gray-400 mb-1">Number of Bets</div>
+              <div className="bg-[#0F212E] p-2 rounded flex items-center justify-between">
+                <input 
+                  type="number"
+                  min="0" 
+                  value={numberBets}
+                  onChange={(e) => setNumberBets(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full bg-transparent border-none text-white outline-none text-center"
+                  placeholder="∞"
+                />
                 <button 
                   onClick={() => setNumberBets(0)}
                   className="px-2 text-gray-400 hover:text-white"
@@ -538,88 +595,10 @@ const LimboFinal: React.FC = () => {
                 </button>
               </div>
             </div>
-          </div>
+          )}
           
-          {/* On Win (Auto mode only) */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">On Win</div>
-            <div className="flex mb-2">
-              <button 
-                className="bg-[#0F212E] px-3 py-1 rounded-l text-xs"
-                onClick={() => setOnWinIncrease(0)}
-              >
-                Reset
-              </button>
-              <div className="flex-1 bg-[#0F212E] px-2 py-1 rounded-r flex items-center">
-                <span className="text-xs text-gray-400 mr-2">Increase by:</span>
-                <input 
-                  type="number" 
-                  min="0"
-                  value={onWinIncrease}
-                  onChange={(e) => setOnWinIncrease(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-transparent border-none text-white text-right outline-none"
-                />
-                <span className="ml-1 text-gray-400">%</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* On Loss (Auto mode only) */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">On Loss</div>
-            <div className="flex mb-2">
-              <button 
-                className="bg-[#0F212E] px-3 py-1 rounded-l text-xs"
-                onClick={() => setOnLossIncrease(0)}
-              >
-                Reset
-              </button>
-              <div className="flex-1 bg-[#0F212E] px-2 py-1 rounded-r flex items-center">
-                <span className="text-xs text-gray-400 mr-2">Increase by:</span>
-                <input 
-                  type="number"
-                  min="0" 
-                  value={onLossIncrease}
-                  onChange={(e) => setOnLossIncrease(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-transparent border-none text-white text-right outline-none"
-                />
-                <span className="ml-1 text-gray-400">%</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Stop on Profit (Auto mode only) */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Stop on Profit</div>
-            <div className="bg-[#0F212E] p-2 rounded mb-2">
-              <input 
-                type="number"
-                min="0"
-                value={stopOnProfit}
-                onChange={(e) => setStopOnProfit(Math.max(0, Number(e.target.value)))}
-                className="w-full bg-transparent border-none text-white outline-none"
-              />
-              <div className="text-xs text-gray-400 mt-1">$0.00</div>
-            </div>
-          </div>
-          
-          {/* Stop on Loss (Auto mode only) */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-400 mb-1">Stop on Loss</div>
-            <div className="bg-[#0F212E] p-2 rounded mb-2">
-              <input 
-                type="number"
-                min="0"
-                value={stopOnLoss}
-                onChange={(e) => setStopOnLoss(Math.max(0, Number(e.target.value)))}
-                className="w-full bg-transparent border-none text-white outline-none"
-              />
-              <div className="text-xs text-gray-400 mt-1">$0.00</div>
-            </div>
-          </div>
-          
-          {/* Bet Button / Start Autobet */}
-          <div className="mb-4">
+          {/* Action Button */}
+          <div className="mb-3">
             {gameMode === 'Manual' ? (
               <Button 
                 className="w-full py-3 text-base font-medium bg-[#5BE12C] hover:bg-[#4CC124] text-black rounded-md"
@@ -642,6 +621,81 @@ const LimboFinal: React.FC = () => {
               </Button>
             )}
           </div>
+          
+          {/* Advanced Settings Button - Only in Auto mode */}
+          {gameMode === 'Auto' && (
+            <details className="bg-[#0F212E] rounded p-2 mb-3">
+              <summary className="text-sm font-medium cursor-pointer text-white">
+                Advanced Settings
+              </summary>
+              <div className="pt-2 space-y-3">
+                {/* On Win */}
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">On Win (%)</div>
+                  <div className="flex">
+                    <button 
+                      className="bg-[#172B3A] px-2 py-1 rounded-l text-xs"
+                      onClick={() => setOnWinIncrease(0)}
+                    >
+                      0%
+                    </button>
+                    <input 
+                      type="number" 
+                      min="0"
+                      max="100"
+                      value={onWinIncrease}
+                      onChange={(e) => setOnWinIncrease(Math.max(0, Number(e.target.value)))}
+                      className="flex-1 bg-[#172B3A] py-1 border-none text-white text-center outline-none text-xs"
+                    />
+                  </div>
+                </div>
+                
+                {/* On Loss */}
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">On Loss (%)</div>
+                  <div className="flex">
+                    <button 
+                      className="bg-[#172B3A] px-2 py-1 rounded-l text-xs"
+                      onClick={() => setOnLossIncrease(0)}
+                    >
+                      0%
+                    </button>
+                    <input 
+                      type="number"
+                      min="0" 
+                      max="100"
+                      value={onLossIncrease}
+                      onChange={(e) => setOnLossIncrease(Math.max(0, Number(e.target.value)))}
+                      className="flex-1 bg-[#172B3A] py-1 border-none text-white text-center outline-none text-xs"
+                    />
+                  </div>
+                </div>
+                
+                {/* Stop Conditions */}
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">Stop on Profit</div>
+                  <input 
+                    type="number"
+                    min="0"
+                    value={stopOnProfit}
+                    onChange={(e) => setStopOnProfit(Math.max(0, Number(e.target.value)))}
+                    className="w-full bg-[#172B3A] p-1 rounded border-none text-white outline-none text-xs"
+                  />
+                </div>
+                
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">Stop on Loss</div>
+                  <input 
+                    type="number"
+                    min="0"
+                    value={stopOnLoss}
+                    onChange={(e) => setStopOnLoss(Math.max(0, Number(e.target.value)))}
+                    className="w-full bg-[#172B3A] p-1 rounded border-none text-white outline-none text-xs"
+                  />
+                </div>
+              </div>
+            </details>
+          )}
         </div>
       </div>
       
