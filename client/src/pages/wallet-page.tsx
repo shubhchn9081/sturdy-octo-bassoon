@@ -31,9 +31,21 @@ export default function WalletPage() {
 
     const fetchBalance = async () => {
       try {
-        const response = await apiRequest('GET', '/api/user/balance');
+        console.log("Wallet page: Fetching fresh balance");
+        const response = await fetch('/api/user/balance', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // Add cache-busting query parameter to prevent caching
+            'Cache-Control': 'no-cache'
+          },
+          // Ensure we're not using cached responses
+          cache: 'no-store'
+        });
+        
         if (response.ok) {
           const data = await response.json();
+          console.log("Balance data received:", data);
           setBalance(data.balance);
           setError(null);
         } else {
@@ -49,10 +61,11 @@ export default function WalletPage() {
       }
     };
     
+    // Immediate fetch on mount
     fetchBalance();
     
-    // Set up an interval to refresh the balance every 5 seconds
-    const refreshInterval = setInterval(fetchBalance, 5000);
+    // Set up an interval to refresh the balance every 3 seconds
+    const refreshInterval = setInterval(fetchBalance, 3000);
     
     return () => {
       clearInterval(refreshInterval);

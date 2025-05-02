@@ -36,7 +36,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const currency: SupportedCurrency = 'INR';
   
   // Get balance value or default to 0
-  const balance = walletData ? walletData.balance : 0;
+  const balance = walletData && 'balance' in walletData ? walletData.balance : 0;
   
   // Check if user is authenticated
   const isAuthenticated = !!user;

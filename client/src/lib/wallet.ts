@@ -25,20 +25,30 @@ export const useWalletBalance = () => {
   return useQuery<WalletBalance>({
     queryKey: ['/api/user/balance'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/user/balance');
+      // Use fetch directly with cache-busting to ensure fresh data
+      const res = await fetch('/api/user/balance', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
       if (!res.ok) {
         throw new Error('Failed to fetch balance');
       }
+      
       return res.json();
     },
-    // Keep cached balance data for a short time
-    staleTime: 2000,
-    // Enable automatic refetching on window focus and interval
+    // Keep cached balance data for a very short time
+    staleTime: 1000,
+    // Enable automatic refetching
     refetchOnWindowFocus: true,
-    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchInterval: 3000, // Refetch every 3 seconds
     refetchOnMount: true,
-    // Disable caching when offline to ensure fresh data
-    cacheTime: 0,
+    // Use modern TanStack Query v5 property name
+    gcTime: 0, // Previously cacheTime
   });
 };
 
