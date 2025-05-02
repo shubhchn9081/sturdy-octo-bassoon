@@ -18,7 +18,7 @@ export default function WalletPage() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   // IMPORTANT: Setting initial balance to match header balance exactly
-  const [balance, setBalance] = useState<number | null>(49988.462);
+  const [balance, setBalance] = useState<number | null>(59988.462);
   const [isLoading, setIsLoading] = useState(false); // Start with false to show balance immediately
   const [error, setError] = useState<string | null>(null);
   const [isUpdated, setIsUpdated] = useState(false); // Track when balance updates happen
