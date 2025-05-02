@@ -143,15 +143,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not found' });
       }
       
-      // Ensure balance is a number, handling both legacy object format and number format
+      // Get currency from query params (default to INR)
+      const currency = req.query.currency as string || 'INR';
+      
+      // Extract balance value based on its format
       let balanceValue = 0;
+      
       if (typeof user.balance === 'number') {
-        balanceValue = user.balance;
-      } else if (typeof user.balance === 'object' && user.balance && 'INR' in user.balance) {
-        balanceValue = user.balance.INR || 0;
+        // Legacy numeric balance (treated as INR)
+        balanceValue = currency === 'INR' ? user.balance : 0;
+      } else if (typeof user.balance === 'object' && user.balance !== null) {
+        // JSONB format with multiple currencies
+        // Cast to Record for TypeScript type safety
+        const balanceObj = user.balance as Record<string, number>;
+        balanceValue = balanceObj[currency] || 0;
       }
       
-      // Return simplified balance response
+      // Return simplified balance response (for backward compatibility)
       res.json({ balance: balanceValue });
     } catch (error) {
       console.error('Error fetching balance:', error);
@@ -209,9 +217,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // User is available from the session
         const user = req.user;
         
-        // Update the balance with INR currency
+        // Update the balance with specified currency (default to INR)
         const multiplier = type === 'deposit' ? 1 : -1;
-        await storage.updateUserBalance(userId, amount * multiplier);
+        const userCurrency = currency || 'INR';
+        
+        // Use updateUserBalance with currency specified
+        await storage.updateUserBalance(userId, amount * multiplier, userCurrency);
       }
       
       res.status(201).json(transaction);
@@ -376,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Game not found' });
       }
       
-      // Set currency to INR
+      // Set currency to INR (default on our platform)
       const currency = 'INR';
       
       // Get the game's minimum bet amount
@@ -395,20 +406,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Bet amount must be greater than 0' });
       }
       
-      // Check if user has enough balance
-      let userBalance = 0;
+      // Check if user has enough balance in INR
+      let userINRBalance = 0;
       
       if (typeof user.balance === 'number') {
-        userBalance = user.balance;
+        // Legacy format - numeric balance is treated as INR
+        userINRBalance = user.balance;
       } else if (typeof user.balance === 'object' && user.balance !== null) {
-        userBalance = user.balance.INR || 0;
+        // JSONB format with multiple currencies
+        const balanceObj = user.balance as Record<string, number>;
+        userINRBalance = balanceObj.INR || 0;
       }
       
-      if (userBalance < validatedData.amount) {
-        return res.status(400).json({ message: `Insufficient balance` });
+      if (userINRBalance < validatedData.amount) {
+        return res.status(400).json({ message: `Insufficient INR balance: ${userINRBalance}` });
       }
       
-      // Generate server seed
+      // Generate server seed for provable fairness
       const serverSeed = createServerSeed();
       
       // Create bet with initial state
@@ -417,19 +431,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id, // Explicitly set userId from authenticated user
         serverSeed,
         nonce: 1,
-        completed: false,
-        outcome: {},
+        outcome: {}, // Empty outcome until bet is completed
       });
       
-      // Deduct bet amount from user balance
-      await storage.updateUserBalance(user.id, -validatedData.amount);
+      // Deduct bet amount from user's INR balance (using INR as default currency)
+      await storage.updateUserBalance(user.id, -validatedData.amount, 'INR');
+      
+      // Add transaction record for the bet placement if available
+      if (storage.createTransaction) {
+        try {
+          await storage.createTransaction({
+            userId: user.id,
+            type: 'BET',
+            amount: validatedData.amount, // Store as positive amount for accounting
+            status: 'COMPLETED',
+            currency: currency,
+            description: `Bet placed on ${game.name}`,
+          });
+        } catch (err) {
+          console.error('Error creating bet transaction record:', err);
+          // Don't fail the whole request if transaction creation fails
+        }
+      }
       
       res.json({ betId: bet.id, serverSeedHash: bet.serverSeed });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: 'Invalid bet data', errors: error.errors });
       }
-      
+      console.error('Error placing bet:', error);
       res.status(500).json({ message: 'Server error' });
     }
   });
@@ -464,12 +494,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Game not found' });
       }
       
+      // Get profit value based on win/loss
+      const profit = req.body.outcome.win ? (bet.amount * req.body.outcome.multiplier) - bet.amount : -bet.amount;
+      
       // Update bet with outcome and mark as completed
       const updatedBet = await storage.updateBet(betId, {
         ...bet,
         outcome: req.body.outcome,
         completed: true,
-        multiplier: req.body.outcome.win ? req.body.outcome.multiplier : 0
+        multiplier: req.body.outcome.win ? req.body.outcome.multiplier : 0,
+        profit: profit
       });
       
       // Update user balance if won
@@ -477,9 +511,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the authenticated user directly
         const user = req.user;
         
-        // Calculate winning amount with INR
+        // Calculate winning amount (original bet + profit)
         const winAmount = bet.amount * req.body.outcome.multiplier;
-        await storage.updateUserBalance(user.id, winAmount);
+        
+        // Update user's INR balance with the full winning amount (using INR as default currency)
+        await storage.updateUserBalance(user.id, winAmount, 'INR');
         
         // Add transaction record if available
         if (storage.createTransaction) {
