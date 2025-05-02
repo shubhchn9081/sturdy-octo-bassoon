@@ -115,7 +115,7 @@ export function setupAuth(app: Express) {
         username,
         password: hashedPassword,
         email,
-        dateOfBirth: new Date(dateOfBirth),
+        dateOfBirth: dateOfBirth, // Store as string directly
         phone: phone || null
       });
 

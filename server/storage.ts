@@ -32,7 +32,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserBalance(id: number, currency: string, amount: number): Promise<User | undefined>;
+  updateUserBalance(id: number, amount: number): Promise<User | undefined>;
   
   // Game methods
   getGame(id: number): Promise<Game | undefined>;
@@ -60,7 +60,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserAdmin(id: number, isAdmin: boolean): Promise<User | undefined>;
   updateUserBanned(id: number, isBanned: boolean): Promise<User | undefined>;
-  setUserBalance(id: number, currency: string, exactAmount: number): Promise<User | undefined>;
+  setUserBalance(id: number, exactAmount: number): Promise<User | undefined>;
   updateAdminStatus(id: number, isAdmin: boolean): Promise<User | undefined>;
   
   // Game settings methods
@@ -238,16 +238,20 @@ export class MemStorage implements IStorage {
     return user;
   }
   
-  async updateUserBalance(id: number, currency: string, amount: number): Promise<User | undefined> {
+  async updateUserBalance(id: number, amount: number): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
     
-    // Create a new balance object with the updated currency amount
-    const newBalance = { ...user.balance };
-    if (currency in newBalance) {
-      newBalance[currency] += amount;
-      if (newBalance[currency] < 0) newBalance[currency] = 0; // Don't allow negative balances
+    // Calculate new balance ensuring it doesn't go negative
+    let newBalance = 0;
+    if (typeof user.balance === 'number') {
+      newBalance = user.balance + amount;
+    } else if (typeof user.balance === 'object' && 'INR' in user.balance) {
+      // Handle legacy object format (for backward compatibility)
+      newBalance = (user.balance.INR || 0) + amount;
     }
+    
+    if (newBalance < 0) newBalance = 0; // Don't allow negative balances
     
     const updatedUser = { ...user, balance: newBalance };
     this.users.set(id, updatedUser);
@@ -750,13 +754,7 @@ export class DatabaseStorage implements IStorage {
       ...insertUser,
       isAdmin: false,
       isBanned: false,
-      balance: {
-        BTC: 0.01,
-        ETH: 0.1,
-        USDT: 1000,
-        INR: 10000
-      },
-      dateOfBirth: new Date(insertUser.dateOfBirth),
+      balance: 10000, // Default 10000 INR
       referralCode: null,
       language: 'English'
     };
@@ -768,16 +766,13 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserBalance(id: number, currency: string, amount: number): Promise<User | undefined> {
+  async updateUserBalance(id: number, amount: number): Promise<User | undefined> {
     const user = await this.getUser(id);
     if (!user) return undefined;
     
-    // Create a new balance object with the updated currency amount
-    const newBalance = { ...user.balance };
-    if (currency in newBalance) {
-      newBalance[currency] += amount;
-      if (newBalance[currency] < 0) newBalance[currency] = 0; // Don't allow negative balances
-    }
+    // Calculate new balance (ensure it doesn't go below 0)
+    let newBalance = user.balance + amount;
+    if (newBalance < 0) newBalance = 0; // Don't allow negative balances
     
     const [updatedUser] = await db
       .update(users)
@@ -810,15 +805,13 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
   
-  async setUserBalance(id: number, currency: string, exactAmount: number): Promise<User | undefined> {
+  async setUserBalance(id: number, exactAmount: number): Promise<User | undefined> {
     const user = await this.getUser(id);
     if (!user) return undefined;
     
-    // Create a new balance object with the updated currency amount
-    const newBalance = { ...user.balance };
-    if (currency in newBalance) {
-      newBalance[currency] = exactAmount;
-    }
+    // Set the exact balance amount (don't allow negative values)
+    let newBalance = exactAmount;
+    if (newBalance < 0) newBalance = 0;
     
     const [updatedUser] = await db
       .update(users)

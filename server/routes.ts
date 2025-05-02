@@ -367,16 +367,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Game not found' });
       }
       
-      // Get the currency from the request or default to BTC
-      const currency = validatedData.options?.currency || 'BTC';
+      // Set currency to INR
+      const currency = 'INR';
       
       // Get the game's minimum bet amount
-      const minBet = game.minBet || 0.00000001;
+      const minBet = game.minBet || 100;
       
       // Don't allow bets below minimum amount
       if (validatedData.amount < minBet) {
         return res.status(400).json({ 
-          message: `Bet amount must be at least ${minBet} ${currency}`,
+          message: `Bet amount must be at least ₹${minBet}`,
           minBet: minBet
         });
       }
@@ -386,9 +386,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Bet amount must be greater than 0' });
       }
       
-      // Check if user has enough balance for that currency
-      if (!user.balance || !user.balance[currency] || user.balance[currency] < validatedData.amount) {
-        return res.status(400).json({ message: `Insufficient ${currency} balance` });
+      // Check if user has enough balance
+      if (user.balance < validatedData.amount) {
+        return res.status(400).json({ message: `Insufficient balance` });
       }
       
       // Generate server seed
@@ -405,7 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Deduct bet amount from user balance
-      await storage.updateUserBalance(user.id, currency, -validatedData.amount);
+      await storage.updateUserBalance(user.id, -validatedData.amount);
       
       res.json({ betId: bet.id, serverSeedHash: bet.serverSeed });
     } catch (error) {
@@ -460,10 +460,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the authenticated user directly
         const user = req.user;
         
-        // Get the currency from the game options or default to BTC
-        const currency = req.body.currency || 'BTC';
+        // Use INR as currency
+        const currency = 'INR';
         const winAmount = bet.amount * req.body.outcome.multiplier;
-        await storage.updateUserBalance(user.id, currency, winAmount);
+        await storage.updateUserBalance(user.id, winAmount);
         
         // Add transaction record if available
         if (storage.createTransaction) {
