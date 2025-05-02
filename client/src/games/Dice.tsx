@@ -26,7 +26,7 @@ const DiceGame = () => {
   const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
   
   // Use the new game bet hooks for consistent betting
-  const { betAmount: gameBetAmount, setBetAmount: setGameBetAmount, placeBet: placeGameBet } = useGameBet(5); // 5 is Dice game ID
+  const { betAmount: gameBetAmount, setBetAmount: setGameBetAmount, placeBet: placeGameBet, completeBet: completeGameBet } = useGameBet(5); // 5 is Dice game ID
   
   // Local state for bet amount
   const [betAmount, setBetAmount] = useState(0.00000000);
@@ -124,17 +124,14 @@ const DiceGame = () => {
       const winAmount = isWin ? betAmount * multiplier : 0;
       const profitAmount = isWin ? betAmount * (multiplier - 1) : -betAmount;
       
-      // Update the game bet outcome with separate completeBet function
-      await completeBet.mutateAsync({
-        betId: response.betId,
-        outcome: {
-          result: formattedResult,
-          target,
-          rollMode,
-          win: isWin,
-          multiplier: isWin ? multiplier : 0,
-          payout: winAmount
-        }
+      // Update the game bet outcome with completeGameBet function
+      await completeGameBet(response.betId, {
+        result: formattedResult,
+        target,
+        rollMode,
+        win: isWin,
+        multiplier: isWin ? multiplier : 0,
+        payout: winAmount
       });
       
       // Refresh the balance to show updated wallet
