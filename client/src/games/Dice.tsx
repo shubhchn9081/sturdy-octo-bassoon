@@ -16,17 +16,14 @@ const formatCryptoAmount = (amount: number): string => {
 const DiceGame = () => {
   // Use hooks for game functionality
   const { getGameResult } = useProvablyFair('dice');
-  const { activeCurrency } = useCurrency();
-  const { rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
   const { toast } = useToast();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   
-  // Get wallet data
+  // Get wallet data - Use only WalletContext for balance
   const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
   
-  // Use the new game bet hooks for consistent betting
-  const { betAmount: gameBetAmount, setBetAmount: setGameBetAmount, placeBet: placeGameBet, completeBet: completeGameBet } = useGameBet(5); // 5 is Dice game ID
+  // Use the game bet hooks for consistent betting across all games
+  const { placeBet: placeGameBet, completeBet: completeGameBet } = useGameBet(5); // 5 is Dice game ID
   
   // Local state for bet amount
   const [betAmount, setBetAmount] = useState(0.00000000);

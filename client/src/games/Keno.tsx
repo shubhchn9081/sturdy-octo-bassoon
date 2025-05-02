@@ -228,13 +228,12 @@ const Keno: React.FC = () => {
       
       // Place the bet with the API using our wallet integration
       const response = await placeGameBet({
-        gameId: gameInfo.id, 
         amount: betAmount,
-        clientSeed: clientSeed,
         options: {
           selectedNumbers: selectedNumbers,
           risk: risk
-        }
+        },
+        autoCashout: null
       });
       
       // Store the bet ID from the response

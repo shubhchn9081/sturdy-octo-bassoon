@@ -59,12 +59,9 @@ const PlinkoGame: React.FC = () => {
   // Hooks
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const { activeCurrency } = useCurrency();
-  const { placeBet, completeBet, rawBalance } = useBalance(activeCurrency);
   const { getGameResult } = useProvablyFair('plinko');
   
-  // Wallet hooks
+  // Wallet hooks - Use only the WalletContext for balance management
   const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
   const { placeBet: placeGameBet, completeBet: completeGameBet, isProcessingBet } = useGameBet(2); // Plinko gameId is 2
   
@@ -466,15 +463,8 @@ const PlinkoGame: React.FC = () => {
   const placePlinkobet = async () => {
     if (isDropping) return;
     
-    // Check if user is logged in
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please login to place a bet.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // No need to check for user authentication as we're handling this at the app level
+    // The wallet system will prevent bets if there's no authentication
     
     const betAmountValue = parseFloat(betAmount);
     if (isNaN(betAmountValue) || betAmountValue <= 0) {
