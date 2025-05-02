@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/UserContext';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Bitcoin, 
   CreditCard, 
@@ -50,40 +49,6 @@ export default function WalletPage() {
   const [hasCopied, setHasCopied] = useState(false);
   const [showUpiForm, setShowUpiForm] = useState(false);
   const [upiId, setUpiId] = useState("");
-  const [balanceAmount, setBalanceAmount] = useState<number | null>(null);
-  
-  // Fetch balance directly from API
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        if (!user || !user.id) {
-          console.log("User not authenticated, skipping balance fetch");
-          return;
-        }
-        
-        console.log("Attempting to fetch balance for user:", user.id);
-        const response = await apiRequest('GET', '/api/user/balance');
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Balance fetched successfully:", data.balance);
-          setBalanceAmount(data.balance);
-        } else {
-          console.log("Failed to fetch balance:", await response.text());
-        }
-      } catch (error) {
-        console.error('Error fetching balance:', error);
-      }
-    };
-    
-    fetchBalance();
-    
-    // Poll for balance updates every 5 seconds
-    const intervalId = setInterval(fetchBalance, 5000);
-    
-    // Clean up on unmount
-    return () => clearInterval(intervalId);
-  }, [user]);
 
   const depositForm = useForm<DepositFormData>({
     resolver: zodResolver(depositSchema),
@@ -139,18 +104,8 @@ export default function WalletPage() {
     try {
       // Special handling for INR withdrawals via UPI
       if (data.currency === 'INR') {
-        // Get balance based on format
-        let userBalance = 0;
-        if (user) {
-          if (typeof user.balance === 'number') {
-            userBalance = user.balance;
-          } else if (typeof user.balance === 'object' && user.balance && 'INR' in user.balance) {
-            userBalance = user.balance.INR || 0;
-          }
-        }
-        
         // Simulate withdrawal
-        if (user && userBalance >= parseFloat(data.amount)) {
+        if (user && user.balance.INR >= parseFloat(data.amount)) {
           updateUserBalance('INR', -parseFloat(data.amount));
           
           toast({
@@ -201,21 +156,7 @@ export default function WalletPage() {
         <p className="text-[#7F8990]">Manage your funds securely</p>
       </div>
 
-      {!user ? (
-        <Card className="bg-[#172B3A] border-[#243442] text-white shadow-lg p-6 mx-auto max-w-md">
-          <div className="text-center space-y-4">
-            <CardTitle className="text-xl font-bold">Login Required</CardTitle>
-            <p className="text-[#7F8990]">Please login to view your wallet</p>
-            <Button
-              className="bg-[#1375e1] hover:bg-[#0e5dba] text-white w-full"
-              onClick={() => setLocation('/login')}
-            >
-              Go to Login
-            </Button>
-          </div>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Balance Cards */}
         <div className="lg:col-span-1 space-y-4">
           <Card className="bg-[#172B3A] border-[#243442] text-white shadow-lg">
@@ -225,11 +166,11 @@ export default function WalletPage() {
             <CardContent>
               <div className="flex items-center">
                 <span className="text-3xl font-bold font-mono">
-                  ₹{balanceAmount !== null ? balanceAmount.toFixed(2) : "0.00"}
+                  ₹{user && user.balance && user.balance.INR ? user.balance.INR.toFixed(2) : "0.00"}
                 </span>
                 <span className="ml-2 text-[#7F8990]">INR</span>
               </div>
-              <p className="text-[#7F8990] mt-1">≈ ${balanceAmount !== null ? (balanceAmount / 83).toFixed(2) : "0.00"} USD</p>
+              <p className="text-[#7F8990] mt-1">≈ ${user && user.balance && user.balance.INR ? (user.balance.INR / 83).toFixed(2) : "0.00"} USD</p>
             </CardContent>
             <CardFooter className="border-t border-[#243442] pt-4">
               <div className="grid grid-cols-2 gap-3 w-full">
@@ -253,13 +194,82 @@ export default function WalletPage() {
             </CardFooter>
           </Card>
 
-          {/* Additional actions moved from the removed Balances card */}
+          {/* Crypto Balances */}
           <Card className="bg-[#172B3A] border-[#243442] text-white shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xl font-bold">Actions</CardTitle>
+              <CardTitle className="text-xl font-bold">Balances</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-[#7F8990] mb-4">Additional account options</p>
+            <CardContent className="space-y-4">
+              {/* INR Balance (Indian Rupees) */}
+              <div className="flex items-center justify-between border-b border-[#243442] pb-3">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#20b26c" />
+                    <path d="M8 7h8M13 7v10M8 12h5M8 17h8" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  <div>
+                    <p className="font-medium">Indian Rupee</p>
+                    <p className="text-sm text-[#7F8990]">INR</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono">₹{user && user.balance && user.balance.INR ? user.balance.INR.toFixed(2) : "0.00"}</p>
+                  <p className="text-sm text-[#7F8990]">≈ ₹{user && user.balance && user.balance.INR ? user.balance.INR.toFixed(2) : "0.00"}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between border-b border-[#243442] pb-3">
+                <div className="flex items-center">
+                  <Bitcoin className="h-5 w-5 text-[#f7931a] mr-3" />
+                  <div>
+                    <p className="font-medium">Bitcoin</p>
+                    <p className="text-sm text-[#7F8990]">BTC</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono">{user && user.balance && user.balance.BTC ? user.balance.BTC.toFixed(8) : "0.00000000"}</p>
+                  <p className="text-sm text-[#7F8990]">≈ $23,675.00</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-b border-[#243442] pb-3">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#627EEA" />
+                    <path d="M12 4v5.831l4.934 2.203L12 4Z" fill="#C0CBF6" fillOpacity=".6" />
+                    <path d="M12 4 7.065 12.034 12 9.83V4Z" fill="white" />
+                    <path d="M12 16.693v3.306l4.935-6.822L12 16.693Z" fill="#C0CBF6" fillOpacity=".6" />
+                    <path d="M12 19.999v-3.306l-4.935-3.516L12 20Z" fill="white" />
+                    <path d="M12 15.662 16.935 12.145 12 9.833v5.829Z" fill="#C0CBF6" fillOpacity=".6" />
+                    <path d="m7.065 12.145 4.935 3.517v-5.83L7.065 12.146Z" fill="white" />
+                  </svg>
+                  <div>
+                    <p className="font-medium">Ethereum</p>
+                    <p className="text-sm text-[#7F8990]">ETH</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono">{user && user.balance && user.balance.ETH ? user.balance.ETH.toFixed(8) : "0.00000000"}</p>
+                  <p className="text-sm text-[#7F8990]">≈ $3,125.00</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#26A17B" />
+                    <path d="M14.949 11.72c-.154 0-.282 0-.41.003-1.057-.011-1.7-.211-1.7-.78 0-.57.646-.773 1.7-.773.96 0 1.619.19 1.619.773v.676c0 .041-.77.077-.173.086l-.142.012h-.894Zm0 2.364h1.036c.095 0 .173-.07.173-.156v-.778a.167.167 0 0 0-.173-.156h-.987c-1.039 0-1.74-.198-1.74-.824 0-.625.701-.824 1.74-.824h.975c.096 0 .174.07.174.156v.778a.167.167 0 0 1-.174.156h-.995c-1.055 0-1.644.209-1.644.78 0 .572.589.868 1.644.868h.97Zm-4.201-3.192a.24.24 0 0 1-.24-.238v-.734c0-.132.109-.239.24-.239h6.503c.133 0 .24.107.24.239v.734a.24.24 0 0 1-.24.238h-2.576v5.087a.24.24 0 0 1-.24.238h-.871a.24.24 0 0 1-.24-.238v-5.087h-2.576Z" fill="white" />
+                  </svg>
+                  <div>
+                    <p className="font-medium">Tether</p>
+                    <p className="text-sm text-[#7F8990]">USDT</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono">{user && user.balance && user.balance.USDT ? user.balance.USDT.toFixed(2) : "0.00"}</p>
+                  <p className="text-sm text-[#7F8990]">≈ $1,250.00</p>
+                </div>
+              </div>
             </CardContent>
             <CardFooter className="border-t border-[#243442] pt-4">
               <Button 
@@ -268,7 +278,7 @@ export default function WalletPage() {
                 onClick={() => setActiveTab("convert")}
               >
                 <CircleDollarSign className="h-4 w-4" />
-                <span>Convert Currency</span>
+                <span>Convert Crypto</span>
               </Button>
             </CardFooter>
           </Card>
@@ -613,7 +623,6 @@ export default function WalletPage() {
           </Card>
         </div>
       </div>
-      )}
     </div>
   );
 }
