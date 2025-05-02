@@ -8,15 +8,10 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   isBanned: boolean("is_banned").default(false).notNull(),
-  balance: jsonb("balance").notNull().default({
-    BTC: 0.01,
-    ETH: 0.1,
-    USDT: 1000,
-    INR: 75000
-  }),
+  balance: real("balance").default(10000).notNull(), // Default 10000 INR
   createdAt: timestamp("created_at").defaultNow().notNull(),
   email: text("email").notNull().unique(),
-  dateOfBirth: timestamp("date_of_birth").notNull(),
+  dateOfBirth: text("date_of_birth").notNull(), // Changed to text to avoid Date issues
   phone: text("phone"),
   referralCode: text("referral_code"),
   language: text("language").default('English'),
@@ -152,9 +147,9 @@ export const transactions = pgTable("transactions", {
   userId: integer("user_id").notNull(),
   type: varchar("type", { length: 20 }).notNull(), // "deposit", "withdrawal", "bet_win", "bet_loss"
   amount: real("amount").notNull(),
-  currency: varchar("currency", { length: 10 }).notNull().default("BTC"),
+  currency: varchar("currency", { length: 10 }).notNull().default("INR"), // Changed default to INR
   status: varchar("status", { length: 20 }).notNull(), // "pending", "completed", "failed"
-  txid: varchar("txid", { length: 100 }), // Blockchain transaction ID (for deposits/withdrawals)
+  txid: varchar("txid", { length: 100 }), // Transaction ID for reference
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
