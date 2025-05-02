@@ -207,16 +207,25 @@ const Keno: React.FC = () => {
     
     // Check if bet amount is valid
     if (betAmount < gameInfo.minBet) {
-      console.error(`Bet amount must be at least ${gameInfo.minBet}`);
+      toast({
+        title: "Invalid Bet Amount",
+        description: `Bet amount must be at least ${gameInfo.minBet}`,
+        variant: "destructive"
+      });
       return;
     }
     
     // Check if player has enough balance
     if (walletBalance < betAmount) {
-      console.error('Insufficient balance');
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough funds to place this bet",
+        variant: "destructive"
+      });
       return;
     }
     
+    // Setup game state
     setIsPlaying(true);
     setDrawnNumbers([]);
     setMatchedNumbers([]);
@@ -225,6 +234,12 @@ const Keno: React.FC = () => {
     try {
       // Generate a client seed for provably fair gameplay
       const clientSeed = Math.random().toString(36).substring(2, 15);
+      
+      console.log("Placing Keno bet with:", {
+        amount: betAmount,
+        selectedNumbers,
+        risk
+      });
       
       // Place the bet with the API using our wallet integration
       const response = await placeGameBet({
@@ -239,6 +254,7 @@ const Keno: React.FC = () => {
       // Store the bet ID from the response
       if (response && typeof response === 'object' && 'betId' in response) {
         currentBetIdRef.current = response.betId as number;
+        console.log("Bet placed successfully with ID:", response.betId);
       } else {
         console.error("Invalid response from placeBet:", response);
         throw new Error("Failed to place bet: Invalid response");
@@ -249,6 +265,11 @@ const Keno: React.FC = () => {
       
     } catch (error) {
       console.error('Error placing bet:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while placing your bet",
+        variant: "destructive"
+      });
       setIsPlaying(false);
     }
   };

@@ -139,24 +139,30 @@ const MinesGame = () => {
       return;
     }
     
+    console.log("Starting Mines game with:", {
+      amount: betAmount,
+      mineCount,
+      totalCells: TOTAL_CELLS
+    });
+    
     // Generate mine positions
     const minePositions = generateMinePositions(mineCount);
     
     try {
-      // Generate a client seed for provably fair gameplay
-      const clientSeed = Math.random().toString(36).substring(2, 15);
-      
-      // Place bet through wallet integration
+      // Place bet using our unified wallet system
       const response = await placeGameBet({
-        gameId: 1, // Mines game id
         amount: betAmount,
-        clientSeed: clientSeed,
-        options: { mineCount }
+        options: { 
+          mineCount,
+          totalCells: TOTAL_CELLS 
+        },
+        autoCashout: null
       });
       
       // Store the bet ID from the response
       if (response && typeof response === 'object' && 'betId' in response) {
         setCurrBetId(response.betId as number);
+        console.log("Bet placed successfully with ID:", response.betId);
       } else {
         console.error("Invalid response from placeBet:", response);
         throw new Error("Failed to place bet: Invalid response");
@@ -342,7 +348,14 @@ const MinesGame = () => {
     const profit = calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
     
     try {
-      // Complete the bet with the game outcome
+      console.log("Cashing out with:", {
+        betId: currBetId,
+        win: true,
+        multiplier: updatedGameState.multiplier,
+        payout: updatedGameState.betAmount * updatedGameState.multiplier
+      });
+      
+      // Complete the bet with the game outcome using the wallet system
       await completeGameBet(currBetId, {
         win: true,
         multiplier: updatedGameState.multiplier,
@@ -351,11 +364,16 @@ const MinesGame = () => {
         revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1)
       });
       
+      // Refresh the wallet balance
+      refreshBalance();
+      
       toast({
         title: "Win!",
         description: `You won ${symbol}${profit.toFixed(2)}!`,
         variant: "default"
       });
+      
+      console.log("Cashout successful! Profit:", profit);
       
       // Reveal all tiles for visual effect
       const newTiles = [...tiles];
