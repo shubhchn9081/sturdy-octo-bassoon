@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { useBalance } from '@/hooks/use-balance';
-import { useCurrency } from '@/context/CurrencyContext';
-import { useWallet } from '@/context/WalletContext';
 import { useAuth } from '@/hooks/use-auth';
-import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
 interface UniversalBettingPanelProps {
@@ -27,14 +24,12 @@ export const UniversalBettingPanel: React.FC<UniversalBettingPanelProps> = ({
   showAutoCashout = false,
   maxWin
 }) => {
-  // Get currency and balance from contexts/hooks
-  const { activeCurrency } = useCurrency();
-  const { rawBalance } = useBalance(activeCurrency);
-  const { balance: walletBalance, symbol, formattedBalance } = useWallet(); 
+  // Get balance from the INR-only balance hook
+  const { rawBalance, balance: formattedBalance } = useBalance('INR');
   const { user } = useAuth();
   
-  // Use the wallet balance as the source of truth
-  const currentBalance = walletBalance;
+  // Use the balance directly - always in INR
+  const currentBalance = rawBalance;
   
   // State for bet amount and auto-cashout
   const [betAmount, setBetAmount] = useState<number>(10);
@@ -113,7 +108,7 @@ export const UniversalBettingPanel: React.FC<UniversalBettingPanelProps> = ({
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-white font-semibold">Place Bet</h3>
           <div className="text-[#7F8990]">
-            Balance: <span className="text-white font-mono">{symbol}{formattedBalance}</span>
+            Balance: <span className="text-white font-mono">₹{formattedBalance}</span>
           </div>
         </div>
         

@@ -364,12 +364,11 @@ const MinesGame = () => {
         revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1)
       });
       
-      // Refresh the wallet balance
-      refreshBalance();
+      // Refresh the wallet balance is handled by the completeBet mutation
       
       toast({
         title: "Win!",
-        description: `You won ${symbol}${profit.toFixed(2)}!`,
+        description: `You won ₹${profit.toFixed(2)}!`,
         variant: "default"
       });
       
