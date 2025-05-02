@@ -21,6 +21,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number | null>(49988.462);
   const [isLoading, setIsLoading] = useState(false); // Start with false to show balance immediately
   const [error, setError] = useState<string | null>(null);
+  const [isUpdated, setIsUpdated] = useState(false); // Track when balance updates happen
   
   // Directly connect to the wallet balance API
   useEffect(() => {
@@ -33,11 +34,14 @@ export default function WalletPage() {
     const timestamp = Date.now(); // Used to bust cache
     
     const fetchDirectBalance = async () => {
+      // Generate a new timestamp with each call to ensure no caching
+      const freshTimestamp = Date.now();
+      
       try {
-        console.log(`Wallet page: Fetching fresh balance (${timestamp})`);
+        console.log(`Wallet page: Fetching fresh balance (${freshTimestamp})`);
         
-        // Direct API call with explicit no-cache options
-        const response = await fetch(`/api/user/balance?_t=${timestamp}`, {
+        // Direct API call with explicit no-cache options and new timestamp
+        const response = await fetch(`/api/user/balance?_t=${freshTimestamp}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -51,23 +55,39 @@ export default function WalletPage() {
         
         if (response.ok) {
           const data = await response.json();
-          console.log("Balance data received:", data);
+          console.log("WALLET: Balance data received:", data);
+          
           if (data && typeof data.balance === 'number') {
-            // Use the actual balance value from the API
-            setBalance(data.balance);
-            setError(null);
-            console.log(`Setting balance to ${data.balance}`);
+            // Compare with current balance to see if update is needed
+            if (balance !== data.balance) {
+              console.log(`WALLET: Balance changed from ${balance} to ${data.balance}`);
+              // Use the actual balance value from the API
+              setBalance(data.balance);
+              setError(null);
+              
+              // Trigger animation effect
+              setIsUpdated(true);
+              // Reset after animation completes
+              setTimeout(() => setIsUpdated(false), 1000);
+            } else {
+              console.log(`WALLET: Balance unchanged at ${data.balance}`);
+            }
           } else {
-            console.error("Invalid balance data format:", data);
+            console.error("WALLET: Invalid balance data format:", data);
             setError("Invalid balance data received");
           }
         } else {
-          const errorData = await response.json();
-          setError(errorData.message || 'Failed to fetch balance');
-          console.error('Balance fetch error:', errorData);
+          try {
+            const errorData = await response.json();
+            setError(errorData.message || 'Failed to fetch balance');
+            console.error('WALLET: Balance fetch error:', errorData);
+          } catch (e) {
+            setError(`Failed to fetch balance (${response.status})`);
+            console.error('WALLET: Balance fetch error, status:', response.status);
+          }
         }
       } catch (error) {
-        console.error('Error fetching balance:', error);
+        console.error('WALLET: Error fetching balance:', error);
         setError('Network error while fetching balance');
       } finally {
         setIsLoading(false);
@@ -83,7 +103,7 @@ export default function WalletPage() {
     return () => {
       clearInterval(refreshInterval);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, balance]);
   
   const handleAddFunds = () => {
     toast({
@@ -136,7 +156,15 @@ export default function WalletPage() {
                 </div>
               ) : (
                 <>
-                  <span className="text-5xl font-bold font-mono mb-1">
+                  <span 
+                    className={`text-5xl font-bold font-mono mb-1 transition-all duration-500 ${isUpdated ? 'scale-110' : 'scale-100'}`}
+                    style={{ 
+                      color: isUpdated ? '#1375e1' : (balance !== null ? '#fff' : '#7F8990'),
+                      textShadow: isUpdated 
+                        ? '0 0 15px rgba(19, 117, 225, 0.8)' 
+                        : (balance !== null ? '0 0 10px rgba(19, 117, 225, 0.5)' : 'none')
+                    }}
+                  >
                     {balance !== null ? balance.toFixed(2) : "0.00"}
                   </span>
                   <span className="text-[#7F8990] text-lg">INR</span>
