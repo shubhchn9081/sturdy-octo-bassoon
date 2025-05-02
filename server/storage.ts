@@ -990,9 +990,15 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    // Always set currency to INR regardless of what was provided
+    const transactionData = {
+      ...insertTransaction,
+      currency: "INR" // Only use INR for all transactions
+    };
+    
     const [transaction] = await db
       .insert(transactions)
-      .values(insertTransaction)
+      .values(transactionData)
       .returning();
     return transaction;
   }

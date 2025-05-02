@@ -13,8 +13,8 @@ export type PlaceBetParams = {
   clientSeed: string;
   amount: number;
   options?: Record<string, any>;
-  currency?: SupportedCurrency;
-  // Note: userId is NOT required on the client side
+  // Currency parameter removed as we only support INR
+  // userId is NOT required on the client side
   // The server gets it from the authenticated session
 };
 
@@ -50,6 +50,7 @@ export const useBalance = (currency: SupportedCurrency) => {
   const placeBet = useMutation({
     mutationFn: async (params: PlaceBetParams) => {
       // Format the bet data to match the server's expected schema
+      // Note: currency is now always INR and handled on the server side
       const betData = {
         gameId: params.gameId,
         amount: params.amount,
@@ -104,11 +105,11 @@ export const useBalance = (currency: SupportedCurrency) => {
     }
   });
 
-  // Format balance with appropriate decimal places based on currency type
+  // Format balance with 2 decimal places (INR format)
   const formatBalance = (balance?: number): string => {
     if (balance === undefined) return "0.00";
     
-    // For INR, we format with 2 decimal places
+    // Always format with 2 decimal places since we only use INR
     return balance.toLocaleString('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2

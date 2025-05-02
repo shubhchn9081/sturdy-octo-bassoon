@@ -213,7 +213,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
             gameId,
             amount: betAmount,
             clientSeed,
-            currency,
+            // currency parameter removed (only INR is supported)
             options: {
               autoExit: get().autoCashoutValue
             }

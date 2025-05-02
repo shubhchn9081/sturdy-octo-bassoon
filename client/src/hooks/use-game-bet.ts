@@ -68,7 +68,7 @@ export const useGameBet = (gameId: number) => {
       // Generate a client seed for provably fair gameplay
       const clientSeed = Math.random().toString(36).substring(2, 15);
       
-      // Call the bet API - always use INR as the currency for all games
+      // Call the bet API - INR currency is handled on the server side
       const betData = await placeBet.mutateAsync({
         gameId,
         amount: betAmount,
@@ -76,8 +76,7 @@ export const useGameBet = (gameId: number) => {
         options: {
           ...options,
           autoCashout: autoCashoutValue
-        },
-        currency: 'INR' // Fixed to INR as specified by project requirements
+        }
       });
       
       // Refresh the player's balance after placing bet
