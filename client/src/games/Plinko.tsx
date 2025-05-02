@@ -530,15 +530,14 @@ const PlinkoGame: React.FC = () => {
           isWin 
         });
         
-        // Complete the bet with backend
+        // Complete the bet with our wallet system
         try {
-          await completeBet.mutateAsync({
-            betId: betId,
-            outcome: {
-              win: isWin,
-              multiplier: winMultiplier,
-              amount: winAmount
-            }
+          // Update the game bet outcome using our response object
+          await response.completeBet({
+            win: isWin,
+            multiplier: winMultiplier,
+            payout: winAmount,
+            result: winMultiplier
           });
           
           console.log("Bet completed successfully");
@@ -547,13 +546,13 @@ const PlinkoGame: React.FC = () => {
           toast({
             title: isWin ? "Win!" : "Better luck next time!",
             description: isWin 
-              ? `You won ${formatCurrency(winAmount, activeCurrency)}` 
+              ? `You won ${symbol}${winAmount.toFixed(2)}` 
               : "No win this time.",
             variant: isWin ? "default" : "destructive",
           });
           
           // Refresh balance
-          queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
+          refreshBalance();
         } catch (completeError: any) {
           console.error("Error completing bet:", completeError);
           toast({
@@ -595,7 +594,7 @@ const PlinkoGame: React.FC = () => {
             <div className="mb-4">
               <div className="flex justify-between items-center mb-1">
                 <div className="text-sm text-gray-400">Bet Amount</div>
-                <div className="text-sm text-right">$0.00</div>
+                <div className="text-sm text-right">{symbol}{formattedBalance}</div>
               </div>
               <div className="flex mb-2">
                 <input
@@ -605,7 +604,7 @@ const PlinkoGame: React.FC = () => {
                   className="flex-1 bg-[#0F212E] border-0 rounded-l-md px-3 py-2.5 text-white"
                 />
                 <div className="bg-[#0F212E] rounded-r-md border-l border-gray-700 px-4 flex items-center">
-                  <span className="text-yellow-500">₿</span>
+                  <span className="text-yellow-500">₹</span>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-1">
@@ -623,7 +622,7 @@ const PlinkoGame: React.FC = () => {
                 </button>
                 <button 
                   className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1A2C3A]"
-                  onClick={() => setBetAmount(formatCurrency(rawBalance, activeCurrency))}
+                  onClick={() => setBetAmount(currentBalance.toFixed(2))}
                 >
                   Max
                 </button>
