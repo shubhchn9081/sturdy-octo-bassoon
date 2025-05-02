@@ -14,7 +14,8 @@ const formatCryptoAmount = (amount: number): string => {
 const DiceGame = () => {
   // Use hooks for game functionality
   const { getGameResult } = useProvablyFair('dice');
-  const { rawBalance, placeBet, completeBet } = useBalance('INR');
+  const { activeCurrency } = useCurrency();
+  const { rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -87,7 +88,7 @@ const DiceGame = () => {
         options: {
           target,
           rollMode,
-          currency: 'INR'
+          currency: activeCurrency
         }
       });
 

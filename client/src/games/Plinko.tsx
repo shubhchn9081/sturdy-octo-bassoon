@@ -44,7 +44,6 @@ const PlinkoGame: React.FC = () => {
   const [rows, setRows] = useState(16);
   const [betAmount, setBetAmount] = useState('0.00000100');
   const [isDropping, setIsDropping] = useState(false);
-  const [currency, setCurrency] = useState('BTC');
   const [isManualMode, setIsManualMode] = useState(true);
   
   // Canvas refs
@@ -516,7 +515,7 @@ const PlinkoGame: React.FC = () => {
           risk,
           rows
         },
-        currency: currency as any
+        currency: activeCurrency
       };
       
       console.log("Placing bet with data:", betData);
@@ -562,7 +561,7 @@ const PlinkoGame: React.FC = () => {
           toast({
             title: isWin ? "Win!" : "Better luck next time!",
             description: isWin 
-              ? `You won ${formatCurrency(winAmount, currency)}` 
+              ? `You won ${formatCurrency(winAmount, activeCurrency)}` 
               : "No win this time.",
             variant: isWin ? "default" : "destructive",
           });
@@ -638,7 +637,7 @@ const PlinkoGame: React.FC = () => {
                 </button>
                 <button 
                   className="bg-[#0F212E] py-1.5 rounded text-white hover:bg-[#1A2C3A]"
-                  onClick={() => setBetAmount(formatCurrency(rawBalance, currency))}
+                  onClick={() => setBetAmount(formatCurrency(rawBalance, activeCurrency))}
                 >
                   Max
                 </button>
