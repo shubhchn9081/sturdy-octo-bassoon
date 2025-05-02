@@ -21,7 +21,7 @@ export default function WalletPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Fetch the current balance directly from the API
+  // Directly connect to the wallet balance API
   useEffect(() => {
     // Only fetch balance if user is authenticated
     if (!isAuthenticated) {
@@ -29,36 +29,20 @@ export default function WalletPage() {
       return;
     }
 
-    const fetchBalance = async () => {
+    const timestamp = Date.now(); // Used to bust cache
+    
+    const fetchDirectBalance = async () => {
       try {
-        console.log("Wallet page: Fetching fresh balance");
+        console.log(`Wallet page: Fetching fresh balance (${timestamp})`);
         
-        // First try to get the balance from the Header element - most reliable method
-        const headerBalanceEl = document.querySelector('.header-balance') || document.querySelector('.header-balance-mobile');
-        if (headerBalanceEl && headerBalanceEl.textContent) {
-          const balanceText = headerBalanceEl.textContent;
-          console.log("Found header balance:", balanceText);
-          
-          // Extract number from text (₹89,616.52) 
-          const numericValue = balanceText.replace(/[^\d.]/g, '');
-          if (numericValue) {
-            const parsedBalance = parseFloat(numericValue);
-            console.log("Parsed balance from header:", parsedBalance);
-            setBalance(parsedBalance);
-            setIsLoading(false);
-            setError(null);
-            return;
-          }
-        }
-        
-        // If header element not found, use API as fallback
-        const response = await fetch('/api/user/balance', {
+        // Direct API call with explicit no-cache options
+        const response = await fetch(`/api/user/balance?_t=${timestamp}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            // Add cache-busting query parameter to prevent caching
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           },
           // Ensure we're not using cached responses
           cache: 'no-store'
@@ -66,9 +50,16 @@ export default function WalletPage() {
         
         if (response.ok) {
           const data = await response.json();
-          console.log("Balance data received from API:", data);
-          setBalance(data.balance);
-          setError(null);
+          console.log("Balance data received:", data);
+          if (data && typeof data.balance === 'number') {
+            // Use the actual balance value from the API
+            setBalance(data.balance);
+            setError(null);
+            console.log(`Setting balance to ${data.balance}`);
+          } else {
+            console.error("Invalid balance data format:", data);
+            setError("Invalid balance data received");
+          }
         } else {
           const errorData = await response.json();
           setError(errorData.message || 'Failed to fetch balance');
@@ -82,11 +73,11 @@ export default function WalletPage() {
       }
     };
     
-    // Immediate fetch on mount
-    fetchBalance();
+    // Immediate fetch on mount with small delay to ensure auth is complete
+    setTimeout(fetchDirectBalance, 100);
     
-    // Set up an interval to refresh the balance every second
-    const refreshInterval = setInterval(fetchBalance, 1000);
+    // Set up an interval to refresh the balance every 2 seconds
+    const refreshInterval = setInterval(fetchDirectBalance, 2000);
     
     return () => {
       clearInterval(refreshInterval);
@@ -145,42 +136,7 @@ export default function WalletPage() {
               ) : (
                 <>
                   <span className="text-5xl font-bold font-mono mb-1">
-                    {(() => {
-                      // Display the balance shown in the header directly from user data
-                      // This ensures consistency between header and wallet balance display
-                      const headerBalance = 
-                        document.querySelector('.header-balance')?.textContent || 
-                        document.querySelector('.header-balance-mobile')?.textContent;
-                        
-                      if (headerBalance && headerBalance.includes('₹')) {
-                        // Extract the numeric value from the header (₹89,616.52)
-                        return headerBalance.replace('₹', '').replace(',', '');
-                      }
-                      
-                      // Helper function to get INR balance as backup
-                      const getBalance = () => {
-                        if (!user?.balance) return 0;
-                        
-                        // Handle numeric balance directly
-                        if (typeof user.balance === 'number') {
-                          return user.balance;
-                        } 
-                        // For backward compatibility, handle object format but only get INR
-                        else if (typeof user.balance === 'object' && user.balance !== null) {
-                          const balanceObj = user.balance as Record<string, number>;
-                          return balanceObj['INR'] || 0;
-                        }
-                        return 0;
-                      };
-                      
-                      // Use provided balance first, then fall back to calculated balance
-                      const displayBalance = balance !== null ? balance : getBalance();
-                      
-                      // Force using the value shown in the header - this is the most reliable
-                      // If null, use document.querySelector("header .balance")?.textContent 
-                      console.log("Displayed balance:", displayBalance);
-                      return displayBalance.toFixed(2);
-                    })()}
+                    {balance !== null ? balance.toFixed(2) : "0.00"}
                   </span>
                   <span className="text-[#7F8990] text-lg">INR</span>
                 </>
