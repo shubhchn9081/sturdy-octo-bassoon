@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
 import { useToast } from '@/hooks/use-toast';
+import { useWallet } from '@/context/WalletContext';
+import { useGameBet } from '@/hooks/use-game-bet';
 
 // Types for Risk level
 type RiskType = 'Low' | 'Medium' | 'High';
@@ -30,7 +32,9 @@ const Keno: React.FC = () => {
   
   // Hooks for actual game logic
   const { getGameResult } = useProvablyFair('keno');
-  const { rawBalance, placeBet, completeBet } = useBalance('BTC');
+  // Use wallet integration instead of specific currency
+  const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
+  const { placeBet: placeGameBet, completeBet: completeGameBet, isProcessingBet } = useGameBet(4); // Keno gameId is 4
   
   // Fixed game info for Keno
   const gameInfo = {
@@ -208,7 +212,7 @@ const Keno: React.FC = () => {
     }
     
     // Check if player has enough balance
-    if (rawBalance < betAmount) {
+    if (walletBalance < betAmount) {
       console.error('Insufficient balance');
       return;
     }
@@ -222,8 +226,8 @@ const Keno: React.FC = () => {
       // Generate a client seed for provably fair gameplay
       const clientSeed = Math.random().toString(36).substring(2, 15);
       
-      // Place the bet with the API using the mutateAsync method
-      const response = await placeBet.mutateAsync({
+      // Place the bet with the API using our wallet integration
+      const response = await placeGameBet({
         gameId: gameInfo.id, 
         amount: betAmount,
         clientSeed: clientSeed,
@@ -328,16 +332,13 @@ const Keno: React.FC = () => {
     // Complete the bet with the calculated result
     if (currentBetIdRef.current !== null) {
       try {
-        // Send completion request to update server state
-        await completeBet.mutateAsync({
-          betId: currentBetIdRef.current,
-          outcome: {
-            win: won,
-            multiplier: multiplier,
-            payout: payout,
-            matchedNumbers: matches,
-            drawnNumbers: drawnNumbers
-          }
+        // Send completion request to update server state using wallet integration
+        await completeGameBet(currentBetIdRef.current, {
+          win: won,
+          multiplier: multiplier,
+          payout: payout,
+          matchedNumbers: matches,
+          drawnNumbers: drawnNumbers
         });
         
         console.log(`Bet completed: ${won ? 'Win' : 'Loss'}, Multiplier: ${multiplier}x, Payout: ${payout}`);
@@ -347,7 +348,7 @@ const Keno: React.FC = () => {
         if (won) {
           toast({
             title: "You Won!",
-            description: `Multiplier: ${multiplier.toFixed(2)}x - Payout: ${payout.toFixed(8)} BTC`,
+            description: `Multiplier: ${multiplier.toFixed(2)}x - Payout: ${symbol}${payout.toFixed(2)}`,
             variant: "default"
           });
         } else {
@@ -489,7 +490,7 @@ const Keno: React.FC = () => {
         <div className="px-4 pt-3">
           <div className="flex justify-between items-center mb-2">
             <div className="text-sm font-medium text-white">Bet Amount</div>
-            <div className="text-xs text-gray-400">{formatNumber(rawBalance)} BTC</div>
+            <div className="text-xs text-gray-400">{symbol}{formattedBalance}</div>
           </div>
           
           <div className="flex items-center gap-2 mb-3">
@@ -501,7 +502,7 @@ const Keno: React.FC = () => {
                 disabled={isPlaying}
                 className="w-full bg-[#172B3A] border border-[#243442] rounded-md pl-8 pr-3 py-2 text-white"
               />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500">₿</div>
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500">₹</div>
             </div>
             
             <button 
