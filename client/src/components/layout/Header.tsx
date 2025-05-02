@@ -40,7 +40,7 @@ const Header = () => {
   const isLoaded = !isLoading;
   const { collapsed, toggleSidebar } = useSidebar();
   const { activeCurrency } = useCurrency();
-  const { balance, rawBalance } = useBalance(activeCurrency);
+  const { balance = "0.00", rawBalance = 0 } = useBalance(activeCurrency);
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);

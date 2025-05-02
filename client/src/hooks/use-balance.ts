@@ -1,15 +1,10 @@
-import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SupportedCurrency } from '@/context/CurrencyContext';
 import { apiRequest } from '@/lib/queryClient';
 
-// Define balance structure that matches the API response
+// Define balance structure to match our new simplified API response
 type BalanceResponse = {
-  BTC: number;
-  ETH: number;
-  INR: number;
-  USDT: number;
-  USD: number;
+  balance: number;
 };
 
 // Types for bet placement and completion
@@ -29,8 +24,8 @@ export type CompleteBetParams = {
 };
 
 /**
- * Custom hook to get and format user balance based on active currency
- * @param currency The active currency
+ * Custom hook to get and format user balance
+ * @param currency The active currency (currently only INR is used)
  * @returns Formatted balance string, raw balance number, and bet mutations
  */
 export const useBalance = (currency: SupportedCurrency) => {
@@ -40,8 +35,12 @@ export const useBalance = (currency: SupportedCurrency) => {
   const { data, isLoading, error } = useQuery<BalanceResponse, Error>({
     queryKey: ['/api/user/balance'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/user/balance');
-      return await res.json();
+      const res = await fetch('/api/user/balance');
+      if (!res.ok) {
+        throw new Error('Failed to fetch balance');
+      }
+      const data = await res.json();
+      return data;
     },
     // Keep cached balance data for 10 seconds
     staleTime: 10000,
@@ -51,15 +50,11 @@ export const useBalance = (currency: SupportedCurrency) => {
   const placeBet = useMutation({
     mutationFn: async (params: PlaceBetParams) => {
       // Format the bet data to match the server's expected schema
-      // We need userId, gameId, amount, clientSeed
       const betData = {
         gameId: params.gameId,
         amount: params.amount,
         clientSeed: params.clientSeed,
-        options: {
-          ...params.options,
-          currency: params.currency || currency
-        }
+        options: params.options || {}
       };
       
       try {
@@ -109,50 +104,21 @@ export const useBalance = (currency: SupportedCurrency) => {
     }
   });
 
-  // Format balance based on currency
-  const formatBalance = (balance: BalanceResponse | undefined, currency: SupportedCurrency): string => {
-    if (!balance) return "0";
+  // Format balance with appropriate decimal places based on currency type
+  const formatBalance = (balance?: number): string => {
+    if (balance === undefined) return "0.00";
     
-    switch (currency) {
-      case 'BTC':
-        return balance.BTC.toFixed(8);
-      case 'ETH':
-        return balance.ETH.toFixed(6);
-      case 'USDT':
-        return balance.USDT.toFixed(2);
-      case 'USD':
-        return balance.USD.toFixed(2);
-      case 'INR':
-        return balance.INR.toFixed(2);
-      default:
-        return "0";
-    }
-  };
-
-  // Get raw balance amount for the selected currency
-  const getRawBalance = (balance: BalanceResponse | undefined, currency: SupportedCurrency): number => {
-    if (!balance) return 0;
-    
-    switch (currency) {
-      case 'BTC':
-        return balance.BTC;
-      case 'ETH':
-        return balance.ETH;
-      case 'USDT':
-        return balance.USDT;
-      case 'USD':
-        return balance.USD;
-      case 'INR':
-        return balance.INR;
-      default:
-        return 0;
-    }
+    // For INR, we format with 2 decimal places
+    return balance.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
   // Return formatted balance string, raw balance value, and bet mutations
   return {
-    balance: formatBalance(data, currency),
-    rawBalance: getRawBalance(data, currency),
+    balance: formatBalance(data?.balance),
+    rawBalance: data?.balance || 0,
     isLoading,
     error,
     placeBet,
