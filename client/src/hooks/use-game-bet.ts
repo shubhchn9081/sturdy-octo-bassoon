@@ -13,7 +13,14 @@ export const useGameBet = (gameId: number) => {
   const { balance, refreshBalance } = useWallet();
   // Always use INR as the only currency (project requirement)
   const currency: SupportedCurrency = 'INR';
-  const { placeBet, completeBet } = useBalance(currency);
+  const { placeBet, completeBet, refetch: refreshAPIBalance } = useBalance(currency);
+  
+  // Function to do a complete balance refresh, both from wallet context and direct API
+  const forceBalanceRefresh = () => {
+    console.log("Performing full balance refresh");
+    refreshBalance(); // Refresh the wallet context balance
+    refreshAPIBalance(); // Refresh the direct API balance
+  };
   
   // Initialization logging for debugging
   useEffect(() => {
@@ -80,9 +87,13 @@ export const useGameBet = (gameId: number) => {
       });
       
       // Refresh the player's balance after placing bet
-      refreshBalance();
+      forceBalanceRefresh();
       
-      setIsProcessingBet(false);
+      // Add a delay before setting isProcessingBet to false to ensure balance updates
+      setTimeout(() => {
+        setIsProcessingBet(false);
+      }, 500);
+      
       return betData;
       
     } catch (err: any) {

@@ -50,6 +50,13 @@ export default function WalletPage() {
     };
     
     fetchBalance();
+    
+    // Set up an interval to refresh the balance every 5 seconds
+    const refreshInterval = setInterval(fetchBalance, 5000);
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, [isAuthenticated]);
   
   const handleAddFunds = () => {

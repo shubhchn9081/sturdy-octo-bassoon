@@ -32,7 +32,7 @@ export const useBalance = (currency: SupportedCurrency) => {
   const queryClient = useQueryClient();
   
   // Query to fetch balance data from API
-  const { data, isLoading, error } = useQuery<BalanceResponse, Error>({
+  const { data, isLoading, error, refetch } = useQuery<BalanceResponse, Error>({
     queryKey: ['/api/user/balance'],
     queryFn: async () => {
       const res = await fetch('/api/user/balance');
@@ -42,8 +42,11 @@ export const useBalance = (currency: SupportedCurrency) => {
       const data = await res.json();
       return data;
     },
-    // Keep cached balance data for 10 seconds
-    staleTime: 10000,
+    // Set a lower staleTime to ensure more frequent updates
+    staleTime: 3000,
+    // Enable automatic refetching
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000, // Refetch every 5 seconds
   });
 
   // Mutation to place a bet
@@ -116,12 +119,13 @@ export const useBalance = (currency: SupportedCurrency) => {
     });
   };
 
-  // Return formatted balance string, raw balance value, and bet mutations
+  // Return formatted balance string, raw balance value, refresh function, and bet mutations
   return {
     balance: formatBalance(data?.balance),
     rawBalance: data?.balance || 0,
     isLoading,
     error,
+    refetch,  // Include refetch function to allow explicit balance refreshes
     placeBet,
     completeBet
   };
