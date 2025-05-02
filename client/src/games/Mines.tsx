@@ -33,9 +33,8 @@ interface GameStateType {
 
 const MinesGame = () => {
   const { getGameResult } = useProvablyFair('mines');
-  const { activeCurrency } = useCurrency();
-  const { updateUserBalance } = useAuth();
-  const { balance, rawBalance, placeBet, completeBet } = useBalance(activeCurrency);
+  const { balance: walletBalance, symbol, formattedBalance } = useWallet();
+  const { placeBet: placeGameBet, completeBet: completeGameBet, isProcessingBet } = useGameBet(1); // Mines gameId is 1
   const [currBetId, setCurrBetId] = useState<number | null>(null);
   
   const [gameMode, setGameMode] = useState<GameMode>('manual');
@@ -131,7 +130,7 @@ const MinesGame = () => {
     const betAmount = parseFloat(betAmountStr) || 0.00000001;
     
     // Check if user has enough balance
-    if (betAmount > rawBalance) {
+    if (betAmount > walletBalance) {
       toast({
         title: "Insufficient Balance",
         description: "You don't have enough funds to place this bet.",
@@ -144,8 +143,24 @@ const MinesGame = () => {
     const minePositions = generateMinePositions(mineCount);
     
     try {
-      // Deduct bet amount from balance
-      await updateUserBalance(activeCurrency, -betAmount);
+      // Generate a client seed for provably fair gameplay
+      const clientSeed = Math.random().toString(36).substring(2, 15);
+      
+      // Place bet through wallet integration
+      const response = await placeGameBet({
+        gameId: 1, // Mines game id
+        amount: betAmount,
+        clientSeed: clientSeed,
+        options: { mineCount }
+      });
+      
+      // Store the bet ID from the response
+      if (response && typeof response === 'object' && 'betId' in response) {
+        setCurrBetId(response.betId as number);
+      } else {
+        console.error("Invalid response from placeBet:", response);
+        throw new Error("Failed to place bet: Invalid response");
+      }
       
       // Create new game state
       const newGameState: GameStateType = {
@@ -162,24 +177,6 @@ const MinesGame = () => {
       setGameState(newGameState);
       setTiles(Array(TOTAL_CELLS).fill('hidden'));
       setSelectedTile(null);
-      
-      // In a real app with backend integration:
-      // try {
-      //   const response = await placeBet.mutateAsync({
-      //     amount: betAmount,
-      //     gameId: 2, // Mines game id
-      //     clientSeed: 'seed',
-      //     options: { mineCount }
-      //   });
-      //   setCurrBetId(response.id);
-      // } catch (error) {
-      //   console.error('Error placing bet:', error);
-      //   toast({
-      //     title: "Bet Failed",
-      //     description: "Failed to place your bet. Please try again.",
-      //     variant: "destructive"
-      //   });
-      // }
     } catch (error) {
       console.error('Error updating balance:', error);
       toast({
@@ -223,6 +220,21 @@ const MinesGame = () => {
       
       setTiles(newTiles);
       
+      // Complete the bet with loss result if we have a bet ID
+      if (currBetId) {
+        try {
+          await completeGameBet(currBetId, {
+            win: false,
+            multiplier: 0,
+            payout: 0,
+            minePositions: updatedGameState.minePositions,
+            revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1)
+          });
+        } catch (error) {
+          console.error("Error completing bet on loss:", error);
+        }
+      }
+      
       // Show loss message
       toast({
         title: "Game Over",
@@ -252,12 +264,20 @@ const MinesGame = () => {
           // Calculate the profit
           const profit = calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
           
-          // Add the winnings to the user's balance
-          await updateUserBalance(activeCurrency, profit);
+          // Complete the bet with the game outcome
+          if (currBetId) {
+            await completeGameBet(currBetId, {
+              win: true,
+              multiplier: updatedGameState.multiplier,
+              payout: updatedGameState.betAmount * updatedGameState.multiplier,
+              minePositions: updatedGameState.minePositions,
+              revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1)
+            });
+          }
           
           toast({
             title: "All Gems Collected!",
-            description: `You won ${profit.toFixed(8)} ${activeCurrency}!`,
+            description: `You won ${symbol}${profit.toFixed(2)}!`,
             variant: "default"
           });
         } catch (error) {
@@ -311,7 +331,7 @@ const MinesGame = () => {
   
   // Cash out and end the game
   const cashout = async () => {
-    if (!gameState || gameState.isGameOver || gameState.diamondsCollected === 0) return;
+    if (!gameState || gameState.isGameOver || gameState.diamondsCollected === 0 || !currBetId) return;
     
     // Create copy of current game state
     const updatedGameState = { ...gameState };
@@ -322,12 +342,18 @@ const MinesGame = () => {
     const profit = calculateProfit(updatedGameState.betAmount, updatedGameState.multiplier);
     
     try {
-      // Add the winnings to the user's balance
-      await updateUserBalance(activeCurrency, profit);
+      // Complete the bet with the game outcome
+      await completeGameBet(currBetId, {
+        win: true,
+        multiplier: updatedGameState.multiplier,
+        payout: updatedGameState.betAmount * updatedGameState.multiplier,
+        minePositions: updatedGameState.minePositions,
+        revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1)
+      });
       
       toast({
         title: "Win!",
-        description: `You won ${profit.toFixed(8)} ${activeCurrency}!`,
+        description: `You won ${symbol}${profit.toFixed(2)}!`,
         variant: "default"
       });
       
@@ -348,20 +374,6 @@ const MinesGame = () => {
       
       setTiles(newTiles);
       setGameState(updatedGameState);
-      
-      // In a real app with backend integration:
-      // try {
-      //   completeBet.mutate({
-      //     betId: currBetId!,
-      //     outcome: { 
-      //       minePositions: updatedGameState.minePositions, 
-      //       revealedPositions: updatedGameState.revealed.map((r, i) => r ? i : -1).filter(i => i !== -1),
-      //       win: true 
-      //     }
-      //   });
-      // } catch (error) {
-      //   console.error('Error completing bet:', error);
-      // }
       
       return profit;
     } catch (error) {
@@ -445,7 +457,7 @@ const MinesGame = () => {
           </div>
           <div className="h-10 bg-[#1c1c2b] border border-[#333] rounded-[6px] flex items-center justify-between px-3 text-sm">
             <span>{formatCrypto(totalProfit)}</span>
-            <span className="text-amber-400">₿</span>
+            <span className="text-amber-400">₹</span>
           </div>
         </div>
       ) : null}
@@ -533,7 +545,7 @@ const MinesGame = () => {
             </div>
             <div className={`text-white flex items-center ${overlaySize < 100 ? 'text-xs' : 'text-sm'}`}>
               {formatCrypto(gameState.betAmount)}
-              <span className="text-amber-400 ml-1">₿</span>
+              <span className="text-amber-400 ml-1">₹</span>
             </div>
           </div>
         </div>
