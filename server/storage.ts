@@ -239,44 +239,40 @@ export class MemStorage implements IStorage {
   }
   
   async updateUserBalance(id: number, amount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // For this platform, we only support INR
+    if (currency !== 'INR') {
+      console.warn('Only INR currency is supported. Ignoring request for:', currency);
+      return this.getUser(id);
+    }
+    
     const user = this.users.get(id);
     if (!user) return undefined;
     
-    // Handle different balance formats (JSONB object or plain number)
-    let updatedBalance: any;
+    // Handle different balance formats
+    let updatedBalance: number;
     
     if (typeof user.balance === 'number') {
-      // Handle numeric balance (legacy format, treated as INR only)
-      if (currency === 'INR') {
-        let newBalance = user.balance + amount;
-        if (newBalance < 0) newBalance = 0; // Don't allow negative balances
-        updatedBalance = newBalance;
-      } else {
-        // Converting from numeric to JSONB format for adding a new currency
-        updatedBalance = {
-          INR: user.balance,
-          [currency]: Math.max(0, amount) // Don't allow negative values
-        };
-      }
+      // Standard numeric balance format
+      let newBalance = user.balance + amount;
+      if (newBalance < 0) newBalance = 0; // Don't allow negative balances
+      updatedBalance = newBalance;
     } else if (typeof user.balance === 'object' && user.balance !== null) {
-      // Handle JSONB object balance (with multiple currencies)
+      // For backwards compatibility - if balance is an object, extract INR value
       const currentBalance = user.balance as Record<string, number>;
+      const currentAmount = currentBalance['INR'] || 0;
       
-      // Get current amount for the specified currency (default to 0 if not found)
-      const currentAmount = currentBalance[currency] || 0;
-      
-      // Calculate new amount (ensure it's not negative)
+      // Calculate new amount
       let newAmount = currentAmount + amount;
       if (newAmount < 0) newAmount = 0;
       
-      // Create new balance object with updated currency amount
-      updatedBalance = { ...currentBalance, [currency]: newAmount };
+      // Store as a simple number now
+      updatedBalance = newAmount;
     } else {
-      // Handle unexpected balance format (create a new balance object)
-      updatedBalance = { [currency]: Math.max(0, amount) };
+      // Handle unexpected format - create a new numeric balance
+      updatedBalance = Math.max(0, amount);
     }
     
-    // Update the user record with the new balance
+    // Update the user record with the new balance (as a simple number)
     const updatedUser = { ...user, balance: updatedBalance };
     this.users.set(id, updatedUser);
     
@@ -363,7 +359,7 @@ export class MemStorage implements IStorage {
     const transaction: Transaction = {
       ...insertTransaction,
       id,
-      currency: insertTransaction.currency || "BTC",
+      currency: "INR", // Only use INR for all transactions
       txid: insertTransaction.txid || null,
       description: insertTransaction.description || null,
       createdAt: new Date()
@@ -402,33 +398,20 @@ export class MemStorage implements IStorage {
   }
   
   async setUserBalance(id: number, exactAmount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // For this platform, we only support INR
+    if (currency !== 'INR') {
+      console.warn('Only INR currency is supported. Ignoring request for:', currency);
+      return this.getUser(id);
+    }
+    
     const user = this.users.get(id);
     if (!user) return undefined;
     
-    let updatedBalance: any;
+    // Ensure amount is not negative
+    const safeAmount = Math.max(0, exactAmount);
     
-    if (typeof user.balance === 'number') {
-      // Handle numeric balance (legacy format)
-      if (currency === 'INR') {
-        // If setting INR balance for a numeric balance, just set the value
-        updatedBalance = exactAmount;
-      } else {
-        // Convert to object format with both currencies
-        updatedBalance = {
-          INR: user.balance,
-          [currency]: exactAmount
-        };
-      }
-    } else if (typeof user.balance === 'object' && user.balance !== null) {
-      // Handle JSONB object balance
-      const balanceObj = user.balance as Record<string, number>;
-      updatedBalance = { ...balanceObj, [currency]: exactAmount };
-    } else {
-      // Handle unexpected format, create a new object
-      updatedBalance = { [currency]: exactAmount };
-    }
-    
-    const updatedUser = { ...user, balance: updatedBalance };
+    // Always store as a simple number - we're only supporting INR
+    const updatedUser = { ...user, balance: safeAmount };
     this.users.set(id, updatedUser);
     return updatedUser;
   }
@@ -809,45 +792,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserBalance(id: number, amount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // For this platform, we only support INR
+    if (currency !== 'INR') {
+      console.warn('Only INR currency is supported. Ignoring request for:', currency);
+      return this.getUser(id);
+    }
+    
     const user = await this.getUser(id);
     if (!user) return undefined;
     
-    // Handle different balance formats (JSONB object or plain number)
-    let updatedBalance;
+    // Handle different balance formats
+    let updatedBalance: number;
     
     if (typeof user.balance === 'number') {
-      // Handle numeric balance (legacy format, treated as INR only)
-      if (currency === 'INR') {
-        let newBalance = user.balance + amount;
-        if (newBalance < 0) newBalance = 0; // Don't allow negative balances
-        updatedBalance = newBalance;
-      } else {
-        // Converting from numeric to JSONB format for adding a new currency
-        updatedBalance = {
-          INR: user.balance,
-          [currency]: Math.max(0, amount) // Don't allow negative values
-        };
-      }
+      // Standard numeric balance format
+      let newBalance = user.balance + amount;
+      if (newBalance < 0) newBalance = 0; // Don't allow negative balances
+      updatedBalance = newBalance;
     } else if (typeof user.balance === 'object' && user.balance !== null) {
-      // Handle JSONB object balance (with multiple currencies)
-      const currentBalance = { ...(user.balance as Record<string, number>) }; // Clone the object with proper typing
+      // For backwards compatibility - if balance is an object, extract INR value
+      const currentBalance = user.balance as Record<string, number>;
+      const currentAmount = currentBalance['INR'] || 0;
       
-      // Get current amount for the specified currency (default to 0 if not found)
-      const currentAmount = currentBalance[currency] || 0;
-      
-      // Calculate new amount (ensure it's not negative)
+      // Calculate new amount
       let newAmount = currentAmount + amount;
       if (newAmount < 0) newAmount = 0;
       
-      // Update the currency field
-      currentBalance[currency] = newAmount;
-      updatedBalance = currentBalance;
+      // Store as a simple number now
+      updatedBalance = newAmount;
     } else {
-      // Handle unexpected balance format (create a new balance object)
-      updatedBalance = { [currency]: Math.max(0, amount) };
+      // Handle unexpected format - create a new numeric balance
+      updatedBalance = Math.max(0, amount);
     }
     
-    // Update the user record with the new balance
+    // Update the user record with the new balance (as a simple number)
     const [updatedUser] = await db
       .update(users)
       .set({ balance: updatedBalance })
@@ -886,38 +864,22 @@ export class DatabaseStorage implements IStorage {
   }
   
   async setUserBalance(id: number, exactAmount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // For this platform, we only support INR
+    if (currency !== 'INR') {
+      console.warn('Only INR currency is supported. Ignoring request for:', currency);
+      return this.getUser(id);
+    }
+    
     const user = await this.getUser(id);
     if (!user) return undefined;
     
     // Ensure amount is not negative
-    let amount = exactAmount;
-    if (amount < 0) amount = 0;
+    const safeAmount = Math.max(0, exactAmount);
     
-    // Handle different balance formats
-    let updatedBalance;
-    
-    if (typeof user.balance === 'object' && user.balance !== null) {
-      // Handle JSONB object balance
-      const currentBalance = { ...(user.balance as Record<string, number>) }; // Clone the balance object with proper typing
-      
-      // Update the specified currency
-      currentBalance[currency] = amount;
-      updatedBalance = currentBalance;
-      
-    } else {
-      // If balance is not an object, create a new balance object with the specified currency
-      updatedBalance = { [currency]: amount };
-      
-      // If we're not setting INR balance, add a default INR amount
-      if (currency !== 'INR') {
-        updatedBalance.INR = typeof user.balance === 'number' ? user.balance : 10000;
-      }
-    }
-    
-    // Update the user record
+    // Always store as a simple number - we're only supporting INR
     const [updatedUser] = await db
       .update(users)
-      .set({ balance: updatedBalance })
+      .set({ balance: safeAmount })
       .where(eq(users.id, id))
       .returning();
     

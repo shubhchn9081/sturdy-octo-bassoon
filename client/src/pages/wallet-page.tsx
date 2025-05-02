@@ -105,15 +105,16 @@ export default function WalletPage() {
                 <>
                   <span className="text-5xl font-bold font-mono mb-1">
                     {(() => {
-                      // Helper function to safely extract INR balance
-                      const getINRBalance = () => {
+                      // Helper function to get INR balance
+                      const getBalance = () => {
                         if (!user?.balance) return 0;
                         
+                        // Handle numeric balance directly
                         if (typeof user.balance === 'number') {
-                          // Handle numeric balance (legacy format)
                           return user.balance;
-                        } else if (typeof user.balance === 'object' && user.balance !== null) {
-                          // Handle JSONB balance format
+                        } 
+                        // For backward compatibility, handle object format but only get INR
+                        else if (typeof user.balance === 'object' && user.balance !== null) {
                           const balanceObj = user.balance as Record<string, number>;
                           return balanceObj['INR'] || 0;
                         }
@@ -121,7 +122,7 @@ export default function WalletPage() {
                       };
                       
                       // Use provided balance first, then fall back to calculated balance
-                      const displayBalance = balance !== null ? balance : getINRBalance();
+                      const displayBalance = balance !== null ? balance : getBalance();
                       return displayBalance.toFixed(2);
                     })()}
                   </span>
