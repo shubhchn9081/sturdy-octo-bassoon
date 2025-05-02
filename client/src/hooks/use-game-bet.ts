@@ -26,6 +26,14 @@ export const useGameBet = (gameId: number) => {
     // Clear any previous errors
     setError(null);
     
+    console.log("Placing bet with data:", {
+      amount: betAmount,
+      gameId,
+      clientSeed: Math.random().toString(36).substring(2, 15),
+      options,
+      currency: 'INR'
+    });
+    
     // Validate bet amount
     if (betAmount <= 0) {
       setError('Bet amount must be greater than 0');
@@ -40,6 +48,7 @@ export const useGameBet = (gameId: number) => {
     // Check if player has enough balance
     if (betAmount > balance) {
       setError('Insufficient balance to place this bet');
+      console.log(`Insufficient balance: ${betAmount} > ${balance}`);
       toast({
         title: 'Insufficient Balance',
         description: 'You don\'t have enough funds to place this bet',
@@ -54,7 +63,7 @@ export const useGameBet = (gameId: number) => {
       // Generate a client seed for provably fair gameplay
       const clientSeed = Math.random().toString(36).substring(2, 15);
       
-      // Call the bet API
+      // Call the bet API - always use INR as the currency for all games
       const betData = await placeBet.mutateAsync({
         gameId,
         amount: betAmount,
@@ -63,7 +72,7 @@ export const useGameBet = (gameId: number) => {
           ...options,
           autoCashout: autoCashoutValue
         },
-        currency: 'INR' as SupportedCurrency
+        currency: 'INR' // Fixed to INR as specified by project requirements
       });
       
       // Refresh the player's balance after placing bet
@@ -89,11 +98,15 @@ export const useGameBet = (gameId: number) => {
     try {
       setIsProcessingBet(true);
       
+      console.log(`Completing bet ID: ${betId}`, outcome);
+      
       // Call the complete bet API
       const result = await completeBet.mutateAsync({
         betId,
         outcome
       });
+      
+      console.log("Bet completed successfully:", result);
       
       // Refresh the player's balance after completing bet
       refreshBalance();
