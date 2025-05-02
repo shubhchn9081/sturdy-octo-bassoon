@@ -89,63 +89,47 @@ export default function WalletPage() {
           </CardHeader>
           
           <CardContent className="py-6">
-            {!isAuthenticated ? (
-              <div className="flex flex-col items-center text-center p-6">
-                <div className="flex flex-col items-center gap-2 mb-6">
-                  <LogIn className="h-12 w-12 text-[#7F8990] mb-3" />
-                  <p className="text-xl font-medium">Sign in to view your balance</p>
-                  <p className="text-[#7F8990]">You need to be logged in to manage your funds</p>
+            <div className="flex flex-col items-center text-center mb-6">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-16">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" 
+                       aria-label="Loading"/>
                 </div>
-                <Button 
-                  className="bg-[#1375e1] hover:bg-[#1060c0] text-white py-6 px-10 text-lg font-medium"
-                  onClick={handleLogin}
-                >
-                  Sign In
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-col items-center text-center mb-6">
-                  {isLoading ? (
-                    <div className="flex items-center justify-center h-16">
-                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" 
-                           aria-label="Loading"/>
-                    </div>
-                  ) : error ? (
-                    <div className="flex flex-col items-center justify-center gap-2 text-center">
-                      <AlertTriangle className="h-8 w-8 text-destructive" />
-                      <p className="text-destructive font-medium">{error}</p>
-                      <p className="text-sm text-[#7F8990]">Try refreshing the page</p>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="text-5xl font-bold font-mono mb-1">
-                        {balance !== null ? balance.toFixed(2) : (user?.balance ? user.balance.toFixed(2) : "0.00")}
-                      </span>
-                      <span className="text-[#7F8990] text-lg">Credits</span>
-                    </>
-                  )}
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center gap-2 text-center">
+                  <AlertTriangle className="h-8 w-8 text-destructive" />
+                  <p className="text-destructive font-medium">{error}</p>
+                  <p className="text-sm text-[#7F8990]">Try refreshing the page</p>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <Button 
-                    className="bg-[#20b26c] hover:bg-[#1a9f5c] text-white py-6 text-lg font-medium"
-                    onClick={handleAddFunds}
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Add Funds
-                  </Button>
-                  
-                  <Button 
-                    className="bg-[#1375e1] hover:bg-[#1060c0] text-white py-6 text-lg font-medium"
-                    onClick={handleWithdrawFunds}
-                  >
-                    <ArrowUpRight className="h-5 w-5 mr-2" />
-                    Withdraw
-                  </Button>
-                </div>
-              </>
-            )}
+              ) : (
+                <>
+                  <span className="text-5xl font-bold font-mono mb-1">
+                    {balance !== null ? balance.toFixed(2) : 
+                     (typeof user?.balance === 'object' && user?.balance?.INR ? user.balance.INR.toFixed(2) : 
+                     (typeof user?.balance === 'number' ? user.balance.toFixed(2) : "0.00"))}
+                  </span>
+                  <span className="text-[#7F8990] text-lg">Credits</span>
+                </>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <Button 
+                className="bg-[#20b26c] hover:bg-[#1a9f5c] text-white py-6 text-lg font-medium"
+                onClick={handleAddFunds}
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Add Funds
+              </Button>
+              
+              <Button 
+                className="bg-[#1375e1] hover:bg-[#1060c0] text-white py-6 text-lg font-medium"
+                onClick={handleWithdrawFunds}
+              >
+                <ArrowUpRight className="h-5 w-5 mr-2" />
+                Withdraw
+              </Button>
+            </div>
           </CardContent>
           
           <CardFooter className="bg-[#0F212E] border-t border-[#243442] py-4 text-center text-[#7F8990]">

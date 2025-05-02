@@ -396,7 +396,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has enough balance
-      if (user.balance < validatedData.amount) {
+      let userBalance = 0;
+      
+      if (typeof user.balance === 'number') {
+        userBalance = user.balance;
+      } else if (typeof user.balance === 'object' && user.balance !== null) {
+        userBalance = user.balance.INR || 0;
+      }
+      
+      if (userBalance < validatedData.amount) {
         return res.status(400).json({ message: `Insufficient balance` });
       }
       
@@ -713,13 +721,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/admin/set-balance', isAdmin, async (req, res) => {
     try {
-      const { userId, amount } = req.body;
+      const { userId, amount, currency = 'INR' } = req.body;
       
       if (!userId || amount === undefined) {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      const updatedUser = await storage.setUserBalance(userId, amount);
+      const updatedUser = await storage.setUserBalance(userId, amount, currency);
       if (!updatedUser) {
         return res.status(404).json({ message: 'User not found' });
       }
