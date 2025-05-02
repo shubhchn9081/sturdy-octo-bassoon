@@ -1,0 +1,113 @@
+Here's a **robust and scalable plan** to link a **user wallet across all games**, ensure **INR-only bets**, and make the **game UIs clean, responsive, and optimized for mobile**:
+
+---
+
+### 🔗 1. **Unified Wallet Integration for All Games**
+
+#### A. **Centralized Wallet System**
+
+* Create a **global wallet module** (`wallet.js`) that stores:
+
+  * Balance (in INR)
+  * Transaction history
+  * Deposit/withdrawal functions
+* Make this wallet accessible via an API or context in all game components.
+
+#### B. **Single Source of Truth**
+
+* Use a **Redux store / React context / global state** to share wallet data across games.
+* All games should read/write balance via this wallet only (never locally store balance).
+
+#### C. **Wallet APIs**
+
+* `GET /wallet/balance` – fetch INR balance
+* `POST /wallet/transaction` – add/deduct amount
+* `POST /wallet/deposit`, `POST /wallet/withdraw`
+
+---
+
+### 💸 2. **INR-Only Bet Placement Component**
+
+#### A. **Reusable Bet Component**
+
+* Make a reusable component `<BetAmountSelector />` with:
+
+  * Label: "Enter Bet Amount (INR)"
+  * Pre-set quick buttons: ₹10, ₹50, ₹100, ₹500
+  * Input field for custom amount
+  * Validate input as positive INR number
+* Disable currency switch — INR only, hardcoded
+
+#### B. **Usage Across Games**
+
+* Import `<BetAmountSelector />` in every game
+* Hook it into game logic to trigger wallet deduction and play
+
+---
+
+### 📱 3. **Mobile-Optimized UI Design (No Scroll)**
+
+#### A. **Layout Guidelines**
+
+* Use grid/flexbox layouts to **fit everything in one screen**
+* Break down UI into:
+
+  * Top: Game title + wallet balance
+  * Middle: Game play area
+  * Bottom: Bet amount selector + Play button
+* **Avoid modals or floating elements** that don’t resize well
+
+#### B. **UX Enhancements**
+
+* Remove ads, unnecessary text, and visual clutter
+* Show only essential actions
+* Responsive spacing, buttons sized for thumbs
+
+---
+
+### 🧹 4. **Decluttered & Minimal Game Panels**
+
+#### A. **Game UI Cleanup**
+
+* Eliminate:
+
+  * Animations that don’t help gameplay
+  * Multiple instructions—replace with tooltips or a help icon
+  * Unused buttons or options
+* Use flat icons and 2-3 colors max
+
+#### B. **Standard Layout Template**
+
+* Create a base layout for all games:
+
+  * Standard header (balance, settings)
+  * Game canvas
+  * Bottom action panel
+
+---
+
+### 🧪 5. **Robust Testing Plan**
+
+* ✅ Test wallet updates on:
+
+  * Bet placement
+  * Win/loss outcome
+  * Rapid bets
+* ✅ Ensure INR is always displayed — no foreign currency symbols
+* ✅ Test all screens on:
+
+  * iPhone SE, iPhone 14 Pro Max
+  * Samsung Galaxy A51, Fold
+* ✅ Ensure no scroll is needed in portrait mode
+
+---
+
+### 🧩 6. **Optional Enhancements**
+
+* Auto-update balance after every game without full refresh
+* Show mini balance animation when winning/losing
+*
+
+---
+
+Would you like a visual UI wireframe or a starter code structure for this unified system?

@@ -34,6 +34,7 @@ import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import { WalletProvider } from "@/context/WalletContext";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AdminRoute } from "@/lib/admin-route";
@@ -94,8 +95,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CurrencyProvider>
-          <Router />
-          <Toaster />
+          <WalletProvider>
+            <Router />
+            <Toaster />
+          </WalletProvider>
         </CurrencyProvider>
       </AuthProvider>
     </QueryClientProvider>
