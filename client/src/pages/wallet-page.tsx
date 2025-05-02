@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/UserContext';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Bitcoin, 
   CreditCard, 
@@ -49,6 +50,26 @@ export default function WalletPage() {
   const [hasCopied, setHasCopied] = useState(false);
   const [showUpiForm, setShowUpiForm] = useState(false);
   const [upiId, setUpiId] = useState("");
+  const [balanceAmount, setBalanceAmount] = useState<number | null>(null);
+  
+  // Fetch balance directly from API
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/user/balance');
+        if (response.ok) {
+          const data = await response.json();
+          setBalanceAmount(data.balance);
+        }
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+      }
+    };
+    
+    if (user) {
+      fetchBalance();
+    }
+  }, [user]);
 
   const depositForm = useForm<DepositFormData>({
     resolver: zodResolver(depositSchema),
@@ -176,15 +197,11 @@ export default function WalletPage() {
             <CardContent>
               <div className="flex items-center">
                 <span className="text-3xl font-bold font-mono">
-                  ₹{user ? (typeof user.balance === 'number' ? user.balance.toFixed(2) : 
-                     (user.balance && typeof user.balance === 'object' && 'INR' in user.balance ? 
-                      user.balance.INR.toFixed(2) : "0.00")) : "0.00"}
+                  ₹{balanceAmount !== null ? balanceAmount.toFixed(2) : "0.00"}
                 </span>
                 <span className="ml-2 text-[#7F8990]">INR</span>
               </div>
-              <p className="text-[#7F8990] mt-1">≈ ${user ? (typeof user.balance === 'number' ? 
-                (user.balance / 83).toFixed(2) : (user.balance && typeof user.balance === 'object' && 
-                'INR' in user.balance ? (user.balance.INR / 83).toFixed(2) : "0.00")) : "0.00"} USD</p>
+              <p className="text-[#7F8990] mt-1">≈ ${balanceAmount !== null ? (balanceAmount / 83).toFixed(2) : "0.00"} USD</p>
             </CardContent>
             <CardFooter className="border-t border-[#243442] pt-4">
               <div className="grid grid-cols-2 gap-3 w-full">
