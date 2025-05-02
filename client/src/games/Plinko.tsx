@@ -66,7 +66,7 @@ const PlinkoGame: React.FC = () => {
   
   // Wallet hooks
   const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
-  const { placeBet: placeGameBet, isProcessingBet } = useGameBet(2); // Plinko gameId is 2
+  const { placeBet: placeGameBet, completeBet: completeGameBet, isProcessingBet } = useGameBet(2); // Plinko gameId is 2
   
   // Current balance from wallet
   const currentBalance = walletBalance;
@@ -532,8 +532,8 @@ const PlinkoGame: React.FC = () => {
         
         // Complete the bet with our wallet system
         try {
-          // Update the game bet outcome using our response object
-          await response.completeBet({
+          // Use the completeGameBet function to update the outcome
+          await completeGameBet(betId, {
             win: isWin,
             multiplier: winMultiplier,
             payout: winAmount,

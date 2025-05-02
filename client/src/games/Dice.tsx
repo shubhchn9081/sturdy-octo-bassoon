@@ -124,14 +124,17 @@ const DiceGame = () => {
       const winAmount = isWin ? betAmount * multiplier : 0;
       const profitAmount = isWin ? betAmount * (multiplier - 1) : -betAmount;
       
-      // Update the game bet outcome
-      await response.completeBet({
-        result: formattedResult,
-        target,
-        rollMode,
-        win: isWin,
-        multiplier: isWin ? multiplier : 0,
-        payout: winAmount
+      // Update the game bet outcome with separate completeBet function
+      await completeBet.mutateAsync({
+        betId: response.betId,
+        outcome: {
+          result: formattedResult,
+          target,
+          rollMode,
+          win: isWin,
+          multiplier: isWin ? multiplier : 0,
+          payout: winAmount
+        }
       });
       
       // Refresh the balance to show updated wallet
@@ -174,18 +177,18 @@ const DiceGame = () => {
                         <div className="w-6 h-6 bg-[#243442] rounded-full mr-2"></div>
                         <span className="text-[#57FBA2]">Player123</span>
                       </td>
-                      <td className="py-2">0.00123456 BTC</td>
+                      <td className="py-2">₹123.45</td>
                       <td className="py-2">2.00×</td>
-                      <td className="py-2 text-[#57FBA2]">0.00246912 BTC</td>
+                      <td className="py-2 text-[#57FBA2]">₹246.90</td>
                     </tr>
                     <tr className="text-white border-t border-[#243442]">
                       <td className="py-2 flex items-center">
                         <div className="w-6 h-6 bg-[#243442] rounded-full mr-2"></div>
                         <span>Player456</span>
                       </td>
-                      <td className="py-2">0.00054321 BTC</td>
+                      <td className="py-2">₹54.32</td>
                       <td className="py-2">1.98×</td>
-                      <td className="py-2 text-[#FF5359]">0.00000000 BTC</td>
+                      <td className="py-2 text-[#FF5359]">₹0.00</td>
                     </tr>
                   </tbody>
                 </table>
