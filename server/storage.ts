@@ -830,7 +830,7 @@ export class DatabaseStorage implements IStorage {
       }
     } else if (typeof user.balance === 'object' && user.balance !== null) {
       // Handle JSONB object balance (with multiple currencies)
-      const currentBalance = { ...user.balance }; // Clone the object
+      const currentBalance = { ...(user.balance as Record<string, number>) }; // Clone the object with proper typing
       
       // Get current amount for the specified currency (default to 0 if not found)
       const currentAmount = currentBalance[currency] || 0;
@@ -898,7 +898,7 @@ export class DatabaseStorage implements IStorage {
     
     if (typeof user.balance === 'object' && user.balance !== null) {
       // Handle JSONB object balance
-      const currentBalance = { ...user.balance }; // Clone the balance object
+      const currentBalance = { ...(user.balance as Record<string, number>) }; // Clone the balance object with proper typing
       
       // Update the specified currency
       currentBalance[currency] = amount;
