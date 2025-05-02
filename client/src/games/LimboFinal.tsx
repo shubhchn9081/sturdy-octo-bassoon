@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { BrowseIcon, CasinoIcon, BetsIcon, SportsIcon, ChatIcon } from '../components/MobileNavigationIcons';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useBalance } from '@/hooks/use-balance';
+import { useCurrency } from '@/context/CurrencyContext';
 
 // Component for Limbo game based on the reference screenshots
 const LimboFinal: React.FC = () => {
@@ -25,7 +26,8 @@ const LimboFinal: React.FC = () => {
   
   // Hooks for actual game logic
   const { getGameResult } = useProvablyFair('limbo');
-  const { balance, placeBet, completeBet } = useBalance();
+  const { activeCurrency } = useCurrency();
+  const { balance, placeBet, completeBet } = useBalance(activeCurrency);
   
   // Fixed game info for Limbo
   const gameInfo = {
