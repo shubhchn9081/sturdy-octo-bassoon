@@ -319,11 +319,11 @@ const DiceGame = () => {
               <div className="mb-3">
                 <div className="flex justify-between mb-1">
                   <div className="text-xs text-[#7F8990]">Bet Amount</div>
-                  <div className="text-xs text-[#7F8990]">$0.00</div>
+                  <div className="text-xs text-[#7F8990]">{symbol}{formattedBalance}</div>
                 </div>
                 <div className="bg-[#0F212E] rounded flex items-center">
                   <div className="pl-2.5 pr-1">
-                    <div className="w-5 h-5 rounded-full bg-[#FFB119] text-center text-xs font-bold text-black leading-5">₿</div>
+                    <div className="w-5 h-5 rounded-full bg-[#4CAF50] text-center text-xs font-bold text-black leading-5">₹</div>
                   </div>
                   <input
                     type="text"
@@ -352,11 +352,11 @@ const DiceGame = () => {
               <div className="mb-4">
                 <div className="flex justify-between mb-1">
                   <div className="text-xs text-[#7F8990]">Profit on Win</div>
-                  <div className="text-xs text-[#7F8990]">$0.00</div>
+                  <div className="text-xs text-[#7F8990]">{symbol}{profit.toFixed(2)}</div>
                 </div>
                 <div className="bg-[#0F212E] rounded flex items-center">
                   <div className="pl-2.5 pr-1">
-                    <div className="w-5 h-5 rounded-full bg-[#FFB119] text-center text-xs font-bold text-black leading-5">₿</div>
+                    <div className="w-5 h-5 rounded-full bg-[#4CAF50] text-center text-xs font-bold text-black leading-5">₹</div>
                   </div>
                   <input
                     value={formatCryptoAmount(profit)}
