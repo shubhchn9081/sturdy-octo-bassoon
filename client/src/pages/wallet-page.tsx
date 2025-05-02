@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/UserContext';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
   ArrowUpRight, 
@@ -15,6 +16,27 @@ export default function WalletPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [balance, setBalance] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch the current balance directly from the API
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/user/balance');
+        if (response.ok) {
+          const data = await response.json();
+          setBalance(data.balance);
+        }
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBalance();
+  }, []);
   
   const handleAddFunds = () => {
     toast({
@@ -50,10 +72,19 @@ export default function WalletPage() {
           
           <CardContent className="py-6">
             <div className="flex flex-col items-center text-center mb-6">
-              <span className="text-5xl font-bold font-mono mb-1">
-                {user?.balance ? user.balance.toFixed(2) : "0.00"}
-              </span>
-              <span className="text-[#7F8990] text-lg">Credits</span>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-16">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" 
+                       aria-label="Loading"/>
+                </div>
+              ) : (
+                <>
+                  <span className="text-5xl font-bold font-mono mb-1">
+                    {balance !== null ? balance.toFixed(2) : (user?.balance ? user.balance.toFixed(2) : "0.00")}
+                  </span>
+                  <span className="text-[#7F8990] text-lg">Credits</span>
+                </>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-4 pt-4">
