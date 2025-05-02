@@ -143,7 +143,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not found' });
       }
       
-      res.json(user.balance);
+      // Return balance as an object
+      res.json({ balance: user.balance });
     } catch (error) {
       console.error('Error fetching balance:', error);
       res.status(500).json({ message: 'Server error' });
@@ -200,9 +201,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // User is available from the session
         const user = req.user;
         
-        // Update the balance with the proper currency
+        // Update the balance with INR currency
         const multiplier = type === 'deposit' ? 1 : -1;
-        await storage.updateUserBalance(userId, currency, amount * multiplier);
+        await storage.updateUserBalance(userId, amount * multiplier);
       }
       
       res.status(201).json(transaction);
@@ -460,8 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the authenticated user directly
         const user = req.user;
         
-        // Use INR as currency
-        const currency = 'INR';
+        // Calculate winning amount with INR
         const winAmount = bet.amount * req.body.outcome.multiplier;
         await storage.updateUserBalance(user.id, winAmount);
         
@@ -473,7 +473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               type: 'WIN',
               amount: winAmount,
               status: 'COMPLETED',
-              currency: currency,
+              currency: 'INR',
               description: `Win from ${game.name} - Multiplier: ${req.body.outcome.multiplier}x`,
             });
           } catch (err) {
@@ -705,13 +705,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/admin/set-balance', isAdmin, async (req, res) => {
     try {
-      const { userId, currency, amount } = req.body;
+      const { userId, amount } = req.body;
       
-      if (!userId || !currency || amount === undefined) {
+      if (!userId || amount === undefined) {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      const updatedUser = await storage.setUserBalance(userId, currency, amount);
+      const updatedUser = await storage.setUserBalance(userId, amount);
       if (!updatedUser) {
         return res.status(404).json({ message: 'User not found' });
       }
