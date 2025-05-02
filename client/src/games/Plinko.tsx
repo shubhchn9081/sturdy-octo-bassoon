@@ -10,6 +10,8 @@ import { apiRequest } from '@/lib/queryClient';
 import gsap from 'gsap';
 import type { PlaceBetParams } from '@/hooks/use-balance';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useWallet } from '@/context/WalletContext';
+import { useGameBet } from '@/hooks/use-game-bet';
 
 // Game constants
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
@@ -62,10 +64,12 @@ const PlinkoGame: React.FC = () => {
   const { placeBet, completeBet, rawBalance } = useBalance(activeCurrency);
   const { getGameResult } = useProvablyFair('plinko');
   
-  // Function to refresh balance
-  const refreshBalance = () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
-  };
+  // Wallet hooks
+  const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
+  const { placeBet: placeGameBet, isProcessingBet } = useGameBet(2); // Plinko gameId is 2
+  
+  // Current balance from wallet
+  const currentBalance = walletBalance;
   
   // Canvas dimensions
   const width = 400;
@@ -482,52 +486,34 @@ const PlinkoGame: React.FC = () => {
       return;
     }
     
+    // Check sufficient balance
+    if (betAmountValue > currentBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough balance to place this bet",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsDropping(true);
     
     try {
-      // First, we need to get the game ID for Plinko
-      // Use TanStack Query to consistently fetch the game data with proper caching
-      const plinkoGame = await queryClient.fetchQuery({
-        queryKey: ['/api/games', 'plinko'],
-        queryFn: async () => {
-          const res = await apiRequest('GET', '/api/games');
-          if (!res.ok) {
-            throw new Error("Failed to fetch games");
-          }
-          const games = await res.json();
-          const game = games.find((g: any) => g.slug === 'plinko');
-          if (!game) {
-            throw new Error("Plinko game not found");
-          }
-          return game;
-        },
-        staleTime: 60000 // Cache for 1 minute
-      });
-      
-      console.log("Found Plinko game:", plinkoGame);
-      
-      // Now place the bet with the correct gameId
-      const betData: PlaceBetParams = {
-        gameId: plinkoGame.id,
+      // Place the bet with our new wallet system
+      const response = await placeGameBet({
         amount: betAmountValue,
-        clientSeed: Math.random().toString(36).substring(2),
         options: {
           risk,
           rows
         },
-        currency: activeCurrency
-      };
+        autoCashout: null
+      });
       
-      console.log("Placing bet with data:", betData);
-      
-      // Place bet with API
-      const result = await placeBet.mutateAsync(betData);
-      
-      if (!result || !result.betId) {
+      if (!response || !response.betId) {
         throw new Error("Failed to place bet");
       }
       
-      const betId = result.betId;
+      const betId = response.betId;
       console.log("Bet placed successfully with ID:", betId);
       
       // Animate the ball drop and get result
