@@ -31,7 +31,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useBalance } from '@/hooks/use-balance';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
-import CurrencySwitcher from '@/components/ui/CurrencySwitcher';
+// Currency switcher removed as we only support INR now
 
 const Header = () => {
   const { isAuthenticated, user: contextUser } = useUser();
@@ -93,7 +93,7 @@ const Header = () => {
                 </span>
                 {/* Removed the first chevron down icon */}
                 <div className="border-l border-[#0B131C] pl-2 py-1.5 pr-2 flex items-center">
-                  <CurrencySwitcher variant="header" currencies={['BTC', 'USD', 'INR']} />
+                  <span className="text-gray-400 text-xs ml-1">INR</span>
                 </div>
               </div>
             )}
@@ -208,7 +208,7 @@ const Header = () => {
                 {activeCurrency === 'INR' ? `₹${parseFloat(balance).toFixed(2)}` : balance}
               </span>
               <div className="border-l border-[#0B131C] pl-2 py-2 pr-2 flex items-center">
-                <CurrencySwitcher variant="header" currencies={['BTC', 'USD', 'INR']} />
+                <span className="text-gray-400 text-xs ml-1">INR</span>
               </div>
             </div>
           )}
