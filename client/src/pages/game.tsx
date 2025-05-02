@@ -6,8 +6,8 @@ import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
 import CricketMines from '@/games/CricketMines';
 import Plinko from '@/games/Plinko';
-import Crash from '@/games/CrashFinal';
-import Limbo from '@/games/LimboFinal';
+import CrashFinal from '@/games/CrashFinal';
+import LimboFinal from '@/games/LimboFinal';
 import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
 
@@ -19,8 +19,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   mines: Mines,
   'cricket-mines': CricketMines,
   plinko: Plinko,
-  crash: Crash,
-  limbo: Limbo,
+  crash: CrashFinal,
+  limbo: LimboFinal,
   keno: Keno,
   wheel: Wheel
 };

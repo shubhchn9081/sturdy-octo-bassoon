@@ -169,7 +169,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
     autoCashoutValue: null,
     activeBets: createInitialBets(),
     gameHistory: [],
-    currency: 'BTC' as SupportedCurrency,
+    currency: 'INR' as SupportedCurrency,
     
     // Actions
     placeBet: () => {

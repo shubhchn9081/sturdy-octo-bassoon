@@ -1,7 +1,7 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 
-// Define supported currencies
-export type SupportedCurrency = 'BTC' | 'ETH' | 'USDT' | 'USD' | 'INR';
+// Define supported currencies - Now only INR is used
+export type SupportedCurrency = 'INR';
 
 // Define context type
 interface CurrencyContextType {
@@ -9,24 +9,20 @@ interface CurrencyContextType {
   setActiveCurrency: (currency: SupportedCurrency) => void;
 }
 
-// Create context with default values
+// Create context with default values - Always using INR
 export const CurrencyContext = createContext<CurrencyContextType>({
   activeCurrency: 'INR',
   setActiveCurrency: () => {},
 });
 
-// Provider component
+// Provider component - Simplified since we only support INR now
 export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state with stored preference or default to INR
-  const [activeCurrency, setActiveCurrencyState] = useState<SupportedCurrency>(() => {
-    const storedCurrency = localStorage.getItem('activeCurrency');
-    return (storedCurrency as SupportedCurrency) || 'INR';
-  });
+  // INR is always the active currency
+  const activeCurrency: SupportedCurrency = 'INR';
 
-  // Update currency and store in localStorage
-  const setCurrency = (currency: SupportedCurrency) => {
-    setActiveCurrencyState(currency);
-    localStorage.setItem('activeCurrency', currency);
+  // This is a dummy function since we don't actually change currencies anymore
+  const setCurrency = (_currency: SupportedCurrency) => {
+    console.log('Currency system only supports INR');
   };
 
   return (
