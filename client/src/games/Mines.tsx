@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { formatCrypto, calculateProfit } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
-import { useBalance } from '@/hooks/use-balance';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { useCurrency } from '@/context/CurrencyContext';
-import { useAuth } from '@/context/UserContext';
+import { useWallet } from '@/context/WalletContext';
+import { useGameBet } from '@/hooks/use-game-bet';
 import { toast } from '@/hooks/use-toast';
 
 // Import SVG components for Gems and Bombs
@@ -554,14 +553,18 @@ const MinesGame = () => {
       
       // Get container width and determine available space
       const containerWidth = gridWrapperRef.current.clientWidth;
+      const isMobile = window.innerWidth < 640; // Check if on small screens
       
       // Calculate optimal tile size based on container width
-      // Leave space for grid gap (10px) and padding
-      const maxGridWidth = containerWidth - 40; // 20px padding on each side
-      const optimalTileSize = Math.floor((maxGridWidth - (GRID_SIZE - 1) * 10) / GRID_SIZE);
+      // Leave space for grid gap and padding
+      const maxGridWidth = containerWidth - 30; // 15px padding on each side
+      const gapSize = isMobile ? 6 : 8; // Smaller gap on mobile
+      const optimalTileSize = Math.floor((maxGridWidth - (GRID_SIZE - 1) * gapSize) / GRID_SIZE);
       
-      // Set minimum tile size to ensure visibility
-      const newTileSize = Math.max(40, Math.min(optimalTileSize, 88)); // min 40px, max 88px
+      // Set minimum tile size to ensure visibility but smaller on mobile
+      const minSize = isMobile ? 36 : 40;
+      const maxSize = isMobile ? 70 : 88;
+      const newTileSize = Math.max(minSize, Math.min(optimalTileSize, maxSize));
       setTileSize(newTileSize);
     };
     
@@ -578,10 +581,11 @@ const MinesGame = () => {
     <div className="relative grid-container grid" style={{ 
       gridTemplateColumns: `repeat(5, ${tileSize}px)`, 
       gridTemplateRows: `repeat(5, ${tileSize}px)`, 
-      gap: '10px',
-      padding: '20px',
+      gap: '8px',
+      padding: '10px',
       margin: 'auto',
-      marginTop: '20px'
+      marginTop: '10px',
+      marginBottom: '80px' // Add space at bottom to prevent cutting off on small screens
     }}>
       {tiles.map((status, index) => (
         <button
@@ -612,10 +616,10 @@ const MinesGame = () => {
   
   // Main render
   return (
-    <div className="flex flex-col w-full bg-[#0F212E] text-white h-[calc(100vh-60px)]" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="flex flex-col w-full bg-[#0F212E] text-white min-h-[calc(100vh-60px)] pb-20 sm:pb-0" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Game Area - On mobile, this appears first */}
       <div className="flex-1 overflow-auto order-first mb-4">
-        <div ref={gridWrapperRef} className="flex items-center justify-center w-full h-full">
+        <div ref={gridWrapperRef} className="flex items-center justify-center w-full h-full pt-4">
           {renderGameGrid()}
         </div>
       </div>

@@ -392,9 +392,9 @@ const Keno: React.FC = () => {
                 </div>
                 <div className="h-px w-40 bg-gray-600 my-2"></div>
                 <div className="text-2xl flex items-center">
-                  <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(8) : '0.00000000'}</span> 
+                  <span>{betAmount > 0 ? (betAmount * result.multiplier).toFixed(2) : '0.00'}</span> 
                   <span className="ml-1">
-                    <span className="inline-flex items-center justify-center w-4 h-4 bg-[#F7931A] rounded-full text-white text-xs">₿</span>
+                    <span className="inline-flex items-center justify-center w-4 h-4 bg-[#4CAF50] rounded-full text-white text-xs">₹</span>
                   </span>
                 </div>
               </div>
