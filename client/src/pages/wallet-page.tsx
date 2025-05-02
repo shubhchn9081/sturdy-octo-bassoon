@@ -32,12 +32,33 @@ export default function WalletPage() {
     const fetchBalance = async () => {
       try {
         console.log("Wallet page: Fetching fresh balance");
+        
+        // First try to get the balance from the Header element - most reliable method
+        const headerBalanceEl = document.querySelector('.header-balance') || document.querySelector('.header-balance-mobile');
+        if (headerBalanceEl && headerBalanceEl.textContent) {
+          const balanceText = headerBalanceEl.textContent;
+          console.log("Found header balance:", balanceText);
+          
+          // Extract number from text (₹89,616.52) 
+          const numericValue = balanceText.replace(/[^\d.]/g, '');
+          if (numericValue) {
+            const parsedBalance = parseFloat(numericValue);
+            console.log("Parsed balance from header:", parsedBalance);
+            setBalance(parsedBalance);
+            setIsLoading(false);
+            setError(null);
+            return;
+          }
+        }
+        
+        // If header element not found, use API as fallback
         const response = await fetch('/api/user/balance', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             // Add cache-busting query parameter to prevent caching
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
           },
           // Ensure we're not using cached responses
           cache: 'no-store'
@@ -45,7 +66,7 @@ export default function WalletPage() {
         
         if (response.ok) {
           const data = await response.json();
-          console.log("Balance data received:", data);
+          console.log("Balance data received from API:", data);
           setBalance(data.balance);
           setError(null);
         } else {
@@ -64,8 +85,8 @@ export default function WalletPage() {
     // Immediate fetch on mount
     fetchBalance();
     
-    // Set up an interval to refresh the balance every 3 seconds
-    const refreshInterval = setInterval(fetchBalance, 3000);
+    // Set up an interval to refresh the balance every second
+    const refreshInterval = setInterval(fetchBalance, 1000);
     
     return () => {
       clearInterval(refreshInterval);
@@ -125,7 +146,18 @@ export default function WalletPage() {
                 <>
                   <span className="text-5xl font-bold font-mono mb-1">
                     {(() => {
-                      // Helper function to get INR balance
+                      // Display the balance shown in the header directly from user data
+                      // This ensures consistency between header and wallet balance display
+                      const headerBalance = 
+                        document.querySelector('.header-balance')?.textContent || 
+                        document.querySelector('.header-balance-mobile')?.textContent;
+                        
+                      if (headerBalance && headerBalance.includes('₹')) {
+                        // Extract the numeric value from the header (₹89,616.52)
+                        return headerBalance.replace('₹', '').replace(',', '');
+                      }
+                      
+                      // Helper function to get INR balance as backup
                       const getBalance = () => {
                         if (!user?.balance) return 0;
                         
@@ -143,6 +175,10 @@ export default function WalletPage() {
                       
                       // Use provided balance first, then fall back to calculated balance
                       const displayBalance = balance !== null ? balance : getBalance();
+                      
+                      // Force using the value shown in the header - this is the most reliable
+                      // If null, use document.querySelector("header .balance")?.textContent 
+                      console.log("Displayed balance:", displayBalance);
                       return displayBalance.toFixed(2);
                     })()}
                   </span>

@@ -98,7 +98,7 @@ const Header = () => {
           <div className="hidden md:block">
             {isSignedIn && (
               <div className="flex items-center bg-[#1C2C39] rounded text-xs relative cursor-pointer" onClick={() => setLocation('/wallet')}>
-                <span className="text-white px-2 py-1.5 font-mono">
+                <span className="text-white px-2 py-1.5 font-mono header-balance" id="header-balance">
                   {symbol}{balance}
                 </span>
                 {/* Removed the first chevron down icon */}
@@ -212,7 +212,7 @@ const Header = () => {
         <div className="md:hidden bg-[#0F212E] border-t border-[#172B3A] p-3">
           {isSignedIn && (
             <div className="flex items-center bg-[#1C2C39] rounded text-xs mb-3 cursor-pointer" onClick={() => setLocation('/wallet')}>
-              <span className="text-white px-2 py-2 font-mono flex-1">
+              <span className="text-white px-2 py-2 font-mono flex-1 header-balance-mobile">
                 {symbol}{balance}
               </span>
               <div className="border-l border-[#0B131C] pl-2 py-2 pr-2 flex items-center">
