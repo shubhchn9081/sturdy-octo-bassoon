@@ -4,6 +4,7 @@ import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCurrency } from '@/context/CurrencyContext';
 
 // Simple formatCrypto implementation to avoid dependency
 const formatCryptoAmount = (amount: number): string => {

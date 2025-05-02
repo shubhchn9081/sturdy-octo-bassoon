@@ -143,8 +143,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not found' });
       }
       
-      // Return balance as an object
-      res.json({ balance: user.balance });
+      // Ensure balance is a number, handling both legacy object format and number format
+      let balanceValue = 0;
+      if (typeof user.balance === 'number') {
+        balanceValue = user.balance;
+      } else if (typeof user.balance === 'object' && user.balance && 'INR' in user.balance) {
+        balanceValue = user.balance.INR || 0;
+      }
+      
+      // Return simplified balance response
+      res.json({ balance: balanceValue });
     } catch (error) {
       console.error('Error fetching balance:', error);
       res.status(500).json({ message: 'Server error' });

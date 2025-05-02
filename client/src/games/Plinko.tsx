@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import gsap from 'gsap';
 import type { PlaceBetParams } from '@/hooks/use-balance';
+import { useCurrency } from '@/context/CurrencyContext';
 
 // Game constants
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
@@ -58,7 +59,8 @@ const PlinkoGame: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { placeBet, completeBet, rawBalance } = useBalance(currency as any);
+  const { activeCurrency } = useCurrency();
+  const { placeBet, completeBet, rawBalance } = useBalance(activeCurrency);
   const { getGameResult } = useProvablyFair('plinko');
   
   // Function to refresh balance
