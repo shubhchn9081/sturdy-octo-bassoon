@@ -56,19 +56,33 @@ export default function WalletPage() {
   useEffect(() => {
     const fetchBalance = async () => {
       try {
+        if (!user || !user.id) {
+          console.log("User not authenticated, skipping balance fetch");
+          return;
+        }
+        
+        console.log("Attempting to fetch balance for user:", user.id);
         const response = await apiRequest('GET', '/api/user/balance');
+        
         if (response.ok) {
           const data = await response.json();
+          console.log("Balance fetched successfully:", data.balance);
           setBalanceAmount(data.balance);
+        } else {
+          console.log("Failed to fetch balance:", await response.text());
         }
       } catch (error) {
         console.error('Error fetching balance:', error);
       }
     };
     
-    if (user) {
-      fetchBalance();
-    }
+    fetchBalance();
+    
+    // Poll for balance updates every 5 seconds
+    const intervalId = setInterval(fetchBalance, 5000);
+    
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
   }, [user]);
 
   const depositForm = useForm<DepositFormData>({
@@ -187,7 +201,21 @@ export default function WalletPage() {
         <p className="text-[#7F8990]">Manage your funds securely</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {!user ? (
+        <Card className="bg-[#172B3A] border-[#243442] text-white shadow-lg p-6 mx-auto max-w-md">
+          <div className="text-center space-y-4">
+            <CardTitle className="text-xl font-bold">Login Required</CardTitle>
+            <p className="text-[#7F8990]">Please login to view your wallet</p>
+            <Button
+              className="bg-[#1375e1] hover:bg-[#0e5dba] text-white w-full"
+              onClick={() => setLocation('/login')}
+            >
+              Go to Login
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Balance Cards */}
         <div className="lg:col-span-1 space-y-4">
           <Card className="bg-[#172B3A] border-[#243442] text-white shadow-lg">
@@ -585,6 +613,7 @@ export default function WalletPage() {
           </Card>
         </div>
       </div>
+      )}
     </div>
   );
 }
