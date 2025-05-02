@@ -405,7 +405,7 @@ export const useCrashStore = create<CrashStore>((set, get) => {
         gameState: 'waiting',
         currentMultiplier: 1.0,
         crashPoint: newCrashPoint,
-        countdown: Math.floor(Math.random() * 3) + 3, // 3-5 seconds countdown
+        countdown: 10, // Fixed 10 seconds countdown between rounds
         dataPoints: [],
         hasPlacedBet: false, // Always reset player bet state
         hasCashedOut: false,
