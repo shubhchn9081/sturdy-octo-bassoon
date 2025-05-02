@@ -31,8 +31,14 @@ export const useWalletBalance = () => {
       }
       return res.json();
     },
-    // Keep cached balance data for 5 seconds
-    staleTime: 5000,
+    // Keep cached balance data for a short time
+    staleTime: 2000,
+    // Enable automatic refetching on window focus and interval
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchOnMount: true,
+    // Disable caching when offline to ensure fresh data
+    cacheTime: 0,
   });
 };
 

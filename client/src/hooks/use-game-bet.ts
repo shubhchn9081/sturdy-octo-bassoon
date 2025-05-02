@@ -124,9 +124,12 @@ export const useGameBet = (gameId: number) => {
       console.log("Bet completed successfully:", result);
       
       // Refresh the player's balance after completing bet
-      refreshBalance();
+      forceBalanceRefresh();
       
-      setIsProcessingBet(false);
+      // Add a delay before setting isProcessingBet to false to ensure balance updates
+      setTimeout(() => {
+        setIsProcessingBet(false);
+      }, 500);
       
       if (result.win) {
         toast({

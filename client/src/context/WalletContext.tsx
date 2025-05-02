@@ -58,6 +58,23 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, [error, isAuthenticated, toast]);
   
+  // Set up automatic balance refresh
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Immediate refresh on mount
+      refetch();
+      
+      // Set up an interval to refresh balance every 5 seconds
+      const intervalId = setInterval(() => {
+        console.log("Auto-refreshing wallet balance");
+        refetch();
+      }, 5000);
+      
+      // Clean up on unmount
+      return () => clearInterval(intervalId);
+    }
+  }, [isAuthenticated, refetch]);
+  
   // Values for the context
   const contextValue: WalletContextType = {
     balance,
