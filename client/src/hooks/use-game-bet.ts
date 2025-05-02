@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/context/WalletContext';
 import { useBalance } from '@/hooks/use-balance';
-import { useCurrency } from '@/context/CurrencyContext';
 import { SupportedCurrency } from '@/context/CurrencyContext';
 
 /**
@@ -12,8 +11,14 @@ import { SupportedCurrency } from '@/context/CurrencyContext';
 export const useGameBet = (gameId: number) => {
   const { toast } = useToast();
   const { balance, refreshBalance } = useWallet();
-  const { activeCurrency } = useCurrency();
-  const { placeBet, completeBet } = useBalance(activeCurrency as SupportedCurrency);
+  // Always use INR as the only currency (project requirement)
+  const currency: SupportedCurrency = 'INR';
+  const { placeBet, completeBet } = useBalance(currency);
+  
+  // Initialization logging for debugging
+  useEffect(() => {
+    console.log("Setting up global bet functions");
+  }, []);
   
   // State for bet amount and auto-cashout
   const [betAmount, setBetAmount] = useState<number>(10.00);

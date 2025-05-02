@@ -78,14 +78,12 @@ const DiceGame = () => {
     if (rolling || betAmount <= 0) return;
     
     try {
+      // Set UI state
       setRolling(true);
       setResult(null);
       setWon(null);
       
-      // Generate client seed
-      const clientSeed = Math.random().toString(36).substring(2, 15);
-      
-      // Use the centralized game bet hook to place the bet
+      // Use the unified game bet hook to place the bet
       const response = await placeGameBet({
         amount: betAmount,
         options: {
@@ -100,28 +98,39 @@ const DiceGame = () => {
       }
 
       setCurrentBetId(response.betId);
+      console.log("Bet placed successfully with ID:", response.betId);
       
-      // Generate dice result
+      // Generate dice result using provably fair mechanism
       const diceResult = getGameResult() as number;
       const formattedResult = parseFloat((diceResult * 100).toFixed(2));
       
-      // Wait for animation
+      // Wait for animation to complete
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Update UI with result
       setResult(formattedResult);
       
-      // Check if win
+      // Determine win/loss based on game rules
       const isWin = rollMode === 'over' 
         ? formattedResult > target 
         : formattedResult < target;
         
       setWon(isWin);
       
-      // Calculate profit
+      // Calculate payout amounts
       const winAmount = isWin ? betAmount * multiplier : 0;
       const profitAmount = isWin ? betAmount * (multiplier - 1) : -betAmount;
       
-      // Update the game bet outcome with completeGameBet function
+      console.log("Game result:", {
+        result: formattedResult,
+        target,
+        rollMode,
+        win: isWin,
+        multiplier: isWin ? multiplier : 0,
+        payout: winAmount
+      });
+      
+      // Complete the bet and update wallet
       await completeGameBet(response.betId, {
         result: formattedResult,
         target,
@@ -131,7 +140,10 @@ const DiceGame = () => {
         payout: winAmount
       });
       
-      // Refresh the balance to show updated wallet
+      console.log("Bet completed: " + (isWin ? "Win" : "Loss") + ", Multiplier: " + 
+        (isWin ? multiplier : 0) + "x, Payout: " + winAmount);
+      
+      // Refresh the balance to update UI
       refreshBalance();
       
     } catch (error) {
