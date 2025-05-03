@@ -6,8 +6,8 @@
  * without requiring authentication cookies or API calls.
  */
 
-import { gameOutcomeControl } from './server/middleware/gameOutcomeControl.js';
-import { storage } from './server/storage.js';
+import { gameOutcomeControl } from './server/middleware/gameOutcomeControl.ts';
+import { storage } from './server/storage.ts';
 
 // Test if admin can control game outcomes
 async function testGameOutcomeControl() {
