@@ -14,6 +14,7 @@ type SpinResult = {
   multiplier: number;
   win: boolean;
   winAmount: number;
+  luckyNumberHit?: boolean;
 };
 
 // Main Slots component
@@ -87,7 +88,8 @@ const Slots = () => {
         reels: newReels,
         multiplier: result.multiplier || 0,
         win: result.profit > 0,
-        winAmount: result.profit > 0 ? result.profit : 0
+        winAmount: result.profit > 0 ? result.profit : 0,
+        luckyNumberHit: result.luckyNumberHit || false
       };
       
       setSpinResults(spinResult);
@@ -103,11 +105,19 @@ const Slots = () => {
       
       // Notify user of result
       if (spinResult.win) {
-        toast({
-          title: "You won!",
-          description: `You won ${spinResult.winAmount.toFixed(2)} INR with a ${spinResult.multiplier}x multiplier!`,
-          variant: "default"
-        });
+        if (spinResult.luckyNumberHit) {
+          toast({
+            title: "Jackpot! Lucky Number Hit!",
+            description: `Your lucky number ${luckyNumber} appeared! You won ${spinResult.winAmount.toFixed(2)} INR with a ${spinResult.multiplier}x multiplier!`,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "You won!",
+            description: `You won ${spinResult.winAmount.toFixed(2)} INR with a ${spinResult.multiplier}x multiplier!`,
+            variant: "default"
+          });
+        }
       }
       
       // Continue auto spin if enabled after a delay

@@ -11,6 +11,7 @@ const slotBetSchema = z.object({
   gameId: z.number().int().positive(),
   amount: z.number().positive(),
   clientSeed: z.string().min(1),
+  luckyNumber: z.number().int().min(0).max(9).optional(),
 });
 
 // Handler for processing slot bets
@@ -22,7 +23,7 @@ router.post('/play', async (req: Request, res: Response) => {
     }
     
     // Extract and validate request data
-    const { gameId, amount, clientSeed } = slotBetSchema.parse(req.body);
+    const { gameId, amount, clientSeed, luckyNumber } = slotBetSchema.parse(req.body);
     
     // Get user from session
     const userId = req.user.id;
@@ -71,7 +72,8 @@ router.post('/play', async (req: Request, res: Response) => {
       amount,
       serverSeed,
       clientSeed,
-      nonce
+      nonce,
+      luckyNumber
     );
     
     // Return result to client
