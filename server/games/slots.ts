@@ -6,6 +6,7 @@ interface SlotGameOutcome {
   reels: number[];
   multiplier: number;
   win: boolean;
+  luckyNumberHit?: boolean;
 }
 
 // Calculate the multiplier for a given reel combination
@@ -152,7 +153,8 @@ export async function generateSlotGameOutcome(
   betAmount: number,
   serverSeed: string, // For provably fair calculations
   clientSeed: string, // For provably fair calculations
-  nonce: number // For provably fair calculations
+  nonce: number, // For provably fair calculations
+  luckyNumber?: number // Player's selected lucky number
 ): Promise<SlotGameOutcome> {
   // Check if the outcome should be forced by admin controls
   const controlledOutcome = await gameOutcomeControl.shouldForceOutcome(userId, gameId);
@@ -190,10 +192,20 @@ export async function generateSlotGameOutcome(
     win = false;
   }
   
+  // Check if any reel matches the player's lucky number
+  let luckyNumberHit = false;
+  if (luckyNumber !== undefined && reels.includes(luckyNumber)) {
+    // If lucky number appears in any reel, it's a win with 10x multiplier
+    luckyNumberHit = true;
+    multiplier = 10; // Override multiplier for lucky number hit
+    win = true;
+  }
+
   return {
     reels,
     multiplier,
-    win
+    win,
+    luckyNumberHit
   };
 }
 
@@ -204,7 +216,8 @@ export async function processSlotBet(
   betAmount: number,
   serverSeed: string,
   clientSeed: string,
-  nonce: number
+  nonce: number,
+  luckyNumber?: number
 ): Promise<any> {
   try {
     // Generate the outcome for this game
@@ -214,7 +227,8 @@ export async function processSlotBet(
       betAmount, 
       serverSeed, 
       clientSeed, 
-      nonce
+      nonce,
+      luckyNumber
     );
     
     // Calculate the profit
@@ -227,7 +241,12 @@ export async function processSlotBet(
       amount: betAmount,
       multiplier: outcome.multiplier,
       profit: outcome.win ? profit : -betAmount,
-      outcome: { reels: outcome.reels, win: outcome.win },
+      outcome: { 
+        reels: outcome.reels, 
+        win: outcome.win,
+        luckyNumberHit: outcome.luckyNumberHit || false,
+        luckyNumber: luckyNumber
+      },
       serverSeed,
       clientSeed,
       nonce,
@@ -243,7 +262,8 @@ export async function processSlotBet(
       amount: betAmount,
       outcome: bet.outcome,
       multiplier: outcome.multiplier,
-      profit: outcome.win ? profit : -betAmount
+      profit: outcome.win ? profit : -betAmount,
+      luckyNumberHit: outcome.luckyNumberHit || false
     };
   } catch (error) {
     console.error('Error processing slot bet:', error);

@@ -30,6 +30,7 @@ const Slots = () => {
   const [reelValues, setReelValues] = useState<number[]>([0, 0, 0]);
   const [error, setError] = useState<string | null>(null);
   const [gameHistory, setGameHistory] = useState<SpinResult[]>([]);
+  const [luckyNumber, setLuckyNumber] = useState<number>(7); // Default lucky number is 7
   
   // Handle spin button click
   const handleSpin = async () => {
@@ -64,6 +65,7 @@ const Slots = () => {
           gameId: 13, // Slots game ID (update this with the correct ID)
           amount: betAmount,
           clientSeed,
+          luckyNumber, // Include the player's lucky number
         })
       });
       
@@ -246,6 +248,8 @@ const Slots = () => {
           error={error}
           clearError={clearError}
           spinResults={spinResults}
+          luckyNumber={luckyNumber}
+          setLuckyNumber={setLuckyNumber}
         />
       </div>
     </div>
