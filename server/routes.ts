@@ -370,21 +370,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Authentication required' });
       }
       
+      // Import the bet utilities
+      const { normalizeBetAmount, validateBetAmount, canonicalizeBetAmount } = await import('./utils/betUtils');
+      
       // Validate request body
       // Use the client-side schema that doesn't include userId
       const betSchema = clientBetSchema.extend({
         options: z.record(z.any()).optional()
       });
       
-      const validatedData = betSchema.parse(req.body);
-
-      // Ensure the bet amount is a valid number
-      // This ensures that string values or malformed numbers are properly converted
-      validatedData.amount = parseFloat(validatedData.amount as any);
-      if (isNaN(validatedData.amount)) {
-        return res.status(400).json({ message: 'Invalid bet amount' });
+      // Parse and validate the request
+      let validatedData;
+      try {
+        validatedData = betSchema.parse(req.body);
+      } catch (e) {
+        if (e instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: 'Invalid bet data', 
+            errors: e.errors,
+            receivedData: req.body
+          });
+        }
+        throw e;
       }
-      
+
       // Get user from the authenticated session and game
       const user = req.user;
       const game = await storage.getGame(validatedData.gameId);
@@ -403,43 +412,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the game's minimum bet amount
       const minBet = game.minBet || 100;
       
-      // Log bet information for debugging
-      console.log(`Placing bet - User: ${user.username}, Game: ${game.name}, Amount: ${validatedData.amount}`);
+      // Use our robust amount normalization to get the correct bet amount
+      const originalAmount = validatedData.amount;
+      validatedData.amount = canonicalizeBetAmount(validatedData.amount);
       
-      // Don't allow bets below minimum amount
-      if (validatedData.amount < minBet) {
+      // Log bet information with both original and normalized amounts
+      console.log(`Placing bet - User: ${user.username}, Game: ${game.name}`);
+      console.log(`Original amount: ${originalAmount}, Normalized amount: ${validatedData.amount}`);
+      
+      // Validate the bet amount
+      const validation = validateBetAmount(validatedData.amount, minBet);
+      if (!validation.valid) {
         return res.status(400).json({ 
-          message: `Bet amount must be at least ₹${minBet}`,
+          message: validation.message,
+          originalAmount: originalAmount,
+          normalizedAmount: validatedData.amount,
           minBet: minBet
         });
-      }
-      
-      // Don't allow bets of 0 or negative amounts
-      if (validatedData.amount <= 0) {
-        return res.status(400).json({ message: 'Bet amount must be greater than 0' });
-      }
-      
-      // Check if user has enough balance in INR
-      let userINRBalance = 0;
-      
-      if (typeof user.balance === 'number') {
-        // Legacy format - numeric balance is treated as INR
-        userINRBalance = user.balance;
-      } else if (typeof user.balance === 'object' && user.balance !== null) {
-        // JSONB format with multiple currencies
-        const balanceObj = user.balance as Record<string, number>;
-        userINRBalance = balanceObj.INR || 0;
-      }
-      
-      if (userINRBalance < validatedData.amount) {
-        return res.status(400).json({ message: `Insufficient INR balance: ${userINRBalance}` });
       }
       
       // Generate server seed for provable fairness
       const serverSeed = createServerSeed();
       
       try {
-        // First create the bet record
+        // First create the bet record with the properly normalized amount
         const bet = await storage.createBet({
           ...validatedData,
           userId: user.id, // Explicitly set userId from authenticated user
@@ -448,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           outcome: {}, // Empty outcome until bet is completed
         });
         
-        // Explicitly log the bet information
+        // Explicitly log the bet creation
         console.log(`Created bet record: ID=${bet.id}, Game=${game.name}, Amount=${validatedData.amount}, User=${user.username}`);
         
         // Import and use the transaction handler to handle the bet deduction
@@ -457,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req, 
           res, 
           user.id, 
-          validatedData.amount, 
+          validatedData.amount, // Pass the normalized amount
           currency, 
           game.name
         );
@@ -475,22 +471,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Successfully deducted ${validatedData.amount} ${currency} for bet ID=${bet.id}`);
         
+        // Return the bet ID and details to the client
         res.json({ 
           betId: bet.id, 
           serverSeedHash: bet.serverSeed,
-          amount: validatedData.amount,
+          amount: validatedData.amount, // Return the normalized amount
+          originalAmount: originalAmount, // Also return the original amount for debugging
           success: true
         });
       } catch (error) {
         console.error('Error in bet creation process:', error);
-        res.status(500).json({ message: 'Error processing bet', success: false });
+        res.status(500).json({ 
+          message: 'Error processing bet', 
+          success: false,
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Invalid bet data', errors: error.errors });
-      }
       console.error('Error placing bet:', error);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ 
+        message: 'Server error',
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   
@@ -500,6 +502,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ message: 'Authentication required' });
       }
+      
+      // Import the bet utilities
+      const { normalizeBetAmount, calculateWinnings } = await import('./utils/betUtils');
       
       const betId = parseInt(req.params.id);
       const bet = await storage.getBet(betId);
@@ -524,16 +529,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Game not found' });
       }
       
-      // Ensure the multiplier is a valid number
+      // Use our robust normalization for the multiplier
+      const originalMultiplier = req.body.outcome.multiplier;
+      req.body.outcome.multiplier = normalizeBetAmount(req.body.outcome.multiplier);
+      
+      // Ensure the multiplier is a valid number for wins
       if (req.body.outcome.win) {
-        req.body.outcome.multiplier = parseFloat(req.body.outcome.multiplier);
-        if (isNaN(req.body.outcome.multiplier) || req.body.outcome.multiplier <= 0) {
-          return res.status(400).json({ message: 'Invalid multiplier value' });
+        if (req.body.outcome.multiplier <= 0) {
+          return res.status(400).json({ 
+            message: 'Invalid multiplier value. Must be greater than 0.',
+            originalMultiplier: originalMultiplier,
+            normalizedMultiplier: req.body.outcome.multiplier
+          });
         }
       }
       
-      // Get profit value based on win/loss
-      const profit = req.body.outcome.win ? (bet.amount * req.body.outcome.multiplier) - bet.amount : -bet.amount;
+      // Get profit value based on win/loss using our utility
+      const profit = req.body.outcome.win 
+        ? calculateWinnings(bet.amount, req.body.outcome.multiplier) - bet.amount 
+        : -bet.amount;
       
       // Update bet with outcome and mark as completed
       const updatedBet = await storage.updateBet(betId, {
@@ -549,19 +563,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the authenticated user directly
         const user = req.user;
         
-        // Here's where the bug was! 
-        // We need to return the original bet amount PLUS any profit
-        // Because the original bet amount was already deducted when the bet was placed
+        // Calculate total return (original bet amount * multiplier) using our utility
+        const totalReturn = calculateWinnings(bet.amount, req.body.outcome.multiplier);
         
-        // Calculate total return (original bet + profit)
-        const totalReturn = bet.amount * req.body.outcome.multiplier;
+        console.log(`Bet completion - User ID: ${user.id}, Game: ${game.name}, Original bet: ${bet.amount}`);
+        console.log(`Multiplier: ${originalMultiplier} (normalized: ${req.body.outcome.multiplier}), Total return: ${totalReturn}`);
+        console.log(`Profit: ${profit}`);
         
-        console.log(`Bet completion - User ID: ${user.id}, Game: ${game.name}, Original bet: ${bet.amount}, Multiplier: ${req.body.outcome.multiplier}, Total return: ${totalReturn}`);
+        // Import and use the transaction handler for consistent processing
+        const { transactionHandler } = await import('./middleware/transactionHandler');
+        const processSuccess = await transactionHandler.processBetWin(
+          req, 
+          res, 
+          user.id, 
+          bet.amount,
+          req.body.outcome.multiplier,
+          'INR', 
+          game.name
+        );
         
-        // Update user's INR balance with the total return (original bet + profit)
-        await storage.updateUserBalance(user.id, totalReturn, 'INR');
+        if (!processSuccess) {
+          console.error(`Failed to process win for bet ID=${bet.id}`);
+          // The transaction handler already sent an error response
+          return;
+        }
+        
+        console.log(`Successfully processed win of ${totalReturn} INR for bet ID=${bet.id}`);
         
         // Add transaction record if available
+        // (transactionHandler already does this, but keeping for redundancy)
         if (storage.createTransaction) {
           try {
             await storage.createTransaction({
@@ -579,10 +609,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      res.json(updatedBet);
+      // Add win amount to the response for easier client-side handling
+      const responseData = {
+        ...updatedBet,
+        winAmount: req.body.outcome.win ? calculateWinnings(bet.amount, req.body.outcome.multiplier) : 0
+      };
+      
+      res.json(responseData);
     } catch (error) {
       console.error('Error completing bet:', error);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ 
+        message: 'Server error',
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   
