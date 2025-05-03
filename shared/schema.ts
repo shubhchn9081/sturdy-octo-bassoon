@@ -154,6 +154,14 @@ export type SlotsOutcome = {
   luckyNumber?: number;
 };
 
+export type CupAndBallOutcome = {
+  ballPosition: number; // 0, 1, or 2 for the cup index
+  selectedCup: number; // Player's guess
+  difficulty: string; // "easy", "medium", or "hard"
+  win: boolean;
+  shuffleMoves: number[]; // Array of shuffle move indices for animation replay
+};
+
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -235,6 +243,11 @@ export type SlotsGameSettings = {
   forcedReels: number[]; // Force specific reel values
   forcedMultiplier: number; // Force a specific multiplier
   includeLuckyNumber: boolean; // Force lucky number hit
+};
+
+export type CupAndBallGameSettings = {
+  forcedBallPosition: number; // Force the ball to be under a specific cup (0, 1, or 2)
+  forceLose: boolean; // Force the player to lose regardless of their selection
 };
 
 // User specific game outcome control table
