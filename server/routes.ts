@@ -377,6 +377,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const validatedData = betSchema.parse(req.body);
+
+      // Ensure the bet amount is a valid number
+      // This ensures that string values or malformed numbers are properly converted
+      validatedData.amount = parseFloat(validatedData.amount as any);
+      if (isNaN(validatedData.amount)) {
+        return res.status(400).json({ message: 'Invalid bet amount' });
+      }
       
       // Get user from the authenticated session and game
       const user = req.user;
@@ -395,6 +402,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get the game's minimum bet amount
       const minBet = game.minBet || 100;
+      
+      // Log bet information for debugging
+      console.log(`Placing bet - User: ${user.username}, Game: ${game.name}, Amount: ${validatedData.amount}`);
       
       // Don't allow bets below minimum amount
       if (validatedData.amount < minBet) {
@@ -495,6 +505,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!game) {
         return res.status(404).json({ message: 'Game not found' });
+      }
+      
+      // Ensure the multiplier is a valid number
+      if (req.body.outcome.win) {
+        req.body.outcome.multiplier = parseFloat(req.body.outcome.multiplier);
+        if (isNaN(req.body.outcome.multiplier) || req.body.outcome.multiplier <= 0) {
+          return res.status(400).json({ message: 'Invalid multiplier value' });
+        }
       }
       
       // Get profit value based on win/loss

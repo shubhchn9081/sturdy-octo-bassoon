@@ -52,14 +52,22 @@ export const useBalance = (currency: SupportedCurrency) => {
   // Mutation to place a bet
   const placeBet = useMutation({
     mutationFn: async (params: PlaceBetParams) => {
+      // Ensure bet amount is a valid number
+      const betAmount = parseFloat(params.amount as any);
+      if (isNaN(betAmount) || betAmount <= 0) {
+        throw new Error('Invalid bet amount');
+      }
+      
       // Format the bet data to match the server's expected schema
       // Note: currency is now always INR and handled on the server side
       const betData = {
         gameId: params.gameId,
-        amount: params.amount,
+        amount: betAmount, // Use the validated and parsed bet amount
         clientSeed: params.clientSeed,
         options: params.options || {}
       };
+      
+      console.log('Placing bet with data:', betData);
       
       try {
         const res = await apiRequest('POST', '/api/bets/place', betData);
@@ -85,8 +93,22 @@ export const useBalance = (currency: SupportedCurrency) => {
   // Mutation to complete a bet
   const completeBet = useMutation({
     mutationFn: async (params: CompleteBetParams) => {
+      // Make a deep copy of the outcome to avoid mutating the original
+      const processedOutcome = { ...params.outcome };
+      
+      // If this is a winning outcome with a multiplier, ensure the multiplier is a valid number
+      if (processedOutcome.win && processedOutcome.multiplier !== undefined) {
+        processedOutcome.multiplier = parseFloat(processedOutcome.multiplier as any);
+        if (isNaN(processedOutcome.multiplier) || processedOutcome.multiplier <= 0) {
+          throw new Error('Invalid multiplier value for winning outcome');
+        }
+        console.log(`Completing bet with multiplier: ${processedOutcome.multiplier}`);
+      }
+      
       try {
-        const res = await apiRequest('POST', `/api/bets/${params.betId}/complete`, { outcome: params.outcome });
+        const res = await apiRequest('POST', `/api/bets/${params.betId}/complete`, { 
+          outcome: processedOutcome 
+        });
         
         if (!res.ok) {
           const errorData = await res.json();
@@ -94,6 +116,7 @@ export const useBalance = (currency: SupportedCurrency) => {
           throw new Error(errorData.message || 'Error completing bet');
         }
         
+        console.log('Bet completed successfully, will refresh balance');
         return res.json();
       } catch (error) {
         console.error('Bet completion API error:', error);
