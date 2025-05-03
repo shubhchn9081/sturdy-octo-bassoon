@@ -182,7 +182,7 @@ const BettingPanel = ({
       <div>
         <Button
           variant="default"
-          className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg shadow-lg"
+          className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-black rounded-lg shadow-lg shadow-green-500/30"
           onClick={autoSpin ? stopAutoSpin : onSpin}
           disabled={isSpinning}
         >
