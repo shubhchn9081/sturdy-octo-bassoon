@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useBalance } from '@/hooks/use-balance';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { gsap } from 'gsap';
-import BettingPanel from './components/slots/BettingPanel';
 import SlotMachine from './components/slots/SlotMachine';
-import GameRules from './components/slots/GameRules';
 
 // Type definitions
 type SpinResult = {
@@ -277,35 +278,153 @@ const Slots = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#0F212E] text-white">
-      <div className="flex-1 overflow-auto pb-[200px] sm:pb-[180px]">
-        <div className="bg-[#0E1C27] rounded-lg p-2 mx-auto max-w-md">
-          {/* Main slot machine component */}
-          <SlotMachine 
-            reelValues={reelValues} 
-            isSpinning={isSpinning} 
-            spinResults={spinResults}
-            luckyNumber={luckyNumber}
-          />
+      {/* Game Content Area */}
+      <div className="mx-auto w-full max-w-md flex flex-col h-full overflow-auto pb-0">
+        {/* Slots title and description */}
+        <div className="text-center pt-6 pb-2">
+          <h2 className="text-3xl font-bold">SLOTS</h2>
+          <p className="text-sm text-blue-300">Win up to 10× your bet!</p>
+        </div>
+        
+        {/* Slot reels display */}
+        <div className="p-2 mb-2">
+          <div className="bg-[#0A1520] p-4 rounded-md border border-[#2A3F51] mb-4 relative overflow-hidden">
+            <div className="flex justify-center items-center space-x-4">
+              {reelValues.map((value, index) => (
+                <div 
+                  key={index}
+                  className={`w-24 h-24 flex items-center justify-center text-5xl font-bold rounded-md ${
+                    isSpinning ? 'bg-[#0E1C27]' : 'bg-[#162431] border border-[#2C3E4C]'
+                  }`}
+                >
+                  {value}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Multiplier display */}
+          <div className="grid grid-cols-3 gap-3 bg-transparent">
+            <div className="text-center border border-[#2A3F51] rounded p-1 bg-[#162431]">
+              <div className="text-xs text-blue-300">3 of 7s</div>
+              <div className="font-bold">10×</div>
+            </div>
+            <div className="text-center border border-[#2A3F51] rounded p-1 bg-[#162431]">
+              <div className="text-xs text-blue-300">3 Same</div>
+              <div className="font-bold">5×</div>
+            </div>
+            <div className="text-center border border-[#2A3F51] rounded p-1 bg-[#162431]">
+              <div className="text-xs text-blue-300">Sequence</div>
+              <div className="font-bold">3×</div>
+            </div>
+          </div>
+          
+          {/* Lucky number reminder */}
+          <div className="text-center text-sm mt-4 mb-8">
+            Your lucky number is {luckyNumber} (10× win if it appears!)
+          </div>
+        </div>
+        
+        {/* Copyright notice */}
+        <div className="text-center text-xs text-gray-500 mt-auto mb-2">
+          © 2025 Novito.in | All Rights Reserved.
         </div>
       </div>
       
-      {/* Betting panel fixed at bottom - compact design */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0E1C27] border-t border-[#1D2F3D] p-2">
-        <BettingPanel
-          balance={balance}
-          betAmount={betAmount}
-          setBetAmount={setBetAmount}
-          onSpin={handleSpin}
-          isSpinning={isSpinning}
-          autoSpin={autoSpin}
-          setAutoSpin={setAutoSpin}
-          stopAutoSpin={stopAutoSpin}
-          error={error}
-          clearError={clearError}
-          spinResults={spinResults}
-          luckyNumber={luckyNumber}
-          setLuckyNumber={setLuckyNumber}
-        />
+      {/* Controls Section - matching reference image */}
+      <div className="bg-[#0E1C27] border-t border-[#1D2F3D] mt-auto">
+        <div className="max-w-md mx-auto">
+          {/* Bet Amount Section */}
+          <div className="p-2">
+            <div className="flex justify-between items-center mb-2">
+              <span>Bet Amount</span>
+              <div className="flex items-center">
+                <span className="mr-2">Auto</span>
+                <Switch
+                  id="autoSpin"
+                  checked={autoSpin}
+                  onCheckedChange={(checked) => setAutoSpin(checked)}
+                  disabled={isSpinning}
+                />
+              </div>
+            </div>
+            
+            <Input
+              id="betAmount"
+              type="number"
+              min="100"
+              step="100"
+              value={betAmount.toString()}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBetAmount(parseFloat(e.target.value) || 100)}
+              className="w-full mb-2"
+              disabled={isSpinning}
+            />
+            
+            {/* Preset amounts */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {[100, 500, 1000, 5000].map((amount) => (
+                <Button
+                  key={amount}
+                  variant="outline"
+                  size="sm"
+                  className="text-sm"
+                  onClick={() => setBetAmount(amount)}
+                  disabled={isSpinning}
+                >
+                  {amount}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Lucky Number Selection */}
+            <div className="mb-2">
+              <div className="mb-2">Lucky Number (10× Win!)</div>
+              <div className="grid grid-cols-10 gap-1">
+                {Array.from({ length: 10 }, (_, i) => (
+                  <Button
+                    key={i}
+                    variant={luckyNumber === i ? "secondary" : "outline"}
+                    className={`${
+                      luckyNumber === i 
+                        ? 'bg-amber-700 text-amber-200 hover:bg-amber-600' 
+                        : 'bg-[#162431]'
+                    }`}
+                    onClick={() => setLuckyNumber(i)}
+                    disabled={isSpinning}
+                  >
+                    {i}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Spin Button */}
+            <Button
+              variant="default"
+              className="w-full h-14 text-xl font-bold bg-purple-700 hover:bg-purple-600 rounded-lg shadow-lg mt-2"
+              onClick={autoSpin ? stopAutoSpin : handleSpin}
+              disabled={isSpinning || parseFloat(balance) < betAmount}
+            >
+              {isSpinning ? (
+                <>
+                  <RefreshCw className="mr-2 h-6 w-6 animate-spin" />
+                  Spinning...
+                </>
+              ) : autoSpin ? (
+                'STOP AUTO SPIN'
+              ) : (
+                'SPIN'
+              )}
+            </Button>
+            
+            {parseFloat(balance) < betAmount && (
+              <p className="text-xs text-red-500 flex items-center justify-center mt-1">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Insufficient balance
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
