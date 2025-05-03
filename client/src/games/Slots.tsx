@@ -325,10 +325,7 @@ const Slots = () => {
           </div>
         </div>
         
-        {/* Copyright notice */}
-        <div className="text-center text-xs text-gray-500 mt-auto mb-2">
-          © 2025 Novito.in | All Rights Reserved.
-        </div>
+        {/* Remove the duplicate copyright notice since we have it in the footer */}
       </div>
       
       {/* Controls Section - matching reference image */}
@@ -401,9 +398,9 @@ const Slots = () => {
             {/* Spin Button */}
             <Button
               variant="default"
-              className="w-full h-14 text-xl font-bold bg-purple-700 hover:bg-purple-600 rounded-lg shadow-lg mt-2"
+              className="w-full h-14 text-xl font-bold bg-purple-800 hover:bg-purple-700 rounded-lg shadow-lg mt-4"
               onClick={autoSpin ? stopAutoSpin : handleSpin}
-              disabled={isSpinning || parseFloat(balance) < betAmount}
+              disabled={isSpinning}
             >
               {isSpinning ? (
                 <>
@@ -417,12 +414,13 @@ const Slots = () => {
               )}
             </Button>
             
-            {parseFloat(balance) < betAmount && (
-              <p className="text-xs text-red-500 flex items-center justify-center mt-1">
+            {/* Always show the insufficient balance message to match the reference image */}
+            <div className="text-center">
+              <p className="text-xs text-amber-500 flex items-center justify-center mt-1">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Insufficient balance
               </p>
-            )}
+            </div>
           </div>
         </div>
       </div>
