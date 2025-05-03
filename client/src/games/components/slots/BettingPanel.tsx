@@ -42,7 +42,7 @@ const BettingPanel = ({
   const [localBetAmount, setLocalBetAmount] = useState<string>(betAmount.toString());
   
   // Preset bet amounts
-  const presetAmounts = [1, 10, 100, 500];
+  const presetAmounts = [1, 100, 10000, 50000];
   
   // Update local bet amount when props change
   useEffect(() => {
@@ -133,6 +133,7 @@ const BettingPanel = ({
             id="betAmount"
             type="number"
             min="0.00000001"
+            max="50000"
             step="0.01"
             value={localBetAmount}
             onChange={handleBetAmountChange}
