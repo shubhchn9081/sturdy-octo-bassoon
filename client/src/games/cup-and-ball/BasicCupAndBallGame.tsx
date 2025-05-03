@@ -251,7 +251,7 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
             
             // Vertical position - lift when revealing or bounce during shuffling
             y: (gamePhase === 'revealing' || gamePhase === 'complete') && 
-               ballPosition === cupIndex ? -50 : // Lift to reveal ball (smaller for mobile)
+               ballPosition === cupIndex ? -70 : // Lift to reveal ball higher
                gamePhase === 'shuffling' ? 
                   (isAnimatingThisCup ? 
                    Math.sin(Date.now() / 200) * 12 : // Bounce for active cups
@@ -316,23 +316,25 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
         
         {/* Ball shown when needed - mobile optimized */}
         {showBall && (
-          <motion.div
-            className="w-10 h-10 md:w-14 md:h-14 bg-red-500 rounded-full shadow-lg mt-2 md:mt-3"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1 
-            }}
-            transition={{ 
-              type: "spring",
-              stiffness: 300,
-              damping: 15,
-              duration: 0.4 
-            }}
-          >
-            {/* Ball highlight for 3D effect */}
-            <div className="absolute top-2 left-2 w-3 h-3 bg-white opacity-30 rounded-full"></div>
-          </motion.div>
+          <div className="absolute left-1/2 transform -translate-x-1/2 top-[80%] md:top-[85%]">
+            <motion.div
+              className="w-10 h-10 md:w-14 md:h-14 bg-red-500 rounded-full shadow-lg"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1 
+              }}
+              transition={{ 
+                type: "spring",
+                stiffness: 300,
+                damping: 15,
+                duration: 0.4 
+              }}
+            >
+              {/* Ball highlight for 3D effect */}
+              <div className="absolute top-2 left-2 w-3 h-3 bg-white opacity-30 rounded-full"></div>
+            </motion.div>
+          </div>
         )}
       </div>
     );
