@@ -1,0 +1,203 @@
+# Cup and Ball Casino Game Project Prompt for Replit
+
+## Project Overview
+Create an interactive implementation of the classic Cup and Ball casino game (also known as the shell game or thimblerig) using TypeScript and web technologies in Replit. This game will feature visual elements, animations, a betting system, and multiple difficulty levels.
+
+## Core Requirements
+
+### Technology Stack
+- **Frontend**: HTML5, CSS3, TypeScript/JavaScript
+- **Optional**: Consider using frameworks like React or libraries like Phaser.js for game development
+- **Backend** (if needed): Node.js with Express for any server-side functionality
+
+### Game Mechanics
+1. **Basic Gameplay**:
+   - A ball is placed under one of three cups
+   - The cups are shuffled a number of times
+   - The player bets money and guesses which cup contains the ball
+   - If correct, the player wins based on a payout multiplier
+
+2. **Difficulty Levels**:
+   - Easy: 5 shuffle moves, slower animation, 1.5x payout
+   - Medium: 10 shuffle moves, medium animation, 2x payout
+   - Hard: 15 shuffle moves, fast animation, 3x payout
+
+3. **Economy System**:
+   - Player starts with $1000 virtual currency
+   - Player can bet any amount up to their current balance
+   - Winnings calculated based on bet amount and difficulty multiplier
+   - Option to reset balance if player runs out of money
+
+### Visual Elements
+1. **Graphics**:
+   - Create visual representations of cups (CSS, SVG, or canvas-based)
+   - Different cup states: normal, with ball, lifted
+   - Smooth animations for shuffling and revealing
+
+2. **Animation Sequence**:
+   - Initial placement of the ball under a random cup
+   - Animated shuffling sequence with cup movements
+   - Reveal animation when player makes a guess
+
+3. **User Interface**:
+   - Clean, intuitive interface with game controls
+   - Display for player balance and current bet
+   - Visual feedback for wins and losses
+   - Option menus for settings and difficulty
+
+### Additional Features
+1. **Game State Management**:
+   - Save player's balance and statistics using localStorage or similar
+   - Option to reset progress
+   - Track and display statistics (games played, win rate, highest balance)
+
+2. **Sound Effects**:
+   - Background music
+   - Sound effects for ball placement, cup movements, wins/losses
+
+3. **Responsive Design**:
+   - Game should be playable on both desktop and mobile devices
+   - Adapt layout based on screen size
+
+## Technical Requirements
+
+### Code Structure
+1. **Object-Oriented Approach**:
+   - Create proper class definitions for game elements
+   - Implement inheritance and encapsulation where appropriate
+   - Separate game logic from presentation
+
+2. **TypeScript Best Practices**:
+   - Use proper typing for all variables and functions
+   - Implement interfaces for game objects
+   - Use modern ES6+ features appropriately
+
+3. **Performance Optimization**:
+   - Efficient animation techniques
+   - Proper resource management
+   - Smooth gameplay experience
+
+### Implementation Details
+
+1. **Game State Class**:
+   ```typescript
+   interface GameConfig {
+     initialBalance: number;
+     difficulties: Record<string, DifficultySettings>;
+     // Other configuration options
+   }
+   
+   interface DifficultySettings {
+     shuffleMoves: number;
+     animationSpeed: number;
+     payoutMultiplier: number;
+   }
+   
+   class CupAndBallGame {
+     private playerBalance: number;
+     private currentBet: number;
+     private ballPosition: number | null;
+     private difficulty: string;
+     private stats: GameStatistics;
+     
+     constructor(config: GameConfig) {
+       // Initialize game state
+     }
+     
+     public placeBall(): void {
+       // Logic to place the ball under a random cup
+     }
+     
+     public shuffleCups(): Promise<void> {
+       // Animated cup shuffling logic
+       // Returns a Promise that resolves when animation completes
+     }
+     
+     public placeBet(amount: number): boolean {
+       // Handle betting logic
+       // Return true if bet is valid
+     }
+     
+     public makeGuess(cupIndex: number): boolean {
+       // Check if guess is correct
+       // Update balance accordingly
+     }
+     
+     // Additional methods for game mechanics
+   }
+   ```
+
+2. **UI Controller**:
+   ```typescript
+   class GameUIController {
+     private game: CupAndBallGame;
+     private cupElements: HTMLElement[];
+     
+     constructor(gameInstance: CupAndBallGame) {
+       // Initialize UI and connect to game logic
+     }
+     
+     public renderCups(): void {
+       // Draw cups on screen
+     }
+     
+     public animateShuffle(moves: Array<[number, number]>): Promise<void> {
+       // Animate cup movements based on provided move sequence
+     }
+     
+     public showResult(playerWon: boolean, winAmount?: number): void {
+       // Display win/loss message and update UI
+     }
+     
+     // Additional methods for UI updates
+   }
+   ```
+
+3. **Main Game Loop**:
+   ```typescript
+   async function gameLoop() {
+     // Initialize game
+     const game = new CupAndBallGame(CONFIG);
+     const ui = new GameUIController(game);
+     
+     // Set up event listeners
+     
+     // Example game round flow
+     ui.showIntro();
+     
+     // Wait for player to place bet
+     // ...
+     
+     game.placeBall();
+     await ui.animateBallPlacement(game.getBallPosition());
+     
+     await game.shuffleCups();
+     
+     // Wait for player guess
+     // ...
+     
+     const result = game.makeGuess(playerGuess);
+     ui.showResult(result);
+     
+     // Save game state
+     game.saveState();
+   }
+   ```
+
+## Bonus Challenges
+1. Implement "cheat detection" to simulate a real shell game's deceptive nature
+2. Add a multiplayer mode where players take turns
+3. Create a leaderboard system using Replit's database
+4. Add different visual themes or cup styles that can be purchased with winnings
+
+## Deliverables
+1. Complete, functioning game deployed on Replit
+2. Well-commented code with TypeScript types
+3. README with game instructions and technical details
+4. User documentation explaining how to play
+
+## Resources
+- Replit Documentation: https://docs.replit.com/
+- TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/intro.html
+- HTML5 Canvas Tutorial: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
+- CSS Animation Guide: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations/Using_CSS_animations
