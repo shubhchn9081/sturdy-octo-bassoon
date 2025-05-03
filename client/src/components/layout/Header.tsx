@@ -83,7 +83,7 @@ const Header = () => {
           </div>
           
           <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
-            <NovitoLogo className="h-8 md:h-12" />
+            <NovitoLogo className="h-6 md:h-12" />
           </div>
           
           {isSignedIn && (
