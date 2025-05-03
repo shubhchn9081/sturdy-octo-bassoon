@@ -94,8 +94,8 @@ async function insertUser(userData, client) {
   
   // Insert the user
   const insertResult = await client.query(
-    'INSERT INTO users (username, fullName, phone, password, balance, createdAt, updatedAt) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, username',
-    [username, fullName || username, phone, hashedPassword, 0, new Date(), new Date()]
+    'INSERT INTO users (username, full_name, phone, password, balance, created_at, email) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, username',
+    [username, fullName || username, phone, hashedPassword, '{"INR": 0, "BTC": 0, "ETH": 0, "USDT": 0}', new Date(), `${phone}@example.com`]
   );
   
   return insertResult.rows[0];
