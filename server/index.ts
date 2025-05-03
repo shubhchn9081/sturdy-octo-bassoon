@@ -2,10 +2,33 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import './storage-extension'; // Import to extend DatabaseStorage prototype
+import './middleware/enhancedStorage'; // Import enhanced bet storage with amount fixes
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add bet amount logging middleware
+app.use((req, res, next) => {
+  if (req.method === 'POST' && req.path.includes('/bets/')) {
+    const body = req.body;
+    
+    // Find and log potential bet amounts in the request
+    if (body && typeof body === 'object') {
+      const { amount, betAmount } = body;
+      
+      if (amount !== undefined || betAmount !== undefined) {
+        console.log('BET AMOUNT DEBUG:', { 
+          path: req.path,
+          amount,
+          betAmount,
+          rawBody: JSON.stringify(body)
+        });
+      }
+    }
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

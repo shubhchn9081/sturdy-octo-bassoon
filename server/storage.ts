@@ -826,38 +826,65 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserBalance(id: number, amount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // Ensure amount is a proper number by using explicit conversion
+    // This fixes issues where string values might be passed in
+    const originalAmount = amount;
+    amount = Number(amount);
+    
+    // Additional safeguard against NaN
+    if (isNaN(amount)) {
+      console.error(`Invalid amount value passed to updateUserBalance: ${originalAmount}`);
+      // Use a default of 0 to prevent errors
+      amount = 0;
+    }
+    
     // For this platform, we only support INR
     if (currency !== 'INR') {
       console.warn('Only INR currency is supported. Ignoring request for:', currency);
       return this.getUser(id);
     }
     
+    // Log the balance update for troubleshooting
+    console.log(`Balance update initiated for user ${id} - Amount: ${amount} (original: ${originalAmount}), Currency: ${currency}`);
+    
     const user = await this.getUser(id);
-    if (!user) return undefined;
+    if (!user) {
+      console.error(`User with ID ${id} not found during balance update`);
+      return undefined;
+    }
     
     // Handle different balance formats
     let updatedBalance: number;
+    let currentBalance: number = 0;
     
     if (typeof user.balance === 'number') {
-      // Standard numeric balance format
-      let newBalance = user.balance + amount;
+      // Standard numeric balance format - use explicit conversion
+      currentBalance = Number(user.balance);
+      console.log(`Current balance for user ${id} (numeric): ${currentBalance}`);
+      
+      let newBalance = currentBalance + amount;
       if (newBalance < 0) newBalance = 0; // Don't allow negative balances
       updatedBalance = newBalance;
     } else if (typeof user.balance === 'object' && user.balance !== null) {
       // For backwards compatibility - if balance is an object, extract INR value
-      const currentBalance = user.balance as Record<string, number>;
-      const currentAmount = currentBalance['INR'] || 0;
+      const balanceObj = user.balance as Record<string, number>;
+      // Also use explicit conversion here
+      currentBalance = Number(balanceObj['INR'] || 0);
+      console.log(`Current balance for user ${id} (object): ${currentBalance}`);
       
       // Calculate new amount
-      let newAmount = currentAmount + amount;
+      let newAmount = currentBalance + amount;
       if (newAmount < 0) newAmount = 0;
       
       // Store as a simple number now
       updatedBalance = newAmount;
     } else {
       // Handle unexpected format - create a new numeric balance
+      console.log(`No existing balance found for user ${id}, creating new balance`);
       updatedBalance = Math.max(0, amount);
     }
+    
+    console.log(`Balance update details - User: ${id}, Current: ${currentBalance}, Change: ${amount}, New: ${updatedBalance}`);
     
     // Update the user record with the new balance (as a simple number)
     const [updatedUser] = await db
@@ -898,14 +925,42 @@ export class DatabaseStorage implements IStorage {
   }
   
   async setUserBalance(id: number, exactAmount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // Ensure exactAmount is a proper number by using explicit conversion
+    // This fixes issues where string values might be passed in
+    const originalAmount = exactAmount;
+    exactAmount = Number(exactAmount);
+    
+    // Additional safeguard against NaN
+    if (isNaN(exactAmount)) {
+      console.error(`Invalid amount value passed to setUserBalance: ${originalAmount}`);
+      // Use a default of 0 to prevent errors
+      exactAmount = 0;
+    }
+    
     // For this platform, we only support INR
     if (currency !== 'INR') {
       console.warn('Only INR currency is supported. Ignoring request for:', currency);
       return this.getUser(id);
     }
     
+    // Log the balance update for troubleshooting
+    console.log(`Setting exact balance for user ${id} - Amount: ${exactAmount} (original: ${originalAmount}), Currency: ${currency}`);
+    
     const user = await this.getUser(id);
-    if (!user) return undefined;
+    if (!user) {
+      console.error(`User with ID ${id} not found during balance set operation`);
+      return undefined;
+    }
+    
+    // Get current balance for logging
+    let currentBalance = 0;
+    if (typeof user.balance === 'number') {
+      currentBalance = Number(user.balance);
+    } else if (typeof user.balance === 'object' && user.balance !== null) {
+      const balanceObj = user.balance as Record<string, number>;
+      currentBalance = Number(balanceObj['INR'] || 0);
+    }
+    console.log(`Current balance for user ${id}: ${currentBalance}, Setting to exact amount: ${exactAmount}`);
     
     // Ensure amount is not negative
     const safeAmount = Math.max(0, exactAmount);
@@ -917,6 +972,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     
+    console.log(`Balance set operation complete. Old: ${currentBalance}, New: ${safeAmount}`);
     return updatedUser || undefined;
   }
   
