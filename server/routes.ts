@@ -370,8 +370,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Authentication required' });
       }
       
-      // Import the bet utilities
-      const { normalizeBetAmount, validateBetAmount, canonicalizeBetAmount } = await import('./utils/betUtils');
+      // Add debug log to see the exact request structure
+      console.log('BET AMOUNT DEBUG:', {
+        path: req.path,
+        amount: req.body.amount,
+        betAmount: req.body.betAmount,
+        rawBody: JSON.stringify(req.body)
+      });
+      
+      // Import the bet utilities including our enhanced extractBetAmount function
+      const { normalizeBetAmount, validateBetAmount, canonicalizeBetAmount, extractBetAmount } = await import('./utils/betUtils');
       
       // Validate request body
       // Use the client-side schema that doesn't include userId
@@ -412,13 +420,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the game's minimum bet amount
       const minBet = game.minBet || 100;
       
-      // Use our robust amount normalization to get the correct bet amount
-      const originalAmount = validatedData.amount;
-      validatedData.amount = canonicalizeBetAmount(validatedData.amount);
+      // First, extract the actual bet amount from the request, checking both direct
+      // and nested values using our enhanced extraction function
+      const extractedAmount = extractBetAmount(req.body);
+      console.log('Extracted bet amount from request:', extractedAmount);
       
-      // Log bet information with both original and normalized amounts
+      // Use the larger of the extracted amount or the direct amount
+      const originalAmount = validatedData.amount;
+      
+      // If the extracted amount is larger than the direct amount, use it instead
+      if (extractedAmount > originalAmount) {
+        console.log(`Found larger nested amount: ${extractedAmount} > ${originalAmount}, using nested amount`);
+        validatedData.amount = extractedAmount;
+      } else {
+        // Otherwise, canonicalize the direct amount
+        validatedData.amount = canonicalizeBetAmount(validatedData.amount);
+      }
+      
+      // Log bet information with both original and final amounts
       console.log(`Placing bet - User: ${user.username}, Game: ${game.name}`);
-      console.log(`Original amount: ${originalAmount}, Normalized amount: ${validatedData.amount}`);
+      console.log(`Original amount: ${originalAmount}, Final bet amount: ${validatedData.amount}`);
       
       // Validate the bet amount
       const validation = validateBetAmount(validatedData.amount, minBet);
