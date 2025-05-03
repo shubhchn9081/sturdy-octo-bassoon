@@ -268,9 +268,9 @@ export default function AdminPage() {
   
   // Fetch global game control
   const { data: globalControl, isLoading: globalControlLoading, refetch: refetchGlobalControl } = useQuery({
-    queryKey: ['/api/game-control/global'],
+    queryKey: ['/api/admin/global-game-control'],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/game-control/global");
+      const response = await apiRequest("GET", "/api/admin/global-game-control");
       return await response.json();
     },
     enabled: user?.isAdmin === true
@@ -279,11 +279,11 @@ export default function AdminPage() {
   // Make all users lose
   const makeAllLoseMutation = useMutation({
     mutationFn: async (affectedGames: number[] = []) => {
-      const response = await apiRequest("POST", "/api/game-control/global/make-all-lose", { affectedGames });
+      const response = await apiRequest("POST", "/api/admin/global-game-control/lose", { affectedGames });
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/game-control/global'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/global-game-control'] });
       toast({
         title: "Success",
         description: "All users will now lose on affected games",
@@ -301,11 +301,11 @@ export default function AdminPage() {
   // Make all users win
   const makeAllWinMutation = useMutation({
     mutationFn: async (affectedGames: number[] = []) => {
-      const response = await apiRequest("POST", "/api/game-control/global/make-all-win", { affectedGames });
+      const response = await apiRequest("POST", "/api/admin/global-game-control/win", { affectedGames });
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/game-control/global'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/global-game-control'] });
       toast({
         title: "Success",
         description: "All users will now win on affected games",
@@ -323,11 +323,11 @@ export default function AdminPage() {
   // Reset global game control
   const resetGlobalControlMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/game-control/global/reset");
+      const response = await apiRequest("POST", "/api/admin/global-game-control/reset");
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/game-control/global'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/global-game-control'] });
       toast({
         title: "Success",
         description: "Global game controls have been reset",
