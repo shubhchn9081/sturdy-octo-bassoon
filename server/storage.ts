@@ -927,13 +927,13 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: InsertUser & { username: string }): Promise<User> {
     // Add default values for the new fields
     const userWithDefaults = {
       ...insertUser,
       isAdmin: false,
       isBanned: false,
-      balance: 10000, // Default 10000 INR
+      balance: { INR: 10000, BTC: 0.01, ETH: 0.1, USDT: 1000 }, // Default balance
       referralCode: null,
       language: 'English'
     };

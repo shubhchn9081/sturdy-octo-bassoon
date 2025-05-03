@@ -25,17 +25,11 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Please enter a valid email address"),
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
-  dateOfBirth: z.string().refine((date) => {
-    const dateObj = new Date(date);
-    const today = new Date();
-    const age = today.getFullYear() - dateObj.getFullYear();
-    return age >= 18;
-  }, "You must be at least 18 years old"),
-  phone: z.string().optional(),
+  phone: z.string().min(6, "Phone number is required"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -59,11 +53,10 @@ export default function AuthPage() {
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
       email: "",
+      fullName: "",
       password: "",
       confirmPassword: "",
-      dateOfBirth: "",
       phone: "",
     },
   });

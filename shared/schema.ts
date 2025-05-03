@@ -11,17 +11,16 @@ export const users = pgTable("users", {
   balance: jsonb("balance").default({ INR: 10000, BTC: 0.01, ETH: 0.1, USDT: 1000 }).notNull(), // JSONB balance with multiple currencies
   createdAt: timestamp("created_at").defaultNow().notNull(),
   email: text("email").notNull().unique(),
-  dateOfBirth: text("date_of_birth").notNull(), // Changed to text to avoid Date issues
-  phone: text("phone"),
+  fullName: text("full_name").notNull(), // Changed from dateOfBirth to fullName
+  phone: text("phone").notNull(), // Made phone required
   referralCode: text("referral_code"),
   language: text("language").default('English'),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
   password: true,
   email: true, 
-  dateOfBirth: true,
+  fullName: true,
   phone: true,
 });
 

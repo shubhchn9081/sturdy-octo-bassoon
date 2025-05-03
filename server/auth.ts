@@ -7,6 +7,22 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
+// Function to generate username from full name
+function generateUsernameFromFullName(fullName: string): string {
+  // Remove any special characters and spaces, convert to lowercase
+  const cleanedName = fullName.toLowerCase()
+    .replace(/[^\w\s]/gi, '')  // Remove any special characters
+    .replace(/\s+/g, '');      // Remove spaces
+  
+  // Ensure it's not an empty string after cleaning
+  if (cleanedName.length === 0) {
+    return 'user' + Math.floor(Math.random() * 10000).toString();
+  }
+  
+  // Return the cleaned name or a substring if it's too long
+  return cleanedName.substring(0, Math.min(cleanedName.length, 15));
+}
+
 declare global {
   namespace Express {
     interface User extends SelectUser {}
@@ -92,16 +108,10 @@ export function setupAuth(app: Express) {
   // Register user endpoint
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { username, password, email, dateOfBirth, phone } = req.body;
+      const { password, email, fullName, phone } = req.body;
       
-      if (!username || !password || !email || !dateOfBirth) {
+      if (!password || !email || !fullName || !phone) {
         return res.status(400).json({ message: "Missing required fields" });
-      }
-      
-      // Check if username exists
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
       }
       
       // Check if email exists
@@ -110,13 +120,24 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
+      // Generate a unique username based on the full name
+      const baseUsername = generateUsernameFromFullName(fullName);
+      let username = baseUsername;
+      let counter = 1;
+      
+      // Check if the username exists and generate a new one with a number appended
+      while (await storage.getUserByUsername(username)) {
+        username = `${baseUsername}${counter}`;
+        counter++;
+      }
+
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({
         username,
         password: hashedPassword,
         email,
-        dateOfBirth: dateOfBirth, // Store as string directly
-        phone: phone || null
+        fullName,
+        phone
       });
 
       req.login(user, (err) => {
