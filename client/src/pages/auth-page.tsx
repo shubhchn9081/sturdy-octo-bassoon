@@ -221,13 +221,13 @@ export default function AuthPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <FormField
                             control={registerForm.control}
-                            name="username"
+                            name="fullName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Username</FormLabel>
+                                <FormLabel>Full Name</FormLabel>
                                 <FormControl>
                                   <Input 
-                                    placeholder="username" 
+                                    placeholder="John Doe" 
                                     className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                                     {...field}
                                   />
@@ -258,27 +258,10 @@ export default function AuthPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <FormField
                             control={registerForm.control}
-                            name="dateOfBirth"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Date of Birth</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="date" 
-                                    className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={registerForm.control}
                             name="phone"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Phone (optional)</FormLabel>
+                                <FormLabel>Phone Number</FormLabel>
                                 <FormControl>
                                   <Input 
                                     type="tel" 

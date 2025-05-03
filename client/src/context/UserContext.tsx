@@ -8,7 +8,7 @@ interface UserContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<boolean>;
-  register: (username: string, password: string, email: string, dateOfBirth: string, phone?: string) => Promise<boolean>;
+  register: (password: string, email: string, fullName: string, phone: string) => Promise<boolean>;
   logout: () => void;
   updateUserBalance: (currency: string, amount: number) => Promise<void>;
 }
@@ -71,19 +71,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const register = async (
-    username: string, 
     password: string, 
     email: string, 
-    dateOfBirth: string, 
-    phone?: string
+    fullName: string, 
+    phone: string
   ): Promise<boolean> => {
     try {
       setIsLoading(true);
       const response = await apiRequest('POST', '/api/register', { 
-        username, 
         password, 
         email, 
-        dateOfBirth, 
+        fullName, 
         phone 
       });
       
