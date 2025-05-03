@@ -604,13 +604,19 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
     const finalX = animation.x !== undefined ? animation.x : baseX;
     
     return (
-      // Wrapper div that acts as a hit area for cup selection
+      // Wrapper div that acts as a hit area for cup selection - with fixed pointerEvents
       <div 
         className={`flex flex-col items-center relative ${canSelect ? 'cursor-pointer' : ''}`}
+        style={{ 
+          zIndex: canSelect ? 10 : 'auto',
+          pointerEvents: canSelect ? 'auto' : 'none'
+        }}
         onClick={() => {
-          if (canSelect) {
-            console.log(`Cup wrapper clicked at position ${position}`);
-            handleCupSelect(position);
+          console.log(`Cup wrapper clicked at position ${position}, canSelect: ${canSelect}, gamePhase: ${gamePhase}, isSelectionPhase: ${isSelectionPhase}`);
+          // Always call handleCupSelect during selection phase to debug
+          if (gamePhase === 'selecting') {
+            console.log(`Clicking cup at position ${position} with index ${cupIndex}`);
+            onCupSelect(cupIndex);
           }
         }}
       >

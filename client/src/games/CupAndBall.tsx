@@ -199,7 +199,10 @@ const CupAndBall = () => {
   
   // Handle cup selection
   const handleCupSelect = (cupIndex: number) => {
-    if (gamePhase !== 'selecting') return;
+    if (gamePhase !== 'selecting') {
+      console.log(`Cup selection ignored - not in selecting phase (current phase: ${gamePhase})`);
+      return;
+    }
     
     console.log(`Player selected cup with index: ${cupIndex}`);
     setSelectedCup(cupIndex);
