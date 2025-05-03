@@ -102,6 +102,9 @@ export function processCupAndBallBet(
   // Simulate the shuffling to determine final ball position
   let currentBallPosition = ballPosition;
   
+  console.log(`Cup and Ball Game - Initial ball position: ${ballPosition}, Selected cup: ${params.selectedCup}`);
+  console.log(`Shuffle moves: ${shuffleMoves.join(', ')}`);
+  
   for (const moveType of shuffleMoves) {
     // Apply the shuffle move
     if (moveType === 0) { // Swap cups 0-1
@@ -116,8 +119,11 @@ export function processCupAndBallBet(
     }
   }
   
+  console.log(`Cup and Ball Game - Final ball position after shuffling: ${currentBallPosition}`);
+  
   // Determine if player won
   let win = params.selectedCup === currentBallPosition;
+  console.log(`Player selected cup: ${params.selectedCup}, Cup with ball: ${currentBallPosition}, Win: ${win}`);
   
   // If there's a force lose override, apply it
   if (forcedOutcome && forcedOutcome.forceLose) {

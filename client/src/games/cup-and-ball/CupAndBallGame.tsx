@@ -81,19 +81,30 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
     }
   }, [gamePhase, shuffleMoves, difficulty, cupPositions]);
   
-  // Get the cup index from the current visual position
+  // We need to track two things:
+  // 1. The cup's visual position (0, 1, 2 from left to right on screen)
+  // 2. The cup's logical index (0, 1, 2 - which originally had the ball)
+  
+  // Get the cup index (logical cup identifier) from the visual position
   const getCupAtPosition = (position: number) => {
     return cupPositions.indexOf(position);
   };
   
   // Render a cup with animation
   const renderCup = (position: number) => {
+    // The cup index is its logical identifier (original position)
     const cupIndex = getCupAtPosition(position);
+    
+    // Is this the cup the player selected?
     const isSelected = selectedCup === cupIndex;
-    // Show ball only if this cup's index matches the ball position
-    const showBall = (gamePhase === 'initial' || gamePhase === 'revealing' || gamePhase === 'complete') && 
-                     ballPosition === cupIndex;
+    
+    // Show ball if this is the correct cup and we're in a phase to show it
+    const showBall = (gamePhase === 'initial' && position === ballPosition) || 
+                    ((gamePhase === 'revealing' || gamePhase === 'complete') && 
+                     ballPosition === cupIndex);
+                     
     console.log(`Rendering cup at position ${position}, cupIndex: ${cupIndex}, ballPosition: ${ballPosition}, showBall: ${showBall}`);
+    
     const canSelect = gamePhase === 'selecting';
     
     return (
@@ -103,11 +114,17 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
           className={`relative cursor-pointer ${canSelect ? 'hover:opacity-80' : ''} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
           initial={{ y: 0 }}
           animate={{ 
-            y: gamePhase === 'revealing' && position === cupPositions[ballPosition || 0] ? -80 : 0,
+            // Lift the cup containing the ball when revealing
+            y: (gamePhase === 'revealing' || gamePhase === 'complete') && ballPosition === cupIndex ? -80 : 0,
             scale: isSelected ? 1.05 : 1
           }}
           transition={{ duration: 0.3 }}
-          onClick={() => canSelect && onCupSelect(cupIndex)}
+          onClick={() => {
+            if (canSelect) {
+              console.log(`Clicked on cup at position ${position} with cupIndex ${cupIndex}`);
+              onCupSelect(cupIndex);
+            }
+          }}
         >
           {/* Cup */}
           <div className="w-32 h-40 relative">

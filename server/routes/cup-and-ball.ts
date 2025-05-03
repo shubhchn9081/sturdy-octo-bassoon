@@ -24,6 +24,8 @@ router.post('/place-bet', async (req: Request, res: Response) => {
 
     const validatedData = cupAndBallBetSchema.parse(req.body);
     const userId = req.user!.id;
+    
+    console.log(`Cup and Ball - User ${userId} placing bet:`, validatedData);
 
     // Get the user to check balance
     const user = await storage.getUser(userId);
@@ -55,6 +57,12 @@ router.post('/place-bet', async (req: Request, res: Response) => {
     const gameControl = await storage.getUserGameControlByUserAndGame(userId, validatedData.gameId);
 
     // Process the bet
+    console.log(`Cup and Ball - Processing bet with parameters:`, {
+      difficulty: validatedData.difficulty,
+      selectedCup: validatedData.selectedCup,
+      betAmount: validatedData.amount
+    });
+    
     const result = processCupAndBallBet(
       {
         difficulty: validatedData.difficulty,
@@ -66,6 +74,8 @@ router.post('/place-bet', async (req: Request, res: Response) => {
       nextNonce,
       gameControl?.forcedOutcomeValue as any
     );
+    
+    console.log('Cup and Ball - Game result:', result.outcome);
 
     // Create the bet record
     const bet = await storage.createBet({

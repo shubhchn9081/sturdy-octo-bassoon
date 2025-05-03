@@ -79,6 +79,8 @@ const CupAndBall = () => {
       const newClientSeed = Math.random().toString(36).substring(2, 15);
       setClientSeed(newClientSeed);
       
+      console.log(`Placing bet with selectedCup: ${selectedCup}, difficulty: ${difficulty}`);
+      
       const response = await apiRequest('POST', '/api/cup-and-ball/place-bet', {
         gameId: GAME_ID,
         amount: betAmount,
@@ -92,6 +94,9 @@ const CupAndBall = () => {
     onSuccess: (data) => {
       // Get the outcome from the response
       const outcome = data.bet.outcome;
+      
+      console.log('Server response:', outcome);
+      console.log(`Ball position: ${outcome.ballPosition}, Selected cup: ${outcome.selectedCup}, Win: ${outcome.win}`);
       
       // Store the ball position and shuffle moves for animation
       setBallPosition(outcome.ballPosition);
@@ -154,8 +159,9 @@ const CupAndBall = () => {
     setIsPlaying(true);
     setGamePhase('initial');
     
-    // Show initial ball placement
+    // Show initial ball placement under a random cup (0, 1, or 2)
     const initialPosition = Math.floor(Math.random() * 3);
+    console.log(`Setting initial ball position to: ${initialPosition}`);
     setBallPosition(initialPosition);
     
     // After a short delay, start the shuffling
@@ -181,6 +187,7 @@ const CupAndBall = () => {
   const handleCupSelect = (cupIndex: number) => {
     if (gamePhase !== 'selecting') return;
     
+    console.log(`Player selected cup with index: ${cupIndex}`);
     setSelectedCup(cupIndex);
     
     // Place the bet after cup selection
