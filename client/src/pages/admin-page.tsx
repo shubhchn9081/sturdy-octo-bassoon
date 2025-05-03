@@ -49,6 +49,10 @@ export default function AdminPage() {
   const [durationGames, setDurationGames] = useState<number>(1);
   const [gameControlDialogOpen, setGameControlDialogOpen] = useState(false);
   
+  // Slot game specific controls
+  const [slotMultiplier, setSlotMultiplier] = useState<number>(0);
+  const [showSlotControls, setShowSlotControls] = useState<boolean>(false);
+  
   // Global game control state
   const [globalControlAffectedGames, setGlobalControlAffectedGames] = useState<number[]>([]);
   
@@ -374,13 +378,23 @@ export default function AdminPage() {
       return;
     }
     
+    // Check if this is a slots game and set forcedOutcomeValue accordingly
+    let forcedOutcomeValue = null;
+    
+    // Game ID 9 is the slots game
+    if (selectedGame.id === 9 || selectedGame.slug === 'slots') {
+      if (outcomeType === 'win' && slotMultiplier > 0) {
+        forcedOutcomeValue = { multiplier: slotMultiplier };
+      }
+    }
+    
     createGameControlMutation.mutate({
       userId: selectedUser.id,
       gameId: selectedGame.id,
       forceOutcome,
       outcomeType,
       durationGames,
-      forcedOutcomeValue: null, // For now, no specific outcome values
+      forcedOutcomeValue,
     });
   };
 
@@ -919,7 +933,14 @@ export default function AdminPage() {
       <Dialog open={gameControlDialogOpen} onOpenChange={setGameControlDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Game Control</DialogTitle>
+            <DialogTitle>
+              Create Game Control
+              {selectedGame && (
+                <span className="text-muted-foreground ml-2 text-sm">
+                  (Game ID: {selectedGame.id})
+                </span>
+              )}
+            </DialogTitle>
             <DialogDescription>
               Set up game outcome control for a specific user
             </DialogDescription>
@@ -960,6 +981,14 @@ export default function AdminPage() {
                   const gameId = parseInt(e.target.value);
                   const gameObj = games?.find(g => g.id === gameId) || null;
                   setSelectedGame(gameObj);
+                  
+                  // Check if this is the slots game (ID 9 or slug 'slots')
+                  if (gameObj && (gameObj.id === 9 || gameObj.slug === 'slots')) {
+                    setShowSlotControls(true);
+                  } else {
+                    setShowSlotControls(false);
+                    setSlotMultiplier(0); // Reset slot multiplier when not slots game
+                  }
                 }}
               >
                 <option value="">Select a game</option>
@@ -995,7 +1024,13 @@ export default function AdminPage() {
                 id="outcomeType"
                 className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
                 value={outcomeType}
-                onChange={(e) => setOutcomeType(e.target.value)}
+                onChange={(e) => {
+                  setOutcomeType(e.target.value);
+                  // Reset slot multiplier when changing to loss
+                  if (e.target.value === 'loss') {
+                    setSlotMultiplier(0);
+                  }
+                }}
                 disabled={!forceOutcome}
               >
                 <option value="win">Win</option>
@@ -1019,6 +1054,35 @@ export default function AdminPage() {
                 disabled={!forceOutcome}
               />
             </div>
+            
+            {/* Slot game specific controls */}
+            {showSlotControls && outcomeType === 'win' && forceOutcome && (
+              <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                <div className="text-sm font-medium mb-3 text-primary">Slot Game Specific Controls</div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="slotMultiplier" className="text-right">
+                    Win Multiplier
+                  </Label>
+                  <select
+                    id="slotMultiplier"
+                    className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                    value={slotMultiplier}
+                    onChange={(e) => setSlotMultiplier(Number(e.target.value))}
+                  >
+                    <option value="0">Random win (any multiplier)</option>
+                    <option value="2">2x - Two of the same number</option>
+                    <option value="3">3x - Sequential numbers</option>
+                    <option value="5">5x - Three of the same number</option>
+                    <option value="10">10x - Three 7s or lucky number hit</option>
+                  </select>
+                </div>
+                
+                <div className="text-xs text-muted-foreground mt-2">
+                  Select a specific multiplier for the slot game win, or leave as "Random win" for any winning outcome.
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setGameControlDialogOpen(false)}>
