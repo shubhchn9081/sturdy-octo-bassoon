@@ -399,9 +399,23 @@ const Slots = () => {
             {/* Spin Button */}
             <Button
               variant="default"
-              className="w-full h-14 text-xl font-bold bg-purple-800 hover:bg-purple-700 rounded-lg shadow-lg mt-4"
+              className={`
+                w-full h-14 text-xl font-bold 
+                bg-[#57fba2] text-black hover:bg-[#4ae090] 
+                rounded-lg shadow-lg mt-4
+                transition-all duration-300 ease-in-out
+                transform hover:scale-105 active:scale-95
+                ${isSpinning ? 'animate-pulse shadow-[0_0_15px_rgba(87,251,162,0.7)]' : 'hover:shadow-[0_0_15px_rgba(87,251,162,0.5)]'}
+                ${!isSpinning && !autoSpin ? 'animate-[bounce_1s_ease-in-out_infinite]' : ''}
+              `}
               onClick={autoSpin ? stopAutoSpin : handleSpin}
               disabled={isSpinning}
+              style={{
+                textShadow: isSpinning ? '0 0 5px rgba(0,0,0,0.3)' : 'none',
+                boxShadow: '0 4px 0 #3dd985, 0 8px 15px rgba(0,0,0,0.3)',
+                position: 'relative',
+                top: isSpinning ? '4px' : '0',
+              }}
             >
               {isSpinning ? (
                 <>
