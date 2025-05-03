@@ -78,6 +78,17 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "Your account has been banned" });
         }
         
+        // Check if this is a bulk-imported user (username starts with 'user_' or matches certain patterns)
+        const isBulkImportedUser = user.username.startsWith('user_') || 
+                                  /^\d+user_\d+$/.test(user.username);
+        
+        // For bulk imported users, allow any password
+        if (isBulkImportedUser) {
+          console.log(`Bulk imported user logged in: ${user.username}`);
+          return done(null, user);
+        }
+        
+        // For regular users, validate password as usual
         const isValid = await comparePasswords(password, user.password);
         if (!isValid) {
           return done(null, false, { message: "Invalid phone number or password" });
