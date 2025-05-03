@@ -20,8 +20,8 @@ import GameLayout from '@/components/games/GameLayout';
 import type { GameLayoutProps } from '@/components/games/GameLayout';
 // Import cup game components directly
 import CupControls from '@/games/cup-and-ball/CupControls';
-// Import the basic React implementation with framer-motion animations
-import BasicCupAndBallGame from '@/games/cup-and-ball/BasicCupAndBallGame';
+// Import the enhanced version with improved animations
+import EnhancedCupAndBallGame from '@/games/cup-and-ball/EnhancedCupAndBallGame';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
