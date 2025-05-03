@@ -1,190 +1,134 @@
-const fetch = require('node-fetch');
+// Direct test of game outcome control functionality
+// This test bypasses authentication to directly test the functionality
 
-// URL for the API
-const API_URL = 'http://localhost:5000';
+/**
+ * This test directly tests the game outcome control middleware functionality
+ * without requiring authentication cookies or API calls.
+ */
 
-// Configuration
-const userId = 3; // Replace with an actual user ID in your system
-const gameId = 2;  // Assuming this is the Crash game ID
-const AUTH_COOKIE = 'connect.sid=YOUR_SESSION_COOKIE'; // Replace with actual auth cookie
+import { gameOutcomeControl } from './server/middleware/gameOutcomeControl.js';
+import { storage } from './server/storage.js';
 
 // Test if admin can control game outcomes
 async function testGameOutcomeControl() {
   console.log('---- TESTING ADMIN GAME OUTCOME CONTROL ----');
 
   try {
-    // Step 1: Check current global control status
-    console.log('\n1. Checking current global game control status...');
-    const globalControlResp = await fetch(`${API_URL}/api/admin/global-game-control`, {
-      headers: {
-        'Cookie': AUTH_COOKIE
-      }
-    });
+    // Configuration
+    const userId = 3; // Any valid user ID in the database
+    const crashGameId = 7; // ID of the Crash game (from earlier API call)
+    const minesGameId = 1; // ID of the Mines game (from earlier API call)
     
-    if (!globalControlResp.ok) {
-      throw new Error(`Failed to get global controls: ${globalControlResp.status} ${globalControlResp.statusText}`);
-    }
+    // Step 1: Reset any global controls to start with a clean state
+    console.log('\n1. Resetting global game control...');
+    await storage.resetGlobalGameControl();
+    console.log('Reset global controls successfully');
     
-    const globalControl = await globalControlResp.json();
-    console.log('Current global control:', globalControl);
-
-    // Step 2: Reset global control to make sure we start from a clean state
-    console.log('\n2. Resetting global game control...');
-    const resetResp = await fetch(`${API_URL}/api/admin/global-game-control/reset`, {
-      method: 'POST',
-      headers: {
-        'Cookie': AUTH_COOKIE,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!resetResp.ok) {
-      throw new Error(`Failed to reset global controls: ${resetResp.status} ${resetResp.statusText}`);
-    }
-    
-    const resetResult = await resetResp.json();
-    console.log('Reset result:', resetResult);
-
-    // Step 3: Test the crash game point control - get original point
-    console.log('\n3. Testing crash point generation without control...');
+    // Step 2: Test baseline behavior with no controls
+    console.log('\n2. Testing crash point with no active controls...');
     const originalCrashPoint = 2.50; // Example crash point
     const targetMultiplier = 2.0; // Target multiplier
-
-    const crashPointResp = await fetch(`${API_URL}/api/game-control/crash/get-controlled-point`, {
-      method: 'POST',
-      headers: {
-        'Cookie': AUTH_COOKIE,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        gameId,
-        originalCrashPoint,
-        targetMultiplier
-      })
-    });
     
-    if (!crashPointResp.ok) {
-      throw new Error(`Failed to get crash point: ${crashPointResp.status} ${crashPointResp.statusText}`);
+    const defaultCrashPoint = await gameOutcomeControl.getControlledCrashPoint(
+      userId,
+      crashGameId,
+      originalCrashPoint,
+      targetMultiplier
+    );
+    
+    console.log(`Original crash point: ${originalCrashPoint}`);
+    console.log(`Default controlled crash point: ${defaultCrashPoint}`);
+    
+    if (defaultCrashPoint !== originalCrashPoint) {
+      console.error('UNEXPECTED: Crash point was modified with no active controls');
+    } else {
+      console.log('PASS: No controls active, crash point remained unchanged');
     }
     
-    const crashPointResult = await crashPointResp.json();
-    console.log('Crash point without control:', crashPointResult);
-
-    // Step 4: Set global control to make all users win
-    console.log('\n4. Setting global control to make all users win...');
-    const setWinResp = await fetch(`${API_URL}/api/admin/global-game-control/win`, {
-      method: 'POST',
-      headers: {
-        'Cookie': AUTH_COOKIE,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        affectedGames: [gameId] // Only affect the crash game
-      })
-    });
+    // Step 3: Set global control to make all users win
+    console.log('\n3. Setting global control to make all users win...');
+    await storage.makeAllUsersWin([crashGameId]); // Only affect crash game
+    console.log('Global WIN control set successfully');
     
-    if (!setWinResp.ok) {
-      throw new Error(`Failed to set win control: ${setWinResp.status} ${setWinResp.statusText}`);
-    }
+    // Step 4: Test crash point with win control
+    console.log('\n4. Testing crash point with WIN control...');
+    const winCrashPoint = await gameOutcomeControl.getControlledCrashPoint(
+      userId,
+      crashGameId,
+      originalCrashPoint,
+      targetMultiplier
+    );
     
-    const setWinResult = await setWinResp.json();
-    console.log('Set win result:', setWinResult);
-
-    // Step 5: Test crash point again with win control enabled
-    console.log('\n5. Testing crash point generation with WIN control...');
-    const crashPointWinResp = await fetch(`${API_URL}/api/game-control/crash/get-controlled-point`, {
-      method: 'POST',
-      headers: {
-        'Cookie': AUTH_COOKIE,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        gameId,
-        originalCrashPoint,
-        targetMultiplier
-      })
-    });
-    
-    if (!crashPointWinResp.ok) {
-      throw new Error(`Failed to get win-controlled crash point: ${crashPointWinResp.status} ${crashPointWinResp.statusText}`);
-    }
-    
-    const crashPointWinResult = await crashPointWinResp.json();
-    console.log('Crash point with WIN control:', crashPointWinResult);
+    console.log(`Original crash point: ${originalCrashPoint}`);
+    console.log(`WIN-controlled crash point: ${winCrashPoint}`);
     
     // Verify the controlled point is higher than target multiplier
-    if (crashPointWinResult.controlledCrashPoint <= targetMultiplier) {
+    if (winCrashPoint <= targetMultiplier) {
       console.error('FAIL: Win control did not increase crash point above target multiplier!');
     } else {
       console.log('PASS: Win control correctly increased crash point above target multiplier');
     }
-
-    // Step 6: Set global control to make all users lose
-    console.log('\n6. Setting global control to make all users lose...');
-    const setLoseResp = await fetch(`${API_URL}/api/admin/global-game-control/lose`, {
-      method: 'POST',
-      headers: {
-        'Cookie': AUTH_COOKIE,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        affectedGames: [gameId] // Only affect the crash game
-      })
-    });
     
-    if (!setLoseResp.ok) {
-      throw new Error(`Failed to set lose control: ${setLoseResp.status} ${setLoseResp.statusText}`);
-    }
+    // Step 5: Set global control to make all users lose
+    console.log('\n5. Setting global control to make all users lose...');
+    await storage.makeAllUsersLose([crashGameId]); // Only affect crash game
+    console.log('Global LOSE control set successfully');
     
-    const setLoseResult = await setLoseResp.json();
-    console.log('Set lose result:', setLoseResult);
-
-    // Step 7: Test crash point again with lose control enabled
-    console.log('\n7. Testing crash point generation with LOSE control...');
-    const crashPointLoseResp = await fetch(`${API_URL}/api/game-control/crash/get-controlled-point`, {
-      method: 'POST',
-      headers: {
-        'Cookie': AUTH_COOKIE,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        gameId,
-        originalCrashPoint,
-        targetMultiplier
-      })
-    });
+    // Step 6: Test crash point with lose control
+    console.log('\n6. Testing crash point with LOSE control...');
+    const loseCrashPoint = await gameOutcomeControl.getControlledCrashPoint(
+      userId,
+      crashGameId,
+      originalCrashPoint,
+      targetMultiplier
+    );
     
-    if (!crashPointLoseResp.ok) {
-      throw new Error(`Failed to get lose-controlled crash point: ${crashPointLoseResp.status} ${crashPointLoseResp.statusText}`);
-    }
-    
-    const crashPointLoseResult = await crashPointLoseResp.json();
-    console.log('Crash point with LOSE control:', crashPointLoseResult);
+    console.log(`Original crash point: ${originalCrashPoint}`);
+    console.log(`LOSE-controlled crash point: ${loseCrashPoint}`);
     
     // Verify the controlled point is lower than target multiplier
-    if (crashPointLoseResult.controlledCrashPoint >= targetMultiplier) {
+    if (loseCrashPoint >= targetMultiplier) {
       console.error('FAIL: Lose control did not decrease crash point below target multiplier!');
     } else {
       console.log('PASS: Lose control correctly decreased crash point below target multiplier');
     }
-
-    // Step 8: Reset global controls
-    console.log('\n8. Resetting global game control...');
-    const finalResetResp = await fetch(`${API_URL}/api/admin/global-game-control/reset`, {
-      method: 'POST',
-      headers: {
-        'Cookie': AUTH_COOKIE,
-        'Content-Type': 'application/json'
-      }
-    });
     
-    if (!finalResetResp.ok) {
-      throw new Error(`Failed to reset global controls: ${finalResetResp.status} ${finalResetResp.statusText}`);
+    // Step 7: Test Mines game with win control
+    console.log('\n7. Testing mines positions with WIN control...');
+    
+    // Reset and set win control for Mines game
+    await storage.resetGlobalGameControl();
+    await storage.makeAllUsersWin([minesGameId]); // Only affect mines game
+    
+    // Generate some original mine positions (random indexes between 0-24)
+    const originalMinePositions = Array.from({ length: 5 }, () => Math.floor(Math.random() * 25));
+    const currentlyRevealed = [2, 10, 15]; // Assume user revealed these positions
+    
+    const winMinePositions = await gameOutcomeControl.getControlledMinePositions(
+      userId,
+      minesGameId,
+      originalMinePositions,
+      currentlyRevealed
+    );
+    
+    console.log('Original mine positions:', originalMinePositions);
+    console.log('Currently revealed:', currentlyRevealed);
+    console.log('WIN-controlled mine positions:', winMinePositions);
+    
+    // Verify no mines are in the revealed positions
+    const anyMineInRevealed = currentlyRevealed.some(pos => winMinePositions.includes(pos));
+    
+    if (anyMineInRevealed) {
+      console.error('FAIL: Win control did not remove mines from revealed positions!');
+    } else {
+      console.log('PASS: Win control correctly removed mines from revealed positions');
     }
     
-    const finalResetResult = await finalResetResp.json();
-    console.log('Final reset result:', finalResetResult);
-
+    // Step 8: Reset all controls to clean up
+    console.log('\n8. Resetting global game control...');
+    await storage.resetGlobalGameControl();
+    console.log('All controls reset successfully');
+    
     console.log('\n---- TEST COMPLETED SUCCESSFULLY ----');
   } catch (error) {
     console.error('Test failed:', error);
