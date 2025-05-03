@@ -13,6 +13,7 @@ type SpinResult = {
   multiplier: number;
   win: boolean;
   winAmount: number;
+  luckyNumberHit?: boolean;
 };
 
 type BettingPanelProps = {
@@ -210,15 +211,28 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         <div className="space-y-4">
           {/* Lucky Number Selection */}
           <div className="space-y-2">
-            <Label htmlFor="luckyNumber">Your Lucky Number (Jackpot if it appears)</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="luckyNumber" className="flex items-center">
+                <span className="text-amber-400 mr-1">★</span> 
+                Lucky Number
+                <span className="text-amber-400 ml-1">★</span>
+              </Label>
+              <div className="bg-amber-950/30 text-amber-400 border border-amber-700/50 px-2 py-1 rounded-md text-xs font-semibold">
+                10x Jackpot
+              </div>
+            </div>
             <div className="grid grid-cols-5 gap-2">
               {Array.from({ length: 10 }, (_, i) => (
                 <Button
                   key={i}
                   variant="outline"
-                  className={`bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54] h-12 ${
-                    luckyNumber === i ? 'ring-2 ring-amber-500 bg-amber-950/30' : ''
-                  }`}
+                  className={`bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54] h-12 font-bold text-lg
+                    ${luckyNumber === i 
+                      ? 'ring-2 ring-amber-500 bg-amber-950/30 text-amber-400 border-amber-600' 
+                      : ''
+                    }
+                    transition-all duration-200 hover:scale-105
+                  `}
                   onClick={() => handleLuckyNumberChange(i)}
                   disabled={isSpinning}
                 >
@@ -226,8 +240,12 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
                 </Button>
               ))}
             </div>
-            <p className="text-xs text-amber-400 mt-1">
-              If your lucky number appears in any reel, you win a 10x jackpot!
+            <p className="text-xs text-center mt-1">
+              <span className="text-amber-400 font-medium">
+                {luckyNumber !== null 
+                  ? `Selected: ${luckyNumber} - Win jackpot if this number appears on any reel!` 
+                  : 'Select your lucky number for a chance to win the jackpot!'}
+              </span>
             </p>
           </div>
           
@@ -248,11 +266,17 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
           {spinResults && (
             <div className={`p-3 rounded-md border ${
               spinResults.win 
-                ? 'bg-green-950/30 border-green-800/50 text-green-400' 
+                ? (spinResults.luckyNumberHit 
+                  ? 'bg-amber-950/30 border-amber-700/50 text-amber-400' 
+                  : 'bg-green-950/30 border-green-800/50 text-green-400')
                 : 'bg-red-950/30 border-red-800/50 text-red-400'
             }`}>
               <div className="flex justify-between">
-                <span>{spinResults.win ? 'Win!' : 'Loss'}</span>
+                <span className="font-bold">
+                  {spinResults.win 
+                    ? (spinResults.luckyNumberHit ? 'JACKPOT!' : 'Win!') 
+                    : 'Loss'}
+                </span>
                 <span>
                   {spinResults.win 
                     ? `+${formatCurrency(spinResults.winAmount)} INR` 
@@ -260,8 +284,14 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
                 </span>
               </div>
               {spinResults.win && (
-                <div className="text-sm mt-1">
-                  Multiplier: {spinResults.multiplier}x
+                <div className="flex justify-between text-sm mt-1">
+                  <span>Multiplier: {spinResults.multiplier}x</span>
+                  {spinResults.luckyNumberHit && (
+                    <span className="inline-flex items-center">
+                      <span className="text-amber-400 mr-1">★</span> 
+                      Lucky Number Hit!
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -294,8 +324,15 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
           </Button>
           
           {/* Potential win display */}
-          <div className="text-center text-muted-foreground">
-            Potential Win: {formatCurrency(betAmount * 10)} INR
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="text-muted-foreground">
+              <span className="text-xs block">Max Regular Win:</span>
+              <span>{formatCurrency(betAmount * 10)} INR</span>
+            </div>
+            <div className="text-amber-400">
+              <span className="text-xs block">Lucky Number Jackpot:</span>
+              <span>{formatCurrency(betAmount * 10)} INR</span>
+            </div>
           </div>
         </div>
       </div>

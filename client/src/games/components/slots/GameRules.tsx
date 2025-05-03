@@ -55,9 +55,11 @@ const GameRules: React.FC = () => {
             <h3 className="font-medium mb-2">Steps to Play</h3>
             <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
               <li>Set your bet amount using the betting panel</li>
+              <li>Select your lucky number (0-9) for a chance at a jackpot win</li>
               <li>Click the "Spin" button to start the game</li>
               <li>Watch as the three reels spin and stop one by one</li>
               <li>If the final combination matches a winning pattern, you win!</li>
+              <li>If your lucky number appears on any reel, you win the jackpot!</li>
             </ol>
           </div>
         </CardContent>
@@ -101,6 +103,25 @@ const GameRules: React.FC = () => {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[#172B3A] border-[#1D2F3D]">
+        <CardHeader className="pb-2">
+          <CardTitle>Lucky Number Feature</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          <p className="mb-2">
+            The Lucky Number feature gives you an extra chance to win big! Before spinning, select any number 
+            from 0 to 9 as your lucky number.
+          </p>
+          <p className="mb-2">
+            If your lucky number appears on any of the three reels after spinning, you win a jackpot with a 10x multiplier 
+            regardless of whether the reels form another winning combination!
+          </p>
+          <p>
+            This exciting feature significantly increases your chances of winning, making every spin more thrilling.
+          </p>
         </CardContent>
       </Card>
 
