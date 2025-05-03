@@ -19,7 +19,8 @@ import {
 import GameLayout from '@/components/games/GameLayout';
 // Import cup game components directly
 import CupControls from '@/games/cup-and-ball/CupControls';
-import CupAndBallGame from '@/games/cup-and-ball/CupAndBallGame';
+// Import the new Phaser implementation
+import PhaserCupAndBallGame from '@/games/cup-and-ball/PhaserCupAndBallGame';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
@@ -177,9 +178,10 @@ const CupAndBall = () => {
       setShuffleMoves(tempShuffles);
       
       // After shuffling, let the player select a cup
+      // Use longer delays to accommodate the slower, more elaborate Phaser animations
       setTimeout(() => {
         setGamePhase('selecting');
-      }, difficulty === 'easy' ? 3000 : difficulty === 'medium' ? 4000 : 5000);
+      }, difficulty === 'easy' ? 5000 : difficulty === 'medium' ? 8000 : 12000);
     }, 1500);
   };
   
@@ -206,7 +208,7 @@ const CupAndBall = () => {
     setTimeout(() => {
       setGamePhase('revealing');
       
-      // Finally show the outcome
+      // Finally show the outcome - longer delay to see the ball animation clearly
       setTimeout(() => {
         setGamePhase('complete');
         
@@ -224,7 +226,7 @@ const CupAndBall = () => {
             variant: "destructive"
           });
         }
-      }, 1500);
+      }, 2500);
     }, duration);
   };
   
@@ -247,7 +249,7 @@ const CupAndBall = () => {
   );
   
   const gamePanel = (
-    <CupAndBallGame
+    <PhaserCupAndBallGame
       gamePhase={gamePhase}
       ballPosition={ballPosition}
       selectedCup={selectedCup}
