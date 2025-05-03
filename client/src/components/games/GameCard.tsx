@@ -65,23 +65,32 @@ const GameCard = ({
     // For games with Cloudinary images
     switch (name) {
       case 'CRICKET MINES':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png';
       case 'CRASH':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
       case 'PLINKO':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990620/5cbb2498c956527e6584c6af216489b85bbb7a909c7d3c4e131a3be9bd1cc6bf_wlazjb.jpg';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990620/5cbb2498c956527e6584c6af216489b85bbb7a909c7d3c4e131a3be9bd1cc6bf_wlazjb.jpg';
       case 'LIMBO':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990620/11caec5df20098884ae9071848e1951b8b34e5ec84a7241f2e7c5afd4b323dfd_iitvtz.jpg';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990620/11caec5df20098884ae9071848e1951b8b34e5ec84a7241f2e7c5afd4b323dfd_iitvtz.jpg';
       case 'MINES':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990620/15a51a2ae2895872ae2b600fa6fe8d7f8d32c9814766b66ddea2b288d04ba89c_uj47yo.jpg';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990620/15a51a2ae2895872ae2b600fa6fe8d7f8d32c9814766b66ddea2b288d04ba89c_uj47yo.jpg';
       case 'DICE':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990621/30688668d7d2d48d472edd0f1e2bca0758e7ec51cbab8c04d8b7f157848640e0_ec0wxi.jpg';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990621/30688668d7d2d48d472edd0f1e2bca0758e7ec51cbab8c04d8b7f157848640e0_ec0wxi.jpg';
       case 'KENO':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744990621/102cf3d7c840018b939cd787bf013e080b996d80e604f3008f21dddf1f1aa201_phwj9c.jpg';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990621/102cf3d7c840018b939cd787bf013e080b996d80e604f3008f21dddf1f1aa201_phwj9c.jpg';
       case 'WHEEL':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1744994352/e0a4131a16c28a1c1516958c93ec90c6f0f1bb00f41de87f72f6800c535b9c6f_fl9nyv.jpg';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744994352/e0a4131a16c28a1c1516958c93ec90c6f0f1bb00f41de87f72f6800c535b9c6f_fl9nyv.jpg';
       case 'COIN FLIP':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745059353/1c0de2ee0ce713086ff7735697ad2b5385bc974f206b857c724a5ec84467a73b_srnwo0.png';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745059353/1c0de2ee0ce713086ff7735697ad2b5385bc974f206b857c724a5ec84467a73b_srnwo0.png';
       default:
         break;
     }
@@ -99,26 +108,37 @@ const GameCard = ({
   const getGameImage = () => {
     switch (name) {
       case 'KENO': 
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/0dec0a589e3aad3d7130fd0fbb1502d174dca0f9-1080x1080.png';
       case 'LIMBO':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/14a07f57ad5198ffadd4e0d4386245f4e017d030-1080x1080.png';
       case 'MINES':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745173634/5da127925ac99a19da0cd888e5436049bc42f8ee4002df80cdc817f0501ab8a7_fhf3kc.png';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745173634/5da127925ac99a19da0cd888e5436049bc42f8ee4002df80cdc817f0501ab8a7_fhf3kc.png';
       case 'CRICKET MINES':
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745173403/Cricket_Mines_Resized_xfosv9.png';
+        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745173403/Cricket_Mines_Resized_xfosv9.png';
       case 'DICE':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/1b45a8e293264dab4677f8187e8d71feeb56adabc02510a59d6b4e780c1e5b4c.png';
       case 'VIDEO POKER':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/1c0de2ee0ce713086ff7735697ad2b5385bc974f206b857c724a5ec84467a73b.png';
       case 'DRAGON TOWER':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/2c3e16f0a3b8cd8d979265e48dd6a169937a4a4d0acb05ad532ca8345a1e6f21.jpeg';
       case 'PLINKO':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/4031cec525edc307c71df6dddc71506ab06150fd5c14194a5dc9ca6fb54893a1.jpeg';
       case 'BLUE SAMURAI':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/59d1df22a2931a965fc241a436a398f460e71ea9d0214f66780a52b56655d392.jpeg';
       case 'HILO':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/86cd89b12ec34439c0d1a6e32b06c971efc86091e09ba466182abe173c3d3f7d.jpeg';
       case 'PUMP':
+        // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/e0a4131a16c28a1c1516958c93ec90c6f0f1bb00f41de87f72f6800c535b9c6f.jpeg';
       default:
         return null;
