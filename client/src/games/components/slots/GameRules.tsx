@@ -6,6 +6,12 @@ const GameRules: React.FC = () => {
   // Define winning combinations and their respective multipliers
   const winningCombinations = [
     {
+      type: 'Lucky Number',
+      pattern: ['L', 'x', 'y'],
+      multiplier: 10,
+      description: 'Your lucky number appears in any reel'
+    },
+    {
       type: 'Three 7s',
       pattern: [7, 7, 7],
       multiplier: 10,

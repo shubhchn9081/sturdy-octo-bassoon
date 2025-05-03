@@ -27,6 +27,8 @@ type BettingPanelProps = {
   error: string | null;
   clearError: () => void;
   spinResults: SpinResult | null;
+  luckyNumber: number;
+  setLuckyNumber: (num: number) => void;
 };
 
 const BettingPanel: React.FC<BettingPanelProps> = ({
@@ -40,7 +42,9 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   stopAutoSpin,
   error,
   clearError,
-  spinResults
+  spinResults,
+  luckyNumber,
+  setLuckyNumber
 }) => {
   // Quick bet amount options
   const betOptions = [1, 5, 10, 25, 50, 100];
@@ -100,6 +104,12 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
     if (newAutoSpin && !isSpinning) {
       onSpin();
     }
+  };
+  
+  // Handle lucky number selection
+  const handleLuckyNumberChange = (num: number) => {
+    setLuckyNumber(num);
+    if (error) clearError();
   };
   
   // UI helper for formatting currency amounts
@@ -198,6 +208,29 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
         
         {/* Right column - Game controls and results */}
         <div className="space-y-4">
+          {/* Lucky Number Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="luckyNumber">Your Lucky Number (Jackpot if it appears)</Label>
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: 10 }, (_, i) => (
+                <Button
+                  key={i}
+                  variant="outline"
+                  className={`bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54] h-12 ${
+                    luckyNumber === i ? 'ring-2 ring-amber-500 bg-amber-950/30' : ''
+                  }`}
+                  onClick={() => handleLuckyNumberChange(i)}
+                  disabled={isSpinning}
+                >
+                  {i}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-amber-400 mt-1">
+              If your lucky number appears in any reel, you win a 10x jackpot!
+            </p>
+          </div>
+          
           {/* Auto spin toggle */}
           <div className="flex items-center justify-between space-x-2 p-3 bg-[#172B3A] rounded-md border border-[#1D2F3D]">
             <Label htmlFor="autoSpin" className="flex items-center space-x-2 cursor-pointer">
