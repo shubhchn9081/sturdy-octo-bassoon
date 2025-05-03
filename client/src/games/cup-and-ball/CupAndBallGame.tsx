@@ -39,11 +39,22 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
     hard: 0.2
   };
   
+  // Reset cup positions when game starts
+  useEffect(() => {
+    if (gamePhase === 'initial') {
+      // Reset cup positions at the start of a new game
+      setCupPositions([0, 1, 2]);
+      console.log('Reset cup positions to initial state: [0, 1, 2]');
+    }
+  }, [gamePhase]);
+
   // Animation sequence for shuffling
   useEffect(() => {
     if (gamePhase === 'shuffling' && shuffleMoves.length > 0) {
       let currentPositions = [...cupPositions];
       let delay = 0;
+      
+      console.log('Starting shuffling animation with positions:', currentPositions);
       
       // Animate each shuffle move
       shuffleMoves.forEach((moveType, index) => {
@@ -52,10 +63,13 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
           let newPositions = [...currentPositions];
           if (moveType === 0) { // Swap cups 0-1
             [newPositions[0], newPositions[1]] = [newPositions[1], newPositions[0]];
+            console.log(`Shuffle move ${index}: Swapping cups 0-1, new positions:`, newPositions);
           } else if (moveType === 1) { // Swap cups 1-2
             [newPositions[1], newPositions[2]] = [newPositions[2], newPositions[1]];
+            console.log(`Shuffle move ${index}: Swapping cups 1-2, new positions:`, newPositions);
           } else { // Swap cups 0-2
             [newPositions[0], newPositions[2]] = [newPositions[2], newPositions[0]];
+            console.log(`Shuffle move ${index}: Swapping cups 0-2, new positions:`, newPositions);
           }
           currentPositions = newPositions;
           setCupPositions([...newPositions]);
@@ -65,7 +79,7 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
         delay += animationDurations[difficulty] * 1000;
       });
     }
-  }, [gamePhase, shuffleMoves, difficulty]);
+  }, [gamePhase, shuffleMoves, difficulty, cupPositions]);
   
   // Get the cup index from the current visual position
   const getCupAtPosition = (position: number) => {
@@ -76,8 +90,10 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
   const renderCup = (position: number) => {
     const cupIndex = getCupAtPosition(position);
     const isSelected = selectedCup === cupIndex;
+    // Show ball only if this cup's index matches the ball position
     const showBall = (gamePhase === 'initial' || gamePhase === 'revealing' || gamePhase === 'complete') && 
                      ballPosition === cupIndex;
+    console.log(`Rendering cup at position ${position}, cupIndex: ${cupIndex}, ballPosition: ${ballPosition}, showBall: ${showBall}`);
     const canSelect = gamePhase === 'selecting';
     
     return (
