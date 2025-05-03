@@ -19,8 +19,8 @@ type SpinResult = {
 
 // Main Slots component
 const Slots = () => {
-  const provablyFair = useProvablyFair({ gameType: "slots" });
-  const { balance, refetch: refreshBalance } = useBalance();
+  const provablyFair = useProvablyFair("slots");
+  const { balance, rawBalance, refetch: refreshBalance } = useBalance("INR");
   const { toast } = useToast();
   
   // Game state
@@ -43,7 +43,7 @@ const Slots = () => {
       return;
     }
     
-    if (betAmount > Number(balance)) {
+    if (betAmount > rawBalance) {
       setError('Insufficient balance');
       return;
     }
@@ -277,8 +277,8 @@ const Slots = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#0F212E] text-white">
-      <div className="flex-1 overflow-auto pb-[420px] sm:pb-[300px] md:pb-[260px]">
-        <div className="bg-[#0E1C27] rounded-lg p-4 mx-auto max-w-4xl">
+      <div className="flex-1 overflow-auto pb-[280px] sm:pb-[240px] md:pb-[220px]">
+        <div className="bg-[#0E1C27] rounded-lg p-2 sm:p-4 mx-auto max-w-4xl">
           {/* Main slot machine component */}
           <SlotMachine 
             reelValues={reelValues} 
@@ -342,7 +342,7 @@ const Slots = () => {
       </div>
       
       {/* Betting panel fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0E1C27] border-t border-[#1D2F3D] p-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#0E1C27] border-t border-[#1D2F3D] p-2 sm:p-4">
         <BettingPanel
           balance={balance}
           betAmount={betAmount}

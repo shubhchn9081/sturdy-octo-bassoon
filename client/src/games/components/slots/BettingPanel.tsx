@@ -117,7 +117,7 @@ const BettingPanel = ({
         )}
       </div>
       
-      {/* Betting controls */}
+      {/* Betting controls - Improved for mobile responsiveness */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Bet amount */}
         <div className="space-y-2">
@@ -126,8 +126,8 @@ const BettingPanel = ({
             <Input
               id="betAmount"
               type="number"
-              min="1"
-              step="1"
+              min="100"
+              step="100"
               value={localBetAmount}
               onChange={handleBetAmountChange}
               onBlur={handleBetAmountBlur}
@@ -137,16 +137,17 @@ const BettingPanel = ({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => handlePresetClick(Math.max(1, betAmount * 2))}
+              onClick={() => handlePresetClick(Math.max(100, betAmount * 2))}
               disabled={isSpinning}
               title="Double bet"
+              className="hidden sm:flex"
             >
               2×
             </Button>
           </div>
           
           {/* Preset amounts */}
-          <div className="grid grid-cols-3 gap-2 mt-2">
+          <div className="grid grid-cols-4 gap-2 mt-2">
             {presetAmounts.map((amount) => (
               <Button
                 key={amount}
@@ -179,7 +180,7 @@ const BettingPanel = ({
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
             Win 10× your bet if your lucky number appears in any reel!
           </p>
         </div>
@@ -196,26 +197,27 @@ const BettingPanel = ({
             />
           </div>
           
+          {/* Large, prominent spin button - especially for mobile */}
           <Button
             variant="default"
-            className="w-full h-12 text-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+            className="w-full h-14 sm:h-12 text-xl sm:text-lg font-bold bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg shadow-lg"
             onClick={autoSpin ? stopAutoSpin : onSpin}
-            disabled={isSpinning || parseFloat(balance) < betAmount}
+            disabled={isSpinning}
           >
             {isSpinning ? (
               <>
-                <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                <RefreshCw className="mr-2 h-6 w-6 animate-spin" />
                 Spinning...
               </>
             ) : autoSpin ? (
               'Stop Auto Spin'
             ) : (
-              'Spin'
+              'SPIN'
             )}
           </Button>
           
           {parseFloat(balance) < betAmount && (
-            <p className="text-xs text-red-500 flex items-center mt-1">
+            <p className="text-xs text-red-500 flex items-center justify-center mt-1">
               <AlertTriangle className="h-3 w-3 mr-1" />
               Insufficient balance
             </p>
