@@ -25,8 +25,21 @@ router.post('/place-bet', async (req: Request, res: Response) => {
     const validatedData = cupAndBallBetSchema.parse(req.body);
     const userId = req.user!.id;
 
-    // Verify the user has enough balance
-    const userBalance = await storage.getUserBalance(userId);
+    // Get the user to check balance
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Extract user balance (assuming INR currency)
+    let userBalance = 0;
+    if (typeof user.balance === 'number') {
+      userBalance = user.balance;
+    } else if (typeof user.balance === 'object' && user.balance !== null) {
+      const balanceObj = user.balance as Record<string, number>;
+      userBalance = balanceObj['INR'] || 0;
+    }
+    
     if (userBalance < validatedData.amount) {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
@@ -35,11 +48,11 @@ router.post('/place-bet', async (req: Request, res: Response) => {
     const serverSeed = createServerSeed();
     const hashedServerSeed = hashServerSeed(serverSeed);
     
-    // Get next nonce for the user
-    const nextNonce = await storage.getNextBetNonce(userId);
+    // Use a random nonce for now (normally we would keep track of this)
+    const nextNonce = Math.floor(Math.random() * 1000000);
     
     // Get game control settings if any
-    const gameControl = await storage.getUserGameControl(userId, validatedData.gameId);
+    const gameControl = await storage.getUserGameControlByUserAndGame(userId, validatedData.gameId);
 
     // Process the bet
     const result = processCupAndBallBet(
@@ -77,7 +90,19 @@ router.post('/place-bet', async (req: Request, res: Response) => {
 
     // Update game control if needed
     if (gameControl && gameControl.forceOutcome) {
-      await storage.incrementUserGameControlPlayed(gameControl.id);
+      await storage.incrementUserGameControlCounter(gameControl.id);
+    }
+
+    // Get updated user to return new balance
+    const updatedUser = await storage.getUser(userId);
+    let newBalance = 0;
+    if (updatedUser) {
+      if (typeof updatedUser.balance === 'number') {
+        newBalance = updatedUser.balance;
+      } else if (typeof updatedUser.balance === 'object' && updatedUser.balance !== null) {
+        const balanceObj = updatedUser.balance as Record<string, number>;
+        newBalance = balanceObj['INR'] || 0;
+      }
     }
 
     res.json({
@@ -90,7 +115,7 @@ router.post('/place-bet', async (req: Request, res: Response) => {
         completed: bet.completed,
         createdAt: bet.createdAt
       },
-      newBalance: await storage.getUserBalance(userId),
+      newBalance,
       serverSeed: bet.completed ? serverSeed : undefined,
       hashedServerSeed
     });

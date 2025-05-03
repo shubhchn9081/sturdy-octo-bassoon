@@ -14,6 +14,7 @@ import { isAdmin } from "./middleware/admin";
 import gameControlRoutes from "./routes/gameControl";
 import apayRoutes from "./routes/apay";
 import slotsRoutes from "./routes/slots";
+import cupAndBallRoutes from "./routes/cup-and-ball";
 
 // Function to generate username from full name
 function generateUsernameFromFullName(fullName: string): string {
@@ -75,6 +76,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup slots game routes
   app.use('/api/slots', slotsRoutes);
+  
+  // Setup cup and ball game routes
+  app.use('/api/cup-and-ball', cupAndBallRoutes);
   
   // prefix all routes with /api
 
