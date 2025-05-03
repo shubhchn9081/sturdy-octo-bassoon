@@ -98,10 +98,17 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
     // Is this the cup the player selected?
     const isSelected = selectedCup === cupIndex;
     
-    // Show ball if this is the correct cup and we're in a phase to show it
-    const showBall = (gamePhase === 'initial' && position === ballPosition) || 
-                    ((gamePhase === 'revealing' || gamePhase === 'complete') && 
-                     ballPosition === cupIndex);
+    // In the initial phase, show the ball under its initial position
+    // In revealing/complete phases, show the ball under the cup that actually contains it
+    let showBall = false;
+    
+    if (gamePhase === 'initial') {
+      // In initial phase, ball is shown under its position number (0, 1, or 2)
+      showBall = position === ballPosition;
+    } else if (gamePhase === 'revealing' || gamePhase === 'complete') {
+      // After shuffling, the ball is under the cup with the matching index
+      showBall = cupIndex === ballPosition;
+    }
                      
     console.log(`Rendering cup at position ${position}, cupIndex: ${cupIndex}, ballPosition: ${ballPosition}, showBall: ${showBall}`);
     

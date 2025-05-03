@@ -199,6 +199,9 @@ const CupAndBall = () => {
     // Determine animation duration based on difficulty
     const duration = difficulty === 'easy' ? 3000 : difficulty === 'medium' ? 2000 : 1500;
     
+    console.log("Playing game outcome sequence with:", outcome);
+    console.log(`Ball final position: ${outcome.ballPosition}, Player selected: ${outcome.selectedCup}, Win: ${outcome.win}`);
+    
     // After "server-side" shuffling finishes, show the result
     setTimeout(() => {
       setGamePhase('revealing');
