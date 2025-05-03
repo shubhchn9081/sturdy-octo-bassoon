@@ -245,7 +245,7 @@ export class MemStorage implements IStorage {
         BTC: 0.01,
         ETH: 0.1,
         USDT: 1000,
-        INR: 10000 // Lower amount for regular users
+        INR: 0 // No starting balance for new users
       },
       createdAt: new Date(),
       email: insertUser.email,
@@ -945,7 +945,7 @@ export class DatabaseStorage implements IStorage {
       ...insertUser,
       isAdmin: false,
       isBanned: false,
-      balance: { INR: 10000, BTC: 0.01, ETH: 0.1, USDT: 1000 }, // Default balance
+      balance: { INR: 0, BTC: 0.01, ETH: 0.1, USDT: 1000 }, // Default balance
       referralCode: null,
       language: 'English',
       dateOfBirth: null // Keep for backward compatibility
