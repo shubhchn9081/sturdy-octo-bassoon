@@ -123,6 +123,12 @@ export function setupAuth(app: Express) {
       if (existingEmail) {
         return res.status(400).json({ message: "Email already exists" });
       }
+      
+      // Check if phone exists
+      const existingPhone = await storage.getUserByPhone(phone);
+      if (existingPhone) {
+        return res.status(400).json({ message: "Phone number already registered" });
+      }
 
       // Generate a unique username based on the full name
       const baseUsername = generateUsernameFromFullName(fullName);
@@ -160,6 +166,8 @@ export function setupAuth(app: Express) {
           return res.status(400).json({ message: "Email address already in use" });
         } else if (err.constraint === 'users_username_unique') {
           return res.status(400).json({ message: "Username already taken" });
+        } else if (err.constraint === 'users_phone_unique') {
+          return res.status(400).json({ message: "Phone number already registered" });
         }
       }
       

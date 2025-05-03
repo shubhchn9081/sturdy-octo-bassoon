@@ -750,7 +750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           balance: user.balance,
           createdAt: user.createdAt,
           email: user.email,
-          dateOfBirth: user.dateOfBirth,
+          fullName: user.fullName,
           phone: user.phone,
           referralCode: user.referralCode,
           language: user.language

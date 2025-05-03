@@ -161,7 +161,7 @@ export class MemStorage implements IStorage {
       },
       createdAt: new Date(),
       email: "demo@example.com",
-      dateOfBirth: new Date("1990-01-01"),
+      fullName: "Demo User",
       phone: "1234567890",
       referralCode: null,
       language: "English"
@@ -183,7 +183,7 @@ export class MemStorage implements IStorage {
       },
       createdAt: new Date(),
       email: "admin@example.com",
-      dateOfBirth: new Date("1985-01-01"),
+      fullName: "Admin User",
       phone: "9876543210",
       referralCode: null,
       language: "English"
@@ -252,8 +252,7 @@ export class MemStorage implements IStorage {
       fullName: insertUser.fullName,
       phone: insertUser.phone,
       referralCode: null,
-      language: 'English',
-      dateOfBirth: null // Keep for backward compatibility
+      language: 'English'
     };
     this.users.set(id, user);
     return user;
