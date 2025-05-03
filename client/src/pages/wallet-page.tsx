@@ -17,9 +17,9 @@ export default function WalletPage() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  // IMPORTANT: Setting initial balance to match header balance exactly
-  const [balance, setBalance] = useState<number | null>(59988.462);
-  const [isLoading, setIsLoading] = useState(false); // Start with false to show balance immediately
+  // Use null as the initial balance to force fetching from the API
+  const [balance, setBalance] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading
   const [error, setError] = useState<string | null>(null);
   const [isUpdated, setIsUpdated] = useState(false); // Track when balance updates happen
   
@@ -30,27 +30,20 @@ export default function WalletPage() {
       setIsLoading(false);
       return;
     }
-
-    const timestamp = Date.now(); // Used to bust cache
     
     const fetchDirectBalance = async () => {
-      // Generate a new timestamp with each call to ensure no caching
-      const freshTimestamp = Date.now();
+      // Generate a unique timestamp with each call to ensure no caching
+      const now = Date.now();
       
       try {
-        console.log(`Wallet page: Fetching fresh balance (${freshTimestamp})`);
-        
-        // Direct API call with explicit no-cache options and new timestamp
-        const response = await fetch(`/api/user/balance?_t=${freshTimestamp}`, {
+        // Direct API call with explicit no-cache options
+        const response = await fetch(`/api/user/balance?nocache=${now}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          },
-          // Ensure we're not using cached responses
-          cache: 'no-store'
+            'Pragma': 'no-cache'
+          }
         });
         
         if (response.ok) {
@@ -58,33 +51,26 @@ export default function WalletPage() {
           console.log("WALLET: Balance data received:", data);
           
           if (data && typeof data.balance === 'number') {
-            // Compare with current balance to see if update is needed
+            // Check if the balance has changed
             if (balance !== data.balance) {
               console.log(`WALLET: Balance changed from ${balance} to ${data.balance}`);
-              // Use the actual balance value from the API
+              
+              // Update the balance state
               setBalance(data.balance);
               setError(null);
               
-              // Trigger animation effect
+              // Trigger animation effect for visual feedback
               setIsUpdated(true);
-              // Reset after animation completes
               setTimeout(() => setIsUpdated(false), 1000);
-            } else {
-              console.log(`WALLET: Balance unchanged at ${data.balance}`);
             }
           } else {
             console.error("WALLET: Invalid balance data format:", data);
-            setError("Invalid balance data received");
+            setError("Could not read balance data");
           }
         } else {
-          try {
-            const errorData = await response.json();
-            setError(errorData.message || 'Failed to fetch balance');
-            console.error('WALLET: Balance fetch error:', errorData);
-          } catch (e) {
-            setError(`Failed to fetch balance (${response.status})`);
-            console.error('WALLET: Balance fetch error, status:', response.status);
-          }
+          const errorText = await response.text();
+          console.error('WALLET: Balance fetch error:', response.status, errorText);
+          setError(`Failed to fetch balance (${response.status})`);
         }
       } catch (error) {
         console.error('WALLET: Error fetching balance:', error);
@@ -94,15 +80,14 @@ export default function WalletPage() {
       }
     };
     
-    // Immediate fetch on mount with small delay to ensure auth is complete
-    setTimeout(fetchDirectBalance, 100);
+    // Fetch balance immediately
+    fetchDirectBalance();
     
-    // Set up an interval to refresh the balance every 2 seconds
-    const refreshInterval = setInterval(fetchDirectBalance, 2000);
+    // Set up an interval to refresh the balance every 1 second
+    const refreshInterval = setInterval(fetchDirectBalance, 1000);
     
-    return () => {
-      clearInterval(refreshInterval);
-    };
+    // Clean up interval on unmount
+    return () => clearInterval(refreshInterval);
   }, [isAuthenticated, balance]);
   
   const handleAddFunds = () => {
