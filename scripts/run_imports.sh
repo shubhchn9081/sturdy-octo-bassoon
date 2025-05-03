@@ -3,7 +3,7 @@
 # Simple script to run multiple batches of user imports
 
 BATCH_SIZE=10
-START_AT=70
+START_AT=130
 BATCHES_TO_RUN=3
 
 for i in $(seq 0 $(($BATCHES_TO_RUN - 1))); do
