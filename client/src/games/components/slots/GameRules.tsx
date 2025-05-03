@@ -1,106 +1,78 @@
 import React from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-// Slot game rules component
+// Game rules component for Slots game
 const GameRules: React.FC = () => {
   return (
-    <div className="bg-[#172B3A] p-4 rounded-lg border border-[#243442] text-gray-300 text-sm">
-      <h3 className="text-white font-bold text-lg mb-3">Slots Game Rules</h3>
-      
-      <div className="space-y-4">
+    <div className="space-y-4 text-sm text-gray-300">
+      <div>
+        <h3 className="text-lg font-bold mb-2 text-white">How to Play</h3>
         <p>
-          Slots is a game of chance where three reels spin and stop on random numbers. 
-          Place your bet and spin the reels to win!
+          Slots is a classic 3-reel game. Place your bet and spin the reels to match numbers
+          and win multipliers based on the combinations you land.
         </p>
-        
-        <div className="my-4">
-          <h4 className="text-white font-bold mb-2">Winning Combinations:</h4>
-          <ul className="space-y-3">
-            <li className="flex items-center justify-between border-b border-[#243442] pb-2">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">7</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">7</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">7</div>
-              </div>
-              <div className="text-green-400 font-bold">10x</div>
-            </li>
-            
-            <li className="flex items-center justify-between border-b border-[#243442] pb-2">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">Any</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">Same</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">Number</div>
-              </div>
-              <div className="text-green-400 font-bold">5x</div>
-            </li>
-            
-            <li className="flex items-center justify-between border-b border-[#243442] pb-2">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">Sequential</div>
-              </div>
-              <div className="text-green-400 font-bold">3x</div>
-            </li>
-            
-            <li className="flex items-center justify-between border-b border-[#243442] pb-2">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">Two</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">Same</div>
-              </div>
-              <div className="text-green-400 font-bold">2x</div>
-            </li>
-          </ul>
-        </div>
-        
-        <div>
-          <h4 className="text-white font-bold mb-2">Examples:</h4>
-          <ul className="space-y-3">
-            <li className="flex items-center space-x-3">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">7</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">7</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">7</div>
-              </div>
-              <span>Three 7s - 10x multiplier</span>
-            </li>
-            
-            <li className="flex items-center space-x-3">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">5</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">5</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">5</div>
-              </div>
-              <span>Three of any same number - 5x multiplier</span>
-            </li>
-            
-            <li className="flex items-center space-x-3">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">3</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">4</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">5</div>
-              </div>
-              <span>Sequential numbers - 3x multiplier</span>
-            </li>
-            
-            <li className="flex items-center space-x-3">
-              <div className="flex space-x-1">
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">2</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">2</div>
-                <div className="w-8 h-8 flex items-center justify-center bg-[#243442] rounded font-bold text-white">8</div>
-              </div>
-              <span>Two same numbers - 2x multiplier</span>
-            </li>
-          </ul>
-        </div>
-        
-        <div className="pt-2">
-          <h4 className="text-white font-bold mb-2">How to Play:</h4>
-          <ol className="list-decimal pl-5 space-y-2">
-            <li>Set your bet amount</li>
-            <li>Click the SPIN button to start the game</li>
-            <li>Wait for all three reels to stop</li>
-            <li>If you get a winning combination, your bet will be multiplied accordingly</li>
-            <li>Use Auto Spin to continuously play without clicking each time</li>
-          </ol>
-        </div>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-bold mb-2 text-white">Winning Combinations</h3>
+        <Table>
+          <TableHeader>
+            <TableRow className="border-[#1D2F3D]">
+              <TableHead className="text-white">Combination</TableHead>
+              <TableHead className="text-right text-white">Multiplier</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow className="border-[#1D2F3D]">
+              <TableCell>Three of a kind (any number)</TableCell>
+              <TableCell className="text-right">5x</TableCell>
+            </TableRow>
+            <TableRow className="border-[#1D2F3D]">
+              <TableCell>Three 7s (jackpot)</TableCell>
+              <TableCell className="text-right">10x</TableCell>
+            </TableRow>
+            <TableRow className="border-[#1D2F3D]">
+              <TableCell>Sequential numbers (e.g., 3-4-5)</TableCell>
+              <TableCell className="text-right">2x</TableCell>
+            </TableRow>
+            <TableRow className="border-[#1D2F3D]">
+              <TableCell>Any pair (two matching numbers)</TableCell>
+              <TableCell className="text-right">1.5x</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-bold mb-2 text-white">Game Rules</h3>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Each spin costs the bet amount you set.</li>
+          <li>Each reel contains numbers from 0 to 9.</li>
+          <li>Only the highest multiplier will be awarded per spin.</li>
+          <li>Winning amount = Bet Amount × Multiplier.</li>
+          <li>The game uses a provably fair algorithm to ensure random results.</li>
+          <li>Minimum bet: 0.00000001 INR.</li>
+          <li>Maximum bet: 100 INR.</li>
+          <li>Maximum win: 10x your bet.</li>
+          <li>RTP (Return to Player): 97%.</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-bold mb-2 text-white">Auto-Spin Feature</h3>
+        <p>
+          Enable auto-spin to automatically place the same bet amount after each spin result.
+          You can stop auto-spin at any time by clicking the "STOP AUTO" button.
+        </p>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-bold mb-2 text-white">Fairness</h3>
+        <p>
+          The slots game uses a verified random number generation system that ensures
+          fair and unbiased results for all players. Each spin's outcome is determined by
+          a combination of server seed and client seed, which cannot be manipulated.
+        </p>
       </div>
     </div>
   );
