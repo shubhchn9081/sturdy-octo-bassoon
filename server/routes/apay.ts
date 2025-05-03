@@ -6,11 +6,11 @@ import { log } from '../vite';
 const router = Router();
 
 // APay credentials
-const APAY_API_KEY = 'd6a870ecdd68ed30951e601442d620ca';
-const APAY_PROJECT_ID = '9440140';
-const APAY_WEBHOOK_ID = '6898076';
-const APAY_WEBHOOK_ACCESS_KEY = 'e6f1ac0ea5d105be8fc0b044744b36d3';
-const APAY_WEBHOOK_PRIVATE_KEY = 'f3769c2fb80ac01c36ddd589a0fd9279';
+const APAY_API_KEY = 'bf98021c67b8c6e602e1dc79e9f5e5d2';
+const APAY_PROJECT_ID = '8726739';
+const APAY_WEBHOOK_ID = '6800481';
+const APAY_WEBHOOK_ACCESS_KEY = '3fa9a76c47ebbb7e452ed19c1e4fb2bc';
+const APAY_WEBHOOK_PRIVATE_KEY = '5bf3e4e8f67e01a9d0fd1d66c31e0891';
 
 // Set the correct API endpoint for APay based on APay documentation
 // APay only accepts requests from upino.in domain
@@ -74,6 +74,7 @@ router.post('/create-payment', async (req: Request, res: Response) => {
     try {
       // Create payload according to APay documentation
       const paymentPagePayload = {
+        project_id: APAY_PROJECT_ID,
         amount: amount,
         currency: 'INR',
         payment_system: ['upi_fast', 'upi_p2p'],
