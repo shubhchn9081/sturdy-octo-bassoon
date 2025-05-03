@@ -104,7 +104,7 @@ export const GameTabs = ({
   );
 };
 
-type GameLayoutProps = {
+export type GameLayoutProps = {
   title: string;
   controlsPanel: ReactNode;
   gamePanel: ReactNode;

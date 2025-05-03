@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 // Game UI components
 import GameLayout from '@/components/games/GameLayout';
+import type { GameLayoutProps } from '@/components/games/GameLayout';
 // Import cup game components directly
 import CupControls from '@/games/cup-and-ball/CupControls';
 // Import the basic React implementation with framer-motion animations
