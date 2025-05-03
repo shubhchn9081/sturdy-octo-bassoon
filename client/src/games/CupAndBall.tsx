@@ -19,8 +19,8 @@ import {
 import GameLayout from '@/components/games/GameLayout';
 // Import cup game components directly
 import CupControls from '@/games/cup-and-ball/CupControls';
-// Import the basic cup and ball implementation that doesn't rely on Phaser
-import BasicCupAndBallGame from '@/games/cup-and-ball/BasicCupAndBallGame';
+// Import the PixiJS implementation which has more reliable animations
+import PixiCupAndBallGame from '@/games/cup-and-ball/PixiCupAndBallGame';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
@@ -178,10 +178,10 @@ const CupAndBall = () => {
       setShuffleMoves(tempShuffles);
       
       // After shuffling animation completes, let the player select a cup
-      // Times are shorter since we're not using Phaser's complex animations now
+      // Use longer times for PixiJS to complete its animation sequence
       setTimeout(() => {
         setGamePhase('selecting');
-      }, difficulty === 'easy' ? 3000 : difficulty === 'medium' ? 5000 : 8000);
+      }, difficulty === 'easy' ? 5000 : difficulty === 'medium' ? 8000 : 12000);
     }, 2000);
   };
   
@@ -249,7 +249,7 @@ const CupAndBall = () => {
   );
   
   const gamePanel = (
-    <BasicCupAndBallGame
+    <PixiCupAndBallGame
       gamePhase={gamePhase}
       ballPosition={ballPosition}
       selectedCup={selectedCup}

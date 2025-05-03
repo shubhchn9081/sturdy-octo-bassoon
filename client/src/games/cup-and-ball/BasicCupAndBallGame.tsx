@@ -24,13 +24,18 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
   // Track cup positions - starts at [0, 1, 2] and changes with shuffling
   const [cupPositions, setCupPositions] = React.useState([0, 1, 2]);
 
-  // When shuffleMoves change, simulate the shuffling
+  // For cup animation during shuffling
+  const [animatingCups, setAnimatingCups] = React.useState<boolean>(false);
+  const [moveIndex, setMoveIndex] = React.useState<number>(0);
+
+  // When shuffleMoves change, prepare for animation
   React.useEffect(() => {
     if (gamePhase === 'shuffling' && shuffleMoves.length > 0) {
       console.log("Starting cup shuffling simulation");
       
-      // Reset positions when starting shuffle
+      // Reset positions at start
       setCupPositions([0, 1, 2]);
+      setMoveIndex(0);
       
       // Add some extra "bluffing" moves for more confusion
       const extraMoveCount = 
@@ -45,33 +50,57 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
         allMoves.splice(randomPosition, 0, randomMove);
       }
       
-      // Simulate each move to track final cup positions
-      let currentPositions = [...cupPositions];
+      // Start animation sequence
+      setAnimatingCups(true);
       
-      allMoves.forEach((moveType) => {
-        // Determine which cup positions to swap based on moveType
-        let pos1, pos2;
+      // Schedule animation for each move
+      const animateShuffles = async () => {
+        let currentPositions = [...cupPositions];
         
-        if (moveType === 0) {
-          pos1 = 0;
-          pos2 = 1;
-        } else if (moveType === 1) {
-          pos1 = 1;
-          pos2 = 2;
-        } else {
-          pos1 = 0;
-          pos2 = 2;
+        // Animate each move in sequence
+        for (let i = 0; i < allMoves.length; i++) {
+          const moveType = allMoves[i];
+          
+          // Determine which cup positions to swap based on moveType
+          let pos1, pos2;
+          
+          if (moveType === 0) {
+            pos1 = 0;
+            pos2 = 1;
+          } else if (moveType === 1) {
+            pos1 = 1;
+            pos2 = 2;
+          } else {
+            pos1 = 0;
+            pos2 = 2;
+          }
+          
+          // Update move index to trigger animation
+          setMoveIndex(i);
+          
+          // Swap the cups in our tracker
+          const temp = currentPositions[pos1];
+          currentPositions[pos1] = currentPositions[pos2];
+          currentPositions[pos2] = temp;
+          
+          // Wait for animation to complete before next move
+          // Duration varies by difficulty
+          const duration = difficulty === 'easy' ? 600 : 
+                          difficulty === 'medium' ? 450 : 300;
+          
+          // Update positions after animation
+          await new Promise(resolve => setTimeout(() => {
+            setCupPositions([...currentPositions]);
+            resolve(null);
+          }, duration));
         }
         
-        // Swap the cups
-        const temp = currentPositions[pos1];
-        currentPositions[pos1] = currentPositions[pos2];
-        currentPositions[pos2] = temp;
-      });
+        // Animation complete
+        setAnimatingCups(false);
+        console.log("Final cup positions after shuffling:", currentPositions);
+      };
       
-      // Set the final cup positions
-      console.log("Final cup positions after shuffling:", currentPositions);
-      setCupPositions(currentPositions);
+      animateShuffles();
     }
   }, [gamePhase, shuffleMoves, difficulty]);
 
@@ -82,6 +111,36 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
       setCupPositions([0, 1, 2]);
     }
   }, [gamePhase]);
+
+  // Calculate cup positions for animation
+  const getCupAnimationPosition = (position: number, moveType: number, progress: number) => {
+    // Default cup positions on X-axis (0, 1, 2)
+    const basePositions = [0, 1, 2];
+    
+    // No animation if not shuffling
+    if (gamePhase !== 'shuffling' || !animatingCups) {
+      return basePositions[position];
+    }
+    
+    // During animation, we need to interpolate between positions
+    let startPos = position;
+    let endPos = position;
+    
+    // Determine which cups are moving based on moveType
+    if (moveType === 0 && (position === 0 || position === 1)) {
+      // Swapping cups 0 and 1
+      endPos = position === 0 ? 1 : 0;
+    } else if (moveType === 1 && (position === 1 || position === 2)) {
+      // Swapping cups 1 and 2
+      endPos = position === 1 ? 2 : 1;
+    } else if (moveType === 2 && (position === 0 || position === 2)) {
+      // Swapping cups 0 and 2
+      endPos = position === 0 ? 2 : 0;
+    }
+    
+    // Interpolate between start and end positions
+    return startPos + (endPos - startPos) * progress;
+  };
 
   // Render a cup with its contents
   const renderCup = (position: number) => {
@@ -107,18 +166,44 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
     
     const canSelect = gamePhase === 'selecting';
     
+    // Determine the current movement type for animation
+    // For shuffling animation, use a sine wave pattern for cup movements
+    const moveType = moveIndex % 3; // 0, 1, or 2
+    
     return (
       <div className="flex flex-col items-center">
         <motion.div
-          key={`cup-${position}`}
+          key={`cup-${position}-${cupIndex}`}
           className={`relative cursor-pointer ${canSelect ? 'hover:opacity-80' : ''} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-          initial={{ y: 0 }}
+          initial={{ x: 0, y: 0, scale: 1, rotate: 0 }}
           animate={{ 
+            // For shuffling animation, interpolate x position
+            x: gamePhase === 'shuffling' ? 
+               (position === 0 ? -170 : position === 1 ? 0 : 170) : 0,
+            
             // Lift the cup containing the ball when revealing
-            y: (gamePhase === 'revealing' || gamePhase === 'complete') && ballPosition === cupIndex ? -80 : 0,
-            scale: isSelected ? 1.05 : 1
+            y: (gamePhase === 'revealing' || gamePhase === 'complete') && 
+               ballPosition === cupIndex ? -80 : 
+               // Add a slight bounce during shuffling
+               gamePhase === 'shuffling' ? 
+               Math.sin(Date.now() / 200) * 10 : 0,
+            
+            // Scale effect for selection
+            scale: isSelected ? 1.05 : 
+                  // Add subtle scale animation during shuffling
+                  gamePhase === 'shuffling' ? 
+                  1 + Math.sin(Date.now() / 300) * 0.05 : 1,
+            
+            // Add slight rotation during shuffling
+            rotate: gamePhase === 'shuffling' ? 
+                   Math.sin(Date.now() / 250 + position) * 5 : 0
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ 
+            type: 'spring', 
+            stiffness: 300, 
+            damping: 20,
+            duration: 0.3
+          }}
           onClick={() => {
             if (canSelect) {
               console.log(`Clicked on cup at position ${position} with cupIndex ${cupIndex}`);
@@ -131,6 +216,12 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
             <div className="absolute bottom-0 w-full h-32 bg-gradient-to-b from-orange-700 to-orange-900 rounded-b-lg rounded-t-xl transform-gpu"></div>
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-orange-600 rounded-t-xl"></div>
             <div className="absolute right-0 top-12 w-6 h-16 bg-orange-800 rounded-r-full"></div>
+            
+            {/* Cup shadow */}
+            <div 
+              className="absolute -bottom-4 left-1/2 w-24 h-4 bg-black opacity-30 rounded-full blur-sm" 
+              style={{ transform: 'translateX(-50%)' }}
+            />
           </div>
           
           {/* Number indicator */}
