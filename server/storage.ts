@@ -239,14 +239,26 @@ export class MemStorage implements IStorage {
   }
   
   async updateUserBalance(id: number, amount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // Ensure amount is a valid number
+    amount = parseFloat(amount as any);
+    if (isNaN(amount)) {
+      console.error(`Invalid amount passed to updateUserBalance: ${amount}`);
+      return this.getUser(id);
+    }
+    
     // For this platform, we only support INR
     if (currency !== 'INR') {
       console.warn('Only INR currency is supported. Ignoring request for:', currency);
       return this.getUser(id);
     }
     
+    console.log(`Updating user ${id} balance with amount: ${amount} ${currency}`);
+    
     const user = this.users.get(id);
-    if (!user) return undefined;
+    if (!user) {
+      console.error(`User with ID ${id} not found when updating balance`);
+      return undefined;
+    }
     
     // Handle different balance formats
     let updatedBalance: number;
@@ -271,6 +283,8 @@ export class MemStorage implements IStorage {
       // Handle unexpected format - create a new numeric balance
       updatedBalance = Math.max(0, amount);
     }
+    
+    console.log(`User ${id} balance updated from ${typeof user.balance === 'number' ? user.balance : (user.balance as any)?.INR || 0} to ${updatedBalance}`);
     
     // Update the user record with the new balance (as a simple number)
     const updatedUser = { ...user, balance: updatedBalance };
@@ -398,14 +412,26 @@ export class MemStorage implements IStorage {
   }
   
   async setUserBalance(id: number, exactAmount: number, currency: string = 'INR'): Promise<User | undefined> {
+    // Ensure amount is a valid number
+    exactAmount = parseFloat(exactAmount as any);
+    if (isNaN(exactAmount)) {
+      console.error(`Invalid amount passed to setUserBalance: ${exactAmount}`);
+      return this.getUser(id);
+    }
+    
     // For this platform, we only support INR
     if (currency !== 'INR') {
       console.warn('Only INR currency is supported. Ignoring request for:', currency);
       return this.getUser(id);
     }
     
+    console.log(`Setting user ${id} balance to exact amount: ${exactAmount} ${currency}`);
+    
     const user = this.users.get(id);
-    if (!user) return undefined;
+    if (!user) {
+      console.error(`User with ID ${id} not found when setting balance`);
+      return undefined;
+    }
     
     // Ensure amount is not negative
     const safeAmount = Math.max(0, exactAmount);
@@ -413,6 +439,9 @@ export class MemStorage implements IStorage {
     // Always store as a simple number - we're only supporting INR
     const updatedUser = { ...user, balance: safeAmount };
     this.users.set(id, updatedUser);
+    
+    console.log(`User ${id} balance set from ${typeof user.balance === 'number' ? user.balance : (user.balance as any)?.INR || 0} to ${safeAmount}`);
+    
     return updatedUser;
   }
   
