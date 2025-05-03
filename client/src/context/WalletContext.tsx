@@ -24,6 +24,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const { user } = useAuth();
   const { toast } = useToast();
   
+  // Track if an error has been shown already to prevent multiple toasts
+  const [errorShown, setErrorShown] = useState(false);
+  
   // Use our custom wallet hook to fetch balance
   const { 
     data: walletData,
@@ -47,16 +50,24 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Get currency symbol for display
   const symbol = getCurrencySymbol(currency);
   
-  // Effect to handle errors
+  // Reset errorShown when data is successfully loaded
   useEffect(() => {
-    if (error && isAuthenticated) {
+    if (walletData && !isLoading) {
+      setErrorShown(false);
+    }
+  }, [walletData, isLoading]);
+  
+  // Effect to handle errors - only show error toast once
+  useEffect(() => {
+    if (error && isAuthenticated && !errorShown) {
       toast({
         title: 'Wallet Error',
         description: `Could not load your balance: ${error.message}`,
         variant: 'destructive'
       });
+      setErrorShown(true);
     }
-  }, [error, isAuthenticated, toast]);
+  }, [error, isAuthenticated, toast, errorShown]);
   
   // Set up automatic balance refresh
   useEffect(() => {
