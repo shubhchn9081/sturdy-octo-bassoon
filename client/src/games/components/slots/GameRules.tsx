@@ -1,144 +1,129 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-const GameRules: React.FC = () => {
-  // Define winning combinations and their respective multipliers
-  const winningCombinations = [
-    {
-      type: 'Lucky Number',
-      pattern: ['L', 'x', 'y'],
-      multiplier: 10,
-      description: 'Your lucky number appears in any reel'
-    },
-    {
-      type: 'Three 7s',
-      pattern: [7, 7, 7],
-      multiplier: 10,
-      description: 'Three number 7s in a row'
-    },
-    {
-      type: 'Three of a Kind',
-      pattern: ['x', 'x', 'x'],
-      multiplier: 5,
-      description: 'Three of the same number'
-    },
-    {
-      type: 'Sequential Numbers',
-      pattern: ['n', 'n+1', 'n+2'],
-      multiplier: 3,
-      description: 'Three sequential numbers (e.g., 3-4-5)'
-    },
-    {
-      type: 'Two of a Kind',
-      pattern: ['x', 'x', 'y'],
-      multiplier: 2,
-      description: 'Two of the same number'
-    },
-  ];
-
+const GameRules = () => {
   return (
-    <div className="space-y-6">
-      <Card className="bg-[#172B3A] border-[#1D2F3D]">
-        <CardHeader className="pb-2">
-          <CardTitle>How to Play</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h3 className="font-medium mb-2">Game Overview</h3>
-            <p className="text-sm text-muted-foreground">
-              Slots is a simple and exciting game where you spin three reels and try to match certain patterns to win. 
-              Each reel will display a number from 0 to 9.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-medium mb-2">Steps to Play</h3>
-            <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
-              <li>Set your bet amount using the betting panel</li>
-              <li>Select your lucky number (0-9) for a chance at a jackpot win</li>
-              <li>Click the "Spin" button to start the game</li>
-              <li>Watch as the three reels spin and stop one by one</li>
-              <li>If the final combination matches a winning pattern, you win!</li>
-              <li>If your lucky number appears on any reel, you win the jackpot!</li>
-            </ol>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-[#172B3A] border-[#1D2F3D]">
-        <CardHeader className="pb-2">
-          <CardTitle>Winning Combinations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="border-[#1D2F3D]">
-                <TableHead>Combination</TableHead>
-                <TableHead>Example</TableHead>
-                <TableHead>Multiplier</TableHead>
-                <TableHead className="hidden sm:table-cell">Description</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {winningCombinations.map((combo, index) => (
-                <TableRow key={index} className="border-[#1D2F3D]">
-                  <TableCell className="font-medium">{combo.type}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-1">
-                      {Array.isArray(combo.pattern) && combo.pattern.map((val, i) => (
-                        <div 
-                          key={i} 
-                          className="w-6 h-6 bg-[#213D54] rounded flex items-center justify-center text-xs"
-                        >
-                          {val === 7 ? '7' : val}
-                        </div>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-primary">{combo.multiplier}x</TableCell>
-                  <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
-                    {combo.description}
-                  </TableCell>
+    <div className="text-sm space-y-4">
+      <Accordion type="single" collapsible defaultValue="item-1">
+        <AccordionItem value="item-1">
+          <AccordionTrigger className="text-base">How to Play</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              <p>Slots is a simple and fun game where you spin three reels and try to match patterns to win!</p>
+              <ol className="list-decimal pl-5 space-y-1">
+                <li>Enter your bet amount</li>
+                <li>Select your lucky number (optional)</li>
+                <li>Click "Spin" to start the game</li>
+                <li>Watch as the reels spin and land on random numbers</li>
+                <li>Different combinations result in different multipliers</li>
+              </ol>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        <AccordionItem value="item-2">
+          <AccordionTrigger className="text-base">Winning Combinations</AccordionTrigger>
+          <AccordionContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Combination</TableHead>
+                  <TableHead>Multiplier</TableHead>
+                  <TableHead>Example</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-[#172B3A] border-[#1D2F3D]">
-        <CardHeader className="pb-2">
-          <CardTitle>Lucky Number Feature</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          <p className="mb-2">
-            The Lucky Number feature gives you an extra chance to win big! Before spinning, select any number 
-            from 0 to 9 as your lucky number.
-          </p>
-          <p className="mb-2">
-            If your lucky number appears on any of the three reels after spinning, you win a jackpot with a 10x multiplier 
-            regardless of whether the reels form another winning combination!
-          </p>
-          <p>
-            This exciting feature significantly increases your chances of winning, making every spin more thrilling.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-[#172B3A] border-[#1D2F3D]">
-        <CardHeader className="pb-2">
-          <CardTitle>Game Fairness</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          <p className="mb-2">
-            The Slots game uses a provably fair system to ensure the randomness of the outcomes. 
-            Each spin combines server-side and client-side seeds to generate the results.
-          </p>
-          <p>
-            The game is designed to provide a true and fair casino experience while still being fun and exciting.
-          </p>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Three 7s</TableCell>
+                  <TableCell className="font-bold">10×</TableCell>
+                  <TableCell>7-7-7</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Three identical numbers</TableCell>
+                  <TableCell className="font-bold">5×</TableCell>
+                  <TableCell>3-3-3, 8-8-8</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Sequential numbers</TableCell>
+                  <TableCell className="font-bold">3×</TableCell>
+                  <TableCell>1-2-3, 4-5-6</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Two identical numbers</TableCell>
+                  <TableCell className="font-bold">2×</TableCell>
+                  <TableCell>5-5-2, 9-3-9</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </AccordionContent>
+        </AccordionItem>
+        
+        <AccordionItem value="item-3">
+          <AccordionTrigger className="text-base">Lucky Number Feature</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              <p>The Lucky Number feature gives you a chance to win big!</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Select any number from 0-9 as your lucky number before spinning</li>
+                <li>If your lucky number appears on any of the three reels, you win 10× your bet!</li>
+                <li>This special jackpot win overrides any other winning combination</li>
+                <li>The lucky number is highlighted in special gold when you hit it</li>
+              </ul>
+              <div className="mt-2 p-2 bg-yellow-950/30 border border-yellow-900/50 rounded">
+                <p className="text-yellow-300 flex items-center">
+                  <span className="text-yellow-500 text-lg mr-2">💡</span>
+                  <span>Tip: The lucky number feature gives you better odds for a big 10× win!</span>
+                </p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        <AccordionItem value="item-4">
+          <AccordionTrigger className="text-base">Auto Spin</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              <p>Auto Spin allows the game to play automatically without having to click the spin button each time.</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Toggle the "Auto Spin" switch to activate it</li>
+                <li>The game will continue spinning until you toggle it off</li>
+                <li>Each spin will use your current bet amount</li>
+                <li>Auto Spin automatically stops if your balance becomes too low</li>
+              </ul>
+              <div className="mt-2 p-2 bg-red-950/30 border border-red-900/50 rounded">
+                <p className="text-red-300 flex items-center">
+                  <span className="text-red-500 text-lg mr-2">⚠️</span>
+                  <span>Caution: Auto Spin will continue using your balance until you manually stop it!</span>
+                </p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        <AccordionItem value="item-5">
+          <AccordionTrigger className="text-base">Fairness & RTP</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              <p>Our slots game uses a provably fair algorithm to ensure completely random and fair results.</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>The Return to Player (RTP) is 96%</li>
+                <li>The house edge is 4%</li>
+                <li>Each number (0-9) has an equal chance of appearing</li>
+                <li>Your lucky number has a 1/10 chance of appearing on each reel</li>
+                <li>Results are verified through the provably fair system</li>
+              </ul>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };

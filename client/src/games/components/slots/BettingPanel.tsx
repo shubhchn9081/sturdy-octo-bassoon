@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Play, Loader2, RotateCcw } from 'lucide-react';
-
-// Types
-type SpinResult = {
-  reels: number[];
-  multiplier: number;
-  win: boolean;
-  winAmount: number;
-  luckyNumberHit?: boolean;
-};
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type BettingPanelProps = {
   balance: string;
@@ -23,16 +15,16 @@ type BettingPanelProps = {
   onSpin: () => void;
   isSpinning: boolean;
   autoSpin: boolean;
-  setAutoSpin: (auto: boolean) => void;
+  setAutoSpin: (value: boolean) => void;
   stopAutoSpin: () => void;
   error: string | null;
   clearError: () => void;
-  spinResults: SpinResult | null;
+  spinResults: any | null;
   luckyNumber: number;
-  setLuckyNumber: (num: number) => void;
+  setLuckyNumber: (number: number) => void;
 };
 
-const BettingPanel: React.FC<BettingPanelProps> = ({
+const BettingPanel = ({
   balance,
   betAmount,
   setBetAmount,
@@ -46,294 +38,188 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   spinResults,
   luckyNumber,
   setLuckyNumber
-}) => {
-  // Quick bet amount options
-  const betOptions = [1, 5, 10, 25, 50, 100];
+}: BettingPanelProps) => {
+  const [localBetAmount, setLocalBetAmount] = useState<string>(betAmount.toString());
   
-  // Handle bet amount changes
+  // Preset bet amounts
+  const presetAmounts = [1, 5, 10, 25, 50, 100];
+  
+  // Update local bet amount when props change
+  useEffect(() => {
+    setLocalBetAmount(betAmount.toString());
+  }, [betAmount]);
+  
+  // Handle bet amount change
   const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setBetAmount(value);
-      if (error) clearError();
-    }
-  };
-  
-  // Handle quick bet selections
-  const handleQuickBet = (amount: number) => {
-    setBetAmount(amount);
-    if (error) clearError();
-  };
-  
-  // Handle bet amount slider changes
-  const handleSliderChange = (value: number[]) => {
-    setBetAmount(value[0]);
-    if (error) clearError();
-  };
-  
-  // Double the bet amount
-  const handleDoubleBet = () => {
-    const newAmount = betAmount * 2;
-    if (newAmount <= parseFloat(balance)) {
-      setBetAmount(newAmount);
-      if (error) clearError();
-    }
-  };
-  
-  // Halve the bet amount
-  const handleHalfBet = () => {
-    const newAmount = betAmount / 2;
-    if (newAmount >= 1) {
-      setBetAmount(newAmount);
-      if (error) clearError();
-    }
-  };
-  
-  // Max bet (use 80% of balance to avoid rounding issues)
-  const handleMaxBet = () => {
-    const maxAmount = Math.floor(parseFloat(balance) * 0.8);
-    setBetAmount(maxAmount > 0 ? maxAmount : 1);
-    if (error) clearError();
-  };
-  
-  // Toggle auto spin
-  const handleAutoSpinToggle = () => {
-    const newAutoSpin = !autoSpin;
-    setAutoSpin(newAutoSpin);
+    const value = e.target.value;
+    setLocalBetAmount(value);
     
-    // If enabling auto spin and not currently spinning, start spinning
-    if (newAutoSpin && !isSpinning) {
-      onSpin();
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue) && numericValue > 0) {
+      setBetAmount(numericValue);
     }
   };
   
-  // Handle lucky number selection
-  const handleLuckyNumberChange = (num: number) => {
-    setLuckyNumber(num);
-    if (error) clearError();
+  // Handle preset amount click
+  const handlePresetClick = (amount: number) => {
+    setBetAmount(amount);
+    setLocalBetAmount(amount.toString());
   };
   
-  // UI helper for formatting currency amounts
-  const formatCurrency = (amount: number): string => {
-    return amount.toFixed(2);
+  // Handle bet amount blur
+  const handleBetAmountBlur = () => {
+    const numericValue = parseFloat(localBetAmount);
+    if (isNaN(numericValue) || numericValue <= 0) {
+      setBetAmount(1); // Default to 1 if invalid
+      setLocalBetAmount('1');
+    }
   };
+  
+  // Format balance with commas for thousands
+  const formattedBalance = parseFloat(balance).toLocaleString(undefined, { 
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
   
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* Error message display */}
+    <div className="flex flex-col gap-4 max-w-4xl mx-auto">
+      {/* Error message */}
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive" className="mb-2">
           <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="absolute top-2 right-2"
+            onClick={clearError}
+          >
+            ✕
+          </Button>
         </Alert>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left column - Bet controls */}
-        <div className="space-y-4">
-          {/* Bet amount input */}
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="betAmount">Bet Amount</Label>
-              <span className="text-muted-foreground">Balance: {formatCurrency(parseFloat(balance))} INR</span>
-            </div>
-            <div className="flex space-x-2">
-              <Input
-                id="betAmount"
-                type="number"
-                min="1"
-                step="1"
-                value={betAmount}
-                onChange={handleBetAmountChange}
-                className="bg-[#172B3A] border-[#1D2F3D]"
-              />
-              <Button 
-                variant="outline" 
-                className="bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54]"
-                onClick={handleMaxBet}
-              >
-                Max
-              </Button>
-            </div>
+      {/* Balance display */}
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <Label className="text-xs text-muted-foreground">Balance</Label>
+          <p className="text-lg font-bold">{formattedBalance} INR</p>
+        </div>
+        
+        {spinResults && spinResults.win && (
+          <div className="text-right">
+            <Label className="text-xs text-muted-foreground">Last Win</Label>
+            <p className="text-lg font-bold text-green-500">
+              +{spinResults.winAmount.toFixed(2)} INR
+            </p>
           </div>
-          
-          {/* Bet adjustment buttons */}
+        )}
+      </div>
+      
+      {/* Betting controls */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Bet amount */}
+        <div className="space-y-2">
+          <Label htmlFor="betAmount">Bet Amount</Label>
           <div className="flex space-x-2">
+            <Input
+              id="betAmount"
+              type="number"
+              min="1"
+              step="1"
+              value={localBetAmount}
+              onChange={handleBetAmountChange}
+              onBlur={handleBetAmountBlur}
+              className="w-full"
+              disabled={isSpinning}
+            />
             <Button
               variant="outline"
-              className="flex-1 bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54]"
-              onClick={handleHalfBet}
-              disabled={betAmount <= 1}
-            >
-              ½
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54]"
-              onClick={handleDoubleBet}
-              disabled={betAmount * 2 > parseFloat(balance)}
+              size="icon"
+              onClick={() => handlePresetClick(Math.max(1, betAmount * 2))}
+              disabled={isSpinning}
+              title="Double bet"
             >
               2×
             </Button>
           </div>
           
-          {/* Quick bet options */}
-          <div className="grid grid-cols-3 gap-2">
-            {betOptions.map(option => (
+          {/* Preset amounts */}
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {presetAmounts.map((amount) => (
               <Button
-                key={option}
+                key={amount}
                 variant="outline"
-                className={`bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54] ${
-                  betAmount === option ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => handleQuickBet(option)}
+                size="sm"
+                className="text-xs py-1"
+                onClick={() => handlePresetClick(amount)}
+                disabled={isSpinning}
               >
-                {option}
+                {amount}
               </Button>
             ))}
           </div>
-          
-          {/* Bet amount slider */}
-          <div className="pt-2">
-            <Slider
-              defaultValue={[betAmount]}
-              max={Math.max(100, parseFloat(balance))}
-              min={1}
-              step={1}
-              value={[betAmount]}
-              onValueChange={handleSliderChange}
-              className="py-4"
-            />
-          </div>
         </div>
         
-        {/* Right column - Game controls and results */}
-        <div className="space-y-4">
-          {/* Lucky Number Selection */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="luckyNumber" className="flex items-center">
-                <span className="text-amber-400 mr-1">★</span> 
-                Lucky Number
-                <span className="text-amber-400 ml-1">★</span>
-              </Label>
-              <div className="bg-amber-950/30 text-amber-400 border border-amber-700/50 px-2 py-1 rounded-md text-xs font-semibold">
-                10x Jackpot
-              </div>
-            </div>
-            <div className="grid grid-cols-5 gap-2">
+        {/* Lucky number selection */}
+        <div className="space-y-2">
+          <Label htmlFor="luckyNumber">Lucky Number (10× Win!)</Label>
+          <Select
+            value={luckyNumber.toString()}
+            onValueChange={(value) => setLuckyNumber(parseInt(value))}
+            disabled={isSpinning}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select your lucky number" />
+            </SelectTrigger>
+            <SelectContent>
               {Array.from({ length: 10 }, (_, i) => (
-                <Button
-                  key={i}
-                  variant="outline"
-                  className={`bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54] h-12 font-bold text-lg
-                    ${luckyNumber === i 
-                      ? 'ring-2 ring-amber-500 bg-amber-950/30 text-amber-400 border-amber-600' 
-                      : ''
-                    }
-                    transition-all duration-200 hover:scale-105
-                  `}
-                  onClick={() => handleLuckyNumberChange(i)}
-                  disabled={isSpinning}
-                >
-                  {i}
-                </Button>
+                <SelectItem key={i} value={i.toString()}>{i}</SelectItem>
               ))}
-            </div>
-            <p className="text-xs text-center mt-1">
-              <span className="text-amber-400 font-medium">
-                {luckyNumber !== null 
-                  ? `Selected: ${luckyNumber} - Win jackpot if this number appears on any reel!` 
-                  : 'Select your lucky number for a chance to win the jackpot!'}
-              </span>
-            </p>
-          </div>
-          
-          {/* Auto spin toggle */}
-          <div className="flex items-center justify-between space-x-2 p-3 bg-[#172B3A] rounded-md border border-[#1D2F3D]">
-            <Label htmlFor="autoSpin" className="flex items-center space-x-2 cursor-pointer">
-              <span>Auto Spin</span>
-            </Label>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">
+            Win 10× your bet if your lucky number appears in any reel!
+          </p>
+        </div>
+        
+        {/* Auto-spin and spin button */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="autoSpin">Auto Spin</Label>
             <Switch
               id="autoSpin"
               checked={autoSpin}
-              onCheckedChange={handleAutoSpinToggle}
+              onCheckedChange={setAutoSpin}
               disabled={isSpinning}
             />
           </div>
           
-          {/* Spin results display */}
-          {spinResults && (
-            <div className={`p-3 rounded-md border ${
-              spinResults.win 
-                ? (spinResults.luckyNumberHit 
-                  ? 'bg-amber-950/30 border-amber-700/50 text-amber-400' 
-                  : 'bg-green-950/30 border-green-800/50 text-green-400')
-                : 'bg-red-950/30 border-red-800/50 text-red-400'
-            }`}>
-              <div className="flex justify-between">
-                <span className="font-bold">
-                  {spinResults.win 
-                    ? (spinResults.luckyNumberHit ? 'JACKPOT!' : 'Win!') 
-                    : 'Loss'}
-                </span>
-                <span>
-                  {spinResults.win 
-                    ? `+${formatCurrency(spinResults.winAmount)} INR` 
-                    : `-${formatCurrency(betAmount)} INR`}
-                </span>
-              </div>
-              {spinResults.win && (
-                <div className="flex justify-between text-sm mt-1">
-                  <span>Multiplier: {spinResults.multiplier}x</span>
-                  {spinResults.luckyNumberHit && (
-                    <span className="inline-flex items-center">
-                      <span className="text-amber-400 mr-1">★</span> 
-                      Lucky Number Hit!
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Spin button */}
           <Button
             variant="default"
-            size="lg"
-            className="w-full h-16 text-lg font-bold"
-            onClick={onSpin}
+            className="w-full h-12 text-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+            onClick={autoSpin ? stopAutoSpin : onSpin}
             disabled={isSpinning || parseFloat(balance) < betAmount}
           >
             {isSpinning ? (
-              <div className="flex items-center space-x-2">
-                <Loader2 className="animate-spin h-5 w-5" />
-                <span>Spinning...</span>
-              </div>
+              <>
+                <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                Spinning...
+              </>
             ) : autoSpin ? (
-              <div className="flex items-center space-x-2">
-                <RotateCcw className="h-5 w-5" />
-                <span>Stop Auto</span>
-              </div>
+              'Stop Auto Spin'
             ) : (
-              <div className="flex items-center space-x-2">
-                <Play className="h-5 w-5" />
-                <span>Spin</span>
-              </div>
+              'Spin'
             )}
           </Button>
           
-          {/* Potential win display */}
-          <div className="grid grid-cols-2 gap-2 text-center">
-            <div className="text-muted-foreground">
-              <span className="text-xs block">Max Regular Win:</span>
-              <span>{formatCurrency(betAmount * 10)} INR</span>
-            </div>
-            <div className="text-amber-400">
-              <span className="text-xs block">Lucky Number Jackpot:</span>
-              <span>{formatCurrency(betAmount * 10)} INR</span>
-            </div>
-          </div>
+          {parseFloat(balance) < betAmount && (
+            <p className="text-xs text-red-500 flex items-center mt-1">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Insufficient balance
+            </p>
+          )}
         </div>
       </div>
     </div>

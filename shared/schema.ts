@@ -57,11 +57,17 @@ export const insertBetSchema = createInsertSchema(bets).pick({
   gameId: true,
   amount: true,
   clientSeed: true,
+  multiplier: true,
+  profit: true,
+  completed: true,
 });
 
 // Client-side bet schema (omits userId which is added server-side from session)
 export const clientBetSchema = insertBetSchema.omit({ 
-  userId: true 
+  userId: true,
+  multiplier: true, // These are calculated server-side
+  profit: true,
+  completed: true
 });
 
 export const insertGameSchema = createInsertSchema(games).pick({
@@ -141,6 +147,13 @@ export type HiloOutcome = {
   win: boolean;
 };
 
+export type SlotsOutcome = {
+  reels: number[];
+  win: boolean;
+  luckyNumberHit?: boolean;
+  luckyNumber?: number;
+};
+
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -216,6 +229,12 @@ export type LimboGameSettings = {
 
 export type DiceGameSettings = {
   forcedResult: number; // Force a specific dice result (0-100)
+};
+
+export type SlotsGameSettings = {
+  forcedReels: number[]; // Force specific reel values
+  forcedMultiplier: number; // Force a specific multiplier
+  includeLuckyNumber: boolean; // Force lucky number hit
 };
 
 // User specific game outcome control table
