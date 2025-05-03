@@ -227,7 +227,7 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: InsertUser & { username: string }): Promise<User> {
     const id = this.userIdCounter++;
     const user: User = { 
       ...insertUser, 
@@ -242,10 +242,11 @@ export class MemStorage implements IStorage {
       },
       createdAt: new Date(),
       email: insertUser.email,
-      dateOfBirth: new Date(insertUser.dateOfBirth),
-      phone: insertUser.phone || null,
+      fullName: insertUser.fullName,
+      phone: insertUser.phone,
       referralCode: null,
-      language: 'English'
+      language: 'English',
+      dateOfBirth: null // Keep for backward compatibility
     };
     this.users.set(id, user);
     return user;
@@ -935,7 +936,8 @@ export class DatabaseStorage implements IStorage {
       isBanned: false,
       balance: { INR: 10000, BTC: 0.01, ETH: 0.1, USDT: 1000 }, // Default balance
       referralCode: null,
-      language: 'English'
+      language: 'English',
+      dateOfBirth: null // Keep for backward compatibility
     };
     
     const [user] = await db
