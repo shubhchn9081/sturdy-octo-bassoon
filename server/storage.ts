@@ -50,6 +50,7 @@ export interface IStorage {
     completed?: boolean;
   }): Promise<Bet>;
   updateBet(id: number, bet: Bet): Promise<Bet>;
+  deleteBet(id: number): Promise<boolean>;
   getBetHistory(userId: number, gameId?: number): Promise<Bet[]>;
   
   // Transaction methods
@@ -349,6 +350,10 @@ export class MemStorage implements IStorage {
   async updateBet(id: number, bet: Bet): Promise<Bet> {
     this.bets.set(id, bet);
     return bet;
+  }
+  
+  async deleteBet(id: number): Promise<boolean> {
+    return this.bets.delete(id);
   }
   
   async getBetHistory(userId: number, gameId?: number): Promise<Bet[]> {
@@ -991,6 +996,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(bets.id, id))
       .returning();
     return updatedBet;
+  }
+
+  async deleteBet(id: number): Promise<boolean> {
+    const result = await db
+      .delete(bets)
+      .where(eq(bets.id, id))
+      .returning({ deleted: bets.id });
+    return result.length > 0;
   }
 
   async getBetHistory(userId: number, gameId?: number): Promise<Bet[]> {

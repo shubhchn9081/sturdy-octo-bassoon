@@ -438,36 +438,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate server seed for provable fairness
       const serverSeed = createServerSeed();
       
-      // Create bet with initial state
-      const bet = await storage.createBet({
-        ...validatedData,
-        userId: user.id, // Explicitly set userId from authenticated user
-        serverSeed,
-        nonce: 1,
-        outcome: {}, // Empty outcome until bet is completed
-      });
-      
-      // Deduct bet amount from user's INR balance (using INR as default currency)
-      await storage.updateUserBalance(user.id, -validatedData.amount, 'INR');
-      
-      // Add transaction record for the bet placement if available
-      if (storage.createTransaction) {
-        try {
-          await storage.createTransaction({
-            userId: user.id,
-            type: 'BET',
-            amount: validatedData.amount, // Store as positive amount for accounting
-            status: 'COMPLETED',
-            currency: currency,
-            description: `Bet placed on ${game.name}`,
-          });
-        } catch (err) {
-          console.error('Error creating bet transaction record:', err);
-          // Don't fail the whole request if transaction creation fails
+      try {
+        // First create the bet record
+        const bet = await storage.createBet({
+          ...validatedData,
+          userId: user.id, // Explicitly set userId from authenticated user
+          serverSeed,
+          nonce: 1,
+          outcome: {}, // Empty outcome until bet is completed
+        });
+        
+        // Explicitly log the bet information
+        console.log(`Created bet record: ID=${bet.id}, Game=${game.name}, Amount=${validatedData.amount}, User=${user.username}`);
+        
+        // Import and use the transaction handler to handle the bet deduction
+        const { transactionHandler } = await import('./middleware/transactionHandler');
+        const deductionSuccess = await transactionHandler.deductBetAmount(
+          req, 
+          res, 
+          user.id, 
+          validatedData.amount, 
+          currency, 
+          game.name
+        );
+        
+        // If deduction failed, we should delete the bet record
+        if (!deductionSuccess) {
+          // Try to delete the bet if possible
+          if (storage.deleteBet) {
+            await storage.deleteBet(bet.id);
+          }
+          console.error(`Bet amount deduction failed for bet ID=${bet.id}`);
+          // The transaction handler already sent the response
+          return;
         }
+        
+        console.log(`Successfully deducted ${validatedData.amount} ${currency} for bet ID=${bet.id}`);
+        
+        res.json({ 
+          betId: bet.id, 
+          serverSeedHash: bet.serverSeed,
+          amount: validatedData.amount,
+          success: true
+        });
+      } catch (error) {
+        console.error('Error in bet creation process:', error);
+        res.status(500).json({ message: 'Error processing bet', success: false });
       }
-      
-      res.json({ betId: bet.id, serverSeedHash: bet.serverSeed });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: 'Invalid bet data', errors: error.errors });
