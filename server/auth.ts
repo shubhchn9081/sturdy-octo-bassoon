@@ -63,11 +63,15 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy({
+      usernameField: 'phone',
+    }, async (phone, password, done) => {
       try {
-        const user = await storage.getUserByUsername(username);
+        // Using the getUserByPhone method we implemented
+        const user = await storage.getUserByPhone(phone);
+        
         if (!user) {
-          return done(null, false, { message: "Invalid username or password" });
+          return done(null, false, { message: "Invalid phone number or password" });
         }
         
         if (user.isBanned) {
@@ -76,7 +80,7 @@ export function setupAuth(app: Express) {
         
         const isValid = await comparePasswords(password, user.password);
         if (!isValid) {
-          return done(null, false, { message: "Invalid username or password" });
+          return done(null, false, { message: "Invalid phone number or password" });
         }
         
         return done(null, user);
