@@ -6,17 +6,17 @@ import { log } from '../vite';
 const router = Router();
 
 // APay credentials
-const APAY_API_KEY = 'd6a870ecdd68ed30951e601442d620ca';
-const APAY_PROJECT_ID = '9440140';
-const APAY_WEBHOOK_ID = '6898076';
-const APAY_WEBHOOK_ACCESS_KEY = 'e6f1ac0ea5d105be8fc0b044744b36d3';
-const APAY_WEBHOOK_PRIVATE_KEY = 'f3769c2fb80ac01c36ddd589a0fd9279';
+const APAY_API_KEY = 'bf98021c67b8c6e602e1dc79e9f5e5d2';
+const APAY_PROJECT_ID = '8726739';
+const APAY_WEBHOOK_ID = '6800481';
+const APAY_WEBHOOK_ACCESS_KEY = 'a4ca3d00c3c9c72d05a31c9d61b65ab3';
+const APAY_WEBHOOK_PRIVATE_KEY = 'b29ba4c0f2b873b7a9d5d5fca88f5a1d';
 
 // API endpoint for APay
 const APAY_ENDPOINT = 'https://pay-crm.com';
 
 // Callback and redirect URLs
-const APAY_CALLBACK_URL = '/api/apay/callback';
+const APAY_CALLBACK_URL = '/apay/callback';
 const APAY_SUCCESS_REDIRECT = '/payment-success';
 const APAY_FAILURE_REDIRECT = '/payment-failure';
 

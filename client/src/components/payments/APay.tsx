@@ -14,9 +14,10 @@ function generateUniqueId(): string {
   return 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-// APay required credentials - these match the server-side credentials
-const APAY_PROJECT_ID = '9440140';
-const APAY_WEBHOOK_ID = '6898076';
+// APay required credentials
+const APAY_PROJECT_ID = '8726739';
+const APAY_WEBHOOK_ID = '6800481';
+const RETURN_URL = '/payment-success';
 
 export function APay() {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ export function APay() {
   
   const initiatePaymentMutation = useMutation({
     mutationFn: async (paymentData: { amount: number; userId: number; transactionId: string }) => {
-      const response = await apiRequest("POST", "/api/apay/create-payment", paymentData);
+      const response = await apiRequest("POST", "/apay/create-payment", paymentData);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Payment initiation failed");
