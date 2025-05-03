@@ -36,7 +36,7 @@ const OriginalsPage = () => {
     };
   });
   
-  // Filter only Stake Originals games
+  // Filter only Novito Originals games
   const originalsGames = combinedGames.filter(game => game.type === 'STAKE ORIGINALS');
   
   return (
@@ -58,7 +58,7 @@ const OriginalsPage = () => {
         <div className="bg-gradient-to-br from-[#57FBA2] to-[#39AD6E] text-black p-1.5 rounded">
           <Zap className="h-4 w-4" />
         </div>
-        <h2 className="text-lg font-medium text-white">Stake Originals</h2>
+        <h2 className="text-lg font-medium text-white">Novito Originals</h2>
         
         <div className="ml-auto flex items-center gap-2">
           <div className="flex items-center gap-1 text-gray-400">

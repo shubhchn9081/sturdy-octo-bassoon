@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Redirect } from "wouter";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import stakeLogo from "@assets/stake_logo_transparent.png";
+import NovitoLogo from "@/components/NovitoLogo";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -86,13 +86,9 @@ export default function AuthPage() {
       <div className="flex-1 bg-primary/10 p-6 sm:p-10 flex flex-col justify-center items-center text-center lg:text-left lg:items-start">
         <div className="max-w-xl">
           <div className="mb-8 flex justify-center lg:justify-start">
-            <img 
-              src={stakeLogo} 
-              alt="Stake Logo" 
-              className="w-40 sm:w-56 md:w-64 mb-4"
-            />
+            <NovitoLogo className="w-40 sm:w-56 md:w-64 mb-4 text-5xl" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome to Stake</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome to Novito</h1>
           <p className="mt-4 text-base sm:text-lg text-muted-foreground">
             The ultimate destination for provably fair games and crypto betting. Join us to experience
             the excitement of our Wheel, Plinko, Keno, Cricket Mines, Limbo, Dice, and Cases games.
@@ -122,11 +118,7 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
         <div className="w-full max-w-md">
           <div className="flex justify-center mb-6 lg:hidden">
-            <img 
-              src={stakeLogo} 
-              alt="Stake Logo" 
-              className="w-32 sm:w-40"
-            />
+            <NovitoLogo className="w-32 sm:w-40 text-4xl" />
           </div>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">

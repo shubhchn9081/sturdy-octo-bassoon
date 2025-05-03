@@ -28,6 +28,7 @@ import {
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+import NovitoLogo from '../NovitoLogo';
 
 type SidebarLinkProps = {
   href: string;
@@ -73,7 +74,7 @@ const Sidebar = () => {
             className="flex-1 flex items-center justify-center cursor-pointer"
             onClick={() => window.location.href = '/'}
           >
-            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-12" />
+            <NovitoLogo className="h-12" />
           </div>
         </div>
         
@@ -127,10 +128,10 @@ const Sidebar = () => {
               Games
             </h3>
             <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
-              Stake Originals
+              Novito Originals
             </SidebarLink>
             <SidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />}>
-              Stake Exclusives
+              Novito Exclusives
             </SidebarLink>
             <SidebarLink href="/slots" icon={<SmilePlus className="h-5 w-5" />}>
               Slots
@@ -144,8 +145,8 @@ const Sidebar = () => {
             <SidebarLink href="/new-releases" icon={<Sparkles className="h-5 w-5" />}>
               New Releases
             </SidebarLink>
-            <SidebarLink href="/stake-poker" icon={<Megaphone className="h-5 w-5" />}>
-              Stake Poker
+            <SidebarLink href="/novito-poker" icon={<Megaphone className="h-5 w-5" />}>
+              Novito Poker
             </SidebarLink>
             <SidebarLink href="/bonus-buy" icon={<CircleDollarSign className="h-5 w-5" />}>
               Bonus Buy

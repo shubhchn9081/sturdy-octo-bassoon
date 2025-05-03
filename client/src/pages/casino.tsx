@@ -35,7 +35,7 @@ const CasinoPage = () => {
       <div className="mb-6">
         <div className="flex items-center mb-3 px-2">
           <Zap className="h-5 w-5 text-green-500 mr-2" />
-          <h2 className="text-xl font-medium text-white">Stake Originals</h2>
+          <h2 className="text-xl font-medium text-white">Novito Originals</h2>
         </div>
         
         {/* Game Grid - Optimized for mobile */}

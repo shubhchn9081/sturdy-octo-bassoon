@@ -1,16 +1,16 @@
 import React from 'react';
 import { Link } from 'wouter';
 import { Twitter, Instagram, Facebook, Youtube, Twitch } from 'lucide-react';
-
+import NovitoLogo from '../NovitoLogo';
 
 const Footer = () => {
   return (
     <footer className="bg-[#0F212E] py-4 md:py-6 px-4 md:px-6 text-[#7F8990] text-xs md:text-sm border-t border-[#172B3A]">
       <div className="md:flex justify-center mb-4 hidden">
-        <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-12 md:h-16" />
+        <NovitoLogo className="h-12 md:h-16 flex items-center justify-center" />
       </div>
       <div className="text-center mb-3 md:mb-4">
-        <p>© 2025 Stake.com | All Rights Reserved.</p>
+        <p>© 2025 Novito.in | All Rights Reserved.</p>
       </div>
       <div className="flex justify-center space-x-4 mb-6 md:mb-8">
         <Twitter className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-foreground transition" />

@@ -80,7 +80,7 @@ const HomePage = () => {
       <div className="mb-8 px-2">
         <div className="flex items-center mb-3 px-2">
           <Zap className="h-5 w-5 text-green-500 mr-2" />
-          <h2 className="text-xl font-medium text-white">Featured Stake Originals</h2>
+          <h2 className="text-xl font-medium text-white">Featured Novito Originals</h2>
         </div>
         
         {/* Featured Game Cards with proper spacing */}
@@ -104,7 +104,7 @@ const HomePage = () => {
       {/* All Games Section */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 px-2">
-          <h2 className="text-base md:text-lg font-medium text-white mb-2 md:mb-0">All Stake Originals</h2>
+          <h2 className="text-base md:text-lg font-medium text-white mb-2 md:mb-0">All Novito Originals</h2>
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
               <span className="text-gray-400 text-xs md:text-sm">Sort by</span>
