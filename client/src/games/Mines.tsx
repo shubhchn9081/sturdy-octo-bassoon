@@ -149,9 +149,12 @@ const MinesGame = () => {
     const minePositions = generateMinePositions(mineCount);
     
     try {
-      // Place bet using our unified wallet system
+      // Make sure we use the correct bet amount - must be at least 100 for minimum bet requirement
+      const safeBetAmount = Math.max(100, betAmount);
+      
+      // Place bet using our unified wallet system - ensuring the amount is in the main parameter
       const response = await placeGameBet({
-        amount: betAmount,
+        amount: safeBetAmount, // Always ensure minimum bet amount
         options: { 
           mineCount,
           totalCells: TOTAL_CELLS 
