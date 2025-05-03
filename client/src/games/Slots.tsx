@@ -18,7 +18,7 @@ type SpinResult = {
 
 // Main Slots component
 const Slots = () => {
-  const provablyFair = useProvablyFair();
+  const provablyFair = useProvablyFair("slots");
   const { balance, refetch: refreshBalance } = useBalance();
   const { toast } = useToast();
   
