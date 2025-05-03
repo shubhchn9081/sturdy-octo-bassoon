@@ -25,6 +25,7 @@ import {
   ChevronRight,
   ChevronDown
 } from 'lucide-react';
+import NovitoLogo from '@/components/NovitoLogo';
 import { useUser } from '@/context/UserContext';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/use-auth';
@@ -82,7 +83,7 @@ const Header = () => {
           </div>
           
           <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
-            <img src="/images/stake_logo_transparent.png" alt="Stake" className="h-10 md:h-16" />
+            <NovitoLogo className="h-10 md:h-16" />
           </div>
           
           {isSignedIn && (
