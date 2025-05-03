@@ -15,8 +15,8 @@ function generateUniqueId(): string {
 }
 
 // APay required credentials
-const APAY_PROJECT_ID = '8726739';
-const APAY_WEBHOOK_ID = '6800481';
+const APAY_PROJECT_ID = '9440140';
+const APAY_WEBHOOK_ID = '6898076';
 const RETURN_URL = '/payment-success';
 
 export function APay() {
@@ -90,7 +90,7 @@ export function APay() {
       toast({
         title: "Amount too low",
         description: "Minimum deposit amount is ₹100.",
-        variant: "destructive",
+        variant: "warning",
       });
       return;
     }
@@ -99,7 +99,7 @@ export function APay() {
       toast({
         title: "Amount too high",
         description: "Maximum deposit amount is ₹10,000.",
-        variant: "destructive",
+        variant: "warning",
       });
       return;
     }
