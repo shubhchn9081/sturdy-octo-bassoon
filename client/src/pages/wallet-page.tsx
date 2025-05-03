@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/UserContext';
-import { apiRequest } from '@/lib/queryClient';
+import { useWalletBalance } from '@/lib/wallet';
 import { 
   Plus, 
   ArrowUpRight, 
@@ -17,77 +17,53 @@ export default function WalletPage() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  // Always start with null and fetch from API
-  const [balance, setBalance] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Show loading indicator until data arrives
-  const [error, setError] = useState<string | null>(null);
   const [isUpdated, setIsUpdated] = useState(false); // Track when balance updates happen
   
-  // Directly connect to the wallet balance API
+  // Use the wallet hook from our library instead of direct fetching
+  const { 
+    data: walletData, 
+    isLoading, 
+    error: walletError,
+    refetch
+  } = useWalletBalance();
+  
+  // Get the balance value or null if data isn't available
+  const balance = walletData?.balance ?? null;
+  const error = walletError ? walletError.message : null;
+  
+  // Redirect to login if not authenticated
   useEffect(() => {
-    // Only fetch balance if user is authenticated
-    if (!isAuthenticated) {
-      setIsLoading(false);
-      return;
+    if (!isAuthenticated && !isLoading) {
+      // If not authenticated and we've confirmed we're not loading,
+      // redirect to the login page
+      setLocation('/login');
     }
-    
-    const fetchDirectBalance = async () => {
-      try {
-        // Add a cache-busting parameter to prevent stale data
-        const timestamp = Date.now();
-        const response = await fetch(`/api/user/balance?t=${timestamp}`, {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data && typeof data.balance === 'number') {
-          // Get the current balance to compare with new data
-          // This avoids the need to include balance in the effect dependencies
-          setBalance(currentBalance => {
-            // Only update and animate if balance has changed
-            if (currentBalance !== data.balance) {
-              // Visual feedback for balance changes
-              setIsUpdated(true);
-              setTimeout(() => setIsUpdated(false), 1000);
-              setError(null);
-              return data.balance;
-            }
-            return currentBalance;
-          });
-        } else {
-          throw new Error('Invalid balance data format received');
-        }
-      } catch (error) {
-        console.error('Error fetching wallet balance:', error);
-        setError(error instanceof Error ? error.message : 'Failed to update balance');
-      } finally {
-        // Ensure loading state is turned off after first attempt
-        setIsLoading(false);
-      }
-    };
-    
-    // Fetch balance immediately
-    fetchDirectBalance();
-    
-    // Set up an interval to refresh the balance every 1 second
-    const refreshInterval = setInterval(fetchDirectBalance, 1000);
-    
-    // Clean up interval on unmount
-    return () => clearInterval(refreshInterval);
-    
-    // Important: We intentionally don't include 'balance' as a dependency
-    // as it would cause the effect to re-run on every balance change,
-    // creating new intervals continuously
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading, setLocation]);
+  
+  // Set up effect to detect balance changes for animation
+  useEffect(() => {
+    if (balance !== null) {
+      setIsUpdated(true);
+      const timer = setTimeout(() => setIsUpdated(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [balance]);
+  
+  // Set up refresh interval
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Refresh immediately on mount
+      refetch();
+      
+      // Set up interval to refresh every second
+      const refreshInterval = setInterval(() => {
+        refetch();
+      }, 1000);
+      
+      // Clean up on unmount
+      return () => clearInterval(refreshInterval);
+    }
+  }, [isAuthenticated, refetch]);
   
   const handleAddFunds = () => {
     toast({
