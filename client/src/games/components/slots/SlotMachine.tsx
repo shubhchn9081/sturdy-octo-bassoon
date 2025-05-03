@@ -15,9 +15,10 @@ type SlotMachineProps = {
   isSpinning: boolean;
   spinResults: SpinResult | null;
   luckyNumber?: number;
+  onSpin: () => void; // Added onSpin function
 };
 
-const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotMachineProps) => {
+const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber, onSpin }: SlotMachineProps) => {
   // Helper function to determine if this reel value is a lucky number match
   const isLuckyNumber = (value: number) => {
     return !isSpinning && 
@@ -25,7 +26,7 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
            value === luckyNumber && 
            spinResults?.luckyNumberHit;
   };
-  
+
   return (
     <div className="relative">
       {/* The slot machine body with glass front */}
@@ -34,14 +35,14 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
           <h2 className="font-bold text-2xl text-white">SLOTS</h2>
           <p className="text-sm text-blue-300">Win up to 10× your bet!</p>
         </div>
-        
+
         {/* Slot reels container with glass effect */}
         <div className="bg-[#0A1520] p-3 rounded-md border border-[#2A3F51] mb-2 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" style={{ 
             background: 'linear-gradient(130deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%)', 
             borderRadius: '0.375rem' 
           }}></div>
-          
+
           {/* The three reels - improved for animation and mobile support */}
           <div className="flex justify-center items-center space-x-3 h-28 sm:h-32">
             {reelValues.map((value, index) => (
@@ -87,7 +88,7 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
             ))}
           </div>
         </div>
-        
+
         {/* Win amount display */}
         {spinResults?.win && (
           <motion.div
@@ -108,7 +109,7 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
             </p>
           </motion.div>
         )}
-        
+
         {/* Multiplier display */}
         <div className="grid grid-cols-3 gap-3 bg-[#0A1520] p-3 rounded-md">
           <div className="text-center border border-[#2A3F51] rounded p-1 bg-[#162431]">
@@ -124,7 +125,7 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
             <div className="font-bold">3×</div>
           </div>
         </div>
-        
+
         {/* Lucky number reminder */}
         {luckyNumber !== undefined && (
           <div className="mt-3 text-center text-xs">
@@ -133,6 +134,16 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
             <span className="text-white"> (10× win if it appears!)</span>
           </div>
         )}
+
+        {/* Spin Button */}
+        <motion.button
+          onClick={onSpin}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-full py-3 text-base font-medium spin-button mt-4 bg-[#57fba2] text-black rounded-md hover:bg-[#4CAF50] focus:outline-none focus:ring-2 focus:ring-[#57fba2]"
+        >
+          Spin
+        </motion.button>
       </div>
     </div>
   );

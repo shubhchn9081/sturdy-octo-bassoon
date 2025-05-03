@@ -119,6 +119,26 @@
   .bet-button {
     @apply bg-primary text-primary-foreground font-semibold py-2 px-4 rounded hover:bg-primary/90 transition;
   }
+
+  .spin-button {
+    @apply font-bold text-black bg-[#57fba2] rounded-lg transition-all duration-300;
+    animation: pulse-grow 2s infinite;
+  }
+  
+  .spin-button:hover {
+    @apply bg-[#3de88c] scale-105;
+    box-shadow: 0 0 20px rgba(87, 251, 162, 0.5);
+  }
+  
+  .spin-button:active {
+    @apply scale-95;
+  }
+  
+  @keyframes pulse-grow {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); box-shadow: 0 0 15px rgba(87, 251, 162, 0.4); }
+    100% { transform: scale(1); }
+  }
   
   /* Wheel Game styles */
   @keyframes sparkle {
