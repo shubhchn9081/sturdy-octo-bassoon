@@ -24,7 +24,7 @@ const pool = new Pool({
 // Configuration
 const CSV_PATH = path.join(__dirname, '../attached_assets/users - Sheet1.csv');
 const BATCH_SIZE = 100; // Process users in batches of this size
-const START_OFFSET = 300; // Start from this position in the CSV (after the previous import)
+const START_OFFSET = 0; // Start from the beginning of the CSV to find any missed users
 const MAX_USERS = 5000; // Maximum users to import (more than we need)
 
 // Password hashing function
