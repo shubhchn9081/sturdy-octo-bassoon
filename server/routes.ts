@@ -69,6 +69,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup game control routes 
   app.use('/api/game-control', gameControlRoutes);
   
+  // Setup APay payment gateway routes
+  app.use('/api/apay', apayRoutes);
+  
   // prefix all routes with /api
 
   // Initialize the database with some game data if none exists

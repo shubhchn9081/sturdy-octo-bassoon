@@ -9,6 +9,9 @@ import AdminPage from "@/pages/admin-page";
 import InitDb from "@/pages/InitDb";
 import AuthPage from "@/pages/auth-page";
 import WalletPage from "@/pages/wallet-page";
+import RechargePage from "@/pages/recharge-page";
+import PaymentSuccessPage from "@/pages/payment-success";
+import PaymentFailurePage from "@/pages/payment-failure";
 import VaultPage from "@/pages/vault-page";
 import VIPPage from "@/pages/vip-page";
 import AffiliatePage from "@/pages/affiliate-page";
@@ -61,6 +64,9 @@ function Router() {
             <Route path="/init-db" component={InitDb} />
             <Route path="/auth" component={AuthPage} />
             <ProtectedRoute path="/wallet" component={WalletPage} />
+            <ProtectedRoute path="/recharge" component={RechargePage} />
+            <ProtectedRoute path="/payment-success" component={PaymentSuccessPage} />
+            <ProtectedRoute path="/payment-failure" component={PaymentFailurePage} />
             <ProtectedRoute path="/vault" component={VaultPage} />
             <ProtectedRoute path="/vip" component={VIPPage} />
             <ProtectedRoute path="/affiliate" component={AffiliatePage} />
