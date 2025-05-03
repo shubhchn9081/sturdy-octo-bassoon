@@ -188,7 +188,7 @@ const Slots = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#0F212E] text-white">
-      <div className="flex-1 overflow-auto pb-[260px] sm:pb-[220px]">
+      <div className="flex-1 overflow-auto pb-[420px] sm:pb-[300px] md:pb-[260px]">
         <div className="bg-[#0E1C27] rounded-lg p-4 mx-auto max-w-4xl">
           {/* Main slot machine component */}
           <SlotMachine 

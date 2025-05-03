@@ -138,7 +138,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
   return (
     <div 
       ref={slotMachineRef}
-      className="relative bg-[#172B3A] border-4 border-[#1D2F3D] rounded-2xl p-6 transition-all"
+      className="relative bg-[#172B3A] border-4 border-[#1D2F3D] rounded-2xl p-4 sm:p-6 transition-all mx-auto max-w-sm"
     >
       {/* Header with status */}
       <div className="text-center mb-4">
@@ -151,13 +151,13 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
       {/* Slot machine reels container */}
       <div 
         ref={reelsContainerRef}
-        className="flex justify-center gap-4 mb-6"
+        className="flex justify-center gap-2 sm:gap-4 mb-6"
       >
         {reelValues.map((value, index) => (
           <div 
             key={index}
             className={`
-              relative w-20 h-28 rounded-lg overflow-hidden
+              relative w-16 sm:w-20 h-24 sm:h-28 rounded-lg overflow-hidden
               border-4 ${isSpinning ? 'border-yellow-600' : spinResults?.win ? 'border-green-600' : 'border-[#1D2F3D]'}
               flex items-center justify-center
               ${shouldHighlightReel(index) ? 'shadow-lg shadow-green-500/50' : ''}
@@ -169,7 +169,7 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
               className={`
                 w-full h-full flex items-center justify-center
                 ${getReelColor(value)}
-                text-white text-4xl font-bold
+                text-white text-3xl sm:text-4xl font-bold
                 ${isSpinning ? 'animate-pulse' : ''}
               `}
             >
