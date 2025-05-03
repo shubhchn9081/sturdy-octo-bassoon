@@ -18,15 +18,16 @@ import {
 // Game UI components
 import GameLayout from '@/components/games/GameLayout';
 // Import cup game components directly
-import CupControls from './cup-and-ball/CupControls';
-import CupAndBallGame from './cup-and-ball/CupAndBallGame';
+import CupControls from '@/games/cup-and-ball/CupControls';
+import CupAndBallGame from '@/games/cup-and-ball/CupAndBallGame';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
 const CupAndBall = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isAuthenticated = !!user; // Derive authentication status from user object
   
   // Game state
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
