@@ -4,7 +4,6 @@ import { useBalance } from '@/hooks/use-balance';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { gsap } from 'gsap';
-import axios from 'axios';
 import BettingPanel from './components/slots/BettingPanel';
 import SlotMachine from './components/slots/SlotMachine';
 import GameRules from './components/slots/GameRules';
@@ -42,7 +41,7 @@ const Slots = () => {
       return;
     }
     
-    if (betAmount > balance) {
+    if (betAmount > Number(balance)) {
       setError('Insufficient balance');
       return;
     }
@@ -53,23 +52,30 @@ const Slots = () => {
     
     try {
       // Generate seeds for provably fair gameplay
-      const clientSeed = generateClientSeed();
+      const clientSeed = Math.random().toString(36).substring(2, 15);
       
-      // Make bet API request
-      const response = await axios.post('/api/bets/place', {
-        gameId: 13, // Slots game ID (update this with the correct ID)
-        amount: betAmount,
-        clientSeed,
+      // Make bet API request to slots-specific endpoint
+      const response = await fetch('/api/slots/play', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          gameId: 13, // Slots game ID (update this with the correct ID)
+          amount: betAmount,
+          clientSeed,
+        })
       });
       
-      const result = response.data;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to place bet');
+      }
       
-      // Animate reels
-      const newReels: number[] = result.outcome.reels || [
-        Math.floor(Math.random() * 10),
-        Math.floor(Math.random() * 10),
-        Math.floor(Math.random() * 10)
-      ];
+      const result = await response.json();
+      
+      // Extract reel values from the result
+      const newReels: number[] = result.outcome.reels || [0, 0, 0];
       
       // Start spinning animation
       await animateReels(newReels);
@@ -79,12 +85,19 @@ const Slots = () => {
         reels: newReels,
         multiplier: result.multiplier || 0,
         win: result.profit > 0,
-        winAmount: result.profit || 0
+        winAmount: result.profit > 0 ? result.profit : 0
       };
       
       setSpinResults(spinResult);
       setGameHistory(prev => [spinResult, ...prev].slice(0, 10));
-      refreshBalance();
+      
+      // Refresh balance after spin
+      if (typeof refreshBalance === 'function') {
+        refreshBalance();
+      } else {
+        // Fallback: refresh the page to get updated balance
+        setTimeout(() => window.location.reload(), 2000);
+      }
       
       // Notify user of result
       if (spinResult.win) {
@@ -107,11 +120,11 @@ const Slots = () => {
       
     } catch (err: any) {
       console.error('Error placing bet:', err);
-      setError(err.response?.data?.message || 'Failed to place bet');
+      setError(err.message || 'Failed to place bet');
       setIsSpinning(false);
       toast({
         title: "Error",
-        description: err.response?.data?.message || 'Failed to place bet',
+        description: err.message || 'Failed to place bet',
         variant: "destructive"
       });
     }
@@ -120,12 +133,34 @@ const Slots = () => {
   // Animate slot machine reels with staggered stopping
   const animateReels = async (finalValues: number[]) => {
     return new Promise<void>((resolve) => {
-      // Animation logic will be implemented here
-      // For now, just update the reels directly
-      setTimeout(() => {
-        setReelValues(finalValues);
-        resolve();
-      }, 1500);
+      // Create temporary values array for animation
+      let tempValues = [...reelValues];
+      
+      // Define animation durations for each reel
+      const spinDurations = [1000, 1500, 2000]; // First reel stops first, last reel stops last
+      
+      // Spin animation for each reel with staggered stopping
+      for (let i = 0; i < 3; i++) {
+        // Start rapid number changes to simulate spinning
+        const spinInterval = setInterval(() => {
+          tempValues = [...tempValues];
+          tempValues[i] = Math.floor(Math.random() * 10);
+          setReelValues(tempValues);
+        }, 100);
+        
+        // After the spin duration, stop this reel on its final value
+        setTimeout(() => {
+          clearInterval(spinInterval);
+          tempValues = [...tempValues];
+          tempValues[i] = finalValues[i];
+          setReelValues(tempValues);
+          
+          // When last reel stops, resolve the promise
+          if (i === 2) {
+            setTimeout(resolve, 500); // Give a moment to see the final result
+          }
+        }, spinDurations[i]);
+      }
     });
   };
   

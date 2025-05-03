@@ -11,6 +11,7 @@ import Hilo from './Hilo';
 import Keno from './Keno';
 import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
+import Slots from './Slots';
 
 export const GAMES = [
   {
@@ -133,6 +134,21 @@ export const GAMES = [
     rtp: 99,
     maxMultiplier: Infinity,
     activePlayers: 10890
+  },
+  {
+    id: 13,
+    name: 'SLOTS',
+    slug: 'slots',
+    type: 'NOVITO ORIGINALS',
+    description: 'Classic 3-reel slots game',
+    color: 'bg-red-500',
+    iconType: 'slots',
+    component: Slots,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 10.00,
+    activePlayers: 5423
   }
 ];
 
@@ -152,5 +168,6 @@ export default {
   Crash,
   Limbo,
   Keno,
-  Wheel
+  Wheel,
+  Slots
 };

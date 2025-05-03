@@ -13,6 +13,7 @@ import { setupDevEndpoints } from "./adminSetup";
 import { isAdmin } from "./middleware/admin";
 import gameControlRoutes from "./routes/gameControl";
 import apayRoutes from "./routes/apay";
+import slotsRoutes from "./routes/slots";
 
 // Function to generate username from full name
 function generateUsernameFromFullName(fullName: string): string {
@@ -71,6 +72,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup APay payment gateway routes
   app.use('/apay', apayRoutes);
+  
+  // Setup slots game routes
+  app.use('/api/slots', slotsRoutes);
   
   // prefix all routes with /api
 
