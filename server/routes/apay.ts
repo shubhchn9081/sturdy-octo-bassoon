@@ -1,19 +1,22 @@
-import { Router, Request, Response } from 'express';
+import express, { Router, Request, Response } from 'express';
+import cors from 'cors';
 import { storage } from '../storage';
 import { log } from '../vite';
 
 // APay payment gateway integration
 const router = Router();
 
-// APay credentials
-const APAY_API_KEY = 'bf98021c67b8c6e602e1dc79e9f5e5d2';
+// Enable CORS
+router.use(cors());
+
+// Real APay credentials - using exact reference values
+const APAY_API_KEY = 'd6a870ecdd68ed30951e601442d620ca';
 const APAY_PROJECT_ID = '8726739';
 const APAY_WEBHOOK_ID = '6800481';
 const APAY_WEBHOOK_ACCESS_KEY = '3fa9a76c47ebbb7e452ed19c1e4fb2bc';
 const APAY_WEBHOOK_PRIVATE_KEY = '5bf3e4e8f67e01a9d0fd1d66c31e0891';
 
 // Set the correct API endpoint for APay based on APay documentation
-// APay only accepts requests from upino.in domain
 const APAY_ENDPOINT = 'https://pay-crm.com';
 
 // Callback and redirect URLs
@@ -21,9 +24,79 @@ const APAY_CALLBACK_URL = '/apay/callback';
 const APAY_SUCCESS_REDIRECT = '/payment-success';
 const APAY_FAILURE_REDIRECT = '/payment-failure';
 
+// Base URL for the application in production environment
+const BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://upino.in' 
+  : undefined; // Will be determined from request in non-production
+
+interface PaymentRequest {
+  amount: number;
+  userId: number;
+  transactionId: string;
+}
+
+interface APAYResponse {
+  success: boolean;
+  payment_id?: string;
+  payment_url?: string;
+  error?: string;
+}
+
 // Generate a unique transaction ID
 function generateTransactionId(): string {
-  return 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  return 'txn_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+}
+
+// Make API call to APay
+async function makeAPICall(path: string, data: any) {
+  // Make sure path starts with a slash
+  const apiPath = path.startsWith('/') ? path : `/${path}`;
+  
+  try {
+    // Check if the request includes project_id as query parameter
+    const hasQueryParams = apiPath.includes('?');
+    const queryParams = hasQueryParams ? '' : `?project_id=${APAY_PROJECT_ID}`;
+    const fullPath = `${apiPath}${queryParams}`;
+    
+    log(`Attempting API call to ${APAY_ENDPOINT}${fullPath}`, 'apay');
+    log(`Request payload: ${JSON.stringify(data)}`, 'apay');
+    
+    const endpoint = `${APAY_ENDPOINT}${fullPath}`;
+    
+    // Add detailed debugging for the request
+    log(`Full request URL: ${endpoint}`, 'apay');
+    log(`apikey: ${APAY_API_KEY.substring(0, 8)}...`, 'apay');
+    
+    // Use the correct headers according to APay's documentation - apikey header
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'apikey': APAY_API_KEY,
+      'User-Agent': 'Upino-Cricket-App/1.0',
+      'Origin': 'https://upino.in',
+      'Referer': 'https://upino.in/'
+    };
+    
+    // Make the API call
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data)
+    });
+    
+    // Get full response details
+    const responseText = await response.text();
+    log(`APay API response (${response.status}): ${responseText}`, 'apay');
+    
+    try {
+      return JSON.parse(responseText);
+    } catch (error) {
+      throw new Error(`Invalid JSON response: ${responseText}`);
+    }
+  } catch (error: any) {
+    log(`APay API error: ${error.message}`, 'apay');
+    throw error;
+  }
 }
 
 // Create a new payment request

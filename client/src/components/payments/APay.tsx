@@ -14,10 +14,9 @@ function generateUniqueId(): string {
   return 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-// APay required credentials
-const APAY_PROJECT_ID = '9440140';
-const APAY_WEBHOOK_ID = '6898076';
-const RETURN_URL = '/payment-success';
+// APay required credentials - updated to match reference files
+const APAY_PROJECT_ID = '8726739';
+const APAY_WEBHOOK_ID = '6800481';
 
 export function APay() {
   const { user } = useAuth();
