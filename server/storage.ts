@@ -84,6 +84,13 @@ export interface IStorage {
   incrementUserGameControlCounter(id: number): Promise<UserGameControl | undefined>;
   resetAllUserGameControls(): Promise<boolean>;
   
+  // Global game control methods (affects all users)
+  getGlobalGameControl(): Promise<GlobalGameControl | undefined>;
+  updateGlobalGameControl(settings: Partial<GlobalGameControl>): Promise<GlobalGameControl>;
+  makeAllUsersLose(affectedGames?: number[]): Promise<GlobalGameControl>;
+  makeAllUsersWin(affectedGames?: number[]): Promise<GlobalGameControl>;
+  resetGlobalGameControl(): Promise<GlobalGameControl>;
+  
   // Transaction management (admin)
   getTransactionsByStatus(status: string): Promise<Transaction[]>;
   updateTransactionStatus(id: number, status: string): Promise<Transaction | undefined>;
@@ -102,6 +109,7 @@ export class MemStorage implements IStorage {
   private transactions: Map<number, Transaction>;
   private userGameControls: Map<number, UserGameControl>;
   private gameSettings: Map<number, GameSettings>;
+  private globalControl: GlobalGameControl | null;
   
   private userIdCounter: number;
   private betIdCounter: number;
@@ -118,6 +126,7 @@ export class MemStorage implements IStorage {
     this.transactions = new Map();
     this.userGameControls = new Map();
     this.gameSettings = new Map();
+    this.globalControl = null;
     
     this.userIdCounter = 1;
     this.betIdCounter = 1;
@@ -628,6 +637,58 @@ export class MemStorage implements IStorage {
       .filter(transaction => transaction.type === "withdrawal")
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
+  
+  // Global game control methods
+  async getGlobalGameControl(): Promise<GlobalGameControl | undefined> {
+    return this.globalControl || undefined;
+  }
+  
+  async updateGlobalGameControl(settings: Partial<GlobalGameControl>): Promise<GlobalGameControl> {
+    if (this.globalControl) {
+      // Update existing control
+      this.globalControl = {
+        ...this.globalControl,
+        ...settings,
+        updatedAt: new Date()
+      };
+    } else {
+      // Create new control
+      this.globalControl = {
+        id: 1,
+        forceAllUsersLose: settings.forceAllUsersLose || false,
+        forceAllUsersWin: settings.forceAllUsersWin || false,
+        affectedGames: settings.affectedGames || [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
+    return this.globalControl;
+  }
+  
+  async makeAllUsersLose(affectedGames: number[] = []): Promise<GlobalGameControl> {
+    return this.updateGlobalGameControl({
+      forceAllUsersLose: true,
+      forceAllUsersWin: false,
+      affectedGames
+    });
+  }
+  
+  async makeAllUsersWin(affectedGames: number[] = []): Promise<GlobalGameControl> {
+    return this.updateGlobalGameControl({
+      forceAllUsersLose: false,
+      forceAllUsersWin: true,
+      affectedGames
+    });
+  }
+  
+  async resetGlobalGameControl(): Promise<GlobalGameControl> {
+    return this.updateGlobalGameControl({
+      forceAllUsersLose: false,
+      forceAllUsersWin: false,
+      affectedGames: []
+    });
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -638,6 +699,62 @@ export class DatabaseStorage implements IStorage {
     this.sessionStore = new PostgresStore({
       pool,
       createTableIfMissing: true
+    });
+  }
+  
+  // Global game control methods
+  async getGlobalGameControl(): Promise<GlobalGameControl | undefined> {
+    const controls = await db.select().from(globalGameControl);
+    return controls.length > 0 ? controls[0] : undefined;
+  }
+  
+  async updateGlobalGameControl(settings: Partial<GlobalGameControl>): Promise<GlobalGameControl> {
+    // Get existing control or create a new one
+    const existingControl = await this.getGlobalGameControl();
+    
+    if (existingControl) {
+      // Update existing control
+      const [updatedControl] = await db
+        .update(globalGameControl)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(globalGameControl.id, existingControl.id))
+        .returning();
+      return updatedControl;
+    } else {
+      // Create new control with default values
+      const [newControl] = await db
+        .insert(globalGameControl)
+        .values({
+          forceAllUsersLose: settings.forceAllUsersLose || false,
+          forceAllUsersWin: settings.forceAllUsersWin || false,
+          affectedGames: settings.affectedGames || [],
+        })
+        .returning();
+      return newControl;
+    }
+  }
+  
+  async makeAllUsersLose(affectedGames: number[] = []): Promise<GlobalGameControl> {
+    return this.updateGlobalGameControl({
+      forceAllUsersLose: true,
+      forceAllUsersWin: false,
+      affectedGames
+    });
+  }
+  
+  async makeAllUsersWin(affectedGames: number[] = []): Promise<GlobalGameControl> {
+    return this.updateGlobalGameControl({
+      forceAllUsersLose: false,
+      forceAllUsersWin: true,
+      affectedGames
+    });
+  }
+  
+  async resetGlobalGameControl(): Promise<GlobalGameControl> {
+    return this.updateGlobalGameControl({
+      forceAllUsersLose: false,
+      forceAllUsersWin: false,
+      affectedGames: []
     });
   }
   

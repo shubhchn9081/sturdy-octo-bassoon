@@ -946,6 +946,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Global Game Control routes (affects all users)
+  app.get('/api/admin/global-game-control', isAdmin, async (req, res) => {
+    try {
+      const control = await storage.getGlobalGameControl();
+      res.json(control || { forceAllUsersLose: false, forceAllUsersWin: false, affectedGames: [] });
+    } catch (error) {
+      console.error('Error getting global game control:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/admin/global-game-control/lose', isAdmin, async (req, res) => {
+    try {
+      const { affectedGames } = req.body;
+      const control = await storage.makeAllUsersLose(affectedGames);
+      res.json(control);
+    } catch (error) {
+      console.error('Error setting global lose control:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/admin/global-game-control/win', isAdmin, async (req, res) => {
+    try {
+      const { affectedGames } = req.body;
+      const control = await storage.makeAllUsersWin(affectedGames);
+      res.json(control);
+    } catch (error) {
+      console.error('Error setting global win control:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  app.post('/api/admin/global-game-control/reset', isAdmin, async (req, res) => {
+    try {
+      const control = await storage.resetGlobalGameControl();
+      res.json(control);
+    } catch (error) {
+      console.error('Error resetting global game control:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
   // User Game Control routes for admin panel
   app.get('/api/admin/user-game-controls', isAdmin, async (req, res) => {
     try {
