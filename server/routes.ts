@@ -12,6 +12,7 @@ import { setupAuth } from "./auth";
 import { setupDevEndpoints } from "./adminSetup";
 import { isAdmin } from "./middleware/admin";
 import gameControlRoutes from "./routes/gameControl";
+import apayRoutes from "./routes/apay";
 
 // Function to generate username from full name
 function generateUsernameFromFullName(fullName: string): string {
