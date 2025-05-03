@@ -112,7 +112,7 @@ const Header = () => {
           
           <Button 
             className="bg-[#57FBA2] hover:bg-[#4ce996] rounded text-black font-medium py-1 md:py-1.5 px-2 md:px-3 text-[10px] md:text-xs flex items-center gap-1"
-            onClick={() => setLocation('/wallet/deposit')}
+            onClick={() => setLocation('/recharge')}
           >
             <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
             Deposit
@@ -166,7 +166,7 @@ const Header = () => {
                       
                       <div className="py-1">
                         <button 
-                          onClick={() => { setLocation('/wallet/deposit'); setShowUserMenu(false); }} 
+                          onClick={() => { setLocation('/recharge'); setShowUserMenu(false); }} 
                           className="flex items-center w-full px-4 py-2 text-sm leading-5 text-black bg-[#57FBA2] hover:bg-[#4ce996]"
                         >
                           <DollarSign className="h-4 w-4 mr-3" />
@@ -249,7 +249,7 @@ const Header = () => {
           <div className="flex w-full mb-2">
             <div 
               className="flex items-center justify-center w-full p-2 text-sm bg-[#57FBA2] text-black rounded cursor-pointer gap-1 font-medium"
-              onClick={() => setLocation('/wallet/deposit')}
+              onClick={() => setLocation('/recharge')}
             >
               <DollarSign className="h-4 w-4" />
               Deposit Now
