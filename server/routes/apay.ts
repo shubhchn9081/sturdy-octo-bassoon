@@ -12,7 +12,8 @@ const APAY_WEBHOOK_ID = '6898076';
 const APAY_WEBHOOK_ACCESS_KEY = 'e6f1ac0ea5d105be8fc0b044744b36d3';
 const APAY_WEBHOOK_PRIVATE_KEY = 'f3769c2fb80ac01c36ddd589a0fd9279';
 
-// API endpoint for APay
+// Set the correct API endpoint for APay based on APay documentation
+// APay only accepts requests from upino.in domain
 const APAY_ENDPOINT = 'https://pay-crm.com';
 
 // Callback and redirect URLs
@@ -92,7 +93,10 @@ router.post('/create-payment', async (req: Request, res: Response) => {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'apikey': APAY_API_KEY
+          'apikey': APAY_API_KEY,
+          'User-Agent': 'Upino-Cricket-App/1.0',
+          'Origin': 'https://upino.in',
+          'Referer': 'https://upino.in/'
         },
         body: JSON.stringify(paymentPagePayload)
       });
