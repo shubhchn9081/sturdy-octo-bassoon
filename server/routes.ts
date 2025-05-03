@@ -11,6 +11,7 @@ import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createSer
 import { setupAuth } from "./auth";
 import { setupDevEndpoints } from "./adminSetup";
 import { isAdmin } from "./middleware/admin";
+import gameControlRoutes from "./routes/gameControl";
 
 // Configure multer storage
 const storage_config = multer.diskStorage({
