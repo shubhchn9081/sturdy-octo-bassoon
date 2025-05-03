@@ -3,8 +3,8 @@
 # Simple script to run multiple batches of user imports
 
 BATCH_SIZE=10
-START_AT=130
-BATCHES_TO_RUN=3
+START_AT=150
+BATCHES_TO_RUN=5
 
 for i in $(seq 0 $(($BATCHES_TO_RUN - 1))); do
     # Calculate the current start index

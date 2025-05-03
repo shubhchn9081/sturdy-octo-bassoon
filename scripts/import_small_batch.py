@@ -7,7 +7,7 @@ import datetime
 from psycopg2.extras import Json
 
 # Configuration - process next 10 users (smaller batch for reliability)
-START_INDEX = 120  # Continue from where we left off
+START_INDEX = 160  # Continue from where we left off
 MAX_USERS = 10    # Only process this many users
 
 # Get the database URL from environment variable
