@@ -31,14 +31,8 @@ export default function WalletPage() {
   const balance = walletData?.balance ?? null;
   const error = walletError ? walletError.message : null;
   
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      // If not authenticated and we've confirmed we're not loading,
-      // redirect to the login page
-      setLocation('/login');
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
+  // No need to redirect - if user can access this page, they're already authenticated
+  // The auth check is handled at the route level
   
   // Set up effect to detect balance changes for animation
   useEffect(() => {
@@ -49,21 +43,8 @@ export default function WalletPage() {
     }
   }, [balance]);
   
-  // Set up refresh interval
-  useEffect(() => {
-    if (isAuthenticated) {
-      // Refresh immediately on mount
-      refetch();
-      
-      // Set up interval to refresh every second
-      const refreshInterval = setInterval(() => {
-        refetch();
-      }, 1000);
-      
-      // Clean up on unmount
-      return () => clearInterval(refreshInterval);
-    }
-  }, [isAuthenticated, refetch]);
+  // No need for a manual refresh interval as the useWalletBalance hook 
+  // already takes care of refreshing the balance automatically with refetchInterval: 3000
   
   const handleAddFunds = () => {
     toast({
