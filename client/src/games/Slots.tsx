@@ -25,7 +25,7 @@ const Slots = () => {
   const { toast } = useToast();
   
   // Game state
-  const [betAmount, setBetAmount] = useState<number>(100); // Default bet amount to match our presets
+  const [betAmount, setBetAmount] = useState<number>(1); // Default bet amount to match our presets
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [autoSpin, setAutoSpin] = useState<boolean>(false);
   const [spinResults, setSpinResults] = useState<SpinResult | null>(null);
