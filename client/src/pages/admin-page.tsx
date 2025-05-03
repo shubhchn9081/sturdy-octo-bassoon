@@ -49,6 +49,9 @@ export default function AdminPage() {
   const [durationGames, setDurationGames] = useState<number>(1);
   const [gameControlDialogOpen, setGameControlDialogOpen] = useState(false);
   
+  // Global game control state
+  const [globalControlAffectedGames, setGlobalControlAffectedGames] = useState<number[]>([]);
+  
   // Redirect if not admin
   useEffect(() => {
     if (user && !user.isAdmin) {
@@ -262,6 +265,82 @@ export default function AdminPage() {
       });
     }
   });
+  
+  // Fetch global game control
+  const { data: globalControl, isLoading: globalControlLoading, refetch: refetchGlobalControl } = useQuery({
+    queryKey: ['/api/game-control/global'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/game-control/global");
+      return await response.json();
+    },
+    enabled: user?.isAdmin === true
+  });
+  
+  // Make all users lose
+  const makeAllLoseMutation = useMutation({
+    mutationFn: async (affectedGames: number[] = []) => {
+      const response = await apiRequest("POST", "/api/game-control/global/make-all-lose", { affectedGames });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/game-control/global'] });
+      toast({
+        title: "Success",
+        description: "All users will now lose on affected games",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update global game control",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Make all users win
+  const makeAllWinMutation = useMutation({
+    mutationFn: async (affectedGames: number[] = []) => {
+      const response = await apiRequest("POST", "/api/game-control/global/make-all-win", { affectedGames });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/game-control/global'] });
+      toast({
+        title: "Success",
+        description: "All users will now win on affected games",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update global game control",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Reset global game control
+  const resetGlobalControlMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/game-control/global/reset");
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/game-control/global'] });
+      toast({
+        title: "Success",
+        description: "Global game controls have been reset",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset global game control",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Handle edit balance
   const handleEditBalance = () => {
@@ -462,37 +541,153 @@ export default function AdminPage() {
 
         {/* Games Tab */}
         <TabsContent value="games">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Game Control</CardTitle>
-                <CardDescription>
-                  Manipulate game outcomes for specific users
-                </CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSelectedUser(null);
-                    setSelectedGame(null);
-                    setForceOutcome(false);
-                    setOutcomeType("win");
-                    setDurationGames(1);
-                    setGameControlDialogOpen(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-1" /> New Control
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => resetAllControlsMutation.mutate()}
-                >
-                  <RefreshCw className="h-4 w-4 mr-1" /> Reset All
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <div className="grid gap-8">
+            {/* Global Game Controls */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-red-500">Global Game Control</CardTitle>
+                  <CardDescription>
+                    Force winning or losing outcomes for ALL users
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="destructive"
+                    onClick={() => makeAllLoseMutation.mutate(globalControlAffectedGames)}
+                  >
+                    Make Everyone Lose
+                  </Button>
+                  <Button 
+                    variant="default"
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => makeAllWinMutation.mutate(globalControlAffectedGames)}
+                  >
+                    Allow All Wins
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => resetGlobalControlMutation.mutate()}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-1" /> Reset Global
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {globalControlLoading ? (
+                  <div className="flex justify-center my-8">
+                    <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-lg bg-muted">
+                      <h3 className="text-lg font-medium mb-2">Current Global Settings</h3>
+                      {globalControl ? (
+                        <div className="grid gap-2">
+                          <div className="flex items-center">
+                            <div className="w-40 font-medium">Force All Lose:</div>
+                            <div>
+                              {globalControl.forceAllUsersLose ? (
+                                <Badge variant="destructive">Enabled</Badge>
+                              ) : (
+                                <Badge variant="outline">Disabled</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-40 font-medium">Force All Win:</div>
+                            <div>
+                              {globalControl.forceAllUsersWin ? (
+                                <Badge className="bg-green-600">Enabled</Badge>
+                              ) : (
+                                <Badge variant="outline">Disabled</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-40 font-medium">Affected Games:</div>
+                            <div>
+                              {globalControl.affectedGames && globalControl.affectedGames.length > 0 ? (
+                                <span>{globalControl.affectedGames.join(", ")}</span>
+                              ) : (
+                                <Badge>All Games</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>No global control settings configured.</div>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">Specify Games to Affect (Optional)</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Leave empty to affect all games. Select specific games to limit control scope.
+                      </p>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        {games?.map((game: Game) => (
+                          <div key={game.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`game-${game.id}`}
+                              className="h-4 w-4 rounded border-gray-300 text-primary"
+                              checked={globalControlAffectedGames.includes(game.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setGlobalControlAffectedGames([...globalControlAffectedGames, game.id]);
+                                } else {
+                                  setGlobalControlAffectedGames(
+                                    globalControlAffectedGames.filter((id) => id !== game.id)
+                                  );
+                                }
+                              }}
+                            />
+                            <label htmlFor={`game-${game.id}`} className="text-sm font-medium">
+                              {game.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* User-Specific Controls */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>User-Specific Controls</CardTitle>
+                  <CardDescription>
+                    Manipulate game outcomes for specific users
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setSelectedGame(null);
+                      setForceOutcome(false);
+                      setOutcomeType("win");
+                      setDurationGames(1);
+                      setGameControlDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> New Control
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => resetAllControlsMutation.mutate()}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-1" /> Reset All
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
               {controlsLoading ? (
                 <div className="flex justify-center my-8">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -599,6 +794,7 @@ export default function AdminPage() {
               )}
             </CardContent>
           </Card>
+          </div>
         </TabsContent>
 
         {/* Statistics Tab */}

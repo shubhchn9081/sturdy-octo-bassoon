@@ -49,6 +49,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup development endpoints (make-admin endpoint)
   setupDevEndpoints(app);
   
+  // Setup game control routes 
+  app.use('/api/game-control', gameControlRoutes);
+  
   // prefix all routes with /api
 
   // Initialize the database with some game data if none exists

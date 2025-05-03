@@ -31,9 +31,10 @@ export const gameOutcomeControl = {
       
       if (globalControl) {
         // Check if this game is affected (empty array means all games)
+        const affectedGames = Array.isArray(globalControl.affectedGames) ? globalControl.affectedGames : [];
         const isAffectedGame = 
-          globalControl.affectedGames.length === 0 || 
-          globalControl.affectedGames.includes(gameId);
+          affectedGames.length === 0 || 
+          affectedGames.includes(gameId);
         
         if (isAffectedGame) {
           // Force all users to lose takes precedence over win

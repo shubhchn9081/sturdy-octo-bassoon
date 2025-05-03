@@ -1,14 +1,20 @@
 import { Router, Request, Response } from 'express';
-import { isAuthenticated } from '../auth';
 import { gameOutcomeControl } from '../middleware/gameOutcomeControl';
 
 const router = Router();
 
 // Endpoint to check if an outcome should be forced for a user on a specific game
-router.post('/check-outcome-control', isAuthenticated, async (req: Request, res: Response) => {
+router.post('/check-outcome-control', async (req: Request, res: Response) => {
   try {
     const { gameId, targetMultiplier } = req.body;
-    const userId = req.session.userId!;
+    
+    // Ensure user is authenticated
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    // Get user ID from the authenticated session
+    const userId = req.user.id;
     
     if (!gameId) {
       return res.status(400).json({ message: 'Game ID is required' });
@@ -26,10 +32,17 @@ router.post('/check-outcome-control', isAuthenticated, async (req: Request, res:
 });
 
 // Endpoint to get a controlled crash point 
-router.post('/crash/get-controlled-point', isLoggedIn, async (req: Request, res: Response) => {
+router.post('/crash/get-controlled-point', async (req: Request, res: Response) => {
   try {
     const { gameId, originalCrashPoint, targetMultiplier } = req.body;
-    const userId = req.session.userId!;
+    
+    // Ensure user is authenticated
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    // Get user ID from the authenticated session
+    const userId = req.user.id;
     
     if (!gameId || originalCrashPoint === undefined) {
       return res.status(400).json({ message: 'Game ID and original crash point are required' });
@@ -56,10 +69,17 @@ router.post('/crash/get-controlled-point', isLoggedIn, async (req: Request, res:
 });
 
 // Endpoint to get controlled mine positions
-router.post('/mines/get-controlled-positions', isLoggedIn, async (req: Request, res: Response) => {
+router.post('/mines/get-controlled-positions', async (req: Request, res: Response) => {
   try {
     const { gameId, originalMinePositions, currentlyRevealed } = req.body;
-    const userId = req.session.userId!;
+    
+    // Ensure user is authenticated
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    // Get user ID from the authenticated session  
+    const userId = req.user.id;
     
     if (!gameId || !originalMinePositions) {
       return res.status(400).json({ message: 'Game ID and original mine positions are required' });
