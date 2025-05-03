@@ -604,22 +604,29 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
     const finalX = animation.x !== undefined ? animation.x : baseX;
     
     return (
-      // Wrapper div that acts as a hit area for cup selection - with fixed pointerEvents
-      <div 
-        className={`flex flex-col items-center relative ${canSelect ? 'cursor-pointer' : ''}`}
-        style={{ 
-          zIndex: canSelect ? 10 : 'auto',
-          pointerEvents: canSelect ? 'auto' : 'none'
-        }}
-        onClick={() => {
-          console.log(`Cup wrapper clicked at position ${position}, canSelect: ${canSelect}, gamePhase: ${gamePhase}, isSelectionPhase: ${isSelectionPhase}`);
-          // Always call handleCupSelect during selection phase to debug
-          if (gamePhase === 'selecting') {
-            console.log(`Clicking cup at position ${position} with index ${cupIndex}`);
-            onCupSelect(cupIndex);
-          }
-        }}
-      >
+      // Simple selection wrapper
+      <div className={`flex flex-col items-center relative ${canSelect ? 'cursor-pointer' : ''}`}>
+        {/* Transparent selection overlay for better hitbox and debugging */}
+        {canSelect && (
+          <div 
+            className="absolute z-50 bg-blue-500 bg-opacity-10 hover:bg-opacity-30 rounded-lg"
+            style={{ 
+              width: '100px',
+              height: '120px',
+              top: '-20px',
+              left: '-40px',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              console.log(`Cup overlay clicked position: ${position}`);
+              // Call the parent component's handler with the cup index
+              onCupSelect(cupIndex);
+            }}
+          >
+            {/* Invisible but taking up space for click target */}
+          </div>
+        )}
+      
         <motion.div
           key={`cup-${position}-${cupIndex}`}
           className={`relative ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
@@ -790,12 +797,43 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
       
       {/* Game surface with improved animation effects */}
       <motion.div 
-        className="relative w-full bg-[#1B3549] rounded-lg p-4 md:p-8 shadow-xl flex-1 flex items-center justify-center min-h-[250px] md:min-h-[350px]"
+        className="relative w-full bg-[#1B3549] rounded-lg p-4 md:p-8 shadow-xl flex-1 flex items-center justify-center min-h-[300px] md:min-h-[400px]"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2, type: "spring", stiffness: 150 }}
       >
-        <div className="flex justify-center items-end gap-2 md:gap-8 w-full">
+        <div className="flex justify-center items-end gap-2 md:gap-8 w-full relative">
+          {/* Selection indicator and buttons */}
+          {gamePhase === 'selecting' && (
+            <>
+              <div className="absolute -top-10 left-0 right-0 text-center text-white bg-blue-500 bg-opacity-70 py-1 px-4 rounded-full text-sm animate-pulse">
+                Click a cup to select!
+              </div>
+              
+              {/* Triple button selection alternative for mobile */}
+              <div className="absolute -bottom-14 left-0 right-0 flex justify-center space-x-4">
+                <button 
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition"
+                  onClick={() => onCupSelect(cupPositions[0])}
+                >
+                  Cup 1
+                </button>
+                <button 
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition"
+                  onClick={() => onCupSelect(cupPositions[1])}
+                >
+                  Cup 2
+                </button>
+                <button 
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition"
+                  onClick={() => onCupSelect(cupPositions[2])}
+                >
+                  Cup 3
+                </button>
+              </div>
+            </>
+          )}
+          
           {/* Render the three cups */}
           {renderCup(0)}
           {renderCup(1)}
