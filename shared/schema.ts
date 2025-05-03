@@ -8,7 +8,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   isBanned: boolean("is_banned").default(false).notNull(),
-  balance: jsonb("balance").default({ INR: 0, BTC: 0.01, ETH: 0.1, USDT: 1000 }).notNull(), // JSONB balance with multiple currencies
+  balance: jsonb("balance").default({ INR: 0, BTC: 0, ETH: 0, USDT: 0 }).notNull(), // JSONB balance with multiple currencies
   createdAt: timestamp("created_at").defaultNow().notNull(),
   email: text("email").notNull().unique(),
   fullName: text("full_name").notNull(), // Changed from dateOfBirth to fullName
