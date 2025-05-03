@@ -114,25 +114,32 @@ export default function AuthPage() {
       </div>
       
       {/* Main Content */}
-      <div className="flex flex-1 flex-col-reverse lg:flex-row overflow-hidden">
-        {/* Auth Forms - Now First on Mobile */}
-        <div className="flex-1 flex items-start justify-center p-4 pt-0 lg:items-center">
-          <div className="w-full max-w-md z-10">
+      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
+        {/* Auth Forms - Primary Focus */}
+        <div className="flex-[2] flex items-center justify-center p-4 bg-background/70 backdrop-blur-sm border-b border-primary/10 lg:border-b-0 lg:border-r">
+          <div className="w-full max-w-md">
+            <div className="mb-6 lg:mb-8 text-center">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Welcome to Novito</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Enter your credentials to start your gaming journey
+              </p>
+            </div>
+            
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-3">
-                <TabsTrigger value="login" className="text-sm">Login</TabsTrigger>
-                <TabsTrigger value="register" className="text-sm">Register</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="login" className="text-sm font-medium">Login</TabsTrigger>
+                <TabsTrigger value="register" className="text-sm font-medium">Register</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
-                <Card className="border border-primary/20 shadow-lg shadow-primary/5">
+                <Card className="border border-primary/20 shadow-xl shadow-primary/5">
                   <CardHeader className="space-y-1 py-4">
                     <CardTitle className="text-xl font-bold flex items-center">
                       <Lock className="w-5 h-5 mr-2 text-primary" />
                       Login
                     </CardTitle>
                     <CardDescription>
-                      Enter your credentials to access your account
+                      Access your account securely
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="py-2">
@@ -187,16 +194,16 @@ export default function AuthPage() {
                     
                     {/* Trust Badges */}
                     <div className="mt-6">
-                      <p className="text-xs text-center text-muted-foreground mb-3">Secured By</p>
+                      <p className="text-xs text-center text-muted-foreground mb-2">Secured By</p>
                       <div className="flex justify-center space-x-3">
                         <div className="hover:-translate-y-1 transition-transform duration-200">
-                          <Shield className="w-6 h-6 text-primary/90" />
+                          <Shield className="w-5 h-5 text-primary/90" />
                         </div>
                         <div className="hover:-translate-y-1 transition-transform duration-200">
-                          <Lock className="w-6 h-6 text-primary/90" />
+                          <Lock className="w-5 h-5 text-primary/90" />
                         </div>
                         <div className="hover:-translate-y-1 transition-transform duration-200">
-                          <CheckCircle className="w-6 h-6 text-primary/90" />
+                          <CheckCircle className="w-5 h-5 text-primary/90" />
                         </div>
                       </div>
                     </div>
@@ -205,14 +212,14 @@ export default function AuthPage() {
               </TabsContent>
               
               <TabsContent value="register">
-                <Card className="overflow-auto max-h-[70vh] lg:max-h-none border border-primary/20 shadow-lg shadow-primary/5">
+                <Card className="overflow-auto max-h-[70vh] lg:max-h-none border border-primary/20 shadow-xl shadow-primary/5">
                   <CardHeader className="space-y-1 py-4">
                     <CardTitle className="text-xl font-bold flex items-center">
                       <UserCheck className="w-5 h-5 mr-2 text-primary" />
                       Create an account
                     </CardTitle>
                     <CardDescription>
-                      Enter your details to join our trusted community
+                      Join our trusted community
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="py-2">
@@ -349,20 +356,35 @@ export default function AuthPage() {
                 </Card>
               </TabsContent>
             </Tabs>
+            
+            {/* Payment Methods */}
+            <div className="mt-6">
+              <p className="text-xs text-center text-muted-foreground mb-2">Trusted Payment Methods</p>
+              <div className="flex justify-center space-x-4">
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiVisa className="w-5 h-5" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiMastercard className="w-5 h-5" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiPaypal className="w-5 h-5" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiBitcoin className="w-5 h-5" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiEthereum className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Enhanced Hero Section */}
-        <div className="flex-1 bg-gradient-to-br from-primary/5 to-background p-4 lg:p-6 flex items-center">
-          <div className="max-w-xl mx-auto px-2">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-center lg:text-left">
-              Welcome to Novito
-            </h1>
-            <p className="mt-2 text-sm sm:text-base text-muted-foreground text-center lg:text-left">
-              The ultimate destination for provably fair games and crypto betting.
-            </p>
-            
-            <div className="mt-6 grid grid-cols-2 lg:grid-cols-2 gap-3">
+        {/* Secondary Info Section */}
+        <div className="flex-1 bg-gradient-to-br from-primary/5 to-background p-4 lg:p-6 hidden lg:flex items-center">
+          <div className="max-w-xl mx-auto px-2">            
+            <div className="grid grid-cols-1 gap-3">
               <div className="p-3 bg-background/80 backdrop-blur-sm rounded-lg border border-primary/10 hover:border-primary/30 hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center mb-2">
                   <Shield className="text-primary h-5 w-5 mr-2" />
@@ -393,28 +415,6 @@ export default function AuthPage() {
                   <h3 className="font-medium text-sm">24/7 Support</h3>
                 </div>
                 <p className="text-xs text-muted-foreground">Our team is always available to assist you</p>
-              </div>
-            </div>
-            
-            {/* Payment Methods */}
-            <div className="mt-8">
-              <p className="text-xs text-center text-muted-foreground mb-3">Trusted Payment Methods</p>
-              <div className="flex justify-center space-x-4">
-                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
-                  <SiVisa className="w-6 h-6" />
-                </div>
-                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
-                  <SiMastercard className="w-6 h-6" />
-                </div>
-                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
-                  <SiPaypal className="w-6 h-6" />
-                </div>
-                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
-                  <SiBitcoin className="w-6 h-6" />
-                </div>
-                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
-                  <SiEthereum className="w-6 h-6" />
-                </div>
               </div>
             </div>
           </div>
