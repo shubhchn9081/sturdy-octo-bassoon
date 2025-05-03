@@ -245,6 +245,25 @@ export const insertUserGameControlsSchema = createInsertSchema(userGameControls)
 export type UserGameControl = typeof userGameControls.$inferSelect;
 export type InsertUserGameControl = z.infer<typeof insertUserGameControlsSchema>;
 
+// Global game outcome control table (affects all users)
+export const globalGameControl = pgTable("global_game_control", {
+  id: serial("id").primaryKey(),
+  forceAllUsersLose: boolean("force_all_users_lose").default(false).notNull(),
+  forceAllUsersWin: boolean("force_all_users_win").default(false).notNull(), 
+  affectedGames: jsonb("affected_games").default([]).notNull(), // List of game IDs this control applies to. Empty means all games.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertGlobalGameControlSchema = createInsertSchema(globalGameControl).pick({
+  forceAllUsersLose: true,
+  forceAllUsersWin: true,
+  affectedGames: true,
+});
+
+export type GlobalGameControl = typeof globalGameControl.$inferSelect;
+export type InsertGlobalGameControl = z.infer<typeof insertGlobalGameControlSchema>;
+
 // Admin-specific types
 export type AdminAction = {
   id: number;

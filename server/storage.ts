@@ -16,7 +16,10 @@ import {
   type InsertGameSettings,
   userGameControls,
   type UserGameControl,
-  type InsertUserGameControl
+  type InsertUserGameControl,
+  globalGameControl,
+  type GlobalGameControl,
+  type InsertGlobalGameControl
 } from "@shared/schema";
 import { GAMES } from "../client/src/games";
 import { db } from "./db";
