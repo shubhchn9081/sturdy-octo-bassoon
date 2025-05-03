@@ -125,10 +125,10 @@ const AccountPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dob" className="text-[#7F8990]">Date of Birth</Label>
+              <Label htmlFor="fullName" className="text-[#7F8990]">Full Name</Label>
               <Input 
-                id="dob" 
-                value="1990-01-01" 
+                id="fullName" 
+                value={user?.fullName || ''} 
                 className="bg-[#1A3045] border-[#243442] text-white"
                 readOnly
               />

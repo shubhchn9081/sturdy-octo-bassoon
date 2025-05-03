@@ -18,16 +18,15 @@ type AuthContextType = {
 };
 
 type LoginData = {
-  username: string;
+  phone: string;
   password: string;
 };
 
 type RegisterData = {
-  username: string;
   password: string;
   email: string;
-  dateOfBirth: string;
-  phone?: string;
+  fullName: string;
+  phone: string;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);

@@ -20,7 +20,7 @@ import { Shield, Lock, CheckCircle, Award, Clock, Users, Globe, UserCheck } from
 import { SiVisa, SiMastercard, SiPaypal, SiBitcoin, SiEthereum } from "react-icons/si";
 
 const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  phone: z.string().min(6, "Phone number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -53,7 +53,7 @@ export default function AuthPage() {
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      phone: "",
       password: "",
     },
   });
@@ -148,13 +148,14 @@ export default function AuthPage() {
                       <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-3">
                         <FormField
                           control={loginForm.control}
-                          name="username"
+                          name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Username</FormLabel>
+                              <FormLabel>Phone Number</FormLabel>
                               <FormControl>
                                 <Input 
-                                  placeholder="username" 
+                                  type="tel"
+                                  placeholder="+1234567890" 
                                   className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                                   {...field} 
                                 />
