@@ -91,6 +91,9 @@ const GameCard = ({
       case 'COIN FLIP':
         // Using original image as we'll add a banner to hide "STAKE ORIGINALS" text
         return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745059353/1c0de2ee0ce713086ff7735697ad2b5385bc974f206b857c724a5ec84467a73b_srnwo0.png';
+      case 'SLOTS':
+        // Using provided image for the slots game
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746291163/ChatGPT_Image_May_3_2025_10_22_30_PM_ct9mag.png';
       default:
         break;
     }
@@ -140,6 +143,9 @@ const GameCard = ({
       case 'PUMP':
         // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/e0a4131a16c28a1c1516958c93ec90c6f0f1bb00f41de87f72f6800c535b9c6f.jpeg';
+      case 'SLOTS':
+        // Using provided image for the slots game
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746291163/ChatGPT_Image_May_3_2025_10_22_30_PM_ct9mag.png';
       default:
         return null;
     }
