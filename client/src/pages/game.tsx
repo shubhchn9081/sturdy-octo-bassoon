@@ -11,6 +11,7 @@ import LimboFinal from '@/games/LimboFinal';
 import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
 import Slots from '@/games/Slots';
+import CupAndBall from '@/games/CupAndBall';
 
 
 type Game = typeof GAMES[0];
@@ -24,7 +25,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   limbo: LimboFinal,
   keno: Keno,
   wheel: Wheel,
-  slots: Slots
+  slots: Slots,
+  'cup-and-ball': CupAndBall
 };
 
 const GamePage = () => {

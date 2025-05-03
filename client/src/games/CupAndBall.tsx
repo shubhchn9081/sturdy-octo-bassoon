@@ -15,11 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-// Import functions to generate provably fair results
-import { generateServerSeed, hashServerSeed } from '@/lib/provably-fair';
+// Game UI components
 import GameLayout from '@/components/games/GameLayout';
-import CupControls from '@/components/games/cup-and-ball/CupControls';
-import CupAndBallGame from '@/components/games/cup-and-ball/CupAndBallGame';
+// Import cup game components directly
+import CupControls from './cup-and-ball/CupControls';
+import CupAndBallGame from './cup-and-ball/CupAndBallGame';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
@@ -37,8 +37,6 @@ const CupAndBall = () => {
   const [ballPosition, setBallPosition] = useState<number | null>(null);
   const [shuffleMoves, setShuffleMoves] = useState<number[]>([]);
   const [clientSeed, setClientSeed] = useState<string>(() => Math.random().toString(36).substring(2, 15));
-  const [serverSeed, setServerSeed] = useState<string | null>(null);
-  const [hashedServerSeed, setHashedServerSeed] = useState<string | null>(null);
   const [gameResult, setGameResult] = useState<{ win: boolean; profit: number } | null>(null);
   
   // Set up payouts based on difficulty
@@ -91,10 +89,6 @@ const CupAndBall = () => {
       return response.json();
     },
     onSuccess: (data) => {
-      // Save server seed info for verification
-      setServerSeed(data.serverSeed);
-      setHashedServerSeed(data.hashedServerSeed);
-      
       // Get the outcome from the response
       const outcome = data.bet.outcome;
       
@@ -134,7 +128,6 @@ const CupAndBall = () => {
     setBallPosition(null);
     setShuffleMoves([]);
     setGameResult(null);
-    setServerSeed(null);
   };
   
   // Start the game
