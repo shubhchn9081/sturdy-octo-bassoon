@@ -77,7 +77,7 @@ const CollapsedSidebar = () => {
         <CollapsedSidebarLink 
           href="/originals" 
           icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} 
-          tooltip="Stake Originals" 
+          tooltip="Novito Originals" 
           active={true} 
         />
         <CollapsedSidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />} tooltip="Stake Exclusives" />

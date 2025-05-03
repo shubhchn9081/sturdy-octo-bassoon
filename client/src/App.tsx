@@ -16,7 +16,7 @@ import StatisticsPage from "@/pages/statistics-page";
 import TransactionsPage from "@/pages/transactions-page";
 import BetsPage from "@/pages/bets-page";
 import SettingsPage from "@/pages/settings-page";
-import StakeSmartPage from "@/pages/stake-smart-page";
+import NovitoSmartPage from "@/pages/novito-smart-page";
 import SupportPage from "@/pages/support-page";
 import AnimationExamples from "@/pages/animation-examples";
 import RecentPage from "@/pages/recent-page";
@@ -69,7 +69,7 @@ function Router() {
             <ProtectedRoute path="/bets" component={BetsPage} />
             <ProtectedRoute path="/recent" component={RecentPage} />
             <ProtectedRoute path="/settings" component={SettingsPage} />
-            <ProtectedRoute path="/stake-smart" component={StakeSmartPage} />
+            <ProtectedRoute path="/novito-smart" component={NovitoSmartPage} />
             <ProtectedRoute path="/support" component={SupportPage} />
             <ProtectedRoute path="/chat" component={ChatPage} />
             <ProtectedRoute path="/help-center" component={HelpCenterPage} />

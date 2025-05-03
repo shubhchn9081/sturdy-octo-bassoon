@@ -142,10 +142,10 @@ export const UserProfileButton = () => {
         )}
         <DropdownMenuItem 
           className="px-4 py-2 focus:bg-[#243442] cursor-pointer"
-          onClick={() => setLocation('/stake-smart')}
+          onClick={() => setLocation('/novito-smart')}
         >
           <Shield className="h-4 w-4 mr-3" />
-          Stake Smart
+          Novito Smart
         </DropdownMenuItem>
         <DropdownMenuItem 
           className="px-4 py-2 focus:bg-[#243442] cursor-pointer"
