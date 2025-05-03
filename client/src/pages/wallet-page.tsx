@@ -17,9 +17,9 @@ export default function WalletPage() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  // HARDCODED INITIAL BALANCE - set to match actual server value
-  const [balance, setBalance] = useState<number | null>(598788.462);
-  const [isLoading, setIsLoading] = useState(false); // Start without loading since we have initial value
+  // Always start with null and fetch from API
+  const [balance, setBalance] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Show loading indicator until data arrives
   const [error, setError] = useState<string | null>(null);
   const [isUpdated, setIsUpdated] = useState(false); // Track when balance updates happen
   
@@ -32,50 +32,45 @@ export default function WalletPage() {
     }
     
     const fetchDirectBalance = async () => {
-      // Generate a unique timestamp with each call to ensure no caching
-      const now = Date.now();
-      
       try {
-        // Direct API call with explicit no-cache options
-        const response = await fetch(`/api/user/balance?nocache=${now}`, {
+        // Add a cache-busting parameter to prevent stale data
+        const timestamp = Date.now();
+        const response = await fetch(`/api/user/balance?t=${timestamp}`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Cache-Control': 'no-cache',
             'Pragma': 'no-cache'
           }
         });
         
-        if (response.ok) {
-          const data = await response.json();
-          console.log("WALLET: Balance data received:", data);
-          
-          if (data && typeof data.balance === 'number') {
-            // Check if the balance has changed
-            if (balance !== data.balance) {
-              console.log(`WALLET: Balance changed from ${balance} to ${data.balance}`);
-              
-              // Update the balance state
-              setBalance(data.balance);
-              setError(null);
-              
-              // Trigger animation effect for visual feedback
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && typeof data.balance === 'number') {
+          // Get the current balance to compare with new data
+          // This avoids the need to include balance in the effect dependencies
+          setBalance(currentBalance => {
+            // Only update and animate if balance has changed
+            if (currentBalance !== data.balance) {
+              // Visual feedback for balance changes
               setIsUpdated(true);
               setTimeout(() => setIsUpdated(false), 1000);
+              setError(null);
+              return data.balance;
             }
-          } else {
-            console.error("WALLET: Invalid balance data format:", data);
-            setError("Could not read balance data");
-          }
+            return currentBalance;
+          });
         } else {
-          const errorText = await response.text();
-          console.error('WALLET: Balance fetch error:', response.status, errorText);
-          setError(`Failed to fetch balance (${response.status})`);
+          throw new Error('Invalid balance data format received');
         }
       } catch (error) {
-        console.error('WALLET: Error fetching balance:', error);
-        setError('Network error while fetching balance');
+        console.error('Error fetching wallet balance:', error);
+        setError(error instanceof Error ? error.message : 'Failed to update balance');
       } finally {
+        // Ensure loading state is turned off after first attempt
         setIsLoading(false);
       }
     };
@@ -88,6 +83,10 @@ export default function WalletPage() {
     
     // Clean up interval on unmount
     return () => clearInterval(refreshInterval);
+    
+    // Important: We intentionally don't include 'balance' as a dependency
+    // as it would cause the effect to re-run on every balance change,
+    // creating new intervals continuously
   }, [isAuthenticated]);
   
   const handleAddFunds = () => {
@@ -150,7 +149,7 @@ export default function WalletPage() {
                         : (balance !== null ? '0 0 10px rgba(19, 117, 225, 0.5)' : 'none')
                     }}
                   >
-                    {balance !== null ? balance.toFixed(2) : "0.00"}
+                    {balance !== null ? balance.toFixed(2) : "Loading..."}
                   </span>
                   <span className="text-[#7F8990] text-lg">INR</span>
                 </>
