@@ -65,32 +65,32 @@ const GameCard = ({
     // For games with Cloudinary images
     switch (name) {
       case 'CRICKET MINES':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png';
       case 'CRASH':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1744990211/c830595cbd07b2561ac76a365c2f01869dec9a8fe5e7be30634d78c51b2cc91e_j3olae.jpg';
       case 'PLINKO':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990620/5cbb2498c956527e6584c6af216489b85bbb7a909c7d3c4e131a3be9bd1cc6bf_wlazjb.jpg';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1744990620/5cbb2498c956527e6584c6af216489b85bbb7a909c7d3c4e131a3be9bd1cc6bf_wlazjb.jpg';
       case 'LIMBO':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990620/11caec5df20098884ae9071848e1951b8b34e5ec84a7241f2e7c5afd4b323dfd_iitvtz.jpg';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1744990620/11caec5df20098884ae9071848e1951b8b34e5ec84a7241f2e7c5afd4b323dfd_iitvtz.jpg';
       case 'MINES':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990620/15a51a2ae2895872ae2b600fa6fe8d7f8d32c9814766b66ddea2b288d04ba89c_uj47yo.jpg';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1744990620/15a51a2ae2895872ae2b600fa6fe8d7f8d32c9814766b66ddea2b288d04ba89c_uj47yo.jpg';
       case 'DICE':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990621/30688668d7d2d48d472edd0f1e2bca0758e7ec51cbab8c04d8b7f157848640e0_ec0wxi.jpg';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1744990621/30688668d7d2d48d472edd0f1e2bca0758e7ec51cbab8c04d8b7f157848640e0_ec0wxi.jpg';
       case 'KENO':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744990621/102cf3d7c840018b939cd787bf013e080b996d80e604f3008f21dddf1f1aa201_phwj9c.jpg';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1744990621/102cf3d7c840018b939cd787bf013e080b996d80e604f3008f21dddf1f1aa201_phwj9c.jpg';
       case 'WHEEL':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1744994352/e0a4131a16c28a1c1516958c93ec90c6f0f1bb00f41de87f72f6800c535b9c6f_fl9nyv.jpg';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1744994352/e0a4131a16c28a1c1516958c93ec90c6f0f1bb00f41de87f72f6800c535b9c6f_fl9nyv.jpg';
       case 'COIN FLIP':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745059353/1c0de2ee0ce713086ff7735697ad2b5385bc974f206b857c724a5ec84467a73b_srnwo0.png';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1745059353/1c0de2ee0ce713086ff7735697ad2b5385bc974f206b857c724a5ec84467a73b_srnwo0.png';
       default:
         break;
     }
@@ -114,11 +114,11 @@ const GameCard = ({
         // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/14a07f57ad5198ffadd4e0d4386245f4e017d030-1080x1080.png';
       case 'MINES':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745173634/5da127925ac99a19da0cd888e5436049bc42f8ee4002df80cdc817f0501ab8a7_fhf3kc.png';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1745173634/5da127925ac99a19da0cd888e5436049bc42f8ee4002df80cdc817f0501ab8a7_fhf3kc.png';
       case 'CRICKET MINES':
-        // Crop the bottom part where "STAKE ORIGINALS" appears (crop height by 90%)
-        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_limit,h_0.9,w_1.0/v1745173403/Cricket_Mines_Resized_xfosv9.png';
+        // Use crop and gravity to remove the bottom text
+        return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/c_crop,h_250,g_north/v1745173403/Cricket_Mines_Resized_xfosv9.png';
       case 'DICE':
         // Local file - should be replaced with Cloudinary cropped version if available
         return '/images/games/1b45a8e293264dab4677f8187e8d71feeb56adabc02510a59d6b4e780c1e5b4c.png';
