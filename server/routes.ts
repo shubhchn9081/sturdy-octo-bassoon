@@ -13,6 +13,22 @@ import { setupDevEndpoints } from "./adminSetup";
 import { isAdmin } from "./middleware/admin";
 import gameControlRoutes from "./routes/gameControl";
 
+// Function to generate username from full name
+function generateUsernameFromFullName(fullName: string): string {
+  // Remove any special characters and spaces, convert to lowercase
+  const cleanedName = fullName.toLowerCase()
+    .replace(/[^\w\s]/gi, '')  // Remove any special characters
+    .replace(/\s+/g, '');      // Remove spaces
+  
+  // Ensure it's not an empty string after cleaning
+  if (cleanedName.length === 0) {
+    return 'user' + Math.floor(Math.random() * 10000).toString();
+  }
+  
+  // Return the cleaned name or a substring if it's too long
+  return cleanedName.substring(0, Math.min(cleanedName.length, 15));
+}
+
 // Configure multer storage
 const storage_config = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -90,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: 'demo_user',
           password: 'hashed_password', // In a real app, this would be properly hashed
           email: 'demo@example.com', 
-          dateOfBirth: '1990-01-01',
+          fullName: 'Demo User',
           phone: '+1234567890'
         });
       }
@@ -751,14 +767,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate with schema
       const userData = insertUserSchema.parse(req.body);
       
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already taken' });
+      // Generate username from fullName
+      const baseUsername = generateUsernameFromFullName(userData.fullName);
+      let username = baseUsername;
+      let counter = 1;
+      
+      // Check if the username exists and generate a new one with a number appended
+      while (await storage.getUserByUsername(username)) {
+        username = `${baseUsername}${counter}`;
+        counter++;
       }
       
-      // Create new user
-      const user = await storage.createUser(userData);
+      // Create new user with the generated username
+      const user = await storage.createUser({
+        ...userData,
+        username
+      });
       
       // Automatically log the user in after registration
       req.login(user, (err) => {
@@ -776,7 +800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           balance: user.balance,
           createdAt: user.createdAt,
           email: user.email,
-          dateOfBirth: user.dateOfBirth,
+          fullName: user.fullName,
           phone: user.phone,
           referralCode: user.referralCode,
           language: user.language

@@ -35,6 +35,14 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// Define RegisterData to match the interface expected by the API
+export type RegisterData = {
+  password: string;
+  email: string;
+  fullName: string;
+  phone: string;
+};
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
