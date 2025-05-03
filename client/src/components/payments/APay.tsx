@@ -29,12 +29,19 @@ export function APay() {
   
   const initiatePaymentMutation = useMutation({
     mutationFn: async (paymentData: { amount: number; userId: number; transactionId: string }) => {
+      console.log('Initiating payment with data:', paymentData);
+      
       const response = await apiRequest("POST", "/apay/create-payment", paymentData);
       if (!response.ok) {
+        console.error('Payment API error status:', response.status);
         const errorData = await response.json();
+        console.error('Payment API error details:', errorData);
         throw new Error(errorData.error || "Payment initiation failed");
       }
-      return response.json();
+      
+      const responseData = await response.json();
+      console.log('Payment API response:', responseData);
+      return responseData;
     },
     onSuccess: (data) => {
       if (data.success && data.payment_url) {

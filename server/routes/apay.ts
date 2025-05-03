@@ -102,14 +102,26 @@ router.post('/create-payment', async (req: Request, res: Response) => {
         body: JSON.stringify(paymentPagePayload)
       });
       
-      // Handle the response
-      const paymentResponse = await response.json();
+      // Get full response details first as text
+      const responseText = await response.text();
+      log(`APay API response (${response.status}): ${responseText}`, 'apay');
+      
+      // Try to parse as JSON
+      let paymentResponse;
+      try {
+        paymentResponse = JSON.parse(responseText);
+      } catch (e) {
+        log(`Failed to parse APay API response as JSON: ${e}`, 'apay');
+        throw new Error('Invalid response format from payment provider');
+      }
       
       if (!response.ok || !paymentResponse.success) {
+        // Log detailed error info
+        log(`APay API error: ${JSON.stringify(paymentResponse)}`, 'apay');
         throw new Error(paymentResponse.message || 'Failed to create payment with APay');
       }
       
-      log(`Successfully created payment with APay`, 'apay');
+      log(`Successfully created payment with APay: ${JSON.stringify(paymentResponse)}`, 'apay');
       
       // Return the payment URL to the client
       return res.status(200).json({
