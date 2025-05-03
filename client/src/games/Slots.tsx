@@ -402,19 +402,26 @@ const Slots = () => {
               className={`
                 w-full h-14 text-xl font-bold 
                 bg-[#57fba2] text-black hover:bg-[#4ae090] 
-                rounded-lg shadow-lg mt-4
-                transition-all duration-300 ease-in-out
-                transform hover:scale-105 active:scale-95
-                ${isSpinning ? 'animate-pulse shadow-[0_0_15px_rgba(87,251,162,0.7)]' : 'hover:shadow-[0_0_15px_rgba(87,251,162,0.5)]'}
-                ${!isSpinning && !autoSpin ? 'animate-[bounce_1s_ease-in-out_infinite]' : ''}
+                rounded-lg mt-4
+                transition-all duration-200 ease-in-out
+                relative overflow-hidden
+                ${isSpinning ? 'shadow-[0_0_15px_rgba(87,251,162,0.7)]' : 'hover:shadow-[0_0_15px_rgba(87,251,162,0.8)]'}
               `}
               onClick={autoSpin ? stopAutoSpin : handleSpin}
               disabled={isSpinning}
               style={{
-                textShadow: isSpinning ? '0 0 5px rgba(0,0,0,0.3)' : 'none',
-                boxShadow: '0 4px 0 #3dd985, 0 8px 15px rgba(0,0,0,0.3)',
-                position: 'relative',
-                top: isSpinning ? '4px' : '0',
+                textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                boxShadow: isSpinning ? 
+                  '0 0 20px rgba(87,251,162,0.6), inset 0 0 10px rgba(255,255,255,0.3)' : 
+                  '0 6px 0 #3dd985, 0 8px 10px rgba(0,0,0,0.3)',
+                transform: isSpinning ? 'translateY(3px)' : 'none',
+                backgroundImage: !isSpinning && !autoSpin ? 
+                  'linear-gradient(45deg, #57fba2 0%, #6dffb8 40%, #57fba2 60%, #57fba2 100%)' : 
+                  'none',
+                backgroundSize: !isSpinning && !autoSpin ? '200% auto' : '100%',
+                animation: !isSpinning && !autoSpin ? 
+                  'shine 1.5s ease-in-out infinite alternate' : 
+                  (isSpinning ? 'pulse 1.5s infinite' : 'none'),
               }}
             >
               {isSpinning ? (

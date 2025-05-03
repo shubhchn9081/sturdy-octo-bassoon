@@ -279,6 +279,17 @@
     to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 255, 255, 0.3); }
   }
   
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.85; }
+    100% { opacity: 1; }
+  }
+  
+  @keyframes shine {
+    0% { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+  
   .result-popup {
     backdrop-filter: blur(4px);
     transform-style: preserve-3d;
