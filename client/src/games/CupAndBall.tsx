@@ -19,8 +19,8 @@ import {
 import GameLayout from '@/components/games/GameLayout';
 // Import cup game components directly
 import CupControls from '@/games/cup-and-ball/CupControls';
-// Import the PixiJS implementation which has more reliable animations
-import PixiCupAndBallGame from '@/games/cup-and-ball/PixiCupAndBallGame';
+// Import the basic React implementation with framer-motion animations
+import BasicCupAndBallGame from '@/games/cup-and-ball/BasicCupAndBallGame';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
@@ -249,7 +249,7 @@ const CupAndBall = () => {
   );
   
   const gamePanel = (
-    <PixiCupAndBallGame
+    <BasicCupAndBallGame
       gamePhase={gamePhase}
       ballPosition={ballPosition}
       selectedCup={selectedCup}

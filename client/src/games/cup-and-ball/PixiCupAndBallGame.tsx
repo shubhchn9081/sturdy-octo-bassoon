@@ -112,17 +112,20 @@ const PixiCupAndBallGame: React.FC<CupAndBallGameProps> = ({
   useEffect(() => {
     if (!pixiContainer.current || isInitialized) return;
     
-    // Create app
+    // Create app with forceCanvas to avoid WebGL issues in some environments
     const app = new PIXI.Application({
       width: 800,
       height: 500,
       backgroundColor: 0x123456, // Dark blue background
-      antialias: true
+      antialias: true,
+      forceCanvas: true // Use Canvas renderer instead of WebGL to avoid compatibility issues
     });
     
-    // Add the canvas to the DOM
-    pixiContainer.current.appendChild(app.view as unknown as Node);
-    appRef.current = app;
+    // Add the canvas to the DOM - ensuring we access it correctly
+    if (app.view instanceof HTMLCanvasElement) {
+      pixiContainer.current.appendChild(app.view);
+      appRef.current = app;
+    }
     
     // Create table surface
     const table = new PIXI.Graphics();

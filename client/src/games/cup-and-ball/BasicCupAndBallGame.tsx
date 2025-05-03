@@ -26,7 +26,46 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
 
   // For cup animation during shuffling
   const [animatingCups, setAnimatingCups] = React.useState<boolean>(false);
-  const [moveIndex, setMoveIndex] = React.useState<number>(0);
+  const [animationStep, setAnimationStep] = React.useState<number>(0);
+  const [shuffleSequence, setShuffleSequence] = React.useState<{ type: number, pos1: number, pos2: number }[]>([]);
+  const [cupAnimations, setCupAnimations] = React.useState<{ x: number, y: number, rotate: number }[]>([
+    { x: 0, y: 0, rotate: 0 },
+    { x: 0, y: 0, rotate: 0 },
+    { x: 0, y: 0, rotate: 0 }
+  ]);
+  
+  // Base positions for cups (for animation calculations)
+  const cupBasePositions = [-170, 0, 170];
+  
+  // Visual animation logic - updated every frame for smoother animations
+  React.useEffect(() => {
+    let animationFrame: number;
+    
+    if (gamePhase === 'shuffling' && animatingCups) {
+      // Continuously update visual animations based on current state
+      const updateVisuals = () => {
+        const now = Date.now();
+        const animations = [...cupAnimations];
+        
+        // Apply oscillation effects to all cups
+        for (let i = 0; i < 3; i++) {
+          if (gamePhase === 'shuffling') {
+            // Slight vertical bounce
+            animations[i].y = Math.sin(now / (200 + i * 50)) * 6;
+            
+            // Subtle rotation
+            animations[i].rotate = Math.sin(now / (300 + i * 70)) * 3;
+          }
+        }
+        
+        setCupAnimations(animations);
+        animationFrame = requestAnimationFrame(updateVisuals);
+      };
+      
+      animationFrame = requestAnimationFrame(updateVisuals);
+      return () => cancelAnimationFrame(animationFrame);
+    }
+  }, [gamePhase, animatingCups, cupAnimations]);
 
   // When shuffleMoves change, prepare for animation
   React.useEffect(() => {
@@ -35,60 +74,66 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
       
       // Reset positions at start
       setCupPositions([0, 1, 2]);
-      setMoveIndex(0);
+      setAnimationStep(0);
       
       // Add some extra "bluffing" moves for more confusion
       const extraMoveCount = 
-        difficulty === 'easy' ? 2 : 
-        difficulty === 'medium' ? 4 : 6;
+        difficulty === 'easy' ? 3 : 
+        difficulty === 'medium' ? 5 : 8;
       
       // Create all moves including bluffing moves
       const allMoves = [...shuffleMoves];
       for (let i = 0; i < extraMoveCount; i++) {
         const randomMove = Math.floor(Math.random() * 3);
-        const randomPosition = Math.floor(Math.random() * allMoves.length);
+        const randomPosition = Math.floor(Math.random() * (allMoves.length + 1));
         allMoves.splice(randomPosition, 0, randomMove);
       }
+      
+      // Create sequence of cup swaps from the moves
+      const sequence = allMoves.map(moveType => {
+        let pos1, pos2;
+        
+        if (moveType === 0) {
+          pos1 = 0;
+          pos2 = 1;
+        } else if (moveType === 1) {
+          pos1 = 1;
+          pos2 = 2;
+        } else {
+          pos1 = 0;
+          pos2 = 2;
+        }
+        
+        return { type: moveType, pos1, pos2 };
+      });
+      
+      setShuffleSequence(sequence);
       
       // Start animation sequence
       setAnimatingCups(true);
       
-      // Schedule animation for each move
+      // Process the animation sequence
       const animateShuffles = async () => {
         let currentPositions = [...cupPositions];
         
         // Animate each move in sequence
-        for (let i = 0; i < allMoves.length; i++) {
-          const moveType = allMoves[i];
+        for (let i = 0; i < sequence.length; i++) {
+          // Wait a bit before each move
+          const move = sequence[i];
           
-          // Determine which cup positions to swap based on moveType
-          let pos1, pos2;
+          // Update visual state to show which cups are moving
+          setAnimationStep(i);
           
-          if (moveType === 0) {
-            pos1 = 0;
-            pos2 = 1;
-          } else if (moveType === 1) {
-            pos1 = 1;
-            pos2 = 2;
-          } else {
-            pos1 = 0;
-            pos2 = 2;
-          }
+          // Swap cup positions
+          const temp = currentPositions[move.pos1];
+          currentPositions[move.pos1] = currentPositions[move.pos2];
+          currentPositions[move.pos2] = temp;
           
-          // Update move index to trigger animation
-          setMoveIndex(i);
-          
-          // Swap the cups in our tracker
-          const temp = currentPositions[pos1];
-          currentPositions[pos1] = currentPositions[pos2];
-          currentPositions[pos2] = temp;
-          
-          // Wait for animation to complete before next move
           // Duration varies by difficulty
-          const duration = difficulty === 'easy' ? 600 : 
-                          difficulty === 'medium' ? 450 : 300;
+          const duration = difficulty === 'easy' ? 550 : 
+                          difficulty === 'medium' ? 400 : 300;
           
-          // Update positions after animation
+          // Wait for animation to complete
           await new Promise(resolve => setTimeout(() => {
             setCupPositions([...currentPositions]);
             resolve(null);
@@ -161,48 +206,78 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
       // After shuffling, the ball is under the cup with the matching index
       showBall = cupIndex === ballPosition;
     }
-                 
-    console.log(`Rendering cup at position ${position}, cupIndex: ${cupIndex}, ballPosition: ${ballPosition}, showBall: ${showBall}`);
     
+    // Determine if this cup is involved in the current shuffle move
+    let isAnimatingThisCup = false;
+    let swapPartner = -1;
+    
+    if (gamePhase === 'shuffling' && animatingCups && shuffleSequence.length > 0) {
+      // Get the current move in the sequence
+      const currentMoveIndex = Math.min(animationStep, shuffleSequence.length - 1);
+      
+      // Make sure we have a valid move at this index
+      if (currentMoveIndex >= 0 && currentMoveIndex < shuffleSequence.length) {
+        const currentMove = shuffleSequence[currentMoveIndex];
+        
+        // Check if this cup is involved in the current move
+        if (position === currentMove.pos1) {
+          isAnimatingThisCup = true;
+          swapPartner = currentMove.pos2;
+        } else if (position === currentMove.pos2) {
+          isAnimatingThisCup = true;
+          swapPartner = currentMove.pos1;
+        }
+      }
+    }
+    
+    // Calculate base x-position for each cup position
+    const baseX = position === 0 ? -170 : position === 1 ? 0 : 170;
+    
+    // Handle selection interactivity
     const canSelect = gamePhase === 'selecting';
     
-    // Determine the current movement type for animation
-    // For shuffling animation, use a sine wave pattern for cup movements
-    const moveType = moveIndex % 3; // 0, 1, or 2
+    // Get animation properties for this cup
+    const animation = cupAnimations[position];
     
     return (
       <div className="flex flex-col items-center">
         <motion.div
           key={`cup-${position}-${cupIndex}`}
           className={`relative cursor-pointer ${canSelect ? 'hover:opacity-80' : ''} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-          initial={{ x: 0, y: 0, scale: 1, rotate: 0 }}
+          initial={{ x: baseX, y: 0, scale: 1, rotate: 0 }}
           animate={{ 
-            // For shuffling animation, interpolate x position
-            x: gamePhase === 'shuffling' ? 
-               (position === 0 ? -170 : position === 1 ? 0 : 170) : 0,
+            // Position cups horizontally
+            x: baseX,
             
-            // Lift the cup containing the ball when revealing
+            // Vertical position - lift when revealing or bounce during shuffling
             y: (gamePhase === 'revealing' || gamePhase === 'complete') && 
-               ballPosition === cupIndex ? -80 : 
-               // Add a slight bounce during shuffling
+               ballPosition === cupIndex ? -80 : // Lift to reveal ball
                gamePhase === 'shuffling' ? 
-               Math.sin(Date.now() / 200) * 10 : 0,
+                  (isAnimatingThisCup ? 
+                   Math.sin(Date.now() / 200) * 15 : // Bigger bounce for active cups
+                   animation.y) : // Regular animation for others
+               0, // Default - no vertical offset
             
-            // Scale effect for selection
-            scale: isSelected ? 1.05 : 
-                  // Add subtle scale animation during shuffling
+            // Scale effect
+            scale: isSelected ? 1.05 : // Highlight selected cup
                   gamePhase === 'shuffling' ? 
-                  1 + Math.sin(Date.now() / 300) * 0.05 : 1,
+                    (isAnimatingThisCup ? 
+                     1 + Math.sin(Date.now() / 250) * 0.08 : // Larger scale pulse for active cups
+                     1 + Math.sin(Date.now() / 300) * 0.03) : // Subtle scale for others
+                  1, // Default - normal scale
             
-            // Add slight rotation during shuffling
+            // Rotation animation
             rotate: gamePhase === 'shuffling' ? 
-                   Math.sin(Date.now() / 250 + position) * 5 : 0
+                     (isAnimatingThisCup ? 
+                      Math.sin(Date.now() / 200) * 8 : // More rotation for active cups
+                      animation.rotate) : // Use calculated rotations
+                    0, // Default - no rotation
           }}
           transition={{ 
-            type: 'spring', 
-            stiffness: 300, 
-            damping: 20,
-            duration: 0.3
+            type: gamePhase === 'shuffling' && isAnimatingThisCup ? 'spring' : 'tween',
+            stiffness: 200,
+            damping: 15,
+            duration: 0.4
           }}
           onClick={() => {
             if (canSelect) {
@@ -213,19 +288,28 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
         >
           {/* Cup */}
           <div className="w-32 h-40 relative">
-            <div className="absolute bottom-0 w-full h-32 bg-gradient-to-b from-orange-700 to-orange-900 rounded-b-lg rounded-t-xl transform-gpu"></div>
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-orange-600 rounded-t-xl"></div>
-            <div className="absolute right-0 top-12 w-6 h-16 bg-orange-800 rounded-r-full"></div>
+            {/* Cup body with gradient */}
+            <div className="absolute bottom-0 w-full h-32 bg-gradient-to-b from-orange-600 to-orange-900 rounded-b-lg rounded-t-xl transform-gpu shadow-lg"></div>
             
-            {/* Cup shadow */}
+            {/* Cup rim */}
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-orange-500 rounded-t-xl"></div>
+            
+            {/* Cup handle */}
+            <div className="absolute right-0 top-12 w-6 h-16 bg-orange-700 rounded-r-full"></div>
+            
+            {/* Cup shadow - more pronounced */}
             <div 
-              className="absolute -bottom-4 left-1/2 w-24 h-4 bg-black opacity-30 rounded-full blur-sm" 
+              className="absolute -bottom-4 left-1/2 w-28 h-5 bg-black opacity-30 rounded-full blur-md" 
               style={{ transform: 'translateX(-50%)' }}
             />
+            
+            {/* Cup highlights for 3D effect */}
+            <div className="absolute bottom-4 left-2 w-1 h-20 bg-white opacity-10 rounded-full"></div>
+            <div className="absolute bottom-4 right-2 w-1 h-20 bg-black opacity-10 rounded-full"></div>
           </div>
           
           {/* Number indicator */}
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ring-1 ring-slate-500">
             {position + 1}
           </div>
         </motion.div>
@@ -235,9 +319,20 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
           <motion.div
             className="w-16 h-16 bg-red-500 rounded-full shadow-lg mt-4"
             initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          />
+            animate={{ 
+              opacity: 1, 
+              scale: 1 
+            }}
+            transition={{ 
+              type: "spring",
+              stiffness: 300,
+              damping: 15,
+              duration: 0.4 
+            }}
+          >
+            {/* Ball highlight for 3D effect */}
+            <div className="absolute top-3 left-3 w-4 h-4 bg-white opacity-30 rounded-full"></div>
+          </motion.div>
         )}
       </div>
     );
