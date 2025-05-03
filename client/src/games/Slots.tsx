@@ -24,7 +24,7 @@ const Slots = () => {
   const { toast } = useToast();
   
   // Game state
-  const [betAmount, setBetAmount] = useState<number>(1);
+  const [betAmount, setBetAmount] = useState<number>(100); // Default bet amount to match our presets
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [autoSpin, setAutoSpin] = useState<boolean>(false);
   const [spinResults, setSpinResults] = useState<SpinResult | null>(null);
@@ -142,36 +142,125 @@ const Slots = () => {
     }
   };
   
-  // Animate slot machine reels with staggered stopping
+  // Animate slot machine reels with staggered stopping and improved visual effects
   const animateReels = async (finalValues: number[]) => {
     return new Promise<void>((resolve) => {
       // Create temporary values array for animation
       let tempValues = [...reelValues];
       
-      // Define animation durations for each reel
-      const spinDurations = [1000, 1500, 2000]; // First reel stops first, last reel stops last
+      // Define animation durations for each reel - longer for more dramatic effect
+      const spinDurations = [1500, 2200, 2800]; // First reel stops first, last reel stops last
       
-      // Spin animation for each reel with staggered stopping
+      // Create audio context for slot sound (if enabled in the browser)
+      let slotSound: HTMLAudioElement | null = null;
+      try {
+        slotSound = new Audio();
+        slotSound.volume = 0.3;
+        slotSound.loop = true;
+      } catch (e) {
+        console.warn("Audio not supported in this browser");
+      }
+      
+      // Start the slot machine sound
+      if (slotSound) {
+        slotSound.play().catch(err => console.warn("Could not play audio", err));
+      }
+      
+      // Animation speed varies during the animation for more realistic effect
+      const animationIntervals = [
+        { duration: 60, count: 10 },  // Fast at start
+        { duration: 80, count: 15 },  // Slightly slower
+        { duration: 120, count: 10 }, // Even slower near the end
+      ];
+      
+      // Spin animation for each reel with staggered stopping and varying speeds
       for (let i = 0; i < 3; i++) {
-        // Start rapid number changes to simulate spinning
-        const spinInterval = setInterval(() => {
-          tempValues = [...tempValues];
-          tempValues[i] = Math.floor(Math.random() * 10);
-          setReelValues(tempValues);
-        }, 100);
+        let intervalIndex = 0;
+        let currentInterval: NodeJS.Timeout | null = null;
+        let count = 0;
         
-        // After the spin duration, stop this reel on its final value
-        setTimeout(() => {
-          clearInterval(spinInterval);
-          tempValues = [...tempValues];
-          tempValues[i] = finalValues[i];
-          setReelValues(tempValues);
+        // Function to create the next interval with different timing
+        const createNextInterval = () => {
+          const config = animationIntervals[intervalIndex];
           
-          // When last reel stops, resolve the promise
-          if (i === 2) {
-            setTimeout(resolve, 500); // Give a moment to see the final result
-          }
-        }, spinDurations[i]);
+          // Clear any existing interval
+          if (currentInterval) clearInterval(currentInterval);
+          
+          // Create a new interval with the current speed
+          currentInterval = setInterval(() => {
+            // Update the values with a random number
+            tempValues = [...tempValues];
+            tempValues[i] = Math.floor(Math.random() * 10);
+            setReelValues(tempValues);
+            
+            count++;
+            
+            // Move to next interval configuration after enough iterations
+            if (count >= config.count && intervalIndex < animationIntervals.length - 1) {
+              intervalIndex++;
+              count = 0;
+              createNextInterval();
+            }
+          }, animationIntervals[intervalIndex].duration);
+        };
+        
+        // Start the first interval for this reel
+        createNextInterval();
+        
+        // After the main spin duration, add a "slowing down" effect before stopping
+        setTimeout(() => {
+          // Clear the current interval
+          if (currentInterval) clearInterval(currentInterval);
+          
+          // Create a final slowing down effect
+          let slowDownInterval = 150;
+          let slowDownCount = 0;
+          const finalSlowDown = setInterval(() => {
+            tempValues = [...tempValues];
+            tempValues[i] = Math.floor(Math.random() * 10);
+            setReelValues(tempValues);
+            
+            slowDownCount++;
+            // Gradually increase the interval to simulate slowing down
+            if (slowDownCount >= 3) {
+              clearInterval(finalSlowDown);
+              
+              // Set the final value with a visible "snap" effect using GSAP
+              tempValues = [...tempValues];
+              tempValues[i] = finalValues[i];
+              setReelValues(tempValues);
+              
+              // Apply a small bounce effect to the final value for a more satisfying stop
+              const reelElements = document.querySelectorAll(`.slot-reel-${i}`);
+              if (reelElements.length > 0) {
+                gsap.fromTo(
+                  reelElements[0], 
+                  { y: -10, opacity: 0.7 }, 
+                  { y: 0, opacity: 1, duration: 0.3, ease: "bounce.out" }
+                );
+              }
+              
+              // When the last reel stops, resolve the promise and stop the sound
+              if (i === 2) {
+                if (slotSound) {
+                  // Fade out the sound
+                  const fadeOutInterval = setInterval(() => {
+                    if (slotSound && slotSound.volume > 0.05) {
+                      slotSound.volume -= 0.05;
+                    } else {
+                      clearInterval(fadeOutInterval);
+                      if (slotSound) slotSound.pause();
+                    }
+                  }, 50);
+                }
+                
+                // Delay the resolve to allow for the bounce effect to complete
+                setTimeout(resolve, 600);
+              }
+            }
+          }, slowDownInterval);
+          
+        }, spinDurations[i] - 400); // Start slowing down a bit before the duration ends
       }
     });
   };

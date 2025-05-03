@@ -42,12 +42,12 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
             borderRadius: '0.375rem' 
           }}></div>
           
-          {/* The three reels */}
-          <div className="flex justify-center items-center space-x-4 h-32">
+          {/* The three reels - improved for animation and mobile support */}
+          <div className="flex justify-center items-center space-x-4 h-32 sm:h-40">
             {reelValues.map((value, index) => (
               <div 
-                key={index} 
-                className={`w-24 h-24 flex items-center justify-center text-4xl font-bold rounded-md ${
+                key={index}
+                className={`slot-reel-${index} w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center text-3xl sm:text-4xl font-bold rounded-md transform transition-all duration-150 ${
                   isSpinning 
                     ? 'bg-[#0E1C27] animate-pulse' 
                     : isLuckyNumber(value)
@@ -74,7 +74,12 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
                     {value}
                   </motion.div>
                 ) : (
-                  <span className={`${spinResults?.win ? 'text-green-200' : 'text-white'}`}>
+                  <span className={`${
+                    isSpinning 
+                      ? 'text-white blur-[0.5px]' 
+                      : spinResults?.win 
+                      ? 'text-green-200' 
+                      : 'text-white'}`}>
                     {value}
                   </span>
                 )}
