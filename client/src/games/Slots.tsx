@@ -277,8 +277,8 @@ const Slots = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#0F212E] text-white">
-      <div className="flex-1 overflow-auto pb-[280px] sm:pb-[240px] md:pb-[220px]">
-        <div className="bg-[#0E1C27] rounded-lg p-2 sm:p-4 mx-auto max-w-4xl">
+      <div className="flex-1 overflow-auto pb-[200px] sm:pb-[180px]">
+        <div className="bg-[#0E1C27] rounded-lg p-2 mx-auto max-w-md">
           {/* Main slot machine component */}
           <SlotMachine 
             reelValues={reelValues} 
@@ -286,18 +286,11 @@ const Slots = () => {
             spinResults={spinResults}
             luckyNumber={luckyNumber}
           />
-          
-          {/* Lucky number reminder */}
-          <div className="mt-3 text-center">
-            <span className="text-white">Your lucky number is </span>
-            <span className="text-yellow-300 font-bold">{luckyNumber}</span>
-            <span className="text-white"> (10× win if it appears!)</span>
-          </div>
         </div>
       </div>
       
-      {/* Betting panel fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0E1C27] border-t border-[#1D2F3D] p-2 sm:p-4">
+      {/* Betting panel fixed at bottom - compact design */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#0E1C27] border-t border-[#1D2F3D] p-2">
         <BettingPanel
           balance={balance}
           betAmount={betAmount}

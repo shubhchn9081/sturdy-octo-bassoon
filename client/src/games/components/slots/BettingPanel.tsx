@@ -82,17 +82,16 @@ const BettingPanel = ({
   });
   
   return (
-    <div className="flex flex-col gap-4 max-w-4xl mx-auto">
+    <div className="flex flex-col gap-2 max-w-md mx-auto">
       {/* Error message */}
       {error && (
-        <Alert variant="destructive" className="mb-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+        <Alert variant="destructive" className="mb-1 py-1">
+          <AlertCircle className="h-3 w-3" />
+          <AlertDescription className="text-xs">{error}</AlertDescription>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="absolute top-2 right-2"
+            className="absolute top-0 right-0 h-6 w-6"
             onClick={clearError}
           >
             ✕
@@ -111,33 +110,45 @@ const BettingPanel = ({
         </div>
       )}
       
-      {/* Betting controls at top */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      {/* Betting controls at top - more compact */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
         {/* Bet amount & presets */}
-        <div className="space-y-2">
-          <Label htmlFor="betAmount">Bet Amount</Label>
-          <div className="flex space-x-2">
-            <Input
-              id="betAmount"
-              type="number"
-              min="100"
-              step="100"
-              value={localBetAmount}
-              onChange={handleBetAmountChange}
-              onBlur={handleBetAmountBlur}
-              className="w-full"
-              disabled={isSpinning}
-            />
+        <div className="space-y-1">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="betAmount" className="text-sm">Bet Amount</Label>
+            
+            <div className="flex items-center gap-1">
+              <Label htmlFor="autoSpin" className="text-sm mr-1">Auto</Label>
+              <Switch
+                id="autoSpin"
+                checked={autoSpin}
+                onCheckedChange={setAutoSpin}
+                disabled={isSpinning}
+                className="scale-75"
+              />
+            </div>
           </div>
           
+          <Input
+            id="betAmount"
+            type="number"
+            min="100"
+            step="100"
+            value={localBetAmount}
+            onChange={handleBetAmountChange}
+            onBlur={handleBetAmountBlur}
+            className="w-full h-8"
+            disabled={isSpinning}
+          />
+          
           {/* Preset amounts */}
-          <div className="grid grid-cols-4 gap-2 mt-2">
+          <div className="grid grid-cols-4 gap-1 mt-1">
             {presetAmounts.map((amount) => (
               <Button
                 key={amount}
                 variant="outline"
                 size="sm"
-                className="text-xs py-1"
+                className="text-xs py-0 h-6"
                 onClick={() => handlePresetClick(amount)}
                 disabled={isSpinning}
               >
@@ -147,34 +158,22 @@ const BettingPanel = ({
           </div>
         </div>
         
-        {/* Lucky number and Auto-spin */}
-        <div className="space-y-3">
-          <div>
-            <Label htmlFor="luckyNumber">Lucky Number (10× Win!)</Label>
-            <Select
-              value={luckyNumber.toString()}
-              onValueChange={(value) => setLuckyNumber(parseInt(value))}
-              disabled={isSpinning}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select your lucky number" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 10 }, (_, i) => (
-                  <SelectItem key={i} value={i.toString()}>{i}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center justify-between mt-2">
-            <Label htmlFor="autoSpin">Auto Spin</Label>
-            <Switch
-              id="autoSpin"
-              checked={autoSpin}
-              onCheckedChange={setAutoSpin}
-              disabled={isSpinning}
-            />
+        {/* Lucky number selection */}
+        <div className="space-y-1">
+          <Label htmlFor="luckyNumber" className="text-sm">Lucky Number (10× Win!)</Label>
+          <div className="flex space-x-1">
+            {Array.from({ length: 10 }, (_, i) => (
+              <Button
+                key={i}
+                variant={luckyNumber === i ? "secondary" : "outline"}
+                size="sm"
+                className={`text-xs py-0 h-8 flex-1 ${luckyNumber === i ? 'bg-yellow-800 text-yellow-300' : ''}`}
+                onClick={() => setLuckyNumber(i)}
+                disabled={isSpinning}
+              >
+                {i}
+              </Button>
+            ))}
           </div>
         </div>
       </div>

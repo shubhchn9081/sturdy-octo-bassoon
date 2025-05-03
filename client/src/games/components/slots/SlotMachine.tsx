@@ -29,25 +29,25 @@ const SlotMachine = ({ reelValues, isSpinning, spinResults, luckyNumber }: SlotM
   return (
     <div className="relative">
       {/* The slot machine body with glass front */}
-      <div className="w-full max-w-lg mx-auto bg-gradient-to-b from-[#1D2F3D] to-[#0A1822] p-6 rounded-lg shadow-lg border border-[#3A4F61]">
-        <div className="text-center mb-4">
+      <div className="w-full max-w-md mx-auto bg-gradient-to-b from-[#1D2F3D] to-[#0A1822] p-4 rounded-lg shadow-lg border border-[#3A4F61]">
+        <div className="text-center mb-2">
           <h2 className="font-bold text-2xl text-white">SLOTS</h2>
           <p className="text-sm text-blue-300">Win up to 10× your bet!</p>
         </div>
         
         {/* Slot reels container with glass effect */}
-        <div className="bg-[#0A1520] p-4 rounded-md border border-[#2A3F51] mb-4 relative overflow-hidden">
+        <div className="bg-[#0A1520] p-3 rounded-md border border-[#2A3F51] mb-2 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" style={{ 
             background: 'linear-gradient(130deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%)', 
             borderRadius: '0.375rem' 
           }}></div>
           
           {/* The three reels - improved for animation and mobile support */}
-          <div className="flex justify-center items-center space-x-4 h-32 sm:h-40">
+          <div className="flex justify-center items-center space-x-3 h-28 sm:h-32">
             {reelValues.map((value, index) => (
               <div 
                 key={index}
-                className={`slot-reel-${index} w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center text-3xl sm:text-4xl font-bold rounded-md transform transition-all duration-150 ${
+                className={`slot-reel-${index} w-[72px] h-[72px] sm:w-[80px] sm:h-[80px] flex items-center justify-center text-4xl sm:text-5xl font-bold rounded-md transform transition-all duration-150 ${
                   isSpinning 
                     ? 'bg-[#0E1C27] animate-pulse' 
                     : isLuckyNumber(value)
