@@ -6,9 +6,9 @@ import json
 import datetime
 from psycopg2.extras import Json
 
-# Configuration - process next 20 users
-START_INDEX = 40  # Continue from where we left off
-MAX_USERS = 20    # Only process this many users
+# Configuration - process next 10 users (smaller batch for reliability)
+START_INDEX = 60  # Continue from where we left off
+MAX_USERS = 10    # Only process this many users
 
 # Get the database URL from environment variable
 db_url = os.environ.get('DATABASE_URL')
