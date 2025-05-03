@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useAuth } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { useWallet } from '@/context/WalletContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
