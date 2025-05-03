@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
 import { processSlotBet } from '../games/slots';
-import { generateHash } from '../lib/crypto';
+import { createServerSeed, hashServerSeed } from '../games/provably-fair';
 
 const router = Router();
 
@@ -60,7 +60,8 @@ router.post('/play', async (req: Request, res: Response) => {
     }
     
     // Generate server seed and nonce
-    const serverSeed = generateHash(Date.now().toString() + Math.random().toString());
+    const serverSeed = createServerSeed();
+    const hashedServerSeed = hashServerSeed(serverSeed);
     const nonce = Math.floor(Math.random() * 1000000);
     
     // Process the bet
