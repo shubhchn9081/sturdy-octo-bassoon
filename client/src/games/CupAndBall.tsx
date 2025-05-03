@@ -265,6 +265,8 @@ const CupAndBall = () => {
       title="Cup and Ball"
       controlsPanel={controlsPanel}
       gamePanel={gamePanel}
+      isMobileFriendly={true}
+      mobileFirst={true}
     />
   );
 };

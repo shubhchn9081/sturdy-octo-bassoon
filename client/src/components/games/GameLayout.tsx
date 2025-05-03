@@ -109,14 +109,53 @@ type GameLayoutProps = {
   controlsPanel: ReactNode;
   gamePanel: ReactNode;
   className?: string;
+  isMobileFriendly?: boolean;
+  mobileFirst?: boolean;
 };
 
 const GameLayout = ({
   title,
   controlsPanel,
   gamePanel,
-  className
+  className,
+  isMobileFriendly = false,
+  mobileFirst = false
 }: GameLayoutProps) => {
+  const [showControls, setShowControls] = React.useState(!mobileFirst);
+
+  if (isMobileFriendly) {
+    return (
+      <div className="bg-[#0F212E] min-h-screen text-white">
+        {/* Mobile Layout */}
+        <div className="md:hidden flex flex-col">
+          {/* Game Panel always displayed first on mobile */}
+          <div className="w-full">
+            {gamePanel}
+          </div>
+
+          {/* Controls Panel */}
+          <div className="w-full bg-[#172B3A]">
+            {controlsPanel}
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden md:flex">
+          {/* Left Panel (Controls) */}
+          <div className="w-64 bg-[#172B3A] p-4">
+            {controlsPanel}
+          </div>
+          
+          {/* Right Panel (Game) */}
+          <div className="flex-1 p-6">
+            {gamePanel}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Standard Desktop Layout
   return (
     <div className="bg-[#0F212E] min-h-screen text-white">
       <div className="flex">

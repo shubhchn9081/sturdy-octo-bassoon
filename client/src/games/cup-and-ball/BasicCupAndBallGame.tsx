@@ -187,7 +187,7 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
     return startPos + (endPos - startPos) * progress;
   };
 
-  // Render a cup with its contents
+  // Render a cup with its contents - mobile optimized
   const renderCup = (position: number) => {
     // The cup index is the value at the position in the positions array
     const cupIndex = cupPositions[position];
@@ -230,8 +230,8 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
       }
     }
     
-    // Calculate base x-position for each cup position
-    const baseX = position === 0 ? -170 : position === 1 ? 0 : 170;
+    // Calculate base x-position for each cup position - scaled for mobile
+    const baseX = position === 0 ? -85 : position === 1 ? 0 : 85; 
     
     // Handle selection interactivity
     const canSelect = gamePhase === 'selecting';
@@ -243,33 +243,33 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
       <div className="flex flex-col items-center">
         <motion.div
           key={`cup-${position}-${cupIndex}`}
-          className={`relative cursor-pointer ${canSelect ? 'hover:opacity-80' : ''} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+          className={`relative cursor-pointer ${canSelect ? 'active:opacity-80' : ''} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
           initial={{ x: baseX, y: 0, scale: 1, rotate: 0 }}
           animate={{ 
-            // Position cups horizontally
+            // Position cups horizontally - mobile-friendly spacing
             x: baseX,
             
             // Vertical position - lift when revealing or bounce during shuffling
             y: (gamePhase === 'revealing' || gamePhase === 'complete') && 
-               ballPosition === cupIndex ? -80 : // Lift to reveal ball
+               ballPosition === cupIndex ? -50 : // Lift to reveal ball (smaller for mobile)
                gamePhase === 'shuffling' ? 
                   (isAnimatingThisCup ? 
-                   Math.sin(Date.now() / 200) * 15 : // Bigger bounce for active cups
+                   Math.sin(Date.now() / 200) * 12 : // Bounce for active cups
                    animation.y) : // Regular animation for others
                0, // Default - no vertical offset
             
-            // Scale effect
+            // Scale effect - smaller values for mobile
             scale: isSelected ? 1.05 : // Highlight selected cup
                   gamePhase === 'shuffling' ? 
                     (isAnimatingThisCup ? 
-                     1 + Math.sin(Date.now() / 250) * 0.08 : // Larger scale pulse for active cups
-                     1 + Math.sin(Date.now() / 300) * 0.03) : // Subtle scale for others
+                     1 + Math.sin(Date.now() / 250) * 0.06 : // Scale pulse for active cups
+                     1 + Math.sin(Date.now() / 300) * 0.02) : // Subtle scale for others
                   1, // Default - normal scale
             
-            // Rotation animation
+            // Rotation animation - smaller values for mobile
             rotate: gamePhase === 'shuffling' ? 
                      (isAnimatingThisCup ? 
-                      Math.sin(Date.now() / 200) * 8 : // More rotation for active cups
+                      Math.sin(Date.now() / 200) * 6 : // Rotation for active cups
                       animation.rotate) : // Use calculated rotations
                     0, // Default - no rotation
           }}
@@ -286,38 +286,38 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
             }
           }}
         >
-          {/* Cup */}
-          <div className="w-32 h-40 relative">
+          {/* Cup - mobile optimized sizes */}
+          <div className="w-20 h-24 md:w-28 md:h-36 relative">
             {/* Cup body with gradient */}
-            <div className="absolute bottom-0 w-full h-32 bg-gradient-to-b from-orange-600 to-orange-900 rounded-b-lg rounded-t-xl transform-gpu shadow-lg"></div>
+            <div className="absolute bottom-0 w-full h-20 md:h-28 bg-gradient-to-b from-orange-600 to-orange-900 rounded-b-lg rounded-t-xl transform-gpu shadow-lg"></div>
             
             {/* Cup rim */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-orange-500 rounded-t-xl"></div>
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-10 md:w-14 h-4 md:h-6 bg-orange-500 rounded-t-xl"></div>
             
             {/* Cup handle */}
-            <div className="absolute right-0 top-12 w-6 h-16 bg-orange-700 rounded-r-full"></div>
+            <div className="absolute right-0 top-8 w-3 md:w-4 h-10 md:h-12 bg-orange-700 rounded-r-full"></div>
             
             {/* Cup shadow - more pronounced */}
             <div 
-              className="absolute -bottom-4 left-1/2 w-28 h-5 bg-black opacity-30 rounded-full blur-md" 
+              className="absolute -bottom-2 left-1/2 w-16 md:w-20 h-3 bg-black opacity-30 rounded-full blur-md" 
               style={{ transform: 'translateX(-50%)' }}
             />
             
             {/* Cup highlights for 3D effect */}
-            <div className="absolute bottom-4 left-2 w-1 h-20 bg-white opacity-10 rounded-full"></div>
-            <div className="absolute bottom-4 right-2 w-1 h-20 bg-black opacity-10 rounded-full"></div>
+            <div className="absolute bottom-3 left-2 w-0.5 h-12 bg-white opacity-10 rounded-full"></div>
+            <div className="absolute bottom-3 right-2 w-0.5 h-12 bg-black opacity-10 rounded-full"></div>
           </div>
           
-          {/* Number indicator */}
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ring-1 ring-slate-500">
+          {/* Number indicator - mobile optimized */}
+          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 bg-slate-700 text-white w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-xs font-bold ring-1 ring-slate-500">
             {position + 1}
           </div>
         </motion.div>
         
-        {/* Ball shown when needed */}
+        {/* Ball shown when needed - mobile optimized */}
         {showBall && (
           <motion.div
-            className="w-16 h-16 bg-red-500 rounded-full shadow-lg mt-4"
+            className="w-10 h-10 md:w-14 md:h-14 bg-red-500 rounded-full shadow-lg mt-2 md:mt-3"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ 
               opacity: 1, 
@@ -331,7 +331,7 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
             }}
           >
             {/* Ball highlight for 3D effect */}
-            <div className="absolute top-3 left-3 w-4 h-4 bg-white opacity-30 rounded-full"></div>
+            <div className="absolute top-2 left-2 w-3 h-3 bg-white opacity-30 rounded-full"></div>
           </motion.div>
         )}
       </div>
@@ -339,54 +339,56 @@ const BasicCupAndBallGame: React.FC<CupAndBallGameProps> = ({
   };
   
   return (
-    <div className="relative flex flex-col items-center justify-center h-full min-h-[500px]">
-      {/* Game phase text */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-lg font-bold mb-8">
-        {gamePhase === 'initial' && 'Watch the ball placement...'}
-        {gamePhase === 'shuffling' && 'Cups are shuffling...'}
-        {gamePhase === 'selecting' && 'Select a cup!'}
-        {gamePhase === 'revealing' && 'Revealing...'}
-        {gamePhase === 'complete' && gameResult && (
-          <div className={`flex items-center ${gameResult.win ? 'text-green-500' : 'text-red-500'}`}>
-            {gameResult.win ? (
-              <>
-                <CheckCircle className="mr-2" />
-                You won {gameResult.profit.toFixed(2)}!
-              </>
-            ) : (
-              <>
-                <XCircle className="mr-2" />
-                You lost!
-              </>
-            )}
-          </div>
-        )}
+    <div className="relative flex flex-col items-center justify-center h-full w-full max-w-md mx-auto px-2">
+      {/* Game phase text - mobile optimized with smaller text */}
+      <div className="text-center my-2 h-8">
+        <p className="text-base md:text-lg font-bold">
+          {gamePhase === 'initial' && 'Watch the ball placement...'}
+          {gamePhase === 'shuffling' && 'Cups are shuffling...'}
+          {gamePhase === 'selecting' && 'Select a cup!'}
+          {gamePhase === 'revealing' && 'Revealing...'}
+          {gamePhase === 'complete' && gameResult && (
+            <span className={`inline-flex items-center ${gameResult.win ? 'text-green-500' : 'text-red-500'}`}>
+              {gameResult.win ? (
+                <>
+                  <CheckCircle className="mr-1 h-4 w-4" />
+                  You won {gameResult.profit.toFixed(2)}!
+                </>
+              ) : (
+                <>
+                  <XCircle className="mr-1 h-4 w-4" />
+                  You lost!
+                </>
+              )}
+            </span>
+          )}
+        </p>
       </div>
       
-      {/* Game surface */}
-      <div className="relative w-full bg-[#1B3549] rounded-xl p-12 shadow-xl flex-1 flex items-center justify-center">
-        <div className="flex space-x-16 justify-center items-end">
-          {/* Render the three cups */}
+      {/* Game surface - mobile optimized with less padding */}
+      <div className="relative w-full bg-[#1B3549] rounded-lg p-4 md:p-8 shadow-xl flex-1 flex items-center justify-center min-h-[250px] md:min-h-[350px]">
+        <div className="flex justify-center items-end gap-2 md:gap-8 w-full">
+          {/* Render the three cups - with scaled sizes for mobile */}
           {renderCup(0)}
           {renderCup(1)}
           {renderCup(2)}
         </div>
         
         {/* Table surface with wood texture */}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#1B3549] to-[#0F212E] rounded-xl">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#1B3549] to-[#0F212E] rounded-lg">
           <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuXyEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgcGF0dGVyblRyYW5zZm9ybT0icm90YXRlKDQ1KSI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjUiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuXyEpIi8+PC9zdmc+')]"></div>
         </div>
       </div>
       
-      {/* Game instructions */}
-      <div className="mt-8 text-center text-slate-300">
-        <h3 className="font-bold text-lg mb-2">How to Play</h3>
-        <p>Watch where the ball is placed, follow the cups as they shuffle, then select the cup you think contains the ball.</p>
-        <p className="mt-2">
+      {/* Game instructions - mobile optimized with smaller text */}
+      <div className="mt-3 text-center text-slate-300 text-sm md:text-base px-2 max-w-full">
+        <h3 className="font-bold mb-1">How to Play</h3>
+        <p className="text-xs md:text-sm">Watch where the ball is placed, follow the cups as they shuffle, then select the cup with the ball.</p>
+        <p className="mt-1 text-xs md:text-sm">
           <span className="font-bold">Difficulty:</span> {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} 
-          {difficulty === 'easy' ? ' - 5 shuffles (1.5x payout)' : 
-           difficulty === 'medium' ? ' - 10 shuffles (2x payout)' : 
-           ' - 15 shuffles (3x payout)'}
+          {difficulty === 'easy' ? ' (1.5x payout)' : 
+           difficulty === 'medium' ? ' (2x payout)' : 
+           ' (3x payout)'}
         </p>
       </div>
     </div>
