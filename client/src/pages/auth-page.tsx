@@ -16,6 +16,8 @@ import { z } from "zod";
 import { Redirect } from "wouter";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import NovitoLogo from "@/components/NovitoLogo";
+import { Shield, Lock, CheckCircle, Award, Clock, Users, Globe, UserCheck } from "lucide-react";
+import { SiVisa, SiMastercard, SiPaypal, SiBitcoin, SiEthereum } from "react-icons/si";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -81,244 +83,341 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
-      {/* Hero Section */}
-      <div className="flex-1 bg-primary/10 p-6 sm:p-10 flex flex-col justify-center items-center text-center lg:text-left lg:items-start">
-        <div className="max-w-xl">
-          <div className="mb-8 flex justify-center lg:justify-start">
-            <NovitoLogo className="w-40 sm:w-56 md:w-64 mb-4 text-5xl" />
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/95">
+      {/* Top Section with Logo and Stats */}
+      <div className="bg-background/90 backdrop-blur-sm py-4 px-6 flex justify-between items-center border-b border-primary/20">
+        <div className="relative">
+          <NovitoLogo className="w-28 sm:w-32 text-3xl" />
+          <div className="absolute -bottom-1 left-0 w-full h-px bg-gradient-to-r from-primary/0 via-primary to-primary/0"></div>
+        </div>
+        
+        <div className="hidden md:flex items-center space-x-6 text-sm">
+          <div className="flex items-center">
+            <Users className="w-4 h-4 mr-2 text-primary" />
+            <span>
+              <span className="font-medium">15K+</span> <span className="text-muted-foreground">Players</span>
+            </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome to Novito</h1>
-          <p className="mt-4 text-base sm:text-lg text-muted-foreground">
-            The ultimate destination for provably fair games and crypto betting. Join us to experience
-            the excitement of our Wheel, Plinko, Keno, Cricket Mines, Limbo, Dice, and Cases games.
-          </p>
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-background/80 rounded-lg">
-              <h3 className="font-medium">Provably Fair</h3>
-              <p className="text-sm text-muted-foreground">Verify the fairness of every game result</p>
-            </div>
-            <div className="p-4 bg-background/80 rounded-lg">
-              <h3 className="font-medium">Crypto Support</h3>
-              <p className="text-sm text-muted-foreground">Play with BTC, ETH, USDT, and more</p>
-            </div>
-            <div className="p-4 bg-background/80 rounded-lg">
-              <h3 className="font-medium">Instant Withdrawals</h3>
-              <p className="text-sm text-muted-foreground">Get your winnings immediately</p>
-            </div>
-            <div className="p-4 bg-background/80 rounded-lg">
-              <h3 className="font-medium">24/7 Support</h3>
-              <p className="text-sm text-muted-foreground">We're always here to help you</p>
-            </div>
+          <div className="flex items-center">
+            <Globe className="w-4 h-4 mr-2 text-primary" />
+            <span>
+              <span className="font-medium">150+</span> <span className="text-muted-foreground">Countries</span>
+            </span>
+          </div>
+          <div className="flex items-center">
+            <Shield className="w-4 h-4 mr-2 text-primary" />
+            <span>
+              <span className="font-medium">100%</span> <span className="text-muted-foreground">Secure</span>
+            </span>
           </div>
         </div>
       </div>
-
-      {/* Auth Forms */}
-      <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
-        <div className="w-full max-w-md">
-          <div className="flex justify-center mb-6 lg:hidden">
-            <NovitoLogo className="w-32 sm:w-40 text-4xl" />
+      
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col-reverse lg:flex-row overflow-hidden">
+        {/* Auth Forms - Now First on Mobile */}
+        <div className="flex-1 flex items-start justify-center p-4 pt-0 lg:items-center">
+          <div className="w-full max-w-md z-10">
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-3">
+                <TabsTrigger value="login" className="text-sm">Login</TabsTrigger>
+                <TabsTrigger value="register" className="text-sm">Register</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="login">
+                <Card className="border border-primary/20 shadow-lg shadow-primary/5">
+                  <CardHeader className="space-y-1 py-4">
+                    <CardTitle className="text-xl font-bold flex items-center">
+                      <Lock className="w-5 h-5 mr-2 text-primary" />
+                      Login
+                    </CardTitle>
+                    <CardDescription>
+                      Enter your credentials to access your account
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="py-2">
+                    <Form {...loginForm}>
+                      <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-3">
+                        <FormField
+                          control={loginForm.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Username</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="username" 
+                                  className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={loginForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Password</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="password" 
+                                  placeholder="••••••••" 
+                                  className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="hover:opacity-90 active:opacity-95 transition-opacity">
+                          <Button 
+                            type="submit" 
+                            className="w-full font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300" 
+                            disabled={loginMutation.isPending}
+                          >
+                            {loginMutation.isPending ? "Logging in..." : "Login"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                    
+                    {/* Trust Badges */}
+                    <div className="mt-6">
+                      <p className="text-xs text-center text-muted-foreground mb-3">Secured By</p>
+                      <div className="flex justify-center space-x-3">
+                        <div className="hover:-translate-y-1 transition-transform duration-200">
+                          <Shield className="w-6 h-6 text-primary/90" />
+                        </div>
+                        <div className="hover:-translate-y-1 transition-transform duration-200">
+                          <Lock className="w-6 h-6 text-primary/90" />
+                        </div>
+                        <div className="hover:-translate-y-1 transition-transform duration-200">
+                          <CheckCircle className="w-6 h-6 text-primary/90" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="register">
+                <Card className="overflow-auto max-h-[70vh] lg:max-h-none border border-primary/20 shadow-lg shadow-primary/5">
+                  <CardHeader className="space-y-1 py-4">
+                    <CardTitle className="text-xl font-bold flex items-center">
+                      <UserCheck className="w-5 h-5 mr-2 text-primary" />
+                      Create an account
+                    </CardTitle>
+                    <CardDescription>
+                      Enter your details to join our trusted community
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="py-2">
+                    <Form {...registerForm}>
+                      <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <FormField
+                            control={registerForm.control}
+                            name="username"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="username" 
+                                    className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={registerForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="email" 
+                                    placeholder="your@email.com" 
+                                    className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <FormField
+                            control={registerForm.control}
+                            name="dateOfBirth"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Date of Birth</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="date" 
+                                    className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={registerForm.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Phone (optional)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="tel" 
+                                    placeholder="+1234567890" 
+                                    className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <FormField
+                            control={registerForm.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Password</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="password" 
+                                    placeholder="••••••••" 
+                                    className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={registerForm.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="password" 
+                                    placeholder="••••••••" 
+                                    className="bg-background/5 border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="hover:opacity-90 active:opacity-95 transition-opacity">
+                          <Button 
+                            type="submit" 
+                            className="w-full font-semibold mt-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300" 
+                            disabled={registerMutation.isPending}
+                          >
+                            {registerMutation.isPending ? "Creating account..." : "Register"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                  <CardFooter className="text-xs text-muted-foreground text-center py-3 border-t border-primary/10">
+                    By registering, you agree to our Terms of Service and Privacy Policy.
+                    You must be at least 18 years old to create an account.
+                  </CardFooter>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
+        </div>
+
+        {/* Enhanced Hero Section */}
+        <div className="flex-1 bg-gradient-to-br from-primary/5 to-background p-4 lg:p-6 flex items-center">
+          <div className="max-w-xl mx-auto px-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-center lg:text-left">
+              Welcome to Novito
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-muted-foreground text-center lg:text-left">
+              The ultimate destination for provably fair games and crypto betting.
+            </p>
             
-            <TabsContent value="login">
-              <Card>
-                <CardHeader className="space-y-1">
-                  <CardTitle className="text-2xl font-bold">Login</CardTitle>
-                  <CardDescription>
-                    Enter your credentials to access your account
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
-                      <FormField
-                        control={loginForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="username" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="password" 
-                                placeholder="••••••••" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button 
-                        type="submit" 
-                        className="w-full font-semibold" 
-                        disabled={loginMutation.isPending}
-                      >
-                        {loginMutation.isPending ? "Logging in..." : "Login"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
+            <div className="mt-6 grid grid-cols-2 lg:grid-cols-2 gap-3">
+              <div className="p-3 bg-background/80 backdrop-blur-sm rounded-lg border border-primary/10 hover:border-primary/30 hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-center mb-2">
+                  <Shield className="text-primary h-5 w-5 mr-2" />
+                  <h3 className="font-medium text-sm">Provably Fair</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Verify game results with our transparent system</p>
+              </div>
+              
+              <div className="p-3 bg-background/80 backdrop-blur-sm rounded-lg border border-primary/10 hover:border-primary/30 hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-center mb-2">
+                  <Award className="text-primary h-5 w-5 mr-2" />
+                  <h3 className="font-medium text-sm">Crypto Support</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Play with multiple cryptocurrencies and tokens</p>
+              </div>
+              
+              <div className="p-3 bg-background/80 backdrop-blur-sm rounded-lg border border-primary/10 hover:border-primary/30 hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-center mb-2">
+                  <Clock className="text-primary h-5 w-5 mr-2" />
+                  <h3 className="font-medium text-sm">Fast Withdrawals</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Get your winnings instantly with zero delays</p>
+              </div>
+              
+              <div className="p-3 bg-background/80 backdrop-blur-sm rounded-lg border border-primary/10 hover:border-primary/30 hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-center mb-2">
+                  <UserCheck className="text-primary h-5 w-5 mr-2" />
+                  <h3 className="font-medium text-sm">24/7 Support</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Our team is always available to assist you</p>
+              </div>
+            </div>
             
-            <TabsContent value="register">
-              <Card>
-                <CardHeader className="space-y-1">
-                  <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-                  <CardDescription>
-                    Enter your details to create a new account
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...registerForm}>
-                    <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="username" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="email" 
-                                placeholder="your@email.com" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="dateOfBirth"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date of Birth</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="date" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone (optional)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="tel" 
-                                placeholder="+1234567890" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="password" 
-                                placeholder="••••••••" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="password" 
-                                placeholder="••••••••" 
-                                className="bg-background/5 border-primary/20 focus:border-primary" 
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button 
-                        type="submit" 
-                        className="w-full font-semibold" 
-                        disabled={registerMutation.isPending}
-                      >
-                        {registerMutation.isPending ? "Creating account..." : "Register"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-                <CardFooter className="text-xs text-muted-foreground text-center">
-                  By registering, you agree to our Terms of Service and Privacy Policy.
-                  You must be at least 18 years old to create an account.
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            {/* Payment Methods */}
+            <div className="mt-8">
+              <p className="text-xs text-center text-muted-foreground mb-3">Trusted Payment Methods</p>
+              <div className="flex justify-center space-x-4">
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiVisa className="w-6 h-6" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiMastercard className="w-6 h-6" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiPaypal className="w-6 h-6" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiBitcoin className="w-6 h-6" />
+                </div>
+                <div className="hover:-translate-y-1 transition-transform duration-200 text-gray-400 hover:text-gray-300">
+                  <SiEthereum className="w-6 h-6" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
