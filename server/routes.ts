@@ -514,11 +514,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get the authenticated user directly
         const user = req.user;
         
-        // Calculate winning amount (original bet + profit)
-        const winAmount = bet.amount * req.body.outcome.multiplier;
+        // Here's where the bug was! 
+        // We need to return the original bet amount PLUS any profit
+        // Because the original bet amount was already deducted when the bet was placed
         
-        // Update user's INR balance with the full winning amount (using INR as default currency)
-        await storage.updateUserBalance(user.id, winAmount, 'INR');
+        // Calculate total return (original bet + profit)
+        const totalReturn = bet.amount * req.body.outcome.multiplier;
+        
+        console.log(`Bet completion - User ID: ${user.id}, Game: ${game.name}, Original bet: ${bet.amount}, Multiplier: ${req.body.outcome.multiplier}, Total return: ${totalReturn}`);
+        
+        // Update user's INR balance with the total return (original bet + profit)
+        await storage.updateUserBalance(user.id, totalReturn, 'INR');
         
         // Add transaction record if available
         if (storage.createTransaction) {
@@ -526,7 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.createTransaction({
               userId: user.id,
               type: 'WIN',
-              amount: winAmount,
+              amount: totalReturn,
               status: 'COMPLETED',
               currency: 'INR',
               description: `Win from ${game.name} - Multiplier: ${req.body.outcome.multiplier}x`,
