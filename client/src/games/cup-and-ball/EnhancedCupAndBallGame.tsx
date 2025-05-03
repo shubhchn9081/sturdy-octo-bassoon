@@ -40,7 +40,7 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
   const [isRevealPhase, setIsRevealPhase] = useState<boolean>(false);
   
   // Cup animation properties
-  const [cupAnimations, setCupAnimations] = useState<{ x: number, y: number, rotate: number, scale: number }[]>([
+  const [cupAnimations, setCupAnimations] = useState<{ x: number, y: number, rotate: number, scale: number, opacity?: number }[]>([
     { x: 0, y: 0, rotate: 0, scale: 0.9 },
     { x: 0, y: 0, rotate: 0, scale: 0.9 },
     { x: 0, y: 0, rotate: 0, scale: 0.9 }
@@ -416,10 +416,15 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
   
   // Handle cup selection animation
   const handleCupSelect = (position: number) => {
+    console.log(`Cup clicked at position: ${position}, gamePhase: ${gamePhase}, isSelectionPhase: ${isSelectionPhase}`);
+    
     // Get the cup index from the current positions array
     const cupIndex = cupPositions[position];
     
+    // Make sure we're in the selection phase
     if (gamePhase === 'selecting') {
+      console.log(`Selecting cup at position ${position} with index ${cupIndex}`);
+      
       // Show selection animation
       setCupAnimations(cups => 
         cups.map((cup, index) => 
@@ -439,7 +444,8 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
           )
         );
         
-        // Call the provided selection handler
+        // Call the provided selection handler with the cup index
+        console.log(`Calling onCupSelect with cupIndex: ${cupIndex}`);
         onCupSelect(cupIndex);
       }, 200);
     }
@@ -598,10 +604,19 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
     const finalX = animation.x !== undefined ? animation.x : baseX;
     
     return (
-      <div className="flex flex-col items-center relative">
+      // Wrapper div that acts as a hit area for cup selection
+      <div 
+        className={`flex flex-col items-center relative ${canSelect ? 'cursor-pointer' : ''}`}
+        onClick={() => {
+          if (canSelect) {
+            console.log(`Cup wrapper clicked at position ${position}`);
+            handleCupSelect(position);
+          }
+        }}
+      >
         <motion.div
           key={`cup-${position}-${cupIndex}`}
-          className={`relative cursor-pointer ${canSelect ? 'active:opacity-80' : ''} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+          className={`relative ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
           initial={{ x: baseX, y: 0, scale: 0.9, rotate: 0 }}
           animate={{ 
             // Position and animation properties
@@ -610,6 +625,7 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
             rotate: animation.rotate || 0,
             scale: animation.scale || 1,
             filter: isWinningCup ? 'drop-shadow(0 0 8px gold)' : undefined,
+            opacity: canSelect ? 1 : animation.opacity || 1, // Make sure cups are fully visible during selection
           }}
           transition={{ 
             type: isBeingRevealed ? 'spring' : 'tween',
@@ -618,12 +634,6 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
             duration: isBeingRevealed ? 0.5 : 0.3
           }}
           whileHover={canSelect ? { scale: 1.05, y: -5 } : {}}
-          onClick={() => {
-            if (canSelect) {
-              console.log(`Clicked on cup at position ${position} with cupIndex ${cupIndex}`);
-              handleCupSelect(position);
-            }
-          }}
         >
           {/* Cup - mobile optimized sizes */}
           <div className="w-20 h-24 md:w-28 md:h-36 relative">
@@ -647,10 +657,7 @@ const EnhancedCupAndBallGame: React.FC<CupAndBallGameProps> = ({
             <div className="absolute bottom-3 right-2 w-0.5 h-12 bg-black opacity-10 rounded-full"></div>
           </div>
           
-          {/* Number indicator - mobile optimized */}
-          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 bg-slate-700 text-white w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-xs font-bold ring-1 ring-slate-500">
-            {position + 1}
-          </div>
+          {/* No number indicators as requested */}
         </motion.div>
         
         {/* Ball shown when needed - with animations based on game state */}
