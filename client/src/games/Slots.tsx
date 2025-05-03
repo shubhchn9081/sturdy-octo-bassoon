@@ -287,56 +287,11 @@ const Slots = () => {
             luckyNumber={luckyNumber}
           />
           
-          {/* Game information and history tabs */}
-          <div className="mt-6">
-            <Tabs defaultValue="rules">
-              <TabsList className="w-full grid grid-cols-2">
-                <TabsTrigger value="rules">Rules</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="rules" className="mt-4">
-                <GameRules />
-              </TabsContent>
-              
-              <TabsContent value="history" className="mt-4">
-                <div className="space-y-2">
-                  {gameHistory.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-4">No game history yet</p>
-                  ) : (
-                    gameHistory.map((result, index) => (
-                      <div 
-                        key={index} 
-                        className={`flex justify-between items-center p-2 rounded ${
-                          result.win ? 'bg-green-950/30 border border-green-800/50' : 'bg-red-950/30 border border-red-800/50'
-                        }`}
-                      >
-                        <div className="flex space-x-2">
-                          {result.reels.map((num, i) => (
-                            <div key={i} className="w-8 h-8 flex items-center justify-center bg-[#172B3A] rounded-md font-bold">
-                              {num}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="text-right">
-                          <div className={result.win ? 'text-green-500' : 'text-red-500'}>
-                            {result.win ? `+${result.winAmount.toFixed(2)}` : `-${betAmount.toFixed(2)}`}
-                          </div>
-                          {result.win && (
-                            <div className="text-xs">
-                              <span className="text-green-400">{result.multiplier}x</span>
-                              {result.luckyNumberHit && 
-                                <span className="ml-2 text-amber-400 font-bold">Lucky Number Hit!</span>
-                              }
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+          {/* Lucky number reminder */}
+          <div className="mt-3 text-center">
+            <span className="text-white">Your lucky number is </span>
+            <span className="text-yellow-300 font-bold">{luckyNumber}</span>
+            <span className="text-white"> (10× win if it appears!)</span>
           </div>
         </div>
       </div>

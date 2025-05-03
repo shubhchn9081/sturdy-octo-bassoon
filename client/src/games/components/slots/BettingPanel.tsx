@@ -100,26 +100,20 @@ const BettingPanel = ({
         </Alert>
       )}
       
-      {/* Balance display */}
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <Label className="text-xs text-muted-foreground">Balance</Label>
-          <p className="text-lg font-bold">{formattedBalance} INR</p>
-        </div>
-        
-        {spinResults && spinResults.win && (
-          <div className="text-right">
-            <Label className="text-xs text-muted-foreground">Last Win</Label>
+      {/* Win display */}
+      {spinResults && spinResults.win && (
+        <div className="flex justify-center items-center mb-3">
+          <div className="text-center">
             <p className="text-lg font-bold text-green-500">
               +{spinResults.winAmount.toFixed(2)} INR
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       
-      {/* Betting controls - Improved for mobile responsiveness */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Bet amount */}
+      {/* Betting controls at top */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Bet amount & presets */}
         <div className="space-y-2">
           <Label htmlFor="betAmount">Bet Amount</Label>
           <div className="flex space-x-2">
@@ -134,16 +128,6 @@ const BettingPanel = ({
               className="w-full"
               disabled={isSpinning}
             />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handlePresetClick(Math.max(100, betAmount * 2))}
-              disabled={isSpinning}
-              title="Double bet"
-              className="hidden sm:flex"
-            >
-              2×
-            </Button>
           </div>
           
           {/* Preset amounts */}
@@ -163,31 +147,27 @@ const BettingPanel = ({
           </div>
         </div>
         
-        {/* Lucky number selection */}
-        <div className="space-y-2">
-          <Label htmlFor="luckyNumber">Lucky Number (10× Win!)</Label>
-          <Select
-            value={luckyNumber.toString()}
-            onValueChange={(value) => setLuckyNumber(parseInt(value))}
-            disabled={isSpinning}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select your lucky number" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 10 }, (_, i) => (
-                <SelectItem key={i} value={i.toString()}>{i}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
-            Win 10× your bet if your lucky number appears in any reel!
-          </p>
-        </div>
-        
-        {/* Auto-spin and spin button */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
+        {/* Lucky number and Auto-spin */}
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="luckyNumber">Lucky Number (10× Win!)</Label>
+            <Select
+              value={luckyNumber.toString()}
+              onValueChange={(value) => setLuckyNumber(parseInt(value))}
+              disabled={isSpinning}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select your lucky number" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 10 }, (_, i) => (
+                  <SelectItem key={i} value={i.toString()}>{i}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center justify-between mt-2">
             <Label htmlFor="autoSpin">Auto Spin</Label>
             <Switch
               id="autoSpin"
@@ -196,33 +176,35 @@ const BettingPanel = ({
               disabled={isSpinning}
             />
           </div>
-          
-          {/* Large, prominent spin button - especially for mobile */}
-          <Button
-            variant="default"
-            className="w-full h-14 sm:h-12 text-xl sm:text-lg font-bold bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg shadow-lg"
-            onClick={autoSpin ? stopAutoSpin : onSpin}
-            disabled={isSpinning}
-          >
-            {isSpinning ? (
-              <>
-                <RefreshCw className="mr-2 h-6 w-6 animate-spin" />
-                Spinning...
-              </>
-            ) : autoSpin ? (
-              'Stop Auto Spin'
-            ) : (
-              'SPIN'
-            )}
-          </Button>
-          
-          {parseFloat(balance) < betAmount && (
-            <p className="text-xs text-red-500 flex items-center justify-center mt-1">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              Insufficient balance
-            </p>
-          )}
         </div>
+      </div>
+      
+      {/* SPIN button below betting controls */}
+      <div>
+        <Button
+          variant="default"
+          className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg shadow-lg"
+          onClick={autoSpin ? stopAutoSpin : onSpin}
+          disabled={isSpinning}
+        >
+          {isSpinning ? (
+            <>
+              <RefreshCw className="mr-2 h-6 w-6 animate-spin" />
+              Spinning...
+            </>
+          ) : autoSpin ? (
+            'STOP AUTO SPIN'
+          ) : (
+            'SPIN'
+          )}
+        </Button>
+        
+        {parseFloat(balance) < betAmount && (
+          <p className="text-xs text-red-500 flex items-center justify-center mt-1">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Insufficient balance
+          </p>
+        )}
       </div>
     </div>
   );
