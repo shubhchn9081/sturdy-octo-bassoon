@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, Play, Loader2, RotateCcw } from 'lucide-react';
 
-// Type definitions for BettingPanel props
+// Types
+type SpinResult = {
+  reels: number[];
+  multiplier: number;
+  win: boolean;
+  winAmount: number;
+};
+
 type BettingPanelProps = {
-  balance: string | number;
+  balance: string;
   betAmount: number;
   setBetAmount: (amount: number) => void;
   onSpin: () => void;
@@ -18,15 +26,9 @@ type BettingPanelProps = {
   stopAutoSpin: () => void;
   error: string | null;
   clearError: () => void;
-  spinResults: {
-    reels: number[];
-    multiplier: number;
-    win: boolean;
-    winAmount: number;
-  } | null;
+  spinResults: SpinResult | null;
 };
 
-// Betting panel component
 const BettingPanel: React.FC<BettingPanelProps> = ({
   balance,
   betAmount,
@@ -40,190 +42,228 @@ const BettingPanel: React.FC<BettingPanelProps> = ({
   clearError,
   spinResults
 }) => {
-  // State for expanded betting panel
-  const [expanded, setExpanded] = useState(false);
+  // Quick bet amount options
+  const betOptions = [1, 5, 10, 25, 50, 100];
   
-  // Bet amount preset values
-  const presetAmounts = [1, 5, 10, 25, 50, 100];
-  
-  // Handle input change (validate to allow only numbers)
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle bet amount changes
+  const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value) && value >= 0) {
       setBetAmount(value);
-    } else if (e.target.value === '') {
-      setBetAmount(0);
+      if (error) clearError();
     }
   };
   
-  // Increment and decrement bet amount
-  const incrementBet = () => {
-    setBetAmount(Math.min(parseFloat(balance as string) || 0, betAmount + 1));
-  };
-  
-  const decrementBet = () => {
-    setBetAmount(Math.max(0, betAmount - 1));
-  };
-  
-  // Set bet amount to a preset value
-  const setPresetAmount = (amount: number) => {
-    if (amount <= (parseFloat(balance as string) || 0)) {
-      setBetAmount(amount);
-    }
-  };
-  
-  // Set bet amount to a percentage of balance
-  const setBetPercentage = (percentage: number) => {
-    const maxBet = parseFloat(balance as string) || 0;
-    const amount = Math.floor((maxBet * percentage) * 100) / 100; // Round to 2 decimal places
+  // Handle quick bet selections
+  const handleQuickBet = (amount: number) => {
     setBetAmount(amount);
+    if (error) clearError();
+  };
+  
+  // Handle bet amount slider changes
+  const handleSliderChange = (value: number[]) => {
+    setBetAmount(value[0]);
+    if (error) clearError();
+  };
+  
+  // Double the bet amount
+  const handleDoubleBet = () => {
+    const newAmount = betAmount * 2;
+    if (newAmount <= parseFloat(balance)) {
+      setBetAmount(newAmount);
+      if (error) clearError();
+    }
+  };
+  
+  // Halve the bet amount
+  const handleHalfBet = () => {
+    const newAmount = betAmount / 2;
+    if (newAmount >= 1) {
+      setBetAmount(newAmount);
+      if (error) clearError();
+    }
+  };
+  
+  // Max bet (use 80% of balance to avoid rounding issues)
+  const handleMaxBet = () => {
+    const maxAmount = Math.floor(parseFloat(balance) * 0.8);
+    setBetAmount(maxAmount > 0 ? maxAmount : 1);
+    if (error) clearError();
+  };
+  
+  // Toggle auto spin
+  const handleAutoSpinToggle = () => {
+    const newAutoSpin = !autoSpin;
+    setAutoSpin(newAutoSpin);
+    
+    // If enabling auto spin and not currently spinning, start spinning
+    if (newAutoSpin && !isSpinning) {
+      onSpin();
+    }
+  };
+  
+  // UI helper for formatting currency amounts
+  const formatCurrency = (amount: number): string => {
+    return amount.toFixed(2);
   };
   
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      {/* Error message */}
+    <div className="w-full max-w-4xl mx-auto">
+      {/* Error message display */}
       {error && (
-        <Alert className="mb-4 border-red-800 bg-red-900/30 text-red-500">
-          <AlertCircle className="h-4 w-4 mr-2" />
-          <AlertDescription>
-            {error}
-          </AlertDescription>
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
       
-      {/* Expanded betting controls */}
-      {expanded && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 animate-in fade-in-50 duration-200">
-          {/* Preset bet amounts */}
-          <div className="bg-[#0A1824] rounded-lg p-4">
-            <div className="text-sm font-medium text-gray-400 mb-2">Preset Amounts</div>
-            <div className="grid grid-cols-3 gap-2">
-              {presetAmounts.map((amount) => (
-                <Button
-                  key={amount}
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className={amount <= (parseFloat(balance as string) || 0) ? 'border-[#1D2F3D] hover:bg-[#1E3141]' : 'opacity-50 cursor-not-allowed'}
-                  onClick={() => setPresetAmount(amount)}
-                  disabled={amount > (parseFloat(balance as string) || 0)}
-                >
-                  {amount}
-                </Button>
-              ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Left column - Bet controls */}
+        <div className="space-y-4">
+          {/* Bet amount input */}
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <Label htmlFor="betAmount">Bet Amount</Label>
+              <span className="text-muted-foreground">Balance: {formatCurrency(parseFloat(balance))} INR</span>
             </div>
-          </div>
-          
-          {/* Percentage buttons */}
-          <div className="bg-[#0A1824] rounded-lg p-4">
-            <div className="text-sm font-medium text-gray-400 mb-2">Bet Percentage</div>
-            <div className="grid grid-cols-4 gap-2">
-              {[0.1, 0.25, 0.5, 1].map((percentage) => (
-                <Button
-                  key={percentage}
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="border-[#1D2F3D] hover:bg-[#1E3141]"
-                  onClick={() => setBetPercentage(percentage)}
-                >
-                  {percentage * 100}%
-                </Button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Auto spin toggle */}
-          <div className="bg-[#0A1824] rounded-lg p-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-400">Auto Spin</div>
-              <div className="text-xs text-gray-500">Automatically spin after each result</div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="auto-spin" className="sr-only">Auto Spin</Label>
-              <Switch 
-                id="auto-spin" 
-                checked={autoSpin}
-                onCheckedChange={setAutoSpin}
-                disabled={isSpinning}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Main betting controls */}
-      <div className="grid grid-cols-12 gap-4 items-center">
-        {/* Bet amount input with increment/decrement */}
-        <div className="col-span-6 sm:col-span-5">
-          <div className="flex items-center">
-            <div className="relative w-full">
+            <div className="flex space-x-2">
               <Input
+                id="betAmount"
                 type="number"
-                value={betAmount || ''}
-                onChange={handleInputChange}
-                className="pr-10 bg-[#0A1824] border-[#1D2F3D] font-medium"
-                placeholder="Bet Amount"
-                min="0"
-                disabled={isSpinning}
+                min="1"
+                step="1"
+                value={betAmount}
+                onChange={handleBetAmountChange}
+                className="bg-[#172B3A] border-[#1D2F3D]"
               />
-              <div className="absolute inset-y-0 right-0 flex flex-col">
-                <button
-                  type="button"
-                  className="flex-1 px-2 text-gray-400 hover:text-white"
-                  onClick={incrementBet}
-                  disabled={isSpinning}
-                >
-                  <ChevronUp className="h-3 w-3" />
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 px-2 text-gray-400 hover:text-white"
-                  onClick={decrementBet}
-                  disabled={isSpinning}
-                >
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-              </div>
+              <Button 
+                variant="outline" 
+                className="bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54]"
+                onClick={handleMaxBet}
+              >
+                Max
+              </Button>
             </div>
           </div>
-        </div>
-        
-        {/* Balance display */}
-        <div className="hidden sm:block sm:col-span-2 text-center">
-          <div className="text-gray-400 text-xs">Balance</div>
-          <div className="font-medium text-white truncate">
-            {typeof balance === 'number' ? balance.toFixed(2) : balance}
+          
+          {/* Bet adjustment buttons */}
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              className="flex-1 bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54]"
+              onClick={handleHalfBet}
+              disabled={betAmount <= 1}
+            >
+              ½
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54]"
+              onClick={handleDoubleBet}
+              disabled={betAmount * 2 > parseFloat(balance)}
+            >
+              2×
+            </Button>
+          </div>
+          
+          {/* Quick bet options */}
+          <div className="grid grid-cols-3 gap-2">
+            {betOptions.map(option => (
+              <Button
+                key={option}
+                variant="outline"
+                className={`bg-[#172B3A] border-[#1D2F3D] hover:bg-[#213D54] ${
+                  betAmount === option ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => handleQuickBet(option)}
+              >
+                {option}
+              </Button>
+            ))}
+          </div>
+          
+          {/* Bet amount slider */}
+          <div className="pt-2">
+            <Slider
+              defaultValue={[betAmount]}
+              max={Math.max(100, parseFloat(balance))}
+              min={1}
+              step={1}
+              value={[betAmount]}
+              onValueChange={handleSliderChange}
+              className="py-4"
+            />
           </div>
         </div>
         
-        {/* Spin button */}
-        <div className="col-span-5 sm:col-span-4">
+        {/* Right column - Game controls and results */}
+        <div className="space-y-4">
+          {/* Auto spin toggle */}
+          <div className="flex items-center justify-between space-x-2 p-3 bg-[#172B3A] rounded-md border border-[#1D2F3D]">
+            <Label htmlFor="autoSpin" className="flex items-center space-x-2 cursor-pointer">
+              <span>Auto Spin</span>
+            </Label>
+            <Switch
+              id="autoSpin"
+              checked={autoSpin}
+              onCheckedChange={handleAutoSpinToggle}
+              disabled={isSpinning}
+            />
+          </div>
+          
+          {/* Spin results display */}
+          {spinResults && (
+            <div className={`p-3 rounded-md border ${
+              spinResults.win 
+                ? 'bg-green-950/30 border-green-800/50 text-green-400' 
+                : 'bg-red-950/30 border-red-800/50 text-red-400'
+            }`}>
+              <div className="flex justify-between">
+                <span>{spinResults.win ? 'Win!' : 'Loss'}</span>
+                <span>
+                  {spinResults.win 
+                    ? `+${formatCurrency(spinResults.winAmount)} INR` 
+                    : `-${formatCurrency(betAmount)} INR`}
+                </span>
+              </div>
+              {spinResults.win && (
+                <div className="text-sm mt-1">
+                  Multiplier: {spinResults.multiplier}x
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Spin button */}
           <Button
-            type="button"
-            className={`w-full h-10 ${
-              isSpinning 
-                ? 'bg-amber-600 hover:bg-amber-600' 
-                : 'bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-600 hover:to-red-600'
-            }`}
-            onClick={isSpinning && autoSpin ? stopAutoSpin : onSpin}
-            disabled={isSpinning && !autoSpin}
+            variant="default"
+            size="lg"
+            className="w-full h-16 text-lg font-bold"
+            onClick={onSpin}
+            disabled={isSpinning || parseFloat(balance) < betAmount}
           >
-            {isSpinning ? (autoSpin ? 'STOP AUTO' : 'SPINNING...') : 'SPIN'}
+            {isSpinning ? (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="animate-spin h-5 w-5" />
+                <span>Spinning...</span>
+              </div>
+            ) : autoSpin ? (
+              <div className="flex items-center space-x-2">
+                <RotateCcw className="h-5 w-5" />
+                <span>Stop Auto</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Play className="h-5 w-5" />
+                <span>Spin</span>
+              </div>
+            )}
           </Button>
-        </div>
-        
-        {/* Expand/collapse button */}
-        <div className="col-span-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="w-10 h-10 border-[#1D2F3D]"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-          </Button>
+          
+          {/* Potential win display */}
+          <div className="text-center text-muted-foreground">
+            Potential Win: {formatCurrency(betAmount * 10)} INR
+          </div>
         </div>
       </div>
     </div>

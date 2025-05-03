@@ -1,79 +1,117 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
-// Game rules component for Slots game
 const GameRules: React.FC = () => {
+  // Define winning combinations and their respective multipliers
+  const winningCombinations = [
+    {
+      type: 'Three 7s',
+      pattern: [7, 7, 7],
+      multiplier: 10,
+      description: 'Three number 7s in a row'
+    },
+    {
+      type: 'Three of a Kind',
+      pattern: ['x', 'x', 'x'],
+      multiplier: 5,
+      description: 'Three of the same number'
+    },
+    {
+      type: 'Sequential Numbers',
+      pattern: ['n', 'n+1', 'n+2'],
+      multiplier: 3,
+      description: 'Three sequential numbers (e.g., 3-4-5)'
+    },
+    {
+      type: 'Two of a Kind',
+      pattern: ['x', 'x', 'y'],
+      multiplier: 2,
+      description: 'Two of the same number'
+    },
+  ];
+
   return (
-    <div className="space-y-4 text-sm text-gray-300">
-      <div>
-        <h3 className="text-lg font-bold mb-2 text-white">How to Play</h3>
-        <p>
-          Slots is a classic 3-reel game. Place your bet and spin the reels to match numbers
-          and win multipliers based on the combinations you land.
-        </p>
-      </div>
-      
-      <div>
-        <h3 className="text-lg font-bold mb-2 text-white">Winning Combinations</h3>
-        <Table>
-          <TableHeader>
-            <TableRow className="border-[#1D2F3D]">
-              <TableHead className="text-white">Combination</TableHead>
-              <TableHead className="text-right text-white">Multiplier</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow className="border-[#1D2F3D]">
-              <TableCell>Three of a kind (any number)</TableCell>
-              <TableCell className="text-right">5x</TableCell>
-            </TableRow>
-            <TableRow className="border-[#1D2F3D]">
-              <TableCell>Three 7s (jackpot)</TableCell>
-              <TableCell className="text-right">10x</TableCell>
-            </TableRow>
-            <TableRow className="border-[#1D2F3D]">
-              <TableCell>Sequential numbers (e.g., 3-4-5)</TableCell>
-              <TableCell className="text-right">2x</TableCell>
-            </TableRow>
-            <TableRow className="border-[#1D2F3D]">
-              <TableCell>Any pair (two matching numbers)</TableCell>
-              <TableCell className="text-right">1.5x</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-      
-      <div>
-        <h3 className="text-lg font-bold mb-2 text-white">Game Rules</h3>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Each spin costs the bet amount you set.</li>
-          <li>Each reel contains numbers from 0 to 9.</li>
-          <li>Only the highest multiplier will be awarded per spin.</li>
-          <li>Winning amount = Bet Amount × Multiplier.</li>
-          <li>The game uses a provably fair algorithm to ensure random results.</li>
-          <li>Minimum bet: 0.00000001 INR.</li>
-          <li>Maximum bet: 100 INR.</li>
-          <li>Maximum win: 10x your bet.</li>
-          <li>RTP (Return to Player): 97%.</li>
-        </ul>
-      </div>
-      
-      <div>
-        <h3 className="text-lg font-bold mb-2 text-white">Auto-Spin Feature</h3>
-        <p>
-          Enable auto-spin to automatically place the same bet amount after each spin result.
-          You can stop auto-spin at any time by clicking the "STOP AUTO" button.
-        </p>
-      </div>
-      
-      <div>
-        <h3 className="text-lg font-bold mb-2 text-white">Fairness</h3>
-        <p>
-          The slots game uses a verified random number generation system that ensures
-          fair and unbiased results for all players. Each spin's outcome is determined by
-          a combination of server seed and client seed, which cannot be manipulated.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <Card className="bg-[#172B3A] border-[#1D2F3D]">
+        <CardHeader className="pb-2">
+          <CardTitle>How to Play</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="font-medium mb-2">Game Overview</h3>
+            <p className="text-sm text-muted-foreground">
+              Slots is a simple and exciting game where you spin three reels and try to match certain patterns to win. 
+              Each reel will display a number from 0 to 9.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium mb-2">Steps to Play</h3>
+            <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+              <li>Set your bet amount using the betting panel</li>
+              <li>Click the "Spin" button to start the game</li>
+              <li>Watch as the three reels spin and stop one by one</li>
+              <li>If the final combination matches a winning pattern, you win!</li>
+            </ol>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[#172B3A] border-[#1D2F3D]">
+        <CardHeader className="pb-2">
+          <CardTitle>Winning Combinations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-[#1D2F3D]">
+                <TableHead>Combination</TableHead>
+                <TableHead>Example</TableHead>
+                <TableHead>Multiplier</TableHead>
+                <TableHead className="hidden sm:table-cell">Description</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {winningCombinations.map((combo, index) => (
+                <TableRow key={index} className="border-[#1D2F3D]">
+                  <TableCell className="font-medium">{combo.type}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-1">
+                      {Array.isArray(combo.pattern) && combo.pattern.map((val, i) => (
+                        <div 
+                          key={i} 
+                          className="w-6 h-6 bg-[#213D54] rounded flex items-center justify-center text-xs"
+                        >
+                          {val === 7 ? '7' : val}
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-primary">{combo.multiplier}x</TableCell>
+                  <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
+                    {combo.description}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[#172B3A] border-[#1D2F3D]">
+        <CardHeader className="pb-2">
+          <CardTitle>Game Fairness</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          <p className="mb-2">
+            The Slots game uses a provably fair system to ensure the randomness of the outcomes. 
+            Each spin combines server-side and client-side seeds to generate the results.
+          </p>
+          <p>
+            The game is designed to provide a true and fair casino experience while still being fun and exciting.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };

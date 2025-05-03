@@ -1,125 +1,171 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 
-// Type definitions for SlotMachine props
+// Types
+type SpinResult = {
+  reels: number[];
+  multiplier: number;
+  win: boolean;
+  winAmount: number;
+};
+
 type SlotMachineProps = {
   reelValues: number[];
   isSpinning: boolean;
-  spinResults: {
-    reels: number[];
-    multiplier: number;
-    win: boolean;
-    winAmount: number;
-  } | null;
+  spinResults: SpinResult | null;
 };
 
-// Main SlotMachine component
-const SlotMachine: React.FC<SlotMachineProps> = ({ 
-  reelValues, 
-  isSpinning, 
-  spinResults 
+const SlotMachine: React.FC<SlotMachineProps> = ({
+  reelValues,
+  isSpinning,
+  spinResults
 }) => {
+  // References to reel containers for animations
   const slotMachineRef = useRef<HTMLDivElement>(null);
-  const winAnimationRef = useRef<gsap.core.Timeline | null>(null);
+  const reelsContainerRef = useRef<HTMLDivElement>(null);
   
-  // Win animation effect with GSAP
+  // Apply win/loss effects when results are available
   useEffect(() => {
-    if (spinResults?.win && !isSpinning && slotMachineRef.current) {
-      // Stop any existing animations
-      if (winAnimationRef.current) {
-        winAnimationRef.current.kill();
-      }
-      
-      // Create a new timeline animation
-      const tl = gsap.timeline({ repeat: 3 });
-      
-      // Animate the win message and slot machine
-      tl.to('.win-message', { 
-        scale: 1.2, 
-        color: '#FFD700', 
-        duration: 0.3,
-        ease: 'power2.inOut'
-      })
-      .to('.win-message', { 
-        scale: 1, 
-        duration: 0.3,
-        ease: 'power2.inOut'
-      })
-      .to('.slot-reel', { 
-        boxShadow: '0 0 15px 5px rgba(255, 215, 0, 0.7)', 
-        duration: 0.3,
-        ease: 'power2.inOut'
-      })
-      .to('.slot-reel', { 
-        boxShadow: '0 0 5px 2px rgba(255, 215, 0, 0.3)', 
-        duration: 0.3,
-        ease: 'power2.inOut'
+    if (!spinResults || !slotMachineRef.current) return;
+    
+    if (spinResults.win) {
+      // Win animation
+      gsap.to(slotMachineRef.current, {
+        keyframes: [
+          { boxShadow: '0 0 20px 5px rgba(46, 213, 115, 0.6)', duration: 0.3 },
+          { boxShadow: '0 0 10px 2px rgba(46, 213, 115, 0.4)', duration: 0.3 },
+          { boxShadow: '0 0 20px 5px rgba(46, 213, 115, 0.6)', duration: 0.3 },
+          { boxShadow: '0 0 10px 2px rgba(46, 213, 115, 0.4)', duration: 0.3 },
+          { boxShadow: '0 0 0px 0px rgba(46, 213, 115, 0)', duration: 0.3 }
+        ]
       });
       
-      // Store the timeline animation reference
-      winAnimationRef.current = tl;
+      // Celebratory effect for reels container
+      gsap.to(reelsContainerRef.current, {
+        keyframes: [
+          { scale: 1.05, duration: 0.2 },
+          { scale: 1, duration: 0.2 }
+        ]
+      });
+    } else {
+      // Loss animation (subtle red flash)
+      gsap.to(slotMachineRef.current, {
+        boxShadow: '0 0 10px 2px rgba(231, 76, 60, 0.4)',
+        duration: 0.3,
+        yoyo: true,
+        repeat: 1
+      });
+    }
+  }, [spinResults]);
+  
+  // Helper function to determine reel color based on value
+  const getReelColor = (value: number): string => {
+    // Color scheme for different numbers
+    const colors = [
+      'bg-blue-500',   // 0
+      'bg-green-500',  // 1
+      'bg-red-500',    // 2
+      'bg-yellow-500', // 3
+      'bg-purple-500', // 4
+      'bg-pink-500',   // 5
+      'bg-indigo-500', // 6
+      'bg-amber-500',  // 7 (special 7, slightly different color)
+      'bg-teal-500',   // 8
+      'bg-cyan-500'    // 9
+    ];
+    
+    return colors[value] || 'bg-gray-500';
+  };
+  
+  // Helper function to determine if a reel should be highlighted (winning combination)
+  const shouldHighlightReel = (index: number): boolean => {
+    if (!spinResults || !spinResults.win) return false;
+    
+    // Check if we have three of the same number
+    if (spinResults.reels[0] === spinResults.reels[1] && spinResults.reels[1] === spinResults.reels[2]) {
+      return true; // All reels should be highlighted
     }
     
-    return () => {
-      // Clean up the animation on component unmount
-      if (winAnimationRef.current) {
-        winAnimationRef.current.kill();
-      }
-    };
-  }, [spinResults, isSpinning]);
+    // Check for two of the same number
+    const firstPair = spinResults.reels[0] === spinResults.reels[1];
+    const secondPair = spinResults.reels[1] === spinResults.reels[2];
+    const thirdPair = spinResults.reels[0] === spinResults.reels[2];
+    
+    if (firstPair) return index === 0 || index === 1;
+    if (secondPair) return index === 1 || index === 2;
+    if (thirdPair) return index === 0 || index === 2;
+    
+    // Check for sequential numbers
+    const sorted = [...spinResults.reels].sort((a, b) => a - b);
+    const isSequential = sorted[1] === sorted[0] + 1 && sorted[2] === sorted[1] + 1;
+    
+    return isSequential; // Highlight all reels if sequential
+  };
   
   return (
     <div 
-      ref={slotMachineRef} 
-      className="relative flex flex-col items-center bg-[#0A1824] rounded-lg p-6 shadow-lg"
+      ref={slotMachineRef}
+      className="relative bg-[#172B3A] border-4 border-[#1D2F3D] rounded-2xl p-6 transition-all"
     >
-      {/* Win message overlay */}
-      {spinResults?.win && !isSpinning && (
-        <div className="win-message absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-4xl font-bold text-green-500 bg-black/60 rounded-lg px-4 py-2 whitespace-nowrap">
-          WIN: {spinResults.winAmount.toFixed(2)} INR
-        </div>
-      )}
-      
-      {/* Slot machine top display */}
-      <div className="bg-gradient-to-b from-[#142A3A] to-[#0C1E2A] w-full rounded-t-lg p-3 mb-4 border-b border-[#1D2F3D]">
-        <div className="text-center font-bold text-2xl text-white">
-          SLOTS
-        </div>
+      {/* Header with status */}
+      <div className="text-center mb-4">
+        <h2 className="text-xl font-bold text-white">Slots Game</h2>
+        <p className="text-muted-foreground text-sm">
+          {isSpinning ? 'Spinning...' : spinResults?.win ? 'You won!' : 'Ready to spin'}
+        </p>
       </div>
       
       {/* Slot machine reels container */}
-      <div className="flex justify-center space-x-3 p-2 bg-[#0D1C27] rounded-md border border-[#1E3141] shadow-inner">
+      <div 
+        ref={reelsContainerRef}
+        className="flex justify-center gap-4 mb-6"
+      >
         {reelValues.map((value, index) => (
           <div 
             key={index}
-            className={`slot-reel w-20 h-24 md:w-24 md:h-28 flex items-center justify-center bg-gradient-to-b from-[#1A2D3C] to-[#0F1F2C] rounded-md border-2 border-[#1E3141] shadow-lg text-5xl font-bold ${
-              spinResults?.win && !isSpinning ? 'text-yellow-400' : 'text-white'
-            } ${isSpinning ? 'animate-pulse' : ''}`}
+            className={`
+              relative w-20 h-28 rounded-lg overflow-hidden
+              border-4 ${isSpinning ? 'border-yellow-600' : spinResults?.win ? 'border-green-600' : 'border-[#1D2F3D]'}
+              flex items-center justify-center
+              ${shouldHighlightReel(index) ? 'shadow-lg shadow-green-500/50' : ''}
+              transition-all duration-300
+            `}
           >
-            {value}
+            {/* Reel value display */}
+            <div 
+              className={`
+                w-full h-full flex items-center justify-center
+                ${getReelColor(value)}
+                text-white text-4xl font-bold
+                ${isSpinning ? 'animate-pulse' : ''}
+              `}
+            >
+              {value}
+            </div>
+            
+            {/* Reel slot highlight effect when winning */}
+            {shouldHighlightReel(index) && (
+              <div className="absolute inset-0 border-2 border-white opacity-70 rounded-md"></div>
+            )}
           </div>
         ))}
       </div>
       
-      {/* Multiplier display */}
+      {/* Result information */}
       {spinResults && !isSpinning && (
-        <div className="mt-4 text-center">
-          <div className="text-sm text-gray-400">Multiplier</div>
-          <div className={`text-2xl font-bold ${spinResults.win ? 'text-green-500' : 'text-gray-200'}`}>
-            {spinResults.multiplier}x
-          </div>
+        <div className={`text-center p-3 rounded-md ${
+          spinResults.win ? 'bg-green-950/30 text-green-400' : 'bg-red-950/30 text-red-400'
+        }`}>
+          {spinResults.win ? (
+            <>
+              <p className="font-bold text-lg">You won {spinResults.winAmount.toFixed(2)} INR!</p>
+              <p className="text-sm">Multiplier: {spinResults.multiplier}x</p>
+            </>
+          ) : (
+            <p className="font-bold">Better luck next time!</p>
+          )}
         </div>
       )}
-      
-      {/* Slot machine bottom panel */}
-      <div className="flex justify-between w-full mt-4 bg-[#0C1E2A] rounded-b-lg px-4 py-3 border-t border-[#1D2F3D]">
-        <div className="text-gray-400 text-sm">
-          3 of a kind: 5x
-        </div>
-        <div className="text-gray-400 text-sm">
-          Sequential: 2x
-        </div>
-      </div>
     </div>
   );
 };

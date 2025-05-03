@@ -18,8 +18,8 @@ type SpinResult = {
 
 // Main Slots component
 const Slots = () => {
-  const { generateClientSeed, generateServerSeed } = useProvablyFair();
-  const { balance, refreshBalance } = useBalance();
+  const provablyFair = useProvablyFair();
+  const { balance, refetch: refreshBalance } = useBalance();
   const { toast } = useToast();
   
   // Game state
