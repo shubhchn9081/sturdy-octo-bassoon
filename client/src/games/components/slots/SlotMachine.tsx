@@ -7,6 +7,7 @@ type SpinResult = {
   multiplier: number;
   win: boolean;
   winAmount: number;
+  luckyNumberHit?: boolean;
 };
 
 type SlotMachineProps = {

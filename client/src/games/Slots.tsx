@@ -232,7 +232,14 @@ const Slots = () => {
                           <div className={result.win ? 'text-green-500' : 'text-red-500'}>
                             {result.win ? `+${result.winAmount.toFixed(2)}` : `-${betAmount.toFixed(2)}`}
                           </div>
-                          {result.win && <div className="text-xs text-green-400">{result.multiplier}x</div>}
+                          {result.win && (
+                            <div className="text-xs">
+                              <span className="text-green-400">{result.multiplier}x</span>
+                              {result.luckyNumberHit && 
+                                <span className="ml-2 text-amber-400 font-bold">Lucky Number Hit!</span>
+                              }
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
