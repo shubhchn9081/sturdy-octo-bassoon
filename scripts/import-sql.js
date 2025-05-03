@@ -27,13 +27,17 @@ const BATCH_SIZE = 100; // Process users in batches of this size
 const START_OFFSET = 0; // Start from the beginning of the CSV to find any missed users
 const MAX_USERS = 5000; // Maximum users to import (more than we need)
 
-// Password hashing function
+// Password hashing function - matches auth.ts implementation
 function hashPassword(password) {
-  const salt = crypto.createHash('md5').update(Math.random().toString()).digest('hex');
-  const hashedPassword = crypto.createHash('sha512')
-    .update(password + salt)
-    .digest('hex');
-  return `${hashedPassword}.${salt}`;
+  const salt = crypto.randomBytes(16).toString('hex');
+  
+  // Create a buffer for scrypt hash (64 bytes)
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+      if (err) reject(err);
+      resolve(`${derivedKey.toString('hex')}.${salt}`);
+    });
+  });
 }
 
 // Generate username from phone number
@@ -80,7 +84,7 @@ async function main() {
     }
     
     // Hash a standard password once for all users
-    const standardPassword = hashPassword('password');
+    const standardPassword = await hashPassword('password');
     
     // Process records in batches
     let totalImported = 0;
@@ -113,7 +117,15 @@ async function main() {
           const username = generateUsernameFromPhone(phone) + "_" + Math.floor(Math.random() * 1000);
           const fullName = record.Username || username;
           const email = `${phone}@example.com`;
-          const balance = JSON.stringify({ INR: 0, BTC: 0, ETH: 0, USDT: 0 });
+          
+          // All users start with zero balance
+          const balance = JSON.stringify({ 
+            INR: 0, 
+            BTC: 0, 
+            ETH: 0, 
+            USDT: 0 
+          });
+          
           const createdAt = new Date().toISOString();
           const isAdmin = false;
           const isBanned = false;

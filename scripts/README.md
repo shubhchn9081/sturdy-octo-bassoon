@@ -48,7 +48,24 @@ The CSV file should have the following columns:
 ## Important Notes
 
 - All imported users can log in with any password (authentication bypass is enabled for bulk imports)
-- All imported users start with zero balance
+- All imported users have zero balance (INR: 0, BTC: 0, ETH: 0, USDT: 0)
 - Duplicate phone numbers are skipped
-- Usernames are generated from phone numbers if not provided
-- Referral codes are automatically generated for all imported users
+- Usernames are generated from phone numbers (format: user_XXXXXX)
+- Referral codes are automatically generated for imported users
+
+## Utilities
+
+The import process includes several utilities:
+
+- `reset-balances.js` - Tool to reset all imported users' balances to zero
+- `update-referrals-tiny.js` - Tool to generate referral codes in small batches (useful if timeouts occur)
+
+## Testing Login
+
+You can test login for an imported user with:
+
+```bash
+curl -X POST http://localhost:5000/api/login -H "Content-Type: application/json" -d '{"phone":"9021534055","password":"any_password"}'
+```
+
+The phone number can be any valid imported user, and the password can be anything.

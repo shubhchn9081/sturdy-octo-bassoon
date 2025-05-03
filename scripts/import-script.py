@@ -20,14 +20,18 @@ try:
     print("\nStep 1: Running bulk user import (Python version)...")
     subprocess.run(["python3", os.path.join(scripts_dir, "fast-import.py")], check=True)
     
+    # Reset all balances to zero
+    print("\nStep 2: Resetting user balances to zero...")
+    subprocess.run(["node", os.path.join(scripts_dir, "reset-balances.js")], check=True)
+    
     # Run the referral code generator (Node.js script)
-    print("\nStep 2: Generating referral codes for users...")
+    print("\nStep 3: Generating referral codes for users...")
     subprocess.run(["node", os.path.join(scripts_dir, "batch-update-referrals.mjs")], check=True)
     
     print("\n======================================")
     print("  IMPORT PROCESS COMPLETE            ")
     print("======================================")
-    print("All users have been imported and assigned referral codes!")
+    print("All users have been imported with zero balance!")
     print("The imported users can log in with their phone number and any password.")
     
 except subprocess.CalledProcessError as e:

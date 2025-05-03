@@ -14,9 +14,9 @@ const pool = new pg.Pool({
 });
 
 // Configuration
-const BATCH_SIZE = 5; // Use tiny batches
+const BATCH_SIZE = 10; // Use tiny batches
 const REFERRAL_CODE_LENGTH = 6;
-const LIMIT = 50; // Only process this many users in one run
+const LIMIT = 100; // Only process this many users in one run
 
 // Generate a random referral code
 function generateReferralCode(length = REFERRAL_CODE_LENGTH) {

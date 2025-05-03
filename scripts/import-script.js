@@ -19,14 +19,18 @@ try {
   console.log("\nStep 1: Running bulk user import...");
   execSync(`node ${path.join(scriptsDir, 'direct-import.js')}`, { stdio: 'inherit' });
   
+  // Reset user balances to zero
+  console.log("\nStep 2: Resetting user balances to zero...");
+  execSync(`node ${path.join(scriptsDir, 'reset-balances.js')}`, { stdio: 'inherit' });
+  
   // Run the referral code generator
-  console.log("\nStep 2: Generating referral codes for users...");
+  console.log("\nStep 3: Generating referral codes for users...");
   execSync(`node ${path.join(scriptsDir, 'batch-update-referrals.mjs')}`, { stdio: 'inherit' });
   
   console.log("\n======================================");
   console.log("  IMPORT PROCESS COMPLETE            ");
   console.log("======================================");
-  console.log("All users have been imported and assigned referral codes!");
+  console.log("All users have been imported with zero balance!");
   console.log("The imported users can log in with their phone number and any password.");
   
 } catch (error) {
