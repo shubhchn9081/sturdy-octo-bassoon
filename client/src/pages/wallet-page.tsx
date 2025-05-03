@@ -51,7 +51,8 @@ export default function WalletPage() {
       title: "Add Funds",
       description: "Opening payment gateway...",
     });
-    // In a real app, this would redirect to a payment gateway or modal
+    // Redirect to the recharge page
+    setLocation('/recharge');
   };
   
   const handleWithdrawFunds = () => {
