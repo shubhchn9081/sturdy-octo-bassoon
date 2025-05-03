@@ -63,7 +63,7 @@ const Slots = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          gameId: 13, // Slots game ID (update this with the correct ID)
+          gameId: 9, // Slots game ID
           amount: betAmount,
           clientSeed,
           luckyNumber, // Include the player's lucky number
