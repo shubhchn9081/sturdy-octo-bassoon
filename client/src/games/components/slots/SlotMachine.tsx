@@ -14,12 +14,14 @@ type SlotMachineProps = {
   reelValues: number[];
   isSpinning: boolean;
   spinResults: SpinResult | null;
+  luckyNumber?: number;
 };
 
 const SlotMachine: React.FC<SlotMachineProps> = ({
   reelValues,
   isSpinning,
-  spinResults
+  spinResults,
+  luckyNumber
 }) => {
   // References to reel containers for animations
   const slotMachineRef = useRef<HTMLDivElement>(null);
@@ -30,24 +32,48 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
     if (!spinResults || !slotMachineRef.current) return;
     
     if (spinResults.win) {
-      // Win animation
-      gsap.to(slotMachineRef.current, {
-        keyframes: [
-          { boxShadow: '0 0 20px 5px rgba(46, 213, 115, 0.6)', duration: 0.3 },
-          { boxShadow: '0 0 10px 2px rgba(46, 213, 115, 0.4)', duration: 0.3 },
-          { boxShadow: '0 0 20px 5px rgba(46, 213, 115, 0.6)', duration: 0.3 },
-          { boxShadow: '0 0 10px 2px rgba(46, 213, 115, 0.4)', duration: 0.3 },
-          { boxShadow: '0 0 0px 0px rgba(46, 213, 115, 0)', duration: 0.3 }
-        ]
-      });
-      
-      // Celebratory effect for reels container
-      gsap.to(reelsContainerRef.current, {
-        keyframes: [
-          { scale: 1.05, duration: 0.2 },
-          { scale: 1, duration: 0.2 }
-        ]
-      });
+      if (spinResults.luckyNumberHit) {
+        // Lucky number hit - special jackpot animation (golden glow)
+        gsap.to(slotMachineRef.current, {
+          keyframes: [
+            { boxShadow: '0 0 25px 8px rgba(255, 215, 0, 0.8)', duration: 0.3 },
+            { boxShadow: '0 0 15px 4px rgba(255, 215, 0, 0.6)', duration: 0.3 },
+            { boxShadow: '0 0 25px 8px rgba(255, 215, 0, 0.8)', duration: 0.3 },
+            { boxShadow: '0 0 15px 4px rgba(255, 215, 0, 0.6)', duration: 0.3 },
+            { boxShadow: '0 0 25px 8px rgba(255, 215, 0, 0.8)', duration: 0.3 },
+            { boxShadow: '0 0 0px 0px rgba(255, 215, 0, 0)', duration: 0.3 }
+          ]
+        });
+        
+        // More intense celebratory effect for lucky number hit
+        gsap.to(reelsContainerRef.current, {
+          keyframes: [
+            { scale: 1.1, duration: 0.2 },
+            { scale: 0.95, duration: 0.2 },
+            { scale: 1.05, duration: 0.2 },
+            { scale: 1, duration: 0.2 }
+          ]
+        });
+      } else {
+        // Regular win animation
+        gsap.to(slotMachineRef.current, {
+          keyframes: [
+            { boxShadow: '0 0 20px 5px rgba(46, 213, 115, 0.6)', duration: 0.3 },
+            { boxShadow: '0 0 10px 2px rgba(46, 213, 115, 0.4)', duration: 0.3 },
+            { boxShadow: '0 0 20px 5px rgba(46, 213, 115, 0.6)', duration: 0.3 },
+            { boxShadow: '0 0 10px 2px rgba(46, 213, 115, 0.4)', duration: 0.3 },
+            { boxShadow: '0 0 0px 0px rgba(46, 213, 115, 0)', duration: 0.3 }
+          ]
+        });
+        
+        // Regular celebratory effect for reels container
+        gsap.to(reelsContainerRef.current, {
+          keyframes: [
+            { scale: 1.05, duration: 0.2 },
+            { scale: 1, duration: 0.2 }
+          ]
+        });
+      }
     } else {
       // Loss animation (subtle red flash)
       gsap.to(slotMachineRef.current, {
@@ -103,6 +129,12 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
     return isSequential; // Highlight all reels if sequential
   };
   
+  // Helper function to determine if a reel is the lucky number
+  const isLuckyNumberReel = (value: number): boolean => {
+    if (!spinResults || !spinResults.luckyNumberHit || luckyNumber === undefined) return false;
+    return value === luckyNumber;
+  };
+  
   return (
     <div 
       ref={slotMachineRef}
@@ -148,6 +180,11 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
             {shouldHighlightReel(index) && (
               <div className="absolute inset-0 border-2 border-white opacity-70 rounded-md"></div>
             )}
+            
+            {/* Special highlight for lucky number reels */}
+            {isLuckyNumberReel(value) && (
+              <div className="absolute inset-0 border-4 border-amber-400 animate-pulse opacity-80 rounded-md"></div>
+            )}
           </div>
         ))}
       </div>
@@ -155,12 +192,26 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
       {/* Result information */}
       {spinResults && !isSpinning && (
         <div className={`text-center p-3 rounded-md ${
-          spinResults.win ? 'bg-green-950/30 text-green-400' : 'bg-red-950/30 text-red-400'
+          spinResults.win 
+            ? spinResults.luckyNumberHit 
+              ? 'bg-amber-950/30 text-amber-400 border border-amber-700/50' 
+              : 'bg-green-950/30 text-green-400' 
+            : 'bg-red-950/30 text-red-400'
         }`}>
           {spinResults.win ? (
             <>
-              <p className="font-bold text-lg">You won {spinResults.winAmount.toFixed(2)} INR!</p>
-              <p className="text-sm">Multiplier: {spinResults.multiplier}x</p>
+              {spinResults.luckyNumberHit ? (
+                <>
+                  <p className="font-bold text-lg">JACKPOT! Lucky Number Hit!</p>
+                  <p className="font-bold">You won {spinResults.winAmount.toFixed(2)} INR!</p>
+                  <p className="text-sm">Multiplier: {spinResults.multiplier}x</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold text-lg">You won {spinResults.winAmount.toFixed(2)} INR!</p>
+                  <p className="text-sm">Multiplier: {spinResults.multiplier}x</p>
+                </>
+              )}
             </>
           ) : (
             <p className="font-bold">Better luck next time!</p>

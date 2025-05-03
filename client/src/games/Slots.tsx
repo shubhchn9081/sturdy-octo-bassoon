@@ -195,6 +195,7 @@ const Slots = () => {
             reelValues={reelValues} 
             isSpinning={isSpinning} 
             spinResults={spinResults}
+            luckyNumber={luckyNumber}
           />
           
           {/* Game information and history tabs */}
