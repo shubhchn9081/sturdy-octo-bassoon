@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/context/UserContext';
 import { useWallet } from '@/context/WalletContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { createServerSeed, hashServerSeed } from '@/lib/provably-fair';
+// Import functions to generate provably fair results
+import { generateServerSeed, hashServerSeed } from '@/lib/provably-fair';
 import GameLayout from '@/components/games/GameLayout';
 import CupControls from '@/components/games/cup-and-ball/CupControls';
 import CupAndBallGame from '@/components/games/cup-and-ball/CupAndBallGame';

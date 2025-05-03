@@ -12,8 +12,24 @@ import Keno from './Keno';
 import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
 import Slots from './Slots';
+import CupAndBall from './CupAndBall';
 
 export const GAMES = [
+  {
+    id: 15,
+    name: 'CUP AND BALL',
+    slug: 'cup-and-ball',
+    type: 'NOVITO ORIGINALS',
+    description: 'Find which cup hides the ball',
+    color: 'bg-orange-600',
+    iconType: 'shuffle',
+    component: CupAndBall,
+    minBet: 1,
+    maxBet: 100,
+    rtp: 98,
+    maxMultiplier: 3.0,
+    activePlayers: 4215
+  },
   {
     id: 4,
     name: 'MINES',
@@ -169,5 +185,6 @@ export default {
   Limbo,
   Keno,
   Wheel,
-  Slots
+  Slots,
+  CupAndBall
 };
