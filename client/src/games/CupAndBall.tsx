@@ -166,24 +166,35 @@ const CupAndBall = () => {
     console.log(`Setting initial ball position to: ${initialPosition}`);
     setBallPosition(initialPosition);
     
-    // Show the ball for a full 2 seconds at the start so players can see it clearly
+    // Show the ball for a full 3.5 seconds at the start for initial ball placement
     setTimeout(() => {
       setGamePhase('shuffling');
       
       // Generate temporary shuffling for the animation
       // The actual shuffling will come from the server
       const tempShuffles = [];
-      for (let i = 0; i < (difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15); i++) {
+      // Number of moves based on difficulty
+      const numMoves = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15;
+      
+      for (let i = 0; i < numMoves; i++) {
         tempShuffles.push(Math.floor(Math.random() * 3));
       }
       setShuffleMoves(tempShuffles);
       
       // After shuffling animation completes, let the player select a cup
-      // Use longer times for PixiJS to complete its animation sequence
+      // Timing adjusted for enhanced animation sequence:
+      // - Pre-shuffle anticipation: ~500ms
+      // - Each swap: 350-550ms based on difficulty
+      // - Post-shuffle settlement: ~500ms
+      const shuffleDuration = 
+        difficulty === 'easy' ? 5500 : // 5 swaps + pauses + pre/post phases
+        difficulty === 'medium' ? 9000 : // 10 swaps + pauses + pre/post phases
+        13000; // 15 swaps + pauses + pre/post phases for hard
+        
       setTimeout(() => {
         setGamePhase('selecting');
-      }, difficulty === 'easy' ? 5000 : difficulty === 'medium' ? 8000 : 12000);
-    }, 2000);
+      }, shuffleDuration);
+    }, 3500);
   };
   
   // Handle cup selection
@@ -199,18 +210,21 @@ const CupAndBall = () => {
   
   // Play the game sequence based on the server outcome
   const playGameSequence = (outcome: any) => {
-    // Determine animation duration based on difficulty
-    const duration = difficulty === 'easy' ? 3000 : difficulty === 'medium' ? 2000 : 1500;
+    // Pre-reveal anticipation timing (1000ms)
+    const preRevealDuration = 1000;
     
     console.log("Playing game outcome sequence with:", outcome);
     console.log(`Ball final position: ${outcome.ballPosition}, Player selected: ${outcome.selectedCup}, Win: ${outcome.win}`);
     
     // After "server-side" shuffling finishes, show the result
     setTimeout(() => {
+      // Start the sequential cup reveal animation
       setGamePhase('revealing');
       
-      // Finally show the outcome - longer delay to see the ball animation clearly
+      // Sequential cup reveal timing (3000ms total)
+      // The actual animation timings are handled in the EnhancedCupAndBallGame component
       setTimeout(() => {
+        // Transition to complete phase
         setGamePhase('complete');
         
         // Show toast for win/loss
@@ -227,8 +241,8 @@ const CupAndBall = () => {
             variant: "destructive"
           });
         }
-      }, 2500);
-    }, duration);
+      }, 3000); // Total reveal animation duration
+    }, preRevealDuration);
   };
   
   // Create the game panels for the layout
@@ -250,7 +264,7 @@ const CupAndBall = () => {
   );
   
   const gamePanel = (
-    <BasicCupAndBallGame
+    <EnhancedCupAndBallGame
       gamePhase={gamePhase}
       ballPosition={ballPosition}
       selectedCup={selectedCup}
