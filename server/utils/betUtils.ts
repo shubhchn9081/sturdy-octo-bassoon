@@ -96,7 +96,7 @@ export function canonicalizeBetAmount(amount: any, minBet?: number): number {
 
 /**
  * Deep-inspects and extracts a bet amount from a potentially nested object
- * Useful for complex request bodies
+ * Useful for complex request bodies and specifically designed to handle our nested structure
  * 
  * @param data - The object to extract bet amount from
  * @returns The extracted bet amount as a number
@@ -105,6 +105,39 @@ export function extractBetAmount(data: any): number {
   // If data is a primitive, normalize it directly
   if (typeof data !== 'object' || data === null) {
     return normalizeBetAmount(data);
+  }
+  
+  // First, check for our specific Mines game nested structure
+  // This is the main cause of our bug: { options: { amount: 200000, ... } }
+  if (data.options && typeof data.options === 'object') {
+    // Check if options.amount exists and is larger than the direct amount
+    if ('amount' in data.options && typeof data.options.amount !== 'undefined') {
+      const optionsAmount = normalizeBetAmount(data.options.amount);
+      
+      // If options.amount is larger than the direct amount, use it
+      if (optionsAmount > 0) {
+        // Also check the direct amount to compare
+        const directAmount = 'amount' in data ? normalizeBetAmount(data.amount) : 0;
+        
+        // Log the comparison for debugging
+        console.log('Found nested amount structure:', {
+          directAmount,
+          optionsAmount,
+          usingOptAmount: optionsAmount > directAmount
+        });
+        
+        // Return the larger of the two amounts
+        return Math.max(optionsAmount, directAmount);
+      }
+    }
+    
+    // Also check if options.options exists (deeply nested)
+    if (data.options.options && typeof data.options.options === 'object') {
+      const deepAmount = normalizeBetAmount(data.options.options.amount);
+      if (deepAmount > 0) {
+        return deepAmount;
+      }
+    }
   }
   
   // Check common property names for bet amounts
