@@ -32,8 +32,8 @@ export default function VIPClubPage() {
         <CardContent>
           <div className="mb-8">
             <p className="text-[#7F8990] mb-4">
-              The Stake VIP Club is our way of rewarding our most loyal players with exclusive perks, personalized services, 
-              and generous bonuses. As you play on Stake.com, you'll automatically progress through our VIP levels, 
+              The Novito VIP Club is our way of rewarding our most loyal players with exclusive perks, personalized services, 
+              and generous bonuses. As you play on Novito.in, you'll automatically progress through our VIP levels, 
               unlocking new benefits at each tier.
             </p>
           </div>

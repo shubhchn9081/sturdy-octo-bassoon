@@ -234,7 +234,7 @@ const Header = () => {
               Home
             </div>
             <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/originals')}>
-              Stake Originals
+              Novito Originals
             </div>
             <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/slots')}>
               Slots

@@ -80,12 +80,12 @@ const CollapsedSidebar = () => {
           tooltip="Novito Originals" 
           active={true} 
         />
-        <CollapsedSidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />} tooltip="Stake Exclusives" />
+        <CollapsedSidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />} tooltip="Novito Exclusives" />
         <CollapsedSidebarLink href="/slots" icon={<SmilePlus className="h-5 w-5" />} tooltip="Slots" />
         <CollapsedSidebarLink href="/live-casino" icon={<Dices className="h-5 w-5" />} tooltip="Live Casino" />
         <CollapsedSidebarLink href="/game-shows" icon={<Tv2 className="h-5 w-5" />} tooltip="Game Shows" />
         <CollapsedSidebarLink href="/new-releases" icon={<Sparkles className="h-5 w-5" />} tooltip="New Releases" />
-        <CollapsedSidebarLink href="/stake-poker" icon={<Megaphone className="h-5 w-5" />} tooltip="Stake Poker" />
+        <CollapsedSidebarLink href="/novito-poker" icon={<Megaphone className="h-5 w-5" />} tooltip="Novito Poker" />
         <CollapsedSidebarLink href="/bonus-buy" icon={<CircleDollarSign className="h-5 w-5" />} tooltip="Bonus Buy" />
         <CollapsedSidebarLink href="/enhanced-rtp" icon={<BarChart2 className="h-5 w-5" />} tooltip="Enhanced RTP" />
         <CollapsedSidebarLink href="/table-games" icon={<Gamepad2 className="h-5 w-5" />} tooltip="Table Games" />

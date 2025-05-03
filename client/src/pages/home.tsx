@@ -35,7 +35,7 @@ const HomePage = () => {
   const promotions = [
     {
       title: 'Rock, Paper, Scissors',
-      description: 'New Stake Original!',
+      description: 'New Novito Original!',
       type: 'announcement',
       imageSrc: 'https://images.unsplash.com/photo-1629292777003-2b94cc8dff54?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
       readMoreUrl: '/promotions/rock-paper-scissors',
@@ -136,7 +136,7 @@ const HomePage = () => {
       {/* Add this section after all the game sections */}
       <div className="mt-8 pt-8 border-t border-[#172B3A]">
         <div className="text-center">
-          <p className="text-sm text-gray-500">© 2025 Stake.com | All Rights Reserved.</p>
+          <p className="text-sm text-gray-500">© 2025 Novito.in | All Rights Reserved.</p>
           <div className="flex justify-center space-x-4 mt-4">
             <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
               <div className="w-3 h-3 bg-[#243442]"></div>
