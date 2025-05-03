@@ -44,6 +44,7 @@ const Slots = () => {
       return;
     }
     
+    // Use rawBalance for the comparison since it's a number
     if (betAmount > rawBalance) {
       setError('Insufficient balance');
       return;
@@ -414,13 +415,15 @@ const Slots = () => {
               )}
             </Button>
             
-            {/* Always show the insufficient balance message to match the reference image */}
-            <div className="text-center">
-              <p className="text-xs text-amber-500 flex items-center justify-center mt-1">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                Insufficient balance
-              </p>
-            </div>
+            {/* Only show insufficient balance message when balance is actually insufficient */}
+            {rawBalance < betAmount && (
+              <div className="text-center">
+                <p className="text-xs text-amber-500 flex items-center justify-center mt-1">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Insufficient balance
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
