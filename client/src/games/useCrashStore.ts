@@ -399,17 +399,54 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       
       // Always start a fresh round without player bets
       // This ensures bets don't carry over between rounds automatically
-      const newCrashPoint = generateCrashPoint();
+      const localCrashPoint = generateCrashPoint();
       
+      // Set initial state with a placeholder crash point
       set({
         gameState: 'waiting',
         currentMultiplier: 1.0,
-        crashPoint: newCrashPoint,
-        countdown: 10, // Fixed 10 seconds countdown between rounds
+        crashPoint: localCrashPoint, // Temporary - will be replaced with controlled value if available
+        countdown: 10,
         dataPoints: [],
-        hasPlacedBet: false, // Always reset player bet state
+        hasPlacedBet: false,
         hasCashedOut: false,
-        activeBets: newAIBets // Use only AI bets
+        activeBets: newAIBets
+      });
+      
+      // Fetch controlled crash point from server to apply admin settings
+      fetch('/api/game-control/crash/get-controlled-point', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gameId: 2, // Crash game ID
+          originalCrashPoint: localCrashPoint,
+          targetMultiplier: 2.0 // Default target multiplier
+        }),
+        credentials: 'include' // Include cookies for authentication
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          console.warn("Could not get controlled crash point, using local value");
+          throw new Error("Server returned error");
+        }
+      })
+      .then(data => {
+        const finalCrashPoint = data.controlledCrashPoint || localCrashPoint;
+        console.log(`Using crash point: ${finalCrashPoint} (original: ${localCrashPoint}, wasModified: ${data.wasModified})`);
+        
+        // Update crash point with controlled value
+        set(state => ({
+          ...state,
+          crashPoint: finalCrashPoint
+        }));
+      })
+      .catch(error => {
+        console.error("Error fetching controlled crash point:", error);
+        // Already set the local crash point as fallback, so no need to update
       });
       
       // Start countdown
