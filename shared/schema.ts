@@ -259,6 +259,8 @@ export const userGameControls = pgTable("user_game_controls", {
   outcomeType: varchar("outcome_type", { length: 20 }).notNull(), // "win", "loss", or "none"
   durationGames: integer("duration_games").default(1).notNull(), // How many games this control applies to (1 = next game only)
   gamesPlayed: integer("games_played").default(0).notNull(), // Counter for how many games played under this control
+  targetMultiplier: real("target_multiplier").default(2.0), // Target multiplier for wins (default 2x)
+  useExactMultiplier: boolean("use_exact_multiplier").default(false), // Whether to force the exact multiplier
   forcedOutcomeValue: jsonb("forced_outcome_value"), // Game-specific settings
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -270,6 +272,8 @@ export const insertUserGameControlsSchema = createInsertSchema(userGameControls)
   forceOutcome: true,
   outcomeType: true,
   durationGames: true,
+  targetMultiplier: true,
+  useExactMultiplier: true,
   forcedOutcomeValue: true,
 });
 
@@ -282,6 +286,8 @@ export const globalGameControl = pgTable("global_game_control", {
   forceAllUsersLose: boolean("force_all_users_lose").default(false).notNull(),
   forceAllUsersWin: boolean("force_all_users_win").default(false).notNull(), 
   affectedGames: jsonb("affected_games").default([]).notNull(), // List of game IDs this control applies to. Empty means all games.
+  targetMultiplier: real("target_multiplier").default(2.0), // Default target multiplier for wins (2x)
+  useExactMultiplier: boolean("use_exact_multiplier").default(false), // Whether to force the exact multiplier or just win/lose
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -290,6 +296,8 @@ export const insertGlobalGameControlSchema = createInsertSchema(globalGameContro
   forceAllUsersLose: true,
   forceAllUsersWin: true,
   affectedGames: true,
+  targetMultiplier: true,
+  useExactMultiplier: true,
 });
 
 export type GlobalGameControl = typeof globalGameControl.$inferSelect;

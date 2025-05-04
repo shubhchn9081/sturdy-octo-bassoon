@@ -990,7 +990,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/global-game-control', isAdmin, async (req, res) => {
     try {
       const control = await storage.getGlobalGameControl();
-      res.json(control || { forceAllUsersLose: false, forceAllUsersWin: false, affectedGames: [] });
+      res.json(control || { 
+        forceAllUsersLose: false, 
+        forceAllUsersWin: false, 
+        affectedGames: [],
+        targetMultiplier: 2.0,
+        useExactMultiplier: false
+      });
     } catch (error) {
       console.error('Error getting global game control:', error);
       res.status(500).json({ message: 'Server error' });
@@ -1010,8 +1016,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/admin/global-game-control/win', isAdmin, async (req, res) => {
     try {
-      const { affectedGames } = req.body;
-      const control = await storage.makeAllUsersWin(affectedGames);
+      const { affectedGames, targetMultiplier, useExactMultiplier } = req.body;
+      // Default to 2.0 multiplier if not specified
+      const finalTargetMultiplier = targetMultiplier !== undefined ? targetMultiplier : 2.0;
+      // Default to false for exact multiplier if not specified
+      const finalUseExactMultiplier = useExactMultiplier !== undefined ? useExactMultiplier : false;
+      
+      // Update storage with these settings
+      const control = await storage.makeAllUsersWin(affectedGames, finalTargetMultiplier, finalUseExactMultiplier);
       res.json(control);
     } catch (error) {
       console.error('Error setting global win control:', error);
