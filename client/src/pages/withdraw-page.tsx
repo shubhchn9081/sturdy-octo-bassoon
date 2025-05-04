@@ -356,11 +356,11 @@ export default function WithdrawPage() {
           <CardFooter className="flex flex-col items-start space-y-2 border-t border-[#243442] bg-[#0F212E] p-6 text-xs text-[#7F8990]">
             <div className="flex items-start space-x-2">
               <CheckCircle className="w-3.5 h-3.5 text-[#1375e1] mt-0.5" />
-              <p><span className="font-medium text-white">Withdrawals are processed instantly</span> during business hours (10 AM - 6 PM)</p>
+              <p><span className="font-medium text-white">Withdrawals are processed instantly</span> 24 hours a day, 7 days a week</p>
             </div>
             <div className="flex items-start space-x-2">
               <CheckCircle className="w-3.5 h-3.5 text-[#1375e1] mt-0.5" />
-              <p>UPI withdrawals are generally processed within 15-30 minutes</p>
+              <p>UPI withdrawals are typically processed within 15-30 minutes</p>
             </div>
             <div className="flex items-start space-x-2">
               <CheckCircle className="w-3.5 h-3.5 text-[#1375e1] mt-0.5" />
