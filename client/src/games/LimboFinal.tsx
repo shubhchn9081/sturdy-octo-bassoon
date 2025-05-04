@@ -248,18 +248,62 @@ const LimboFinal: React.FC = () => {
       currentBetIdRef.current = response.betId;
       console.log("Bet placed successfully with ID:", response.betId);
       
-      // Generate game result using provably fair mechanism
-      const result = getGameResult() as number;
-      const limboResult = parseFloat(result.toFixed(2));
+      // Instead of generating the result locally, get controlled result from server
+      // Start with a temporary value - will update with actual server result
+      let limboResult = 1.00;
+      let win = false;
+      
+      try {
+        // Generate a client seed for provably fair verification
+        const clientSeed = Math.random().toString(36).substring(2, 15);
+        
+        // Get the server seed from the response
+        const serverSeed = response.serverSeedHash;
+        
+        // Fetch the controlled result from the server
+        const resultResponse = await fetch('/api/game-control/limbo/get-controlled-result', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gameId: 3, // Limbo game ID
+            targetMultiplier, 
+            clientSeed,
+            serverSeed,
+            nonce: 1 // First nonce for this bet
+          }),
+          credentials: 'include'
+        });
+        
+        if (resultResponse.ok) {
+          const resultData = await resultResponse.json();
+          limboResult = resultData.result;
+          win = resultData.win;
+          console.log("Got controlled Limbo result from server:", limboResult, win);
+        } else {
+          // Fallback to local generation if server fails
+          console.warn("Could not get controlled Limbo result, using local value");
+          const result = getGameResult() as number;
+          limboResult = parseFloat(result.toFixed(2));
+          win = limboResult >= targetMultiplier;
+        }
+      } catch (error) {
+        console.error("Error fetching controlled Limbo result:", error);
+        // Fallback to local generation
+        const result = getGameResult() as number;
+        limboResult = parseFloat(result.toFixed(2));
+        win = limboResult >= targetMultiplier;
+      }
       
       // Animate the multiplier
       animateMultiplier(limboResult);
       
-      // Create outcome object
+      // Create outcome object with server-controlled result
       const outcome = {
         targetMultiplier,
         result: limboResult,
-        win: limboResult >= targetMultiplier
+        win: win 
       };
       
       // Complete the bet after animation
@@ -354,18 +398,62 @@ const LimboFinal: React.FC = () => {
       currentBetIdRef.current = response.betId;
       console.log("Auto bet placed successfully with ID:", response.betId);
       
-      // Generate game result using provably fair mechanism
-      const result = getGameResult() as number;
-      const limboResult = parseFloat(result.toFixed(2));
+      // Instead of generating the result locally, get controlled result from server
+      // Start with a temporary value - will update with actual server result
+      let limboResult = 1.00;
+      let win = false;
+      
+      try {
+        // Generate a client seed for provably fair verification
+        const clientSeed = Math.random().toString(36).substring(2, 15);
+        
+        // Get the server seed from the response
+        const serverSeed = response.serverSeedHash;
+        
+        // Fetch the controlled result from the server
+        const resultResponse = await fetch('/api/game-control/limbo/get-controlled-result', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gameId: 3, // Limbo game ID
+            targetMultiplier, 
+            clientSeed,
+            serverSeed,
+            nonce: 1 // First nonce for this bet
+          }),
+          credentials: 'include'
+        });
+        
+        if (resultResponse.ok) {
+          const resultData = await resultResponse.json();
+          limboResult = resultData.result;
+          win = resultData.win;
+          console.log("Got controlled Limbo result from server (auto):", limboResult, win);
+        } else {
+          // Fallback to local generation if server fails
+          console.warn("Could not get controlled Limbo result, using local value");
+          const result = getGameResult() as number;
+          limboResult = parseFloat(result.toFixed(2));
+          win = limboResult >= targetMultiplier;
+        }
+      } catch (error) {
+        console.error("Error fetching controlled Limbo result:", error);
+        // Fallback to local generation
+        const result = getGameResult() as number;
+        limboResult = parseFloat(result.toFixed(2));
+        win = limboResult >= targetMultiplier;
+      }
       
       // Animate the multiplier
       animateMultiplier(limboResult);
       
-      // Create outcome object
+      // Create outcome object with server-controlled result
       const outcome = {
         targetMultiplier,
         result: limboResult,
-        win: limboResult >= targetMultiplier
+        win: win 
       };
       
       // Complete the bet after animation
