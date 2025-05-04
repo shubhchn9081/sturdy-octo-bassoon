@@ -69,8 +69,8 @@ const Header = () => {
   
   return (
     <header className={`bg-[#0B131C] sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-lg shadow-black/20 border-b border-[#182634]/50' : 'border-b border-[#182634]/30'}`}>
-      <div className="px-1.5 md:px-6 py-1.5 md:py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-0.5 md:space-x-4">
+      <div className="px-2 md:px-6 py-1.5 md:py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-1 md:space-x-4">
           <div className="hidden md:block">
             <Button 
               variant="ghost" 
@@ -106,8 +106,8 @@ const Header = () => {
           </div>
           
           {isSignedIn && (
-            <div className="md:hidden ml-0.5 bg-gradient-to-r from-[#1A2C39] to-[#243442] rounded-full shadow-inner shadow-black/30 text-xs cursor-pointer overflow-hidden" onClick={() => setLocation('/wallet')}>
-              <span className="text-white px-1.5 py-1 font-mono flex items-center text-[10px]">
+            <div className="md:hidden ml-1 bg-gradient-to-r from-[#1A2C39] to-[#243442] rounded-full shadow-inner shadow-black/30 text-xs cursor-pointer overflow-hidden" onClick={() => setLocation('/wallet')}>
+              <span className="text-white px-2.5 py-1.5 font-mono flex items-center">
                 {symbol}{balance}
               </span>
             </div>
