@@ -89,7 +89,7 @@ export interface IStorage {
   getGlobalGameControl(): Promise<GlobalGameControl | undefined>;
   updateGlobalGameControl(settings: Partial<GlobalGameControl>): Promise<GlobalGameControl>;
   makeAllUsersLose(affectedGames?: number[]): Promise<GlobalGameControl>;
-  makeAllUsersWin(affectedGames?: number[]): Promise<GlobalGameControl>;
+  makeAllUsersWin(affectedGames?: number[], targetMultiplier?: number, useExactMultiplier?: boolean): Promise<GlobalGameControl>;
   resetGlobalGameControl(): Promise<GlobalGameControl>;
   
   // Transaction management (admin)
