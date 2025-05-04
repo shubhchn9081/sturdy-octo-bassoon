@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from 'wouter';
@@ -23,7 +23,8 @@ import {
   AlignJustify,
   ChevronLeft,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  ChevronsUpDown
 } from 'lucide-react';
 import NovitoLogo from '@/components/NovitoLogo';
 import { useUser } from '@/context/UserContext';
@@ -55,17 +56,27 @@ const Header = () => {
   const [, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Listen for scroll to add shadow effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   return (
-    <header className="bg-[#0F1923] border-b border-[#182634] sticky top-0 z-10">
-      <div className="px-2 md:px-4 py-1 md:py-2 flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="hidden md:block mr-2">
+    <header className={`bg-[#0B131C] sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-lg shadow-black/20 border-b border-[#182634]/50' : 'border-b border-[#182634]/30'}`}>
+      <div className="px-3 md:px-6 py-2 md:py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="hidden md:block">
             <Button 
               variant="ghost" 
               size="icon"
               onClick={toggleSidebar}
-              className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
+              className="text-[#546D7A] hover:text-white hover:bg-[#172B3A] rounded-full transition-colors"
             >
               {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </Button>
@@ -76,68 +87,86 @@ const Header = () => {
               variant="ghost" 
               size="icon"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-1"
+              className="p-1.5 rounded-full text-[#546D7A] hover:text-white"
             >
               <AlignJustify className="h-5 w-5" />
             </Button>
           </div>
           
           <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
-            <NovitoLogo className="h-6 md:h-12" />
+            <div className="relative">
+              <NovitoLogo className="h-7 md:h-9" />
+              {/* Add a subtle glow effect beneath the logo */}
+              <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-gradient-to-r from-[#57FBA2]/0 via-[#57FBA2]/70 to-[#57FBA2]/0 blur-sm"></div>
+            </div>
           </div>
           
           {isSignedIn && (
-            <div className="md:hidden ml-2 bg-[#1C2C39] rounded text-xs cursor-pointer" onClick={() => setLocation('/wallet')}>
-              <span className="text-white px-2 py-1 font-mono">
+            <div className="md:hidden ml-1 bg-gradient-to-r from-[#1A2C39] to-[#243442] rounded-full shadow-inner shadow-black/30 text-xs cursor-pointer overflow-hidden" onClick={() => setLocation('/wallet')}>
+              <span className="text-white px-2.5 py-1.5 font-mono flex items-center">
                 {symbol}{balance}
               </span>
             </div>
           )}
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 md:space-x-4">
+          {/* Balance display with improved styling */}
           <div className="hidden md:block">
             {isSignedIn && (
-              <div className="flex items-center bg-[#1C2C39] rounded text-xs relative cursor-pointer" onClick={() => setLocation('/wallet')}>
-                <span className="text-white px-2 py-1.5 font-mono header-balance" id="header-balance">
+              <div 
+                className="flex items-center rounded-full overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] bg-gradient-to-r from-[#182634] to-[#1C2C39]"
+                onClick={() => setLocation('/wallet')}
+              >
+                <span className="text-white px-3 py-1.5 font-mono text-sm header-balance font-medium" id="header-balance">
                   {symbol}{balance}
                 </span>
-                {/* Removed the first chevron down icon */}
-                <div className="border-l border-[#0B131C] pl-2 py-1.5 pr-2 flex items-center">
-                  <span className="text-gray-400 text-xs ml-1">INR</span>
+                <div className="border-l border-[#0B131C]/60 pl-2 pr-3 py-1.5 flex items-center bg-[#1A2D3E]">
+                  <span className="text-gray-300 text-xs">INR</span>
+                  <ChevronsUpDown className="h-3 w-3 ml-1 text-gray-400" />
                 </div>
               </div>
             )}
           </div>
           
+          {/* Deposit button with improved styling */}
           <Button 
-            className="bg-[#57FBA2] hover:bg-[#4ce996] rounded text-black font-medium py-1 md:py-1.5 px-2 md:px-3 text-[10px] md:text-xs flex items-center gap-1"
+            className="bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:brightness-105 rounded-full text-black font-semibold py-1.5 md:py-1.5 px-3 md:px-4 text-xs md:text-sm flex items-center gap-1.5 shadow-md shadow-[#57FBA2]/20 transition-all hover:shadow-[#57FBA2]/30"
             onClick={() => setLocation('/recharge')}
           >
-            <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
-            Deposit
+            <DollarSign className="h-3.5 w-3.5" />
+            <span className="hidden md:inline">Deposit</span>
+            <span className="md:hidden">Deposit</span>
           </Button>
           
+          {/* Wallet button with improved styling */}
           <Button 
-            className="bg-[#1C82E3] hover:bg-[#1375d1] rounded text-white font-medium py-1 md:py-1.5 px-2 md:px-3 text-[10px] md:text-xs"
+            className="bg-gradient-to-r from-[#1C82E3] to-[#156DCF] hover:brightness-105 rounded-full text-white font-semibold py-1.5 md:py-1.5 px-3 md:px-4 text-xs md:text-sm flex items-center gap-1.5 shadow-md shadow-[#156DCF]/20"
             onClick={() => setLocation('/wallet')}
           >
-            Wallet
+            <Wallet className="h-3.5 w-3.5 md:mr-1" />
+            <span className="hidden md:inline">Wallet</span>
           </Button>
           
+          {/* User authentication buttons */}
           {isLoaded && isSignedIn ? (
             <UserProfileButton />
           ) : (
             <Button 
-              className="bg-[#57FBA2] hover:bg-[#4ce996] text-black font-medium py-1 md:py-1.5 px-2 md:px-3 text-[10px] md:text-xs rounded"
+              className="bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:brightness-105 rounded-full text-black font-semibold py-1.5 md:py-1.5 px-3 md:px-4 text-xs md:text-sm shadow-md shadow-[#57FBA2]/20"
               onClick={() => setLocation('/auth')}
             >
               Sign Up
             </Button>
           )}
           
+          {/* Desktop-only buttons */}
           <div className="hidden md:flex items-center space-x-1">
-            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-[#546D7A] hover:text-white hover:bg-[#172B3A] rounded-full transition-colors"
+            >
               <Search className="h-5 w-5" />
             </Button>
             
@@ -146,15 +175,15 @@ const Header = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]"
+                  className="text-[#546D7A] hover:text-white hover:bg-[#172B3A] rounded-full transition-colors"
                   onClick={() => setShowUserMenu(!showUserMenu)}
                 >
                   <User className="h-5 w-5" />
                 </Button>
               
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-[#1A2C38] border border-[#243442] z-50">
-                    <div className="py-1 divide-y divide-[#243442]">
+                  <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-xl bg-[#1A2C38] border border-[#243442]/70 z-50 overflow-hidden">
+                    <div className="py-1 divide-y divide-[#243442]/70">
                       <div className="px-4 py-3">
                         <p className="text-sm leading-5 text-white">
                           Guest
@@ -217,38 +246,48 @@ const Header = () => {
               </div>
             )}
             
-            <Button variant="ghost" size="icon" className="text-[#546D7A] hover:text-white hover:bg-[#172B3A]">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-[#546D7A] hover:text-white hover:bg-[#172B3A] rounded-full transition-colors relative"
+            >
               <Bell className="h-5 w-5" />
+              {/* Adding notification indicator */}
+              <span className="absolute top-1 right-1.5 w-2 h-2 bg-[#57FBA2] rounded-full"></span>
             </Button>
           </div>
         </div>
       </div>
       
+      {/* Mobile menu with improved styling */}
       {showMobileMenu && (
-        <div className="md:hidden bg-[#0F212E] border-t border-[#172B3A] p-3">
+        <div className="md:hidden bg-[#0B1823] border-t border-[#172B3A]/50 p-4">
           {isSignedIn && (
-            <div className="flex items-center bg-[#1C2C39] rounded text-xs mb-3 cursor-pointer" onClick={() => setLocation('/wallet')}>
-              <span className="text-white px-2 py-2 font-mono flex-1 header-balance-mobile">
+            <div className="flex items-center bg-gradient-to-r from-[#182634] to-[#1C2C39] rounded-lg shadow-inner shadow-black/20 text-xs mb-4 cursor-pointer overflow-hidden" onClick={() => setLocation('/wallet')}>
+              <span className="text-white px-3 py-2.5 font-mono flex-1 header-balance-mobile font-medium text-sm">
                 {symbol}{balance}
               </span>
-              <div className="border-l border-[#0B131C] pl-2 py-2 pr-2 flex items-center">
-                <span className="text-gray-400 text-xs ml-1">INR</span>
+              <div className="border-l border-[#0B131C]/60 pl-2 py-2.5 pr-3 flex items-center bg-[#1A2D3E]">
+                <span className="text-gray-300 text-xs">INR</span>
+                <ChevronsUpDown className="h-3 w-3 ml-1 text-gray-400" />
               </div>
             </div>
           )}
-          <div className="relative mb-3">
+          
+          <div className="relative mb-4">
             <Input 
               placeholder="Search games..." 
-              className="pl-8 py-1 text-sm bg-[#172B3A] border-[#243442]"
+              className="pl-10 py-2 text-sm bg-[#172B3A]/80 border-[#243442]/50 rounded-lg"
             />
-            <div className="absolute left-3 top-2">
+            <div className="absolute left-3 top-2.5">
               <Search className="h-4 w-4 text-[#7F8990]" />
             </div>
           </div>
+          
           {/* Special button for deposit */}
-          <div className="flex w-full mb-2">
+          <div className="flex w-full mb-4">
             <div 
-              className="flex items-center justify-center w-full p-2 text-sm bg-[#57FBA2] text-black rounded cursor-pointer gap-1 font-medium"
+              className="flex items-center justify-center w-full p-2.5 text-sm bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] text-black rounded-lg cursor-pointer gap-1.5 font-semibold shadow-md"
               onClick={() => setLocation('/recharge')}
             >
               <DollarSign className="h-4 w-4" />
@@ -256,27 +295,27 @@ const Header = () => {
             </div>
           </div>
             
-          <div className="grid grid-cols-2 gap-2">
-            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/')}>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="block p-3 text-sm bg-[#172B3A]/70 rounded-lg cursor-pointer hover:bg-[#172B3A] transition-colors" onClick={() => setLocation('/')}>
               Home
             </div>
-            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/originals')}>
+            <div className="block p-3 text-sm bg-[#172B3A]/70 rounded-lg cursor-pointer hover:bg-[#172B3A] transition-colors" onClick={() => setLocation('/originals')}>
               Novito Originals
             </div>
-            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/slots')}>
+            <div className="block p-3 text-sm bg-[#172B3A]/70 rounded-lg cursor-pointer hover:bg-[#172B3A] transition-colors" onClick={() => setLocation('/slots')}>
               Slots
             </div>
-            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/live-casino')}>
+            <div className="block p-3 text-sm bg-[#172B3A]/70 rounded-lg cursor-pointer hover:bg-[#172B3A] transition-colors" onClick={() => setLocation('/live-casino')}>
               Live Casino
             </div>
-            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/sports')}>
+            <div className="block p-3 text-sm bg-[#172B3A]/70 rounded-lg cursor-pointer hover:bg-[#172B3A] transition-colors" onClick={() => setLocation('/sports')}>
               Sports
             </div>
-            <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/promotions')}>
+            <div className="block p-3 text-sm bg-[#172B3A]/70 rounded-lg cursor-pointer hover:bg-[#172B3A] transition-colors" onClick={() => setLocation('/promotions')}>
               Promotions
             </div>
             {isSignedIn && (
-              <div className="block p-2 text-sm bg-[#172B3A] rounded cursor-pointer" onClick={() => setLocation('/account')}>
+              <div className="block p-3 text-sm bg-[#172B3A]/70 rounded-lg cursor-pointer hover:bg-[#172B3A] transition-colors" onClick={() => setLocation('/account')}>
                 My Account
               </div>
             )}
