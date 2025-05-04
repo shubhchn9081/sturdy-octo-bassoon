@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { User, Game, UserGameControl } from "@shared/schema";
+import { Download, Search, SortDesc, SortAsc } from "lucide-react";
 // Create a typed balance interface
 interface UserBalance {
   BTC: number;
@@ -40,6 +41,10 @@ export default function AdminPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [balanceAmount, setBalanceAmount] = useState("");
   const [currency, setCurrency] = useState("INR");
+  
+  // User management state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   
   // Game control state
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
