@@ -123,6 +123,42 @@ const MinesGame = () => {
     return +payout.toFixed(4); // Round to 4 decimal places like Stake
   }
   
+  // Fetch controlled mine positions from the server
+  const fetchControlledMinePositions = async (originalMinePositions: number[]): Promise<number[]> => {
+    try {
+      // Call the game control API to get controlled mine positions
+      const response = await fetch('/api/game-control/mines/get-controlled-positions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gameId: 1, // Mines gameId
+          originalMinePositions,
+          currentlyRevealed: [] // No positions revealed yet
+        }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching controlled mine positions: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.wasModified) {
+        console.log('Mine positions were modified by admin control!');
+        return data.controlledMinePositions;
+      } else {
+        return originalMinePositions;
+      }
+    } catch (error) {
+      console.error('Failed to fetch controlled mine positions:', error);
+      // Fall back to original positions on error
+      return originalMinePositions;
+    }
+  };
+
   // Start a new game
   const startGame = async () => {
     if (gameState && !gameState.isGameOver) return;
@@ -145,10 +181,13 @@ const MinesGame = () => {
       totalCells: TOTAL_CELLS
     });
     
-    // Generate mine positions
-    const minePositions = generateMinePositions(mineCount);
-    
     try {
+      // Generate initial mine positions
+      const initialMinePositions = generateMinePositions(mineCount);
+      
+      // Fetch controlled mine positions from the server (for admin controls)
+      const controlledMinePositions = await fetchControlledMinePositions(initialMinePositions);
+      
       // Make sure we use the correct bet amount - must be at least 100 for minimum bet requirement
       const safeBetAmount = Math.max(100, betAmount);
       
@@ -171,11 +210,11 @@ const MinesGame = () => {
         throw new Error("Failed to place bet: Invalid response");
       }
       
-      // Create new game state
+      // Create new game state with controlled mine positions
       const newGameState: GameStateType = {
         betAmount,
         numberOfMines: mineCount,
-        minePositions,
+        minePositions: controlledMinePositions, // Use controlled positions here
         revealed: Array(TOTAL_CELLS).fill(false),
         isGameOver: false,
         isWon: false,
@@ -196,6 +235,47 @@ const MinesGame = () => {
     }
   };
   
+  // Fetch updated controlled mine positions after revealing a cell
+  const fetchUpdatedMinePositions = async (minePositions: number[], revealedPositions: boolean[]): Promise<number[]> => {
+    try {
+      // Convert revealed boolean array to indices of revealed positions
+      const revealedIndices = revealedPositions
+        .map((revealed, index) => revealed ? index : -1)
+        .filter(index => index !== -1);
+      
+      // Call the game control API to get updated controlled mine positions
+      const response = await fetch('/api/game-control/mines/get-controlled-positions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gameId: 1, // Mines gameId
+          originalMinePositions: minePositions,
+          currentlyRevealed: revealedIndices
+        }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching updated mine positions: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.wasModified) {
+        console.log('Mine positions were updated by admin control after reveal!');
+        return data.controlledMinePositions;
+      } else {
+        return minePositions;
+      }
+    } catch (error) {
+      console.error('Failed to fetch updated mine positions:', error);
+      // Fall back to original positions on error
+      return minePositions;
+    }
+  };
+
   // Reveal a cell
   const revealCell = async (cellIndex: number) => {
     if (!gameState || gameState.isGameOver || gameState.revealed[cellIndex]) return;
@@ -207,8 +287,15 @@ const MinesGame = () => {
     // Mark cell as revealed
     updatedGameState.revealed[cellIndex] = true;
     
-    // Check if clicked on a mine
-    if (gameState.minePositions.includes(cellIndex)) {
+    // Fetch updated mine positions from the server after this reveal
+    // This allows the server to reposition mines based on admin controls
+    updatedGameState.minePositions = await fetchUpdatedMinePositions(
+      gameState.minePositions,
+      updatedGameState.revealed
+    );
+    
+    // Check if clicked on a mine (using the updated positions)
+    if (updatedGameState.minePositions.includes(cellIndex)) {
       updatedGameState.isGameOver = true;
       updatedGameState.isWon = false;
       

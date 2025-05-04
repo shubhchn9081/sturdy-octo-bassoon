@@ -55,8 +55,9 @@ const PLINKO_MULTIPLIERS: Record<string, Record<number, number[]>> = {
  * @returns Index of the closest multiplier and the path to reach it
  */
 /**
- * Generates multiple different paths that all lead to exactly 2.0x multiplier
+ * Generates highly varied paths that lead to exactly 2.0x multiplier
  * This is specifically for the 2.0x multiplier admin control requirement
+ * Enhanced version with multiple path generation strategies
  */
 function generateMultiplePathsFor2xMultiplier(rows: number, risk: string): {
   pathIndex: number;
@@ -69,17 +70,35 @@ function generateMultiplePathsFor2xMultiplier(rows: number, risk: string): {
     throw new Error(`Invalid risk or row count: ${risk}, ${rows}`);
   }
 
-  // Find all indices that have multipliers close to 2.0
-  const targetIndices: number[] = [];
+  // Find all indices that have multipliers very close to 2.0
+  const exactIndices: number[] = [];
+  
+  // Find slightly wider range for more variety
+  const closeIndices: number[] = [];
+  
   for (let i = 0; i < multipliers.length; i++) {
-    // Look for multipliers between 1.9 and 2.1 for better variety
-    if (multipliers[i] >= 1.9 && multipliers[i] <= 2.1) {
-      targetIndices.push(i);
+    // Look for multipliers very close to 2.0 (within 0.05)
+    if (Math.abs(multipliers[i] - 2.0) < 0.05) {
+      exactIndices.push(i);
+    }
+    // Look for multipliers a bit further (within 0.2) for more variety
+    else if (multipliers[i] >= 1.9 && multipliers[i] <= 2.1) {
+      closeIndices.push(i);
     }
   }
-
-  // If we didn't find any close multipliers, find the single closest one
-  if (targetIndices.length === 0) {
+  
+  // Choose which pool of indices to use
+  // 70% chance to use exact indices if available
+  // 30% chance to use close indices for more variety
+  let targetIndices: number[] = [];
+  if (exactIndices.length > 0 && Math.random() < 0.7) {
+    targetIndices = exactIndices;
+    console.log(`[PLINKO] Using exact 2.0x multiplier indices (${exactIndices.length} available)`);
+  } else if (closeIndices.length > 0) {
+    targetIndices = closeIndices;
+    console.log(`[PLINKO] Using approximate 2.0x multiplier indices (${closeIndices.length} available)`);
+  } else {
+    // If we didn't find any close multipliers, find the single closest one
     let closestIndex = 0;
     let minDiff = Math.abs(multipliers[0] - 2.0);
     
@@ -91,49 +110,195 @@ function generateMultiplePathsFor2xMultiplier(rows: number, risk: string): {
       }
     }
     targetIndices.push(closestIndex);
+    console.log(`[PLINKO] Using single closest index to 2.0x: ${closestIndex} (${multipliers[closestIndex]}x)`);
   }
 
   // Choose a random index from our candidates
   const chosenIndex = targetIndices[Math.floor(Math.random() * targetIndices.length)];
+  console.log(`[PLINKO] Selected multiplier: ${multipliers[chosenIndex]}x (index ${chosenIndex})`);
   
-  // Generate a randomized path that still leads to our target
+  // Select a path generation strategy randomly
+  // This creates significantly more varied paths while still hitting the target
+  const pathStrategy = Math.floor(Math.random() * 5);
   const path: number[] = [];
   
   // Calculate how many left turns (1s) we need
   const leftTurns = chosenIndex;
   let leftTurnsRemaining = leftTurns;
   
-  // Create a more randomized pattern for the path
-  // This distributes the left/right turns more evenly through the path
-  for (let i = 0; i < rows; i++) {
-    // Create a different probability pattern based on how far we are in the sequence
-    // This creates more varied-looking paths
-    let probability = leftTurnsRemaining / (rows - i); // Base probability
-    
-    // Add some variation to the probability based on position
-    if (i < rows/3) {
-      // More random in the first third
-      probability = probability * (0.8 + Math.random() * 0.4);
-    } else if (i < 2*rows/3) {
-      // Less random in the middle third
-      probability = probability * (0.9 + Math.random() * 0.2);
-    } else {
-      // More deliberate in the final third
-      probability = probability * (0.95 + Math.random() * 0.1);
+  console.log(`[PLINKO] Using path strategy ${pathStrategy} for ${rows} rows, need ${leftTurns} left turns`);
+  
+  // Different path generation strategies
+  switch (pathStrategy) {
+    case 0: // Cluster strategy - tends to cluster similar directions together
+      {
+        let currentDirection = Math.random() < 0.5 ? 0 : 1; // Random start direction
+        let clusterSize = Math.floor(Math.random() * 3) + 1; // Random cluster size 1-3
+        let clusterCount = 0;
+        
+        for (let i = 0; i < rows; i++) {
+          // Ensure we can meet the required left turns
+          const remainingSteps = rows - i;
+          const minLeftNeeded = Math.max(0, leftTurnsRemaining - (currentDirection === 1 ? clusterSize - clusterCount : 0));
+          const maxLeftAllowed = Math.min(remainingSteps, leftTurnsRemaining);
+          
+          // Force direction if necessary
+          if (minLeftNeeded === remainingSteps) {
+            path.push(1);
+            leftTurnsRemaining--;
+          } else if (maxLeftAllowed === 0) {
+            path.push(0);
+          } else {
+            // Follow cluster pattern
+            path.push(currentDirection);
+            if (currentDirection === 1) leftTurnsRemaining--;
+            
+            clusterCount++;
+            if (clusterCount >= clusterSize) {
+              currentDirection = 1 - currentDirection; // Switch direction
+              clusterSize = Math.floor(Math.random() * 3) + 1; // New cluster size
+              clusterCount = 0;
+            }
+          }
+        }
+      }
+      break;
+      
+    case 1: // Wave pattern - alternates more regularly
+      {
+        let waveLength = Math.floor(Math.random() * 3) + 2; // Length of the wave pattern
+        
+        for (let i = 0; i < rows; i++) {
+          // Calculate required left turns for the rest of the path
+          if (rows - i === leftTurnsRemaining) {
+            path.push(1);
+            leftTurnsRemaining--;
+          } else if (leftTurnsRemaining === 0) {
+            path.push(0);
+          } else {
+            // Wave pattern: go left if in first half of wave, right if in second half
+            // But add randomness to make it more natural
+            const wavePosition = i % waveLength;
+            const leftProbability = wavePosition < waveLength/2 ? 0.7 : 0.3;
+            
+            if (Math.random() < leftProbability && leftTurnsRemaining > 0) {
+              path.push(1);
+              leftTurnsRemaining--;
+            } else {
+              path.push(0);
+            }
+          }
+        }
+      }
+      break;
+      
+    case 2: // Front-loaded strategy - more turns at the beginning
+      {
+        for (let i = 0; i < rows; i++) {
+          const remainingSteps = rows - i;
+          // Higher probability of left turns early in the path
+          const positionFactor = 1 - (i / rows); // Decreases from 1 to 0
+          let probability = (leftTurnsRemaining / remainingSteps) * (1 + positionFactor); 
+          
+          // Clamp probability to valid range
+          probability = Math.min(1, Math.max(0, probability));
+          
+          // Ensure we can still meet the required number of left turns
+          if (remainingSteps === leftTurnsRemaining) {
+            path.push(1);
+            leftTurnsRemaining--;
+          } else if (leftTurnsRemaining === 0) {
+            path.push(0);
+          } else if (Math.random() < probability) {
+            path.push(1);
+            leftTurnsRemaining--;
+          } else {
+            path.push(0);
+          }
+        }
+      }
+      break;
+      
+    case 3: // Back-loaded strategy - more turns near the end
+      {
+        for (let i = 0; i < rows; i++) {
+          const remainingSteps = rows - i;
+          // Higher probability of left turns later in the path
+          const positionFactor = i / rows; // Increases from 0 to 1
+          let probability = (leftTurnsRemaining / remainingSteps) * (1 + positionFactor);
+          
+          // Clamp probability to valid range
+          probability = Math.min(1, Math.max(0, probability));
+          
+          // Ensure we can still meet the required number of left turns
+          if (remainingSteps === leftTurnsRemaining) {
+            path.push(1);
+            leftTurnsRemaining--;
+          } else if (leftTurnsRemaining === 0) {
+            path.push(0);
+          } else if (Math.random() < probability) {
+            path.push(1);
+            leftTurnsRemaining--;
+          } else {
+            path.push(0);
+          }
+        }
+      }
+      break;
+      
+    case 4: // Balanced strategy (original algorithm with improvements)
+    default:
+      {
+        for (let i = 0; i < rows; i++) {
+          // Create a different probability pattern based on how far we are in the sequence
+          // This creates more varied-looking paths
+          let probability = leftTurnsRemaining / (rows - i); // Base probability
+          
+          // Add some variation to the probability based on position
+          if (i < rows/3) {
+            // More random in the first third
+            probability = probability * (0.7 + Math.random() * 0.6);
+          } else if (i < 2*rows/3) {
+            // Less random in the middle third
+            probability = probability * (0.8 + Math.random() * 0.4);
+          } else {
+            // More deliberate in the final third
+            probability = probability * (0.9 + Math.random() * 0.2);
+          }
+          
+          // But ensure we still hit our target number of left turns
+          if (rows - i <= leftTurnsRemaining) {
+            path.push(1); // Must go left if we need all remaining turns to be left
+            leftTurnsRemaining--;
+          } else if (leftTurnsRemaining === 0) {
+            path.push(0); // Must go right if we have no left turns remaining
+          } else if (Math.random() < probability) {
+            path.push(1); // Go left
+            leftTurnsRemaining--;
+          } else {
+            path.push(0); // Go right
+          }
+        }
+      }
+      break;
+  }
+
+  // Verify the path has the correct number of left turns to reach our target
+  const actualLeftTurns = path.filter(turn => turn === 1).length;
+  console.log(`[PLINKO] Path verification: needed ${leftTurns} left turns, got ${actualLeftTurns}`);
+  
+  if (actualLeftTurns !== leftTurns) {
+    console.error(`[PLINKO] Path generation error! Needed ${leftTurns} left turns but got ${actualLeftTurns}`);
+    // Fallback to simple deterministic path if there's an error
+    const fallbackPath = Array(rows).fill(0);
+    for (let i = 0; i < leftTurns; i++) {
+      fallbackPath[i] = 1;
     }
-    
-    // But ensure we still hit our target number of left turns
-    if (rows - i <= leftTurnsRemaining) {
-      path.push(1); // Must go left if we need all remaining turns to be left
-      leftTurnsRemaining--;
-    } else if (leftTurnsRemaining === 0) {
-      path.push(0); // Must go right if we have no left turns remaining
-    } else if (Math.random() < probability) {
-      path.push(1); // Go left
-      leftTurnsRemaining--;
-    } else {
-      path.push(0); // Go right
-    }
+    return {
+      pathIndex: chosenIndex,
+      path: fallbackPath,
+      actualMultiplier: multipliers[chosenIndex]
+    };
   }
 
   return {
