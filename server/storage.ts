@@ -677,15 +677,23 @@ export class MemStorage implements IStorage {
     return this.updateGlobalGameControl({
       forceAllUsersLose: true,
       forceAllUsersWin: false,
-      affectedGames
+      affectedGames,
+      targetMultiplier: 2.0,
+      useExactMultiplier: false
     });
   }
   
-  async makeAllUsersWin(affectedGames: number[] = []): Promise<GlobalGameControl> {
+  async makeAllUsersWin(
+    affectedGames: number[] = [],
+    targetMultiplier: number = 2.0,
+    useExactMultiplier: boolean = false
+  ): Promise<GlobalGameControl> {
     return this.updateGlobalGameControl({
       forceAllUsersLose: false,
       forceAllUsersWin: true,
-      affectedGames
+      affectedGames,
+      targetMultiplier,
+      useExactMultiplier
     });
   }
   
@@ -693,7 +701,9 @@ export class MemStorage implements IStorage {
     return this.updateGlobalGameControl({
       forceAllUsersLose: false,
       forceAllUsersWin: false,
-      affectedGames: []
+      affectedGames: [],
+      targetMultiplier: 2.0,
+      useExactMultiplier: false
     });
   }
 }
@@ -745,7 +755,9 @@ export class DatabaseStorage implements IStorage {
     return this.updateGlobalGameControl({
       forceAllUsersLose: true,
       forceAllUsersWin: false,
-      affectedGames
+      affectedGames,
+      targetMultiplier: 2.0,
+      useExactMultiplier: false
     });
   }
   
@@ -767,7 +779,9 @@ export class DatabaseStorage implements IStorage {
     return this.updateGlobalGameControl({
       forceAllUsersLose: false,
       forceAllUsersWin: false,
-      affectedGames: []
+      affectedGames: [],
+      targetMultiplier: 2.0,
+      useExactMultiplier: false
     });
   }
   
