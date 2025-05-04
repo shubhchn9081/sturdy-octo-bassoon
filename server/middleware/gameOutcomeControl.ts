@@ -164,82 +164,155 @@ export const gameOutcomeControl = {
         // If forcing a win, ensure no mines are in the revealed positions
         if (forcedOutcome === 'win') {
           // For exact 2x multiplier with Mines game (or very close to it)
-          if (useExactMultiplier && targetMultiplier && Math.abs(targetMultiplier - 2.0) < 0.01) {
-            console.log(`Forcing exact 2x multiplier for Mines game for user ${userId}`);
+          if (useExactMultiplier && targetMultiplier) {
+            // Import the accurate multiplier table
+            const { findClosestMultiplier } = require('../../shared/minesMultiplierTable');
             
-            // Create a more varied path for 2x multiplier
-            // Instead of always revealing half the safe tiles, we'll vary it a bit
-            // The multiplier in Mines is roughly calculated as: totalSquares / (totalSquares - mineCount - revealed)
+            console.log(`[MINES] Forcing exact ${targetMultiplier}x multiplier for user ${userId} with ${mineCount} mines`);
             
-            // Get the total number of safe tiles (non-mines)
-            const totalNonMines = totalSquares - mineCount;
+            // Use our accurate multiplier table to find the closest target
+            const closestOption = findClosestMultiplier(mineCount, targetMultiplier);
             
-            // Calculate multiple possible reveal amounts that will lead to approximately 2x
-            // We'll use the formula: multiplier ≈ totalNonMines / (totalNonMines - tilesRevealed)
-            // For 2x, that means: totalNonMines / (totalNonMines - tilesRevealed) ≈ 2
-            // Which gives: tilesRevealed ≈ totalNonMines / 2
-            
-            // Create a variety of reveal counts around the target value
-            const targetRevealCount = Math.floor(totalNonMines / 2);
-            const revealOptions = [
-              targetRevealCount - 1,
-              targetRevealCount,
-              targetRevealCount + 1
-            ].filter(n => n > 0 && n < totalNonMines); // Ensure valid counts
-            
-            // Randomly choose one of the reveal options
-            const selectedRevealCount = revealOptions[Math.floor(Math.random() * revealOptions.length)];
-            console.log(`[MINES] Selected varied reveal count for 2x: ${selectedRevealCount}/${totalNonMines} safe tiles`);
-            
-            // Make sure already revealed tiles are counted toward this goal
-            const remainingToReveal = Math.max(0, selectedRevealCount - currentlyRevealed.length);
-            
-            // Get all possible positions
-            const availablePositions = Array.from({ length: totalSquares }, (_, i) => i)
-              .filter(pos => !currentlyRevealed.includes(pos));
-            
-            // Create a weighted shuffle function to create more varied patterns
-            // This places mines with higher probability in certain areas of the grid
-            const weightedShuffle = (positions) => {
-              // Create a biased distribution of positions based on grid pattern
-              // We'll add slight bias to positions near the edges or center
-              return positions.sort((a, b) => {
-                // Convert positions to 2D grid coordinates (assuming 5x5 grid)
-                const aX = a % 5, aY = Math.floor(a / 5);
-                const bX = b % 5, bY = Math.floor(b / 5);
+            if (closestOption) {
+              const { gems, multiplier } = closestOption;
+              
+              console.log(`[MINES] Found exact multiplier configuration: ${gems} gems needed for ${multiplier}x multiplier`);
+              
+              // Calculate how many gems are already revealed
+              const revealedGems = currentlyRevealed.length;
+              
+              // How many more gems to reveal to hit target
+              const remainingGemsToReveal = Math.max(0, gems - revealedGems);
+              console.log(`[MINES] Already revealed ${revealedGems} gems, need ${remainingGemsToReveal} more to reach ${multiplier}x`);
+              
+              // Get all available positions
+              const availablePositions = Array.from({ length: totalSquares }, (_, i) => i)
+                .filter(pos => !currentlyRevealed.includes(pos));
+              
+              // Create a weighted shuffle function for more varied patterns
+              const weightedShuffle = (positions) => {
+                // Create a biased distribution of positions based on grid pattern
+                // We'll add slight bias to positions near the edges or center
+                return positions.sort((a, b) => {
+                  // Convert positions to 2D grid coordinates (assuming 5x5 grid)
+                  const aX = a % 5, aY = Math.floor(a / 5);
+                  const bX = b % 5, bY = Math.floor(b / 5);
+                  
+                  // Calculate distance from center
+                  const aDistCenter = Math.sqrt(Math.pow(aX - 2, 2) + Math.pow(aY - 2, 2));
+                  const bDistCenter = Math.sqrt(Math.pow(bX - 2, 2) + Math.pow(bY - 2, 2));
+                  
+                  // Calculate distance from edge
+                  const aDistEdge = Math.min(aX, 4-aX, aY, 4-aY);
+                  const bDistEdge = Math.min(bX, 4-bX, bY, 4-bY);
+                  
+                  // Randomly choose a bias pattern (center bias, edge bias, or random)
+                  const biasPattern = Math.floor(Math.random() * 3);
+                  
+                  if (biasPattern === 0) {
+                    // Center bias: prefer positions closer to center
+                    return aDistCenter - bDistCenter;
+                  } else if (biasPattern === 1) {
+                    // Edge bias: prefer positions closer to edges
+                    return bDistEdge - aDistEdge;
+                  } else {
+                    // Pure random
+                    return Math.random() - 0.5;
+                  }
+                });
+              };
+              
+              // Use weighted shuffle instead of pure random
+              const shuffled = weightedShuffle([...availablePositions]);
+              
+              // Reserve the first 'remainingGemsToReveal' positions for gems (no mines)
+              const safePositions = shuffled.slice(0, remainingGemsToReveal);
+              
+              // The rest can be mines, but we only need 'mineCount' mines
+              const potentialMinePositions = shuffled.slice(remainingGemsToReveal);
+              
+              // Randomly select mine positions from the potential positions 
+              // ensuring we always have exactly mineCount mines
+              const minePositions = [];
+              while (minePositions.length < mineCount && potentialMinePositions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * potentialMinePositions.length);
+                minePositions.push(potentialMinePositions[randomIndex]);
+                potentialMinePositions.splice(randomIndex, 1);
+              }
+              
+              console.log(`[MINES] Generated ${minePositions.length} mine positions for exact ${multiplier}x multiplier`);
+              
+              return minePositions;
+            } else {
+              console.log(`[MINES] Could not find an exact multiplier configuration for ${targetMultiplier}x with ${mineCount} mines`);
+              
+              // Fallback to more generic logic if we can't find a perfect match
+              
+              // Get the total number of safe tiles (non-mines)
+              const totalNonMines = totalSquares - mineCount;
+              
+              // For 2.0x multiplier specifically, we can use a simple approximation
+              if (Math.abs(targetMultiplier - 2.0) < 0.01) {
+                console.log(`[MINES] Using fallback approximation for 2.0x multiplier`);
                 
-                // Calculate distance from center
-                const aDistCenter = Math.sqrt(Math.pow(aX - 2, 2) + Math.pow(aY - 2, 2));
-                const bDistCenter = Math.sqrt(Math.pow(bX - 2, 2) + Math.pow(bY - 2, 2));
+                // Create a variety of reveal counts around the target value
+                const targetRevealCount = Math.floor(totalNonMines / 2);
+                const revealOptions = [
+                  targetRevealCount - 1,
+                  targetRevealCount,
+                  targetRevealCount + 1
+                ].filter(n => n > 0 && n < totalNonMines); // Ensure valid counts
                 
-                // Calculate distance from edge
-                const aDistEdge = Math.min(aX, 4-aX, aY, 4-aY);
-                const bDistEdge = Math.min(bX, 4-bX, bY, 4-bY);
+                // Randomly choose one of the reveal options
+                const selectedRevealCount = revealOptions[Math.floor(Math.random() * revealOptions.length)];
+                console.log(`[MINES] Selected varied reveal count for 2x: ${selectedRevealCount}/${totalNonMines} safe tiles`);
                 
-                // Randomly choose a bias pattern (center bias, edge bias, or random)
-                const biasPattern = Math.floor(Math.random() * 3);
+                // Make sure already revealed tiles are counted toward this goal
+                const remainingToReveal = Math.max(0, selectedRevealCount - currentlyRevealed.length);
                 
-                if (biasPattern === 0) {
-                  // Center bias: prefer positions closer to center
-                  return aDistCenter - bDistCenter;
-                } else if (biasPattern === 1) {
-                  // Edge bias: prefer positions closer to edges
-                  return bDistEdge - aDistEdge;
-                } else {
-                  // Pure random
-                  return Math.random() - 0.5;
-                }
-              });
-            };
-            
-            // Use weighted shuffle instead of pure random
-            const shuffled = weightedShuffle([...availablePositions]);
-            
-            // Take the positions after remainingToReveal for mines
-            // This ensures we leave enough safe tiles to reach the target multiplier
-            const minePositions = shuffled.slice(remainingToReveal, remainingToReveal + mineCount);
-            
-            return minePositions;
+                // Get all possible positions
+                const availablePositions = Array.from({ length: totalSquares }, (_, i) => i)
+                  .filter(pos => !currentlyRevealed.includes(pos));
+                
+                // Shuffle positions
+                const shuffled = [...availablePositions].sort(() => 0.5 - Math.random());
+                
+                // Take the positions after remainingToReveal for mines
+                // This ensures we leave enough safe tiles to reach the target multiplier
+                const minePositions = shuffled.slice(remainingToReveal, remainingToReveal + mineCount);
+                
+                return minePositions;
+              } else {
+                // For other multipliers, we'll need a different approach
+                console.log(`[MINES] Using proportional approach for ${targetMultiplier}x multiplier`);
+                
+                // Get all possible positions
+                const availablePositions = Array.from({ length: totalSquares }, (_, i) => i)
+                  .filter(pos => !currentlyRevealed.includes(pos));
+                
+                // Shuffle positions
+                const shuffled = [...availablePositions].sort(() => 0.5 - Math.random());
+                
+                // Calculate a suitable number of gems to reveal based on the target multiplier
+                // The higher the multiplier, the fewer gems should be revealed
+                const minGems = 1;
+                const maxGems = totalNonMines - currentlyRevealed.length - 1;
+                
+                // Inverse relationship between multiplier and gems to reveal
+                // 2x -> ~50% of gems, 10x -> ~20% of gems, etc.
+                const targetPercentage = Math.min(0.8, 1 / targetMultiplier);
+                const targetGems = Math.max(minGems, Math.min(maxGems, Math.floor(totalNonMines * targetPercentage)));
+                
+                // Make sure already revealed tiles are counted toward this goal
+                const remainingToReveal = Math.max(0, targetGems - currentlyRevealed.length);
+                
+                // Take the positions after remainingToReveal for mines
+                // This ensures we leave enough safe tiles to reach the target multiplier
+                const minePositions = shuffled.slice(remainingToReveal, remainingToReveal + mineCount);
+                
+                return minePositions;
+              }
+            }
           }
           
           // If we have forced mine positions, use those

@@ -1,0 +1,155 @@
+// Accurate mine game multipliers from Stake, representing the real expected values
+// Generated from the attached CSV file
+export const MINES_MULTIPLIER_TABLE: Record<number, number[]> = {
+  1: [1.04, 1.09, 1.14, 1.19, 1.25, 1.32, 1.39, 1.47, 1.56, 1.67, 1.79, 1.92, 2.08, 2.27, 2.5, 2.78, 3.12, 3.57, 4.17, 5.0, 6.25, 8.33, 12.5, 25.0],
+  2: [1.09, 1.19, 1.3, 1.43, 1.58, 1.75, 1.96, 2.21, 2.5, 2.86, 3.3, 3.85, 4.55, 5.45, 6.67, 8.33, 10.71, 14.29, 20.0, 30.0, 50.0, 100.0, 300.0],
+  3: [1.14, 1.3, 1.49, 1.73, 2.02, 2.37, 2.82, 3.38, 4.11, 5.05, 6.32, 8.04, 10.45, 13.94, 19.17, 27.38, 41.07, 65.71, 115.0, 230.0, 575.0, 2300.0],
+  4: [1.19, 1.43, 1.73, 2.11, 2.61, 3.26, 4.13, 5.32, 6.95, 9.27, 12.64, 17.69, 25.56, 38.33, 60.24, 100.4, 180.71, 361.43, 843.33, 2530.0, 12650.0],
+  5: [1.25, 1.58, 2.02, 2.61, 3.43, 4.57, 6.2, 8.59, 12.16, 17.69, 26.54, 41.28, 67.08, 115.0, 210.83, 421.67, 948.75, 2530.0, 8855.0, 53130.0],
+  6: [1.32, 1.75, 2.37, 3.26, 4.57, 6.53, 9.54, 14.31, 22.12, 35.38, 58.97, 103.21, 191.67, 383.33, 843.33, 2108.33, 6325.0, 25300.0, 177100.0],
+  7: [1.39, 1.96, 2.82, 4.13, 6.2, 9.54, 15.1, 24.72, 42.02, 74.7, 140.06, 280.13, 606.94, 1456.67, 4005.83, 13352.78, 60087.5, 480700.0],
+  8: [1.47, 2.21, 3.38, 5.32, 8.59, 14.31, 24.72, 44.49, 84.04, 168.08, 360.16, 840.38, 2185.0, 6555.0, 24035.0, 120175.0, 1081575.0],
+  9: [1.56, 2.5, 4.11, 6.95, 12.16, 22.12, 42.02, 84.04, 178.58, 408.19, 1020.47, 2857.31, 9286.25, 37145.0, 204297.5, 2042975.0],
+  10: [1.67, 2.86, 5.05, 9.27, 17.69, 35.38, 74.7, 168.08, 408.19, 1088.5, 3265.49, 11429.23, 49526.67, 297160.0, 3268760.0],
+  11: [1.79, 3.3, 6.32, 12.64, 26.54, 58.97, 140.06, 360.16, 1020.47, 3265.49, 12245.6, 57146.15, 371450.0, 4457400.0],
+  12: [1.92, 3.85, 8.04, 17.69, 41.28, 103.21, 280.13, 840.38, 2857.31, 11429.23, 57146.15, 400023.08, 5200300.0],
+  13: [2.08, 4.55, 10.45, 25.56, 67.08, 191.67, 606.94, 2185.0, 9286.25, 49526.67, 371450.0, 5200300.0],
+  14: [2.27, 5.45, 13.94, 38.33, 115.0, 383.33, 1456.67, 6555.0, 37145.0, 297160.0, 4457400.0],
+  15: [2.5, 6.67, 19.17, 60.24, 210.83, 843.33, 4005.83, 24035.0, 204297.5, 3268760.0],
+  16: [2.78, 8.33, 27.38, 100.4, 421.67, 2108.33, 13352.78, 120175.0, 2042975.0],
+  17: [3.12, 10.71, 41.07, 180.71, 948.75, 6325.0, 60087.5, 1081575.0],
+  18: [3.57, 14.29, 65.71, 361.43, 2530.0, 25300.0, 480700.0],
+  19: [4.17, 20.0, 115.0, 843.33, 8855.0, 177100.0],
+  20: [5.0, 30.0, 230.0, 2530.0, 53130.0],
+  21: [6.25, 50.0, 575.0, 12650.0],
+  22: [8.33, 100.0, 2300.0],
+  23: [12.5, 300.0],
+  24: [25.0]
+};
+
+/**
+ * Gets the multiplier for a specific number of mines and gems collected
+ * @param mineCount Number of mines (1-24)
+ * @param gemsCollected Number of gems collected (1-24, must be valid for the mine count)
+ * @returns The multiplier, or undefined if invalid parameters
+ */
+export function getMinesMultiplier(mineCount: number, gemsCollected: number): number | undefined {
+  // Ensure parameters are within valid range
+  if (mineCount < 1 || mineCount > 24 || gemsCollected < 1) {
+    return undefined;
+  }
+
+  // Get the multiplier array for this mine count
+  const multipliers = MINES_MULTIPLIER_TABLE[mineCount];
+  if (!multipliers) {
+    return undefined;
+  }
+
+  // Check if gems collected is valid for this mine count
+  if (gemsCollected > multipliers.length) {
+    return undefined;
+  }
+
+  // Return the multiplier (subtract 1 from gemsCollected for zero-based array index)
+  return multipliers[gemsCollected - 1];
+}
+
+/**
+ * Calculates how many gems need to be collected to reach a target multiplier
+ * @param mineCount Number of mines (1-24)
+ * @param targetMultiplier The target multiplier to achieve
+ * @returns The number of gems to collect, or undefined if target can't be reached
+ */
+export function getGemsNeededForMultiplier(mineCount: number, targetMultiplier: number): number | undefined {
+  // Ensure parameters are within valid range
+  if (mineCount < 1 || mineCount > 24 || targetMultiplier <= 1) {
+    return undefined;
+  }
+
+  // Get the multiplier array for this mine count
+  const multipliers = MINES_MULTIPLIER_TABLE[mineCount];
+  if (!multipliers) {
+    return undefined;
+  }
+
+  // Find the closest multiplier that is >= the target
+  for (let i = 0; i < multipliers.length; i++) {
+    if (multipliers[i] >= targetMultiplier) {
+      return i + 1; // Add 1 to convert from zero-based index to gem count
+    }
+  }
+
+  // If we got here, the target multiplier is higher than any available multiplier
+  return undefined;
+}
+
+/**
+ * Find a close match to the target multiplier (used for exact multiplier control)
+ * @param mineCount Number of mines (1-24)
+ * @param targetMultiplier The desired multiplier
+ * @returns Object with gems to collect and the actual multiplier, or undefined if no close match
+ */
+export function findClosestMultiplier(mineCount: number, targetMultiplier: number): { gems: number; multiplier: number } | undefined {
+  // Ensure parameters are within valid range
+  if (mineCount < 1 || mineCount > 24 || targetMultiplier <= 1) {
+    return undefined;
+  }
+
+  // Get the multiplier array for this mine count
+  const multipliers = MINES_MULTIPLIER_TABLE[mineCount];
+  if (!multipliers) {
+    return undefined;
+  }
+
+  // Find the closest multiplier to the target
+  let closestGems = 0;
+  let closestMultiplier = 0;
+  let minDifference = Number.MAX_VALUE;
+
+  for (let i = 0; i < multipliers.length; i++) {
+    const difference = Math.abs(multipliers[i] - targetMultiplier);
+    if (difference < minDifference) {
+      minDifference = difference;
+      closestGems = i + 1; // Add 1 to convert from zero-based index to gem count
+      closestMultiplier = multipliers[i];
+    }
+  }
+
+  // If we found a reasonable match (within 5% of target)
+  if (minDifference / targetMultiplier <= 0.05) {
+    return {
+      gems: closestGems,
+      multiplier: closestMultiplier
+    };
+  }
+
+  // For 2.0x specifically, find the closest option
+  if (Math.abs(targetMultiplier - 2.0) < 0.01) {
+    // These are the common configurations that give close to 2.0x
+    const options = [
+      { mines: 3, gems: 2 }, // 2.02x
+      { mines: 5, gems: 3 }, // 2.02x
+      { mines: 9, gems: 2 }, // 2.5x
+      { mines: 13, gems: 1 } // 2.08x
+    ];
+    
+    // Find the closest option to the current mine count
+    const bestOption = options.reduce((best, option) => {
+      if (Math.abs(option.mines - mineCount) < Math.abs(best.mines - mineCount)) {
+        return option;
+      }
+      return best;
+    }, options[0]);
+    
+    // Get the multiplier for this option
+    const actualMultiplier = getMinesMultiplier(bestOption.mines, bestOption.gems);
+    if (actualMultiplier) {
+      return {
+        gems: bestOption.gems,
+        multiplier: actualMultiplier
+      };
+    }
+  }
+
+  return undefined;
+}
