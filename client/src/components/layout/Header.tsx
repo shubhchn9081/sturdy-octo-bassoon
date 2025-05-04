@@ -134,7 +134,10 @@ const Header = () => {
             className="bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:brightness-105 rounded-full text-black font-semibold py-1.5 md:py-1.5 px-3 md:px-4 text-xs md:text-sm flex items-center gap-1.5 shadow-md shadow-[#57FBA2]/20 transition-all hover:shadow-[#57FBA2]/30"
             onClick={() => setLocation('/recharge')}
           >
-            <DollarSign className="h-3.5 w-3.5" />
+            <div className="relative flex items-center justify-center w-4 h-4 mr-1">
+              <span className="absolute text-[10px] font-bold top-0.5">$</span>
+              <div className="absolute inset-0 bg-black/10 rounded-full blur-[1px]"></div>
+            </div>
             <span className="hidden md:inline">Deposit</span>
             <span className="md:hidden">Deposit</span>
           </Button>
@@ -198,7 +201,10 @@ const Header = () => {
                           onClick={() => { setLocation('/recharge'); setShowUserMenu(false); }} 
                           className="flex items-center w-full px-4 py-2 text-sm leading-5 text-black bg-[#57FBA2] hover:bg-[#4ce996]"
                         >
-                          <DollarSign className="h-4 w-4 mr-3" />
+                          <div className="relative flex items-center justify-center w-4 h-4 mr-3">
+                            <span className="absolute text-[10px] font-bold top-0.5">$</span>
+                            <div className="absolute inset-0 bg-black/10 rounded-full blur-[1px]"></div>
+                          </div>
                           Deposit
                         </button>
                         <button 
@@ -290,7 +296,10 @@ const Header = () => {
               className="flex items-center justify-center w-full p-2.5 text-sm bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] text-black rounded-lg cursor-pointer gap-1.5 font-semibold shadow-md"
               onClick={() => setLocation('/recharge')}
             >
-              <DollarSign className="h-4 w-4" />
+              <div className="relative flex items-center justify-center w-5 h-5 mr-1">
+                <span className="absolute text-xs font-bold top-0.5">$</span>
+                <div className="absolute inset-0 bg-black/10 rounded-full blur-[1px]"></div>
+              </div>
               Deposit Now
             </div>
           </div>
