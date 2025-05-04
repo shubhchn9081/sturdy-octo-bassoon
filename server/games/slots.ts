@@ -1,6 +1,6 @@
 import { SlotsOutcome } from '@shared/schema';
 import { gameOutcomeControl } from '../middleware/gameOutcomeControl';
-import { generateHash } from './provably-fair';
+import { generateRandomNumber } from './provably-fair';
 
 interface SlotsBetParams {
   betAmount: number;
@@ -46,14 +46,10 @@ export async function generateSlotsOutcome(
   let luckyNumberHit = false;
   
   // Generate random reels using provably fair system
-  const combinedSeed = `${serverSeed}-${clientSeed}-${nonce}`;
-  const hash = generateHash(combinedSeed);
-  
-  // Use first 24 bits of hash (8 bits per reel)
   reels = [
-    parseInt(hash.substr(0, 2), 16) % 10,
-    parseInt(hash.substr(2, 2), 16) % 10,
-    parseInt(hash.substr(4, 2), 16) % 10
+    Math.floor(generateRandomNumber(serverSeed, clientSeed, nonce) * 10),
+    Math.floor(generateRandomNumber(serverSeed, clientSeed, nonce + 1) * 10),
+    Math.floor(generateRandomNumber(serverSeed, clientSeed, nonce + 2) * 10)
   ];
   
   // Apply admin controls if needed
@@ -206,4 +202,61 @@ export function calculateSlotsPayout(
   }
   
   return betAmount * multiplier;
+}
+
+/**
+ * Process a slot bet
+ * @param userId User ID 
+ * @param gameId Game ID
+ * @param betAmount Bet amount
+ * @param serverSeed Server seed for provably fair
+ * @param clientSeed Client seed for provably fair
+ * @param nonce Nonce for provably fair
+ * @param luckyNumber Optional lucky number
+ * @returns Bet result including outcome and payout
+ */
+export async function processSlotBet(
+  userId: number,
+  gameId: number,
+  betAmount: number,
+  serverSeed: string,
+  clientSeed: string,
+  nonce: number,
+  luckyNumber?: number
+): Promise<{
+  outcome: SlotsOutcome;
+  payout: number;
+  serverSeed: string;
+  clientSeed: string;
+  nonce: number;
+}> {
+  // Generate slot outcome
+  const outcome = await generateSlotsOutcome(
+    userId,
+    gameId,
+    {
+      betAmount,
+      lines: 1, // Default to 1 line for simplicity
+      luckyNumber
+    },
+    serverSeed,
+    clientSeed,
+    nonce
+  );
+  
+  // Calculate payout
+  const payout = calculateSlotsPayout(outcome, betAmount);
+  
+  // Update user balance
+  const storage = await import('../storage').then(m => m.storage);
+  await storage.updateUserBalance(userId, payout - betAmount);
+  
+  // Return result
+  return {
+    outcome,
+    payout,
+    serverSeed,
+    clientSeed,
+    nonce
+  };
 }

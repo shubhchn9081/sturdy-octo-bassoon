@@ -30,13 +30,12 @@ export async function generateLimboOutcome(
   const { shouldForce, forcedOutcome, forcedValue, targetMultiplier, useExactMultiplier } = controlResult;
   
   // Default limbo result is a provably fair multiplier
-  const combinedSeed = `${serverSeed}-${clientSeed}-${nonce}`;
-  const hash = generateHash(combinedSeed);
-  const rawValue = parseInt(hash.substr(0, 8), 16);
+  // Generate a random number between 0 and 1
+  const randomValue = generateRandomNumber(serverSeed, clientSeed, nonce);
   
   // In Limbo, the result is a multiplier, typically with a house edge built in
   // Here's a simple implementation - can be adjusted for different house edges
-  let limboCurve = (rawValue % 10000) / 100; // 0.00 to 99.99
+  let limboCurve = randomValue * 100; // 0.00 to 99.99
   
   // Apply house edge and calculate multiplier (simplified)
   let houseEdge = 0.01; // 1% house edge
