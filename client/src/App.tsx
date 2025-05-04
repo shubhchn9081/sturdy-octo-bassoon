@@ -10,6 +10,7 @@ import InitDb from "@/pages/InitDb";
 import AuthPage from "@/pages/auth-page";
 import WalletPage from "@/pages/wallet-page";
 import RechargePage from "@/pages/recharge-page";
+import WithdrawPage from "@/pages/withdraw-page";
 import PaymentSuccessPage from "@/pages/payment-success";
 import PaymentFailurePage from "@/pages/payment-failure";
 import VaultPage from "@/pages/vault-page";
@@ -65,6 +66,7 @@ function Router() {
             <Route path="/auth" component={AuthPage} />
             <ProtectedRoute path="/wallet" component={WalletPage} />
             <ProtectedRoute path="/recharge" component={RechargePage} />
+            <ProtectedRoute path="/withdraw" component={WithdrawPage} />
             <ProtectedRoute path="/payment-success" component={PaymentSuccessPage} />
             <ProtectedRoute path="/payment-failure" component={PaymentFailurePage} />
             <ProtectedRoute path="/vault" component={VaultPage} />

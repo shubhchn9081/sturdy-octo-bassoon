@@ -60,7 +60,8 @@ export default function WalletPage() {
       title: "Withdraw Funds",
       description: "Opening withdrawal form...",
     });
-    // In a real app, this would open a withdrawal form
+    // Redirect to the withdrawal page
+    setLocation('/withdraw');
   };
 
   const handleLogin = () => {
