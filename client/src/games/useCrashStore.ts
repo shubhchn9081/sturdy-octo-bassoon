@@ -195,8 +195,8 @@ export const useCrashStore = create<CrashStore>((set, get) => {
       // Create a clientSeed for provably fair gaming
       const clientSeed = generateClientSeed();
       
-      // Get the game ID for Crash (should be 1 based on the schema)
-      const gameId = 1;
+      // Get the game ID for Crash (should be 2 based on the schema)
+      const gameId = 2;
       
       try {
         // Use the placeBet API function from the window global
