@@ -128,7 +128,7 @@ export function APay() {
           </div>
         </div>
         <CardDescription className="text-[#7F8990]">
-          Fast and secure deposits to your wallet
+          Fast and secure deposits via UPI, PhonePe, Paytm and more
         </CardDescription>
       </CardHeader>
       
@@ -201,6 +201,10 @@ export function APay() {
       </CardContent>
       
       <CardFooter className="flex flex-col items-start border-t border-[#243442] pt-4 pb-5 space-y-2 text-xs text-[#7F8990]">
+        <div className="flex items-start space-x-2">
+          <CheckCircle className="w-3.5 h-3.5 text-[#57FBA2] mt-0.5" />
+          <p>UPI, PhonePe, Paytm and more payment options available</p>
+        </div>
         <div className="flex items-start space-x-2">
           <CheckCircle className="w-3.5 h-3.5 text-[#57FBA2] mt-0.5" />
           <p>Secure payment with end-to-end encryption</p>

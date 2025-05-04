@@ -157,7 +157,7 @@ router.post('/create-payment', async (req: Request, res: Response) => {
         project_id: APAY_PROJECT_ID,
         amount: amount,
         currency: 'INR',
-        payment_system: ['upi_fast', 'upi_p2p'],
+        payment_system: ['upi_fast', 'upi_p2p', 'paytm', 'phonepe'],
         custom_transaction_id: finalTransactionId,
         custom_user_id: userId.toString(),
         return_url: `${baseUrl}${APAY_SUCCESS_REDIRECT}?ref=${finalTransactionId}`,
