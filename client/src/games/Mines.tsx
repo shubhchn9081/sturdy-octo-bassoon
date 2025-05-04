@@ -113,13 +113,47 @@ const MinesGame = () => {
     }
   }
 
-  // Calculate multiplier using the provided formula
+  // Calculate multiplier using the accurate multiplier table
   function calculateMultiplier(diamonds: number, mines: number): number {
+    // Import the accurate table from our shared utils
+    // This is a simplified version that we can use directly in the client
+    const minesMultiplierTable = {
+      // Most common mine counts
+      1: [1.04, 1.09, 1.14, 1.19, 1.25, 1.32, 1.39, 1.47, 1.56, 1.67, 1.79, 1.92, 2.08, 2.27, 2.5, 2.78, 3.12, 3.57, 4.17, 5.0, 6.25, 8.33, 12.5, 25.0],
+      3: [1.14, 1.3, 1.49, 1.73, 2.02, 2.37, 2.82, 3.38, 4.11, 5.05, 6.32, 8.04, 10.45, 13.94, 19.17, 27.38, 41.07, 65.71, 115.0, 230.0, 575.0, 2300.0],
+      5: [1.25, 1.58, 2.02, 2.61, 3.43, 4.57, 6.2, 8.59, 12.16, 17.69, 26.54, 41.28, 67.08, 115.0, 210.83, 421.67, 948.75, 2530.0, 8855.0, 53130.0],
+      10: [1.67, 2.86, 5.05, 9.27, 17.69, 35.38, 74.7, 168.08, 408.19, 1088.5, 3265.49, 11429.23, 49526.67, 297160.0],
+      20: [5.0, 30.0, 230.0, 2530.0, 53130.0],
+      24: [25.0]
+    };
+    
+    // Special handling for high mine counts and edge cases
     if (diamonds === 0) return 1;
+    
+    // Use table if we have this mine count
+    if (minesMultiplierTable[mines] && diamonds <= minesMultiplierTable[mines].length) {
+      return minesMultiplierTable[mines][diamonds - 1];
+    }
+    
+    // Fallback to formula for other mines counts
     const oddsLeft = TOTAL_CELLS - diamonds;
     const mineChance = mines / oddsLeft;
+    
+    // Safety check to prevent division by zero or negative numbers
+    if (mineChance >= 1) {
+      console.warn(`Invalid multiplier calculation prevented for ${diamonds} diamonds and ${mines} mines`);
+      return 1000; // Cap at 1000x to prevent infinity
+    }
+    
     const safeChance = 1 - mineChance;
     const payout = 1 * Math.pow(1 / safeChance, diamonds);
+    
+    // Verify the multiplier is reasonable, if not cap it
+    if (!isFinite(payout) || payout > 1000000) {
+      console.warn(`Very large multiplier capped for ${diamonds} diamonds and ${mines} mines`);
+      return 1000; // Cap at 1000x
+    }
+    
     return +payout.toFixed(4); // Round to 4 decimal places like Stake
   }
   
