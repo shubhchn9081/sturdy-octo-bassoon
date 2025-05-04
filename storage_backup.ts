@@ -749,17 +749,11 @@ export class DatabaseStorage implements IStorage {
     });
   }
   
-  async makeAllUsersWin(
-    affectedGames: number[] = [],
-    targetMultiplier: number = 2.0,
-    useExactMultiplier: boolean = false
-  ): Promise<GlobalGameControl> {
+  async makeAllUsersWin(affectedGames: number[] = []): Promise<GlobalGameControl> {
     return this.updateGlobalGameControl({
       forceAllUsersLose: false,
       forceAllUsersWin: true,
-      affectedGames,
-      targetMultiplier,
-      useExactMultiplier
+      affectedGames
     });
   }
   
