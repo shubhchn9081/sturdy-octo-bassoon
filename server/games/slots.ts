@@ -1,36 +1,176 @@
+import { SlotsOutcome } from '@shared/schema';
 import { gameOutcomeControl } from '../middleware/gameOutcomeControl';
-import { storage } from '../storage';
+import { generateHash } from './provably-fair';
 
-// Interface for slot game outcome
-interface SlotGameOutcome {
-  reels: number[];
-  multiplier: number;
-  win: boolean;
-  luckyNumberHit?: boolean;
+interface SlotsBetParams {
+  betAmount: number;
+  lines: number; // Number of paylines
+  luckyNumber?: number; // Optional lucky number chosen by player
 }
 
-// Calculate the multiplier for a given reel combination
+// Multiplier for different slot combinations
+const SLOT_MULTIPLIERS = {
+  THREE_SEVENS: 10.0,      // Three 7s
+  THREE_SAME: 5.0,         // Three of the same number (except 7s)
+  SEQUENTIAL: 3.0,         // Three sequential numbers
+  TWO_SAME: 2.0,           // Two of the same number
+  LUCKY_NUMBER_HIT: 3.0,   // When a lucky number is hit
+  NONE: 0.0                // No winning combination
+};
+
+/**
+ * Generate a slots game outcome
+ * @param userId User ID
+ * @param gameId Game ID (should be slot game ID)
+ * @param params Bet parameters
+ * @param serverSeed Server seed for provably fair
+ * @param clientSeed Client seed for provably fair
+ * @param nonce Nonce for provably fair
+ * @returns SlotsOutcome object with result and win status
+ */
+export async function generateSlotsOutcome(
+  userId: number,
+  gameId: number,
+  params: SlotsBetParams,
+  serverSeed: string,
+  clientSeed: string,
+  nonce: number
+): Promise<SlotsOutcome> {
+  // Check if the outcome should be forced by admin controls
+  const controlResult = await gameOutcomeControl.shouldForceOutcome(userId, gameId);
+  const { shouldForce, forcedOutcome, forcedValue, targetMultiplier, useExactMultiplier } = controlResult;
+  
+  // Default slots results - 3 reels with values 0-9
+  let reels: number[] = [0, 0, 0];
+  let win = false;
+  let luckyNumberHit = false;
+  
+  // Generate random reels using provably fair system
+  const combinedSeed = `${serverSeed}-${clientSeed}-${nonce}`;
+  const hash = generateHash(combinedSeed);
+  
+  // Use first 24 bits of hash (8 bits per reel)
+  reels = [
+    parseInt(hash.substr(0, 2), 16) % 10,
+    parseInt(hash.substr(2, 2), 16) % 10,
+    parseInt(hash.substr(4, 2), 16) % 10
+  ];
+  
+  // Apply admin controls if needed
+  if (shouldForce) {
+    if (forcedOutcome === 'win') {
+      // Force a win
+      
+      // Use exact multiplier if specified (this is the new feature)
+      if (useExactMultiplier && targetMultiplier) {
+        console.log(`[SLOTS] Forcing EXACT ${targetMultiplier}x multiplier win for user ${userId}`);
+        
+        // For slots, we need to create a combination that gives the exact multiplier
+        // We'll try to match to the closest predefined multiplier
+        
+        if (Math.abs(targetMultiplier - SLOT_MULTIPLIERS.THREE_SEVENS) < 0.01) {
+          // Force three 7s for 10x multiplier
+          reels = [7, 7, 7];
+        } 
+        else if (Math.abs(targetMultiplier - SLOT_MULTIPLIERS.THREE_SAME) < 0.01) {
+          // Force three of the same for 5x multiplier (using 5 as an example)
+          reels = [5, 5, 5];
+        } 
+        else if (Math.abs(targetMultiplier - SLOT_MULTIPLIERS.SEQUENTIAL) < 0.01) {
+          // Force sequential numbers for 3x multiplier
+          reels = [4, 5, 6];
+        } 
+        else if (Math.abs(targetMultiplier - SLOT_MULTIPLIERS.TWO_SAME) < 0.01) {
+          // Force two of the same for 2x multiplier
+          reels = [3, 3, 9];
+        } 
+        else if (Math.abs(targetMultiplier - 2.0) < 0.01) {
+          // Special case for exactly 2x multiplier
+          reels = [2, 2, 8];
+        } 
+        else {
+          // Default to a common winning combination if multiplier doesn't match
+          console.log(`[SLOTS] Could not match exact multiplier ${targetMultiplier}, using closest match`);
+          reels = [5, 5, 5]; // 5x multiplier as default winning combo
+        }
+        
+        win = true;
+      }
+      // If admin specified forced reels
+      else if (forcedValue && Array.isArray(forcedValue) && forcedValue.length === 3) {
+        reels = forcedValue.map(n => n % 10); // Ensure reel values are between 0-9
+      } 
+      // Otherwise generate a winning combination
+      else {
+        // Just make 3 of a kind for a guaranteed win
+        const randomNum = Math.floor(Math.random() * 10);
+        reels = [randomNum, randomNum, randomNum];
+      }
+      
+      win = true;
+    } 
+    else if (forcedOutcome === 'lose') {
+      // Force a loss - ensure reels don't form a winning combination
+      if (forcedValue && Array.isArray(forcedValue) && forcedValue.length === 3) {
+        reels = forcedValue.map(n => n % 10);
+        
+        // Make sure this is actually a losing combination
+        if (calculateMultiplier(reels) > 0) {
+          // If it would win, modify one reel
+          reels[2] = (reels[2] + 1) % 10;
+        }
+      } 
+      else {
+        // Generate a losing combination
+        reels = [1, 3, 5]; // This combination doesn't win
+      }
+      
+      win = false;
+    }
+  }
+  
+  // Check for lucky number hit if player selected one
+  if (params.luckyNumber !== undefined) {
+    luckyNumberHit = reels.includes(params.luckyNumber);
+  }
+  
+  // Recalculate win status based on final reels
+  const multiplier = calculateMultiplier(reels);
+  win = multiplier > 0 || luckyNumberHit;
+  
+  return {
+    reels,
+    win,
+    luckyNumberHit,
+    luckyNumber: params.luckyNumber
+  };
+}
+
+/**
+ * Calculate the multiplier for a given slot combination
+ * @param reels Array of 3 reel values (0-9)
+ * @returns Multiplier value (0 if no win)
+ */
 function calculateMultiplier(reels: number[]): number {
-  // Sort the reels to make it easier to check patterns
-  const sortedReels = [...reels].sort((a, b) => a - b);
+  // Sort the reels to make pattern checking easier
+  const sortedReels = [...reels].sort();
   
   // Check for three 7s - highest multiplier (10x)
   if (reels[0] === 7 && reels[1] === 7 && reels[2] === 7) {
-    return 10;
+    return SLOT_MULTIPLIERS.THREE_SEVENS;
   }
   
   // Check for three of the same number (5x)
   if (reels[0] === reels[1] && reels[1] === reels[2]) {
-    return 5;
+    return SLOT_MULTIPLIERS.THREE_SAME;
   }
   
   // Check for sequential numbers (3x)
-  // Such as 1-2-3, 4-5-6, etc.
   if (
     sortedReels[1] === sortedReels[0] + 1 &&
     sortedReels[2] === sortedReels[1] + 1
   ) {
-    return 3;
+    return SLOT_MULTIPLIERS.SEQUENTIAL;
   }
   
   // Check for two of the same number (2x)
@@ -39,234 +179,31 @@ function calculateMultiplier(reels: number[]): number {
     reels[1] === reels[2] ||
     reels[0] === reels[2]
   ) {
-    return 2;
+    return SLOT_MULTIPLIERS.TWO_SAME;
   }
   
   // No winning combination
-  return 0;
+  return SLOT_MULTIPLIERS.NONE;
 }
 
-// Check if a reel combination is a winning one
-function isWinningCombination(reels: number[]): boolean {
-  return calculateMultiplier(reels) > 0;
-}
-
-// Generate a random number between 0 and 9
-function getRandomReelValue(): number {
-  return Math.floor(Math.random() * 10);
-}
-
-// Generate a losing combination (ensures user loses by default)
-function generateLosingCombination(): number[] {
-  let reels: number[];
+/**
+ * Calculate slots payout based on game result
+ * @param outcome The slots game outcome
+ * @param betAmount The amount bet by the player
+ * @returns The payout amount (0 if lost)
+ */
+export function calculateSlotsPayout(
+  outcome: SlotsOutcome,
+  betAmount: number
+): number {
+  if (!outcome.win && !outcome.luckyNumberHit) return 0;
   
-  do {
-    reels = [
-      getRandomReelValue(),
-      getRandomReelValue(),
-      getRandomReelValue()
-    ];
-  } while (isWinningCombination(reels));
+  let multiplier = calculateMultiplier(outcome.reels);
   
-  return reels;
-}
-
-// Generate a winning combination
-function generateWinningCombination(targetMultiplier?: number): number[] {
-  // If a specific multiplier is targeted, try to generate a combination for it
-  if (targetMultiplier) {
-    if (targetMultiplier === 10) {
-      // Three 7s for 10x
-      return [7, 7, 7];
-    }
-    
-    if (targetMultiplier === 5) {
-      // Three of the same number for 5x
-      const num = getRandomReelValue();
-      return [num, num, num];
-    }
-    
-    if (targetMultiplier === 3) {
-      // Sequential numbers for 3x
-      const start = Math.min(7, getRandomReelValue()); // Ensure we don't go over 9
-      return [start, start + 1, start + 2];
-    }
-    
-    if (targetMultiplier === 2) {
-      // Two of the same number for 2x
-      const num1 = getRandomReelValue();
-      let num2;
-      do {
-        num2 = getRandomReelValue();
-      } while (num2 === num1);
-      
-      // Randomly position the matching numbers
-      const position = Math.floor(Math.random() * 3);
-      if (position === 0) {
-        return [num1, num1, num2];
-      } else if (position === 1) {
-        return [num1, num2, num1];
-      } else {
-        return [num2, num1, num1];
-      }
-    }
+  // Add lucky number bonus if applicable
+  if (outcome.luckyNumberHit) {
+    multiplier += SLOT_MULTIPLIERS.LUCKY_NUMBER_HIT;
   }
   
-  // If no specific multiplier or invalid multiplier, generate a random winning combination
-  const winType = Math.floor(Math.random() * 4);
-  
-  if (winType === 0) {
-    // 10x - Three 7s
-    return [7, 7, 7];
-  } else if (winType === 1) {
-    // 5x - Three of the same number
-    const num = getRandomReelValue();
-    return [num, num, num];
-  } else if (winType === 2) {
-    // 3x - Sequential numbers
-    const start = Math.min(7, getRandomReelValue());
-    return [start, start + 1, start + 2];
-  } else {
-    // 2x - Two of the same number
-    const num1 = getRandomReelValue();
-    let num2;
-    do {
-      num2 = getRandomReelValue();
-    } while (num2 === num1);
-    
-    // Randomly position the matching numbers
-    const position = Math.floor(Math.random() * 3);
-    if (position === 0) {
-      return [num1, num1, num2];
-    } else if (position === 1) {
-      return [num1, num2, num1];
-    } else {
-      return [num2, num1, num1];
-    }
-  }
-}
-
-// Generate a random slot game outcome - controlled by admin settings
-export async function generateSlotGameOutcome(
-  userId: number,
-  gameId: number,
-  betAmount: number,
-  serverSeed: string, // For provably fair calculations
-  clientSeed: string, // For provably fair calculations
-  nonce: number, // For provably fair calculations
-  luckyNumber?: number // Player's selected lucky number
-): Promise<SlotGameOutcome> {
-  // Check if the outcome should be forced by admin controls
-  const controlledOutcome = await gameOutcomeControl.shouldForceOutcome(userId, gameId);
-  
-  let reels: number[];
-  let win: boolean;
-  let multiplier: number;
-  
-  if (controlledOutcome.shouldForce) {
-    if (controlledOutcome.forcedOutcome === 'win') {
-      // Force a win
-      if (controlledOutcome.forcedValue && 
-          typeof controlledOutcome.forcedValue === 'object' && 
-          controlledOutcome.forcedValue.multiplier) {
-        // Generate a winning combination with the specified multiplier
-        reels = generateWinningCombination(controlledOutcome.forcedValue.multiplier);
-      } else {
-        // Generate a random winning combination
-        reels = generateWinningCombination();
-      }
-      
-      multiplier = calculateMultiplier(reels);
-      win = true;
-    } else {
-      // Force a loss
-      reels = generateLosingCombination();
-      multiplier = 0;
-      win = false;
-    }
-  } else {
-    // No forced outcome - default to loss unless provably fair calculation shows a win
-    // For simplicity, we'll just generate a losing combination as the default behavior
-    reels = generateLosingCombination();
-    multiplier = 0;
-    win = false;
-  }
-  
-  // Check if any reel matches the player's lucky number
-  let luckyNumberHit = false;
-  if (luckyNumber !== undefined && reels.includes(luckyNumber)) {
-    // If lucky number appears in any reel, it's a win with 10x multiplier
-    luckyNumberHit = true;
-    multiplier = 10; // Override multiplier for lucky number hit
-    win = true;
-  }
-
-  return {
-    reels,
-    multiplier,
-    win,
-    luckyNumberHit
-  };
-}
-
-// Process a bet for the slots game
-export async function processSlotBet(
-  userId: number,
-  gameId: number,
-  betAmount: number,
-  serverSeed: string,
-  clientSeed: string,
-  nonce: number,
-  luckyNumber?: number
-): Promise<any> {
-  try {
-    // Generate the outcome for this game
-    const outcome = await generateSlotGameOutcome(
-      userId, 
-      gameId, 
-      betAmount, 
-      serverSeed, 
-      clientSeed, 
-      nonce,
-      luckyNumber
-    );
-    
-    // Calculate the profit
-    const profit = outcome.win ? betAmount * outcome.multiplier : 0;
-    
-    // Create the bet record
-    const bet = await storage.createBet({
-      userId,
-      gameId,
-      amount: betAmount,
-      multiplier: outcome.multiplier,
-      profit: outcome.win ? profit : -betAmount,
-      outcome: { 
-        reels: outcome.reels, 
-        win: outcome.win,
-        luckyNumberHit: outcome.luckyNumberHit || false,
-        luckyNumber: luckyNumber
-      },
-      serverSeed,
-      clientSeed,
-      nonce,
-      completed: true
-    });
-    
-    // Update the user's balance
-    const user = await storage.updateUserBalance(userId, outcome.win ? profit : -betAmount);
-    
-    // Return the bet results
-    return {
-      id: bet.id,
-      amount: betAmount,
-      outcome: bet.outcome,
-      multiplier: outcome.multiplier,
-      profit: outcome.win ? profit : -betAmount,
-      luckyNumberHit: outcome.luckyNumberHit || false
-    };
-  } catch (error) {
-    console.error('Error processing slot bet:', error);
-    throw error;
-  }
+  return betAmount * multiplier;
 }
