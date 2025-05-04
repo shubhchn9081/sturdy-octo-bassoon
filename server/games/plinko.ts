@@ -54,11 +54,106 @@ const PLINKO_MULTIPLIERS: Record<string, Record<number, number[]>> = {
  * @param targetMultiplier The desired multiplier (e.g., 2.0)
  * @returns Index of the closest multiplier and the path to reach it
  */
+/**
+ * Generates multiple different paths that all lead to exactly 2.0x multiplier
+ * This is specifically for the 2.0x multiplier admin control requirement
+ */
+function generateMultiplePathsFor2xMultiplier(rows: number, risk: string): {
+  pathIndex: number;
+  path: number[];
+  actualMultiplier: number;
+} {
+  // Get multiplier table for this risk and row count
+  const multipliers = PLINKO_MULTIPLIERS[risk][rows];
+  if (!multipliers) {
+    throw new Error(`Invalid risk or row count: ${risk}, ${rows}`);
+  }
+
+  // Find all indices that have multipliers close to 2.0
+  const targetIndices: number[] = [];
+  for (let i = 0; i < multipliers.length; i++) {
+    // Look for multipliers between 1.9 and 2.1 for better variety
+    if (multipliers[i] >= 1.9 && multipliers[i] <= 2.1) {
+      targetIndices.push(i);
+    }
+  }
+
+  // If we didn't find any close multipliers, find the single closest one
+  if (targetIndices.length === 0) {
+    let closestIndex = 0;
+    let minDiff = Math.abs(multipliers[0] - 2.0);
+    
+    for (let i = 1; i < multipliers.length; i++) {
+      const diff = Math.abs(multipliers[i] - 2.0);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
+    }
+    targetIndices.push(closestIndex);
+  }
+
+  // Choose a random index from our candidates
+  const chosenIndex = targetIndices[Math.floor(Math.random() * targetIndices.length)];
+  
+  // Generate a randomized path that still leads to our target
+  const path: number[] = [];
+  
+  // Calculate how many left turns (1s) we need
+  const leftTurns = chosenIndex;
+  let leftTurnsRemaining = leftTurns;
+  
+  // Create a more randomized pattern for the path
+  // This distributes the left/right turns more evenly through the path
+  for (let i = 0; i < rows; i++) {
+    // Create a different probability pattern based on how far we are in the sequence
+    // This creates more varied-looking paths
+    let probability = leftTurnsRemaining / (rows - i); // Base probability
+    
+    // Add some variation to the probability based on position
+    if (i < rows/3) {
+      // More random in the first third
+      probability = probability * (0.8 + Math.random() * 0.4);
+    } else if (i < 2*rows/3) {
+      // Less random in the middle third
+      probability = probability * (0.9 + Math.random() * 0.2);
+    } else {
+      // More deliberate in the final third
+      probability = probability * (0.95 + Math.random() * 0.1);
+    }
+    
+    // But ensure we still hit our target number of left turns
+    if (rows - i <= leftTurnsRemaining) {
+      path.push(1); // Must go left if we need all remaining turns to be left
+      leftTurnsRemaining--;
+    } else if (leftTurnsRemaining === 0) {
+      path.push(0); // Must go right if we have no left turns remaining
+    } else if (Math.random() < probability) {
+      path.push(1); // Go left
+      leftTurnsRemaining--;
+    } else {
+      path.push(0); // Go right
+    }
+  }
+
+  return {
+    pathIndex: chosenIndex,
+    path,
+    actualMultiplier: multipliers[chosenIndex]
+  };
+}
+
 function findTargetPathForMultiplier(rows: number, risk: string, targetMultiplier: number): {
   pathIndex: number;
   path: number[];
   actualMultiplier: number;
 } {
+  // Special case for 2.0x multiplier to ensure more varied patterns
+  if (Math.abs(targetMultiplier - 2.0) < 0.01) {
+    console.log("[PLINKO] Using special 2.0x varied path generation");
+    return generateMultiplePathsFor2xMultiplier(rows, risk);
+  }
+  
   // Get multiplier table for this risk and row count
   const multipliers = PLINKO_MULTIPLIERS[risk][rows];
   if (!multipliers) {
