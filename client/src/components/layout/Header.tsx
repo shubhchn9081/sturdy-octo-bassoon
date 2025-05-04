@@ -69,8 +69,8 @@ const Header = () => {
   
   return (
     <header className={`bg-[#0B131C] sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-lg shadow-black/20 border-b border-[#182634]/50' : 'border-b border-[#182634]/30'}`}>
-      <div className="px-3 md:px-6 py-2 md:py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2 md:space-x-4">
+      <div className="px-2 md:px-6 py-1.5 md:py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-1 md:space-x-4">
           <div className="hidden md:block">
             <Button 
               variant="ghost" 
@@ -85,17 +85,21 @@ const Header = () => {
           <div className="md:hidden">
             <Button 
               variant="ghost" 
-              size="icon"
+              size="sm"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-1.5 rounded-full text-[#546D7A] hover:text-white"
+              className="px-1 py-1 rounded-full text-[#546D7A] hover:text-white"
             >
-              <AlignJustify className="h-5 w-5" />
+              <AlignJustify className="h-4 w-4" />
             </Button>
           </div>
           
           <div className="flex items-center cursor-pointer" onClick={() => setLocation('/')}>
             <div className="relative">
-              <NovitoLogo className="h-7 md:h-9" />
+              {/* Use mobile-optimized logo on small screens */}
+              <NovitoLogo 
+                className="h-6 md:h-9" 
+                isMobile={true} 
+              />
               {/* Add a subtle glow effect beneath the logo */}
               <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-gradient-to-r from-[#57FBA2]/0 via-[#57FBA2]/70 to-[#57FBA2]/0 blur-sm"></div>
             </div>
@@ -110,7 +114,7 @@ const Header = () => {
           )}
         </div>
         
-        <div className="flex items-center space-x-3 md:space-x-4">
+        <div className="flex items-center space-x-1.5 md:space-x-4">
           {/* Balance display with improved styling */}
           <div className="hidden md:block">
             {isSignedIn && (
@@ -131,23 +135,23 @@ const Header = () => {
           
           {/* Deposit button with improved styling */}
           <Button 
-            className="bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:brightness-105 rounded-full text-black font-semibold py-1.5 md:py-1.5 px-3 md:px-4 text-xs md:text-sm flex items-center gap-1.5 shadow-md shadow-[#57FBA2]/20 transition-all hover:shadow-[#57FBA2]/30"
+            className="bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:brightness-105 rounded-full text-black font-semibold py-1 md:py-1.5 px-2 md:px-4 text-[10px] md:text-sm flex items-center gap-1 md:gap-1.5 shadow-md shadow-[#57FBA2]/20 transition-all hover:shadow-[#57FBA2]/30"
             onClick={() => setLocation('/recharge')}
           >
-            <div className="relative flex items-center justify-center w-4 h-4 mr-1">
-              <span className="absolute text-[10px] font-bold top-0.5">$</span>
+            <div className="relative flex items-center justify-center w-3.5 h-3.5 md:w-4 md:h-4">
+              <span className="absolute text-[9px] md:text-[10px] font-bold top-0.5">$</span>
               <div className="absolute inset-0 bg-black/10 rounded-full blur-[1px]"></div>
             </div>
-            <span className="hidden md:inline">Deposit</span>
-            <span className="md:hidden">Deposit</span>
+            <span className="hidden md:inline ml-1">Deposit</span>
+            <span className="md:hidden ml-0.5">Deposit</span>
           </Button>
           
           {/* Wallet button with improved styling */}
           <Button 
-            className="bg-gradient-to-r from-[#1C82E3] to-[#156DCF] hover:brightness-105 rounded-full text-white font-semibold py-1.5 md:py-1.5 px-3 md:px-4 text-xs md:text-sm flex items-center gap-1.5 shadow-md shadow-[#156DCF]/20"
+            className="bg-gradient-to-r from-[#1C82E3] to-[#156DCF] hover:brightness-105 rounded-full text-white font-semibold py-1 md:py-1.5 px-2 md:px-4 text-[10px] md:text-sm flex items-center shadow-md shadow-[#156DCF]/20"
             onClick={() => setLocation('/wallet')}
           >
-            <Wallet className="h-3.5 w-3.5 md:mr-1" />
+            <Wallet className="h-3 w-3 md:h-3.5 md:w-3.5 md:mr-1" />
             <span className="hidden md:inline">Wallet</span>
           </Button>
           
@@ -156,7 +160,7 @@ const Header = () => {
             <UserProfileButton />
           ) : (
             <Button 
-              className="bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:brightness-105 rounded-full text-black font-semibold py-1.5 md:py-1.5 px-3 md:px-4 text-xs md:text-sm shadow-md shadow-[#57FBA2]/20"
+              className="bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:brightness-105 rounded-full text-black font-semibold py-1 md:py-1.5 px-2 md:px-4 text-[10px] md:text-sm shadow-md shadow-[#57FBA2]/20"
               onClick={() => setLocation('/auth')}
             >
               Sign Up
