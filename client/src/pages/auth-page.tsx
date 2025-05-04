@@ -85,34 +85,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/95">
-      {/* Top Section with Logo and Stats */}
-      <div className="bg-background/90 backdrop-blur-sm py-4 px-6 flex justify-between items-center border-b border-primary/20">
-        <div className="relative">
-          <NovitoLogo className="w-28 sm:w-32 text-3xl" />
-          <div className="absolute -bottom-1 left-0 w-full h-px bg-gradient-to-r from-primary/0 via-primary to-primary/0"></div>
-        </div>
-        
-        <div className="hidden md:flex items-center space-x-6 text-sm">
-          <div className="flex items-center">
-            <Users className="w-4 h-4 mr-2 text-primary" />
-            <span>
-              <span className="font-medium">15K+</span> <span className="text-muted-foreground">Players</span>
-            </span>
-          </div>
-          <div className="flex items-center">
-            <Globe className="w-4 h-4 mr-2 text-primary" />
-            <span>
-              <span className="font-medium">150+</span> <span className="text-muted-foreground">Countries</span>
-            </span>
-          </div>
-          <div className="flex items-center">
-            <Shield className="w-4 h-4 mr-2 text-primary" />
-            <span>
-              <span className="font-medium">100%</span> <span className="text-muted-foreground">Secure</span>
-            </span>
-          </div>
-        </div>
-      </div>
       
       {/* Main Content */}
       <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
