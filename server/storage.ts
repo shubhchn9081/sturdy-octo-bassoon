@@ -664,6 +664,8 @@ export class MemStorage implements IStorage {
         id: 1,
         forceAllUsersLose: settings.forceAllUsersLose || false,
         forceAllUsersWin: settings.forceAllUsersWin || false,
+        targetMultiplier: settings.targetMultiplier || 2.0,
+        useExactMultiplier: settings.useExactMultiplier || false,
         affectedGames: settings.affectedGames || [],
         createdAt: new Date(),
         updatedAt: new Date()
@@ -744,6 +746,8 @@ export class DatabaseStorage implements IStorage {
         .values({
           forceAllUsersLose: settings.forceAllUsersLose || false,
           forceAllUsersWin: settings.forceAllUsersWin || false,
+          targetMultiplier: settings.targetMultiplier || 2.0,
+          useExactMultiplier: settings.useExactMultiplier || false,
           affectedGames: settings.affectedGames || [],
         })
         .returning();

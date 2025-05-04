@@ -14,6 +14,7 @@ interface UserBalance {
 }
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -291,7 +292,11 @@ export default function AdminPage() {
   
   // Make all users lose
   const makeAllLoseMutation = useMutation({
-    mutationFn: async (affectedGames: number[] = []) => {
+    mutationFn: async ({
+      affectedGames = []
+    }: {
+      affectedGames?: number[];
+    }) => {
       const response = await apiRequest("POST", "/api/admin/global-game-control/lose", { affectedGames });
       return await response.json();
     },
@@ -722,14 +727,20 @@ export default function AdminPage() {
                 <div className="flex gap-2">
                   <Button 
                     variant="destructive"
-                    onClick={() => makeAllLoseMutation.mutate(globalControlAffectedGames)}
+                    onClick={() => makeAllLoseMutation.mutate({
+                      affectedGames: globalControlAffectedGames
+                    })}
                   >
                     Make Everyone Lose
                   </Button>
                   <Button 
                     variant="default"
                     className="bg-green-600 hover:bg-green-700"
-                    onClick={() => makeAllWinMutation.mutate(globalControlAffectedGames)}
+                    onClick={() => makeAllWinMutation.mutate({
+                      affectedGames: globalControlAffectedGames,
+                      targetMultiplier: globalTargetMultiplier,
+                      useExactMultiplier: globalUseExactMultiplier
+                    })}
                   >
                     Allow All Wins
                   </Button>
@@ -806,35 +817,86 @@ export default function AdminPage() {
                       )}
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium mb-2">Specify Games to Affect (Optional)</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Leave empty to affect all games. Select specific games to limit control scope.
-                      </p>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        {games?.map((game: Game) => (
-                          <div key={game.id} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`game-${game.id}`}
-                              className="h-4 w-4 rounded border-gray-300 text-primary"
-                              checked={globalControlAffectedGames.includes(game.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setGlobalControlAffectedGames([...globalControlAffectedGames, game.id]);
-                                } else {
-                                  setGlobalControlAffectedGames(
-                                    globalControlAffectedGames.filter((id) => id !== game.id)
-                                  );
-                                }
-                              }}
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="font-medium mb-2">Exact Multiplier Control</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Force users to win exactly a specific multiplier amount (such as 2x)
+                        </p>
+                        
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="exact-multiplier-toggle" 
+                              checked={globalUseExactMultiplier}
+                              onCheckedChange={(checked) => setGlobalUseExactMultiplier(checked === true)}
                             />
-                            <label htmlFor={`game-${game.id}`} className="text-sm font-medium">
-                              {game.name}
+                            <label 
+                              htmlFor="exact-multiplier-toggle" 
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Use exact multiplier for wins
                             </label>
                           </div>
-                        ))}
+                          
+                          <div className="grid grid-cols-2 gap-4 items-center">
+                            <label htmlFor="target-multiplier" className="text-sm font-medium">
+                              Target Multiplier Value:
+                            </label>
+                            <div className="flex items-center space-x-2">
+                              <Input
+                                id="target-multiplier"
+                                type="number"
+                                min="1.01"
+                                step="0.1"
+                                value={globalTargetMultiplier}
+                                onChange={(e) => setGlobalTargetMultiplier(parseFloat(e.target.value))}
+                                className="w-24"
+                                disabled={!globalUseExactMultiplier}
+                              />
+                              <span className="text-sm font-bold">x</span>
+                            </div>
+                          </div>
+                          
+                          <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              When enabled, users will win exactly {globalTargetMultiplier}x their bet amount 
+                              instead of the usual randomized amount determined by the game.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium mb-2">Specify Games to Affect (Optional)</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Leave empty to affect all games. Select specific games to limit control scope.
+                        </p>
+                        
+                        <div className="grid grid-cols-3 gap-2">
+                          {games?.map((game: Game) => (
+                            <div key={game.id} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`game-${game.id}`}
+                                className="h-4 w-4 rounded border-gray-300 text-primary"
+                                checked={globalControlAffectedGames.includes(game.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setGlobalControlAffectedGames([...globalControlAffectedGames, game.id]);
+                                  } else {
+                                    setGlobalControlAffectedGames(
+                                      globalControlAffectedGames.filter((id) => id !== game.id)
+                                    );
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`game-${game.id}`} className="text-sm font-medium">
+                                {game.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
