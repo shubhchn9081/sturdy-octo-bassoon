@@ -433,7 +433,9 @@ export default function AdminPage() {
       user.fullName || "",
       user.email || "",
       user.phone || "",
-      (user.balance as UserBalance)?.INR?.toFixed(2) || "0.00",
+      typeof user.balance === 'number' 
+        ? user.balance.toFixed(2) 
+        : (user.balance as UserBalance)?.INR?.toFixed(2) || "0.00",
       user.isAdmin ? "Yes" : "No",
       user.isBanned ? "Banned" : "Active",
       new Date(user.createdAt).toLocaleString()
@@ -620,7 +622,9 @@ export default function AdminPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {(user.balance as UserBalance)?.INR?.toFixed(2) || "0.00"}
+                          {typeof user.balance === 'number' 
+                            ? user.balance.toFixed(2) 
+                            : (user.balance as UserBalance)?.INR?.toFixed(2) || "0.00"}
                         </TableCell>
                         <TableCell className="flex gap-2">
                           <Button
@@ -1065,7 +1069,9 @@ export default function AdminPage() {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Current</Label>
               <span className="col-span-3">
-                {(editingUser?.balance as UserBalance)?.[currency as keyof UserBalance]?.toFixed(2) || "0.00"} {currency}
+                {currency === 'INR' && typeof editingUser?.balance === 'number'
+                  ? `${editingUser.balance.toFixed(2)} ${currency}`
+                  : `${(editingUser?.balance as UserBalance)?.[currency as keyof UserBalance]?.toFixed(2) || "0.00"} ${currency}`}
               </span>
             </div>
           </div>
