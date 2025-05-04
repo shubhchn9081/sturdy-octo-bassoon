@@ -1,22 +1,18 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, IndianRupee, ArrowRight, CheckCircle, MapPin } from "lucide-react";
+import { Loader2, CreditCard, IndianRupee, ArrowRight, CheckCircle, Shield } from "lucide-react";
 
 // Generate a unique ID for transactions
 function generateUniqueId(): string {
   return 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
-
-// APay required credentials - updated to match reference files
-const APAY_PROJECT_ID = '8726739';
-const APAY_WEBHOOK_ID = '6800481';
 
 export function APay() {
   const { user } = useAuth();
@@ -24,30 +20,24 @@ export function APay() {
   const [amount, setAmount] = useState<string>("");
   
   // Quick selection amounts
-  const quickAmounts = [500, 1000, 2000, 5000];
+  const quickAmounts = [500, 1000, 2000, 5000, 10000];
   
   const initiatePaymentMutation = useMutation({
     mutationFn: async (paymentData: { amount: number; userId: number; transactionId: string }) => {
-      console.log('Initiating payment with data:', paymentData);
-      
       const response = await apiRequest("POST", "/apay/create-payment", paymentData);
       if (!response.ok) {
-        console.error('Payment API error status:', response.status);
         const errorData = await response.json();
-        console.error('Payment API error details:', errorData);
         throw new Error(errorData.error || "Payment initiation failed");
       }
       
-      const responseData = await response.json();
-      console.log('Payment API response:', responseData);
-      return responseData;
+      return response.json();
     },
     onSuccess: (data) => {
       if (data.success && data.payment_url) {
         // Show a toast before redirecting
         toast({
-          title: "Redirecting to APay",
-          description: "You'll now be taken to the secure APay payment gateway",
+          title: "Redirecting to payment",
+          description: "You'll be taken to the secure payment page",
           variant: "default",
         });
         
@@ -86,25 +76,25 @@ export function APay() {
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       toast({
         title: "Invalid Amount",
-        description: "Please enter a valid amount greater than 0.",
+        description: "Please enter a valid amount.",
         variant: "destructive",
       });
       return;
     }
     
-    if (parsedAmount < 100) {
+    if (parsedAmount < 500) {
       toast({
         title: "Amount too low",
-        description: "Minimum deposit amount is ₹100.",
+        description: "Minimum deposit amount is ₹500.",
         variant: "warning",
       });
       return;
     }
     
-    if (parsedAmount > 10000) {
+    if (parsedAmount > 50000) {
       toast({
         title: "Amount too high",
-        description: "Maximum deposit amount is ₹10,000.",
+        description: "Maximum deposit amount is ₹50,000.",
         variant: "warning",
       });
       return;
@@ -127,31 +117,31 @@ export function APay() {
   };
 
   return (
-    <Card className="w-full shadow-md">
-      <CardHeader className="bg-secondary rounded-t-lg space-y-1.5">
+    <Card className="w-full border-[#243442] bg-[#172B3A] text-white shadow-md">
+      <CardHeader className="space-y-1">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-primary" /> Add Funds
+            <CreditCard className="w-5 h-5 text-[#57FBA2]" /> Add Funds
           </CardTitle>
-          <div className="px-2 py-1 bg-yellow-400 text-black text-xs font-semibold rounded-md flex items-center">
-            <CheckCircle className="w-3 h-3 mr-1" /> APay Verified
+          <div className="px-2 py-1 bg-[#57FBA2] text-black text-xs font-semibold rounded-md flex items-center">
+            <CheckCircle className="w-3 h-3 mr-1" /> Secure
           </div>
         </div>
-        <CardDescription>
-          Securely add funds to your cricket wallet using APay's UPI payment gateway
+        <CardDescription className="text-[#7F8990]">
+          Fast and secure deposits to your wallet
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="mt-4">
+      <CardContent>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <Label htmlFor="amount" className="text-sm font-medium mb-1.5 flex justify-between">
               <span>Amount (₹)</span>
-              <span className="text-xs text-neutral-400">Min: ₹100 | Max: ₹10,000</span>
+              <span className="text-xs text-[#7F8990]">Min: ₹500 | Max: ₹50,000</span>
             </Label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <IndianRupee className="w-4 h-4 text-neutral-400" />
+                <IndianRupee className="w-4 h-4 text-[#7F8990]" />
               </div>
               <Input
                 id="amount"
@@ -159,9 +149,9 @@ export function APay() {
                 placeholder="Enter amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="pl-9"
-                min="100"
-                max="10000"
+                className="pl-9 bg-[#243442] border-[#3A4A59] text-white"
+                min="500"
+                max="50000"
                 step="100"
                 required
               />
@@ -170,16 +160,18 @@ export function APay() {
           
           {/* Quick amount selection */}
           <div className="mb-6">
-            <Label className="text-xs text-neutral-500 mb-2 block">Quick Select:</Label>
-            <div className="grid grid-cols-4 gap-2">
+            <Label className="text-xs text-[#7F8990] mb-2 block">Quick Select:</Label>
+            <div className="grid grid-cols-5 gap-2">
               {quickAmounts.map((quickAmount) => (
                 <Button
                   key={quickAmount}
                   type="button"
                   variant="outline"
-                  className={`text-sm py-1 h-auto ${
-                    parseFloat(amount) === quickAmount ? "bg-primary/10 border-primary" : ""
-                  }`}
+                  className={`text-sm py-1 h-auto border-[#3A4A59] 
+                    ${parseFloat(amount) === quickAmount 
+                      ? "bg-[#243442] border-[#57FBA2] text-[#57FBA2]" 
+                      : "text-white hover:bg-[#243442]"
+                    }`}
                   onClick={() => selectQuickAmount(quickAmount)}
                 >
                   ₹{quickAmount}
@@ -191,45 +183,35 @@ export function APay() {
           {/* Payment button */}
           <Button 
             type="submit" 
-            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black"
+            className="w-full bg-gradient-to-r from-[#57FBA2] to-[#4BDF8D] hover:from-[#4BDF8D] hover:to-[#40CF80] text-black"
             disabled={initiatePaymentMutation.isPending}
           >
             {initiatePaymentMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing Payment...
+                Processing...
               </>
             ) : (
               <>
-                Proceed to APay <ArrowRight className="ml-2 h-4 w-4" />
+                Proceed to Payment <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}
           </Button>
-          
-          {/* Payment provider info */}
-          <div className="mt-3 flex items-center justify-center text-xs text-neutral-400">
-            <MapPin className="w-3 h-3 mr-1" />
-            <span>Payment processed by APay UPI Gateway (ID: {APAY_PROJECT_ID})</span>
-          </div>
         </form>
       </CardContent>
       
-      <CardFooter className="flex flex-col items-start border-t pt-4 pb-5 space-y-2 text-xs text-neutral-400">
+      <CardFooter className="flex flex-col items-start border-t border-[#243442] pt-4 pb-5 space-y-2 text-xs text-[#7F8990]">
         <div className="flex items-start space-x-2">
-          <CheckCircle className="w-3.5 h-3.5 text-green-500 mt-0.5" />
-          <p>Your payment is secured with end-to-end encryption using APay's API key</p>
+          <CheckCircle className="w-3.5 h-3.5 text-[#57FBA2] mt-0.5" />
+          <p>Secure payment with end-to-end encryption</p>
         </div>
         <div className="flex items-start space-x-2">
-          <CheckCircle className="w-3.5 h-3.5 text-green-500 mt-0.5" />
-          <p>Secure callback verification with webhook ID {APAY_WEBHOOK_ID}</p>
+          <CheckCircle className="w-3.5 h-3.5 text-[#57FBA2] mt-0.5" />
+          <p>Instant credit to your wallet after payment</p>
         </div>
         <div className="flex items-start space-x-2">
-          <CheckCircle className="w-3.5 h-3.5 text-green-500 mt-0.5" />
-          <p>Your funds will be instantly credited to your wallet after payment</p>
-        </div>
-        <div className="flex items-start space-x-2">
-          <CheckCircle className="w-3.5 h-3.5 text-green-500 mt-0.5" />
-          <p>Payment receipt will be available in your transaction history</p>
+          <Shield className="w-3.5 h-3.5 text-[#57FBA2] mt-0.5" />
+          <p>All transactions are verified and secure</p>
         </div>
       </CardFooter>
     </Card>

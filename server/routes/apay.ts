@@ -112,10 +112,17 @@ router.post('/create-payment', async (req: Request, res: Response) => {
       });
     }
     
-    if (amount <= 0) {
+    if (amount < 500) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Amount must be greater than 0' 
+        error: 'Minimum deposit amount is ₹500' 
+      });
+    }
+    
+    if (amount > 50000) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Maximum deposit amount is ₹50,000' 
       });
     }
     

@@ -19,14 +19,16 @@ export default function RechargePage() {
       </Button>
       
       <div className="flex items-center mb-6">
-        <Wallet className="h-6 w-6 text-[#1375e1] mr-3" />
+        <div className="p-2 rounded-full bg-[#57FBA2]/10 mr-3">
+          <Wallet className="h-6 w-6 text-[#57FBA2]" />
+        </div>
         <div>
-          <h1 className="text-3xl font-bold text-white">Add Funds</h1>
-          <p className="text-[#7F8990]">Recharge your wallet instantly</p>
+          <h1 className="text-2xl font-bold text-white">Add Funds</h1>
+          <p className="text-[#7F8990] text-sm">Fast & secure deposits</p>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-md mx-auto">
         <APay />
       </div>
     </div>
