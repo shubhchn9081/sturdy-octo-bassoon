@@ -53,6 +53,8 @@ export default function AdminPage() {
   const [outcomeType, setOutcomeType] = useState<string>("win");
   const [durationGames, setDurationGames] = useState<number>(1);
   const [gameControlDialogOpen, setGameControlDialogOpen] = useState(false);
+  const [targetMultiplier, setTargetMultiplier] = useState<number>(2.0);
+  const [useExactMultiplier, setUseExactMultiplier] = useState<boolean>(false);
   
   // Slot game specific controls
   const [slotMultiplier, setSlotMultiplier] = useState<number>(0);
@@ -60,6 +62,8 @@ export default function AdminPage() {
   
   // Global game control state
   const [globalControlAffectedGames, setGlobalControlAffectedGames] = useState<number[]>([]);
+  const [globalTargetMultiplier, setGlobalTargetMultiplier] = useState<number>(2.0);
+  const [globalUseExactMultiplier, setGlobalUseExactMultiplier] = useState<boolean>(false);
   
   // Redirect if not admin
   useEffect(() => {
@@ -309,15 +313,29 @@ export default function AdminPage() {
   
   // Make all users win
   const makeAllWinMutation = useMutation({
-    mutationFn: async (affectedGames: number[] = []) => {
-      const response = await apiRequest("POST", "/api/admin/global-game-control/win", { affectedGames });
+    mutationFn: async ({
+      affectedGames = [],
+      targetMultiplier = 2.0,
+      useExactMultiplier = false
+    }: {
+      affectedGames?: number[];
+      targetMultiplier?: number;
+      useExactMultiplier?: boolean;
+    }) => {
+      const response = await apiRequest("POST", "/api/admin/global-game-control/win", {
+        affectedGames,
+        targetMultiplier,
+        useExactMultiplier
+      });
       return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/global-game-control'] });
       toast({
         title: "Success",
-        description: "All users will now win on affected games",
+        description: useExactMultiplier 
+          ? `All users will now win exactly ${globalTargetMultiplier}x on affected games`
+          : "All users will now win on affected games",
       });
     },
     onError: (error: any) => {
@@ -748,6 +766,24 @@ export default function AdminPage() {
                             <div className="w-40 font-medium">Force All Win:</div>
                             <div>
                               {globalControl.forceAllUsersWin ? (
+                                <Badge className="bg-green-600">Enabled</Badge>
+                              ) : (
+                                <Badge variant="outline">Disabled</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-40 font-medium">Target Multiplier:</div>
+                            <div>
+                              <Badge variant={globalControl.useExactMultiplier ? "default" : "outline"}>
+                                {globalControl.targetMultiplier || 2.0}x
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-40 font-medium">Exact Multiplier:</div>
+                            <div>
+                              {globalControl.useExactMultiplier ? (
                                 <Badge className="bg-green-600">Enabled</Badge>
                               ) : (
                                 <Badge variant="outline">Disabled</Badge>
