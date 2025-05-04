@@ -76,13 +76,36 @@ export async function generateSlotsOutcome(
           // Force sequential numbers for 3x multiplier
           reels = [4, 5, 6];
         } 
-        else if (Math.abs(targetMultiplier - SLOT_MULTIPLIERS.TWO_SAME) < 0.01) {
+        else if (Math.abs(targetMultiplier - SLOT_MULTIPLIERS.TWO_SAME) < 0.01 || Math.abs(targetMultiplier - 2.0) < 0.01) {
           // Force two of the same for 2x multiplier
-          reels = [3, 3, 9];
-        } 
-        else if (Math.abs(targetMultiplier - 2.0) < 0.01) {
-          // Special case for exactly 2x multiplier
-          reels = [2, 2, 8];
+          // Create more varied combinations for the 2x multiplier
+          
+          // First, generate the two matching numbers (any number from 0-9)
+          const matchingNumber = Math.floor(Math.random() * 10);
+          
+          // Create an array of possible third numbers that don't match the first two
+          const possibleThirdNumbers = [];
+          for (let i = 0; i < 10; i++) {
+            if (i !== matchingNumber) {
+              possibleThirdNumbers.push(i);
+            }
+          }
+          
+          // Randomly choose one of the non-matching numbers
+          const thirdNumber = possibleThirdNumbers[Math.floor(Math.random() * possibleThirdNumbers.length)];
+          
+          // 50% chance to put the matching numbers first, 50% chance to put them in a different position
+          const position = Math.floor(Math.random() * 3);
+          
+          if (position === 0) {
+            reels = [matchingNumber, matchingNumber, thirdNumber];
+          } else if (position === 1) {
+            reels = [matchingNumber, thirdNumber, matchingNumber];
+          } else {
+            reels = [thirdNumber, matchingNumber, matchingNumber];
+          }
+          
+          console.log(`[SLOTS] Generated varied 2x multiplier combination: [${reels.join(', ')}]`);
         } 
         else {
           // Default to a common winning combination if multiplier doesn't match
