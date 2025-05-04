@@ -372,6 +372,92 @@ export default function AdminPage() {
     });
   };
   
+  // Filter and sort users
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
+    
+    // First filter users based on search query
+    let filtered = users.filter((user: User) => {
+      if (!searchQuery) return true;
+      
+      const query = searchQuery.toLowerCase();
+      return (
+        user.username.toLowerCase().includes(query) ||
+        (user.fullName && user.fullName.toLowerCase().includes(query)) ||
+        (user.phone && user.phone.toLowerCase().includes(query))
+      );
+    });
+    
+    // Then sort based on creation date
+    return filtered.sort((a: User, b: User) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+  }, [users, searchQuery, sortOrder]);
+  
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "newest" ? "oldest" : "newest");
+  };
+  
+  // Download users as CSV
+  const downloadUsersCSV = () => {
+    if (!filteredUsers.length) {
+      toast({
+        title: "No Data",
+        description: "There are no users to export",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create CSV header
+    const headers = [
+      "ID", 
+      "Username", 
+      "Full Name", 
+      "Email", 
+      "Phone", 
+      "Balance (INR)", 
+      "Is Admin", 
+      "Status", 
+      "Created At"
+    ];
+    
+    // Convert users to CSV rows
+    const csvData = filteredUsers.map((user: User) => [
+      user.id,
+      user.username,
+      user.fullName || "",
+      user.email || "",
+      user.phone || "",
+      (user.balance as UserBalance)?.INR?.toFixed(2) || "0.00",
+      user.isAdmin ? "Yes" : "No",
+      user.isBanned ? "Banned" : "Active",
+      new Date(user.createdAt).toLocaleString()
+    ]);
+    
+    // Combine header and rows
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map(row => row.join(","))
+    ].join("\n");
+    
+    // Create a blob and download link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `users_${timestamp}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   // Handle create game control
   const handleCreateGameControl = () => {
     if (!selectedUser || !selectedGame) {
@@ -455,6 +541,43 @@ export default function AdminPage() {
               <CardDescription>
                 Manage user accounts, update balances, and control user permissions
               </CardDescription>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4 justify-between items-end">
+                <div className="relative w-full sm:w-auto">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users by name or phone..."
+                    className="pl-8 w-full sm:w-[300px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleSortOrder}
+                    className="flex items-center gap-1"
+                  >
+                    {sortOrder === "newest" ? (
+                      <>
+                        <SortDesc className="h-4 w-4" /> Newest First
+                      </>
+                    ) : (
+                      <>
+                        <SortAsc className="h-4 w-4" /> Oldest First
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadUsersCSV}
+                    className="flex items-center gap-1"
+                  >
+                    <Download className="h-4 w-4" /> Download CSV
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {usersLoading ? (
@@ -467,6 +590,8 @@ export default function AdminPage() {
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Username</TableHead>
+                      <TableHead>Full Name</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>Admin</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Balance (INR)</TableHead>
@@ -474,10 +599,12 @@ export default function AdminPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users?.map((user: User) => (
+                    {filteredUsers.map((user: User) => (
                       <TableRow key={user.id}>
                         <TableCell>{user.id}</TableCell>
                         <TableCell>{user.username}</TableCell>
+                        <TableCell>{user.fullName || "-"}</TableCell>
+                        <TableCell>{user.phone || "-"}</TableCell>
                         <TableCell>
                           {user.isAdmin ? (
                             <Badge variant="default" className="bg-green-600">Admin</Badge>
@@ -871,7 +998,7 @@ export default function AdminPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Balance Dialog */}
+      {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -880,6 +1007,31 @@ export default function AdminPage() {
               Set exact balance amount for {editingUser?.username}
             </DialogDescription>
           </DialogHeader>
+          
+          {/* User Information Summary */}
+          <div className="bg-muted p-4 rounded-md mb-4">
+            <h3 className="text-sm font-semibold mb-2">User Information</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="font-medium">Username:</div>
+              <div>{editingUser?.username}</div>
+              
+              <div className="font-medium">Full Name:</div>
+              <div>{editingUser?.fullName || "-"}</div>
+              
+              <div className="font-medium">Phone:</div>
+              <div>{editingUser?.phone || "-"}</div>
+              
+              <div className="font-medium">Email:</div>
+              <div className="truncate">{editingUser?.email || "-"}</div>
+              
+              <div className="font-medium">Status:</div>
+              <div>{editingUser?.isBanned ? "Banned" : "Active"}</div>
+              
+              <div className="font-medium">Created:</div>
+              <div>{editingUser?.createdAt ? new Date(editingUser.createdAt).toLocaleString() : "-"}</div>
+            </div>
+          </div>
+          
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="currency" className="text-right">
