@@ -111,17 +111,29 @@ export default function WithdrawPage() {
   // Create withdrawal request mutation
   const withdrawalMutation = useMutation({
     mutationFn: async (data: WithdrawalFormData) => {
-      return apiRequest('/api/transactions', {
-        method: 'POST',
-        body: JSON.stringify({
+      const amount = parseFloat(data.amount);
+      if (isNaN(amount)) throw new Error('Invalid amount');
+      
+      try {
+        const response = await apiRequest('POST', '/api/transactions', {
           type: 'withdrawal',
-          amount: parseFloat(data.amount),
+          amount: amount,
           currency: 'INR',
           status: 'pending',
           description: `Withdrawal to UPI: ${data.upiId} (${data.bankName})`,
           txid: `W${Date.now()}${Math.floor(Math.random() * 1000)}`
-        }),
-      });
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to process withdrawal');
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('Withdrawal error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       // Invalidate balance query to refresh user's balance
