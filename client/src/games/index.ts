@@ -15,7 +15,8 @@ import Slots from './Slots';
 import CupAndBall from './CupAndBall';
 
 export const GAMES = [
-  {
+  // Cup and Ball game temporarily hidden from menu
+  /* {
     id: 15,
     name: 'CUP AND BALL',
     slug: 'cup-and-ball',
@@ -29,7 +30,7 @@ export const GAMES = [
     rtp: 98,
     maxMultiplier: 3.0,
     activePlayers: 4215
-  },
+  }, */
   {
     id: 4,
     name: 'MINES',
