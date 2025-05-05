@@ -876,15 +876,15 @@ const RocketLaunchRevised: React.FC = () => {
           className="absolute z-20" 
           style={{
             left: `50%`, // Center horizontally
-            bottom: '33%', // Fixed position for rocket
+            bottom: '25%', // Positioned slightly lower
             transform: 'translateX(-50%)',
-            maxHeight: '55%', // Prevent overflow
+            maxHeight: '65%', // Increased height limit
           }}
         >
           {gameState === 'crashed' ? (
-            <RocketExplosion size={90} />
+            <RocketExplosion size={130} />
           ) : (
-            <RocketShip size={90} flameActive={gameState === 'running'} />
+            <RocketShip size={130} flameActive={gameState === 'running'} />
           )}
         </div>
         
