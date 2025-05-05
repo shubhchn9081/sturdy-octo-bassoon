@@ -14,7 +14,7 @@ import CoinFlip from './CoinFlip';
 import Slots from './Slots';
 import CupAndBall from './CupAndBall';
 import TowerClimb from './TowerClimb';
-import RocketLaunch from './RocketLaunch';
+import RocketLaunchRevised from './RocketLaunchRevised';
 
 export const GAMES = [
   // Tower Climb featured as first game (New Arrival)
@@ -193,7 +193,7 @@ export const GAMES = [
     description: 'Launch into space for huge multipliers',
     color: 'bg-cyan-600',
     iconType: 'rocket',
-    component: RocketLaunch,
+    component: RocketLaunchRevised,
     minBet: 0.00000001,
     maxBet: 100,
     rtp: 98,
@@ -222,5 +222,5 @@ export default {
   Slots,
   CupAndBall,
   TowerClimb,
-  RocketLaunch
+  RocketLaunch: RocketLaunchRevised
 };

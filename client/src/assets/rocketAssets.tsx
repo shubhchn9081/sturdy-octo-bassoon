@@ -1,446 +1,357 @@
 import React from 'react';
 
-// Main rocket SVG with animation
-export const RocketShip: React.FC<{ size?: number, flameActive?: boolean }> = ({ 
-  size = 64, 
+// Rocket ship component
+export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({ 
+  size, 
   flameActive = true 
-}) => (
-  <svg 
-    width={size} 
-    height={size * 1.5} 
-    viewBox="0 0 100 150" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Rocket body */}
-    <g transform="translate(0, 0)">
-      {/* Rocket nose cone */}
-      <path 
-        d="M50 0C30 25 30 35 30 50L70 50C70 35 70 25 50 0Z" 
-        fill="#E63946" 
-        stroke="#111827" 
-        strokeWidth="2"
-      />
-      
-      {/* Rocket body */}
-      <rect 
-        x="30" 
-        y="50" 
-        width="40" 
-        height="60" 
-        fill="#F1FAEE" 
-        stroke="#111827" 
-        strokeWidth="2"
-      />
-      
-      {/* Windows */}
-      <circle cx="50" cy="70" r="8" fill="#A8DADC" stroke="#111827" strokeWidth="1.5" />
-      <circle cx="50" cy="70" r="4" fill="#1D3557" />
-      
-      {/* Fins */}
-      <path 
-        d="M25 110L30 95V110H25Z" 
-        fill="#457B9D" 
-        stroke="#111827" 
-        strokeWidth="1.5"
-      />
-      <path 
-        d="M75 110L70 95V110H75Z" 
-        fill="#457B9D" 
-        stroke="#111827" 
-        strokeWidth="1.5"
-      />
-      
-      {/* Rocket bottom */}
-      <path 
-        d="M30 110H70V120C70 122 65 125 50 125C35 125 30 122 30 120V110Z" 
-        fill="#1D3557" 
-        stroke="#111827" 
-        strokeWidth="2"
-      />
-      
-      {/* Rocket text */}
-      <text 
-        x="50" 
-        y="95" 
-        fill="#1D3557" 
-        fontSize="12" 
-        textAnchor="middle" 
-        fontWeight="bold"
-      >
-        NOVITO
-      </text>
-      
-      {/* Flames (animated when active) */}
-      {flameActive && (
-        <>
-          <path 
-            d="M40 125C40 135 45 145 50 155C55 145 60 135 60 125C60 120 55 120 50 120C45 120 40 120 40 125Z" 
-            fill="#E63946"
-            className="animate-pulse"
-          >
-            <animate 
-              attributeName="d" 
-              values="
-                M40 125C40 135 45 145 50 155C55 145 60 135 60 125C60 120 55 120 50 120C45 120 40 120 40 125Z;
-                M42 125C42 140 45 150 50 160C55 150 58 140 58 125C58 122 55 120 50 120C45 120 42 122 42 125Z;
-                M40 125C40 135 45 145 50 155C55 145 60 135 60 125C60 120 55 120 50 120C45 120 40 120 40 125Z
-              "
-              dur="0.5s" 
-              repeatCount="indefinite"
-            />
-          </path>
-          
-          <path 
-            d="M43 125C43 132 45 140 50 148C55 140 57 132 57 125C57 123 55 122 50 122C45 122 43 123 43 125Z" 
-            fill="#F4A261"
-          >
-            <animate 
-              attributeName="d" 
-              values="
-                M43 125C43 132 45 140 50 148C55 140 57 132 57 125C57 123 55 122 50 122C45 122 43 123 43 125Z;
-                M45 125C45 137 47 142 50 150C53 142 55 137 55 125C55 124 53 122 50 122C47 122 45 124 45 125Z;
-                M43 125C43 132 45 140 50 148C55 140 57 132 57 125C57 123 55 122 50 122C45 122 43 123 43 125Z
-              "
-              dur="0.4s" 
-              repeatCount="indefinite"
-            />
-          </path>
-          
-          <path 
-            d="M46 125C46 130 47 135 50 140C53 135 54 130 54 125C54 124 52 124 50 124C48 124 46 124 46 125Z" 
-            fill="#FFBA08"
-          >
-            <animate 
-              attributeName="d" 
-              values="
-                M46 125C46 130 47 135 50 140C53 135 54 130 54 125C54 124 52 124 50 124C48 124 46 124 46 125Z;
-                M47 125C47 132 48 136 50 142C52 136 53 132 53 125C53 124.5 52 124 50 124C48 124 47 124.5 47 125Z;
-                M46 125C46 130 47 135 50 140C53 135 54 130 54 125C54 124 52 124 50 124C48 124 46 124 46 125Z
-              "
-              dur="0.3s" 
-              repeatCount="indefinite"
-            />
-          </path>
-        </>
-      )}
-    </g>
-  </svg>
-);
-
-// Explosion animation for when the rocket crashes
-export const RocketExplosion: React.FC<{ size?: number }> = ({ size = 120 }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 120 120" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    className="animate-pulse"
-  >
-    {/* Central explosion */}
-    <circle cx="60" cy="60" r="30" fill="#E63946">
-      <animate 
-        attributeName="r" 
-        values="10;40;30" 
-        dur="0.8s" 
-        repeatCount="2"
-      />
-      <animate 
-        attributeName="opacity" 
-        values="1;0.8;0.6" 
-        dur="0.8s" 
-        repeatCount="2"
-      />
-    </circle>
-    
-    {/* Outer explosion ring */}
-    <circle cx="60" cy="60" r="45" stroke="#F4A261" strokeWidth="6" opacity="0.8">
-      <animate 
-        attributeName="r" 
-        values="20;60;45" 
-        dur="1s" 
-        repeatCount="2"
-      />
-      <animate 
-        attributeName="opacity" 
-        values="0.8;0.4;0" 
-        dur="1s" 
-        repeatCount="2"
-      />
-    </circle>
-    
-    {/* Explosion particles */}
-    {[...Array(12)].map((_, i) => (
-      <circle 
-        key={i} 
-        cx={60 + 25 * Math.cos(i * Math.PI / 6)} 
-        cy={60 + 25 * Math.sin(i * Math.PI / 6)} 
-        r="4" 
-        fill="#FFBA08"
-      >
-        <animate 
-          attributeName="cx" 
-          values={`${60 + 25 * Math.cos(i * Math.PI / 6)};${60 + 50 * Math.cos(i * Math.PI / 6)}`} 
-          dur="0.8s" 
-          repeatCount="2"
-        />
-        <animate 
-          attributeName="cy" 
-          values={`${60 + 25 * Math.sin(i * Math.PI / 6)};${60 + 50 * Math.sin(i * Math.PI / 6)}`} 
-          dur="0.8s" 
-          repeatCount="2"
-        />
-        <animate 
-          attributeName="opacity" 
-          values="1;0" 
-          dur="0.8s" 
-          repeatCount="2"
-        />
-      </circle>
-    ))}
-  </svg>
-);
-
-// Stars background for space atmosphere
-export const SpaceBackground: React.FC<{ width: number, height: number }> = ({ width, height }) => {
-  // Generate random stars
-  const stars = Array.from({ length: 100 }, (_, i) => ({
-    x: Math.random() * width,
-    y: Math.random() * height,
-    r: Math.random() * 1.5 + 0.5,
-    opacity: Math.random() * 0.8 + 0.2,
-    animationDelay: Math.random() * 3
-  }));
-
+}) => {
   return (
-    <svg 
-      width={width} 
-      height={height} 
-      viewBox={`0 0 ${width} ${height}`} 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}
-    >
-      {/* Stars */}
-      {stars.map((star, i) => (
-        <circle 
-          key={i} 
-          cx={star.x} 
-          cy={star.y} 
-          r={star.r} 
-          fill="white" 
-          opacity={star.opacity}
-          style={{
-            animation: `twinkle 3s ease-in-out infinite`,
-            animationDelay: `${star.animationDelay}s`
-          }}
-        />
-      ))}
+    <div className="relative" style={{ width: size, height: size * 2 }}>
+      {/* Rocket body */}
+      <div 
+        className="absolute w-full h-[60%] bg-gradient-to-b from-white to-gray-300 rounded-full"
+        style={{ 
+          top: '10%',
+          clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)'
+        }}
+      >
+        {/* Windows */}
+        <div className="absolute w-[30%] h-[20%] bg-blue-400 rounded-full left-[35%] top-[20%]" />
+        <div className="absolute w-[20%] h-[15%] bg-blue-400 rounded-full left-[40%] top-[50%]" />
+      </div>
       
-      {/* Add a few planets or celestial bodies */}
-      <circle cx={width * 0.8} cy={height * 0.2} r={15} fill="#A8DADC" opacity={0.7} />
-      <circle cx={width * 0.2} cy={height * 0.8} r={8} fill="#F4A261" opacity={0.5} />
-      
-      {/* Add a distant galaxy or nebula */}
-      <ellipse 
-        cx={width * 0.7} 
-        cy={height * 0.7} 
-        rx={40} 
-        ry={20} 
-        fill="url(#nebula)" 
-        opacity={0.3} 
-        transform="rotate(-30 330 350)"
+      {/* Rocket nose */}
+      <div 
+        className="absolute w-[60%] h-[20%] bg-red-500 rounded-t-full"
+        style={{ 
+          left: '20%',
+          top: '0%'
+        }}
       />
       
-      {/* Gradients */}
-      <defs>
-        <radialGradient id="nebula" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#9D4EDD" />
-          <stop offset="100%" stopColor="#3A0CA3" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-    </svg>
+      {/* Rocket fins */}
+      <div 
+        className="absolute w-[30%] h-[20%] bg-red-500"
+        style={{ 
+          left: '-15%',
+          bottom: '20%',
+          transform: 'skew(30deg, 0deg)'
+        }}
+      />
+      <div 
+        className="absolute w-[30%] h-[20%] bg-red-500"
+        style={{ 
+          right: '-15%',
+          bottom: '20%',
+          transform: 'skew(-30deg, 0deg)'
+        }}
+      />
+      
+      {/* Rocket base */}
+      <div 
+        className="absolute w-[80%] h-[10%] bg-gray-700 rounded-b-lg"
+        style={{ 
+          left: '10%',
+          bottom: '10%'
+        }}
+      />
+      
+      {/* Flame effect when active */}
+      {flameActive && (
+        <div className="absolute" style={{ bottom: '0%', left: '20%', width: '60%', height: '30%' }}>
+          <div className="h-full w-full relative overflow-hidden">
+            <div className="absolute inset-0 flex justify-center items-end">
+              <div className="w-full animate-flame-outer">
+                <div className="h-full w-full bg-orange-500 rounded-t-full animate-flame" />
+              </div>
+              <div className="w-[60%] absolute animate-flame-inner">
+                <div className="h-full w-full bg-yellow-300 rounded-t-full animate-flame-fast" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-// Animated fuel gauge
-export const FuelGauge: React.FC<{ level: number, size?: number }> = ({ level, size = 100 }) => (
-  <svg 
-    width={size} 
-    height={size/2} 
-    viewBox="0 0 100 50" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Gauge outline */}
-    <rect x="5" y="15" width="90" height="20" rx="10" fill="#1D3557" stroke="#F1FAEE" strokeWidth="2" />
-    
-    {/* Fuel level */}
-    <rect 
-      x="8" 
-      y="18" 
-      width={Math.max(0, Math.min(84, level * 84))} 
-      height="14" 
-      rx="7" 
-      fill={level > 0.25 ? (level > 0.6 ? "#57CC99" : "#F4A261") : "#E63946"} 
-    />
-    
-    {/* Gauge text */}
-    <text 
-      x="50" 
-      y="30" 
-      fill="#F1FAEE" 
-      fontSize="12" 
-      textAnchor="middle" 
-      fontWeight="bold"
-      dominantBaseline="middle"
+// Rocket explosion animation
+export const RocketExplosion: React.FC<{ size: number }> = ({ size }) => {
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute w-full h-full bg-orange-500 rounded-full opacity-80 animate-explosion-outer" />
+        <div className="absolute w-[80%] h-[80%] bg-yellow-500 rounded-full opacity-90 animate-explosion-middle" />
+        <div className="absolute w-[60%] h-[60%] bg-white rounded-full opacity-90 animate-explosion-inner" />
+        
+        {/* Explosion particles */}
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div 
+            key={i}
+            className="absolute w-[10%] h-[10%] bg-orange-500 rounded-full"
+            style={{
+              left: `${10 + Math.random() * 80}%`,
+              top: `${10 + Math.random() * 80}%`,
+              opacity: 0.7 + Math.random() * 0.3,
+              animation: `particle-explosion 1s ease-out forwards`,
+              animationDelay: `${Math.random() * 0.5}s`
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Fuel gauge component
+export const FuelGauge: React.FC<{ level: number; size: number }> = ({ level, size }) => {
+  // Level should be between 0 and 1
+  const safeLevel = Math.max(0, Math.min(1, level));
+  const gaugeHeight = size * 0.8;
+  const gaugeWidth = size * 0.3;
+  
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <div className="flex items-center gap-2">
+        <div className="text-sm text-white font-bold">FUEL</div>
+        <div className="relative" style={{ height: gaugeHeight, width: gaugeWidth }}>
+          {/* Gauge background */}
+          <div 
+            className="absolute inset-0 bg-gray-800 border-2 border-gray-600 rounded-lg overflow-hidden"
+          />
+          
+          {/* Gauge level */}
+          <div 
+            className={`absolute bottom-0 left-0 right-0 rounded-b-[0.25rem] transition-height duration-200
+              ${safeLevel > 0.6 ? 'bg-green-500' : safeLevel > 0.3 ? 'bg-yellow-500' : 'bg-red-500'}`}
+            style={{ 
+              height: `${safeLevel * 100}%`,
+            }}
+          >
+            {/* Fuel gauge lines */}
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div 
+                key={i}
+                className="absolute w-full h-[1px] bg-gray-800/40"
+                style={{ bottom: `${i * 10}%` }}
+              />
+            ))}
+          </div>
+          
+          {/* Gauge markings */}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div 
+              key={i}
+              className="absolute w-full flex justify-between items-center"
+              style={{ bottom: `${i * 25}%`, transform: 'translateY(50%)' }}
+            >
+              <div className="w-[4px] h-[2px] bg-gray-400 -ml-[1px]" />
+              <div className="text-[8px] text-gray-300 absolute -left-[20px]">
+                {i * 25}%
+              </div>
+              <div className="w-[4px] h-[2px] bg-gray-400 -mr-[1px]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Space background with stars
+export const SpaceBackground: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+  // Generate random stars
+  const stars = Array.from({ length: 100 }, (_, i) => ({
+    id: i,
+    x: Math.random() * width,
+    y: Math.random() * height,
+    size: 1 + Math.random() * 2,
+    opacity: 0.5 + Math.random() * 0.5,
+    twinkle: Math.random() > 0.7
+  }));
+  
+  return (
+    <div 
+      className="absolute inset-0 overflow-hidden"
+      style={{ width, height }}
     >
-      FUEL
-    </text>
-  </svg>
-);
-
-// Galaxy background
-export const GalaxyBackground: React.FC<{ width: number, height: number }> = ({ width, height }) => (
-  <svg 
-    width={width} 
-    height={height} 
-    viewBox={`0 0 ${width} ${height}`} 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}
-  >
-    {/* Background gradient */}
-    <rect width={width} height={height} fill="url(#galaxyGradient)" />
-    
-    {/* Nebula effects */}
-    <g opacity="0.4">
-      <ellipse 
-        cx={width * 0.3} 
-        cy={height * 0.4} 
-        rx={width * 0.4} 
-        ry={height * 0.3} 
-        fill="url(#purpleNebula)" 
-        opacity="0.3"
-      />
-      <ellipse 
-        cx={width * 0.7} 
-        cy={height * 0.7} 
-        rx={width * 0.3} 
-        ry={height * 0.2} 
-        fill="url(#blueNebula)" 
-        opacity="0.3"
-      />
-    </g>
-    
-    {/* Gradients */}
-    <defs>
-      <linearGradient id="galaxyGradient" x1="0" y1="0" x2={width} y2={height} gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#0B090A" />
-        <stop offset="50%" stopColor="#161A1D" />
-        <stop offset="100%" stopColor="#0B090A" />
-      </linearGradient>
+      <div className="absolute inset-0 bg-black opacity-30" />
       
-      <radialGradient id="purpleNebula" cx="0.5" cy="0.5" r="0.5" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#7209B7" />
-        <stop offset="100%" stopColor="#3A0CA3" stopOpacity="0" />
-      </radialGradient>
-      
-      <radialGradient id="blueNebula" cx="0.5" cy="0.5" r="0.5" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#4361EE" />
-        <stop offset="100%" stopColor="#3A0CA3" stopOpacity="0" />
-      </radialGradient>
-    </defs>
-  </svg>
-);
+      {/* Stars */}
+      {stars.map(star => (
+        <div 
+          key={star.id}
+          className={`absolute rounded-full bg-white ${star.twinkle ? 'animate-twinkle' : ''}`}
+          style={{
+            left: star.x,
+            top: star.y,
+            width: star.size,
+            height: star.size,
+            opacity: star.opacity
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
-// Atmospheric stages visualization
+// Galaxy background with nebula
+export const GalaxyBackground: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+  return (
+    <div 
+      className="absolute inset-0 overflow-hidden"
+      style={{ width, height }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-purple-900/40 to-pink-900/40" />
+      
+      {/* Nebula effect */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 rounded-full bg-purple-500/20 blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-1/3 h-1/3 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/3 w-1/3 h-1/3 rounded-full bg-pink-500/20 blur-3xl" />
+      </div>
+    </div>
+  );
+};
+
+// Atmosphere stage visuals
 export const AtmosphereStage: React.FC<{ 
-  stage: 'ground' | 'troposphere' | 'stratosphere' | 'mesosphere' | 'thermosphere' | 'exosphere' | 'space', 
-  width: number, 
-  height: number 
+  stage: 'ground' | 'troposphere' | 'stratosphere' | 'mesosphere' | 'thermosphere' | 'exosphere' | 'space',
+  width: number,
+  height: number
 }> = ({ stage, width, height }) => {
-  // Different background colors for different stages
-  const getGradient = () => {
+  
+  // Background gradients for different atmosphere layers
+  const backgrounds = {
+    ground: 'bg-gradient-to-t from-gray-900 via-gray-800 to-blue-900',
+    troposphere: 'bg-gradient-to-t from-blue-900 via-blue-700 to-blue-500',
+    stratosphere: 'bg-gradient-to-t from-blue-500 via-indigo-600 to-indigo-700',
+    mesosphere: 'bg-gradient-to-t from-indigo-700 via-purple-700 to-purple-800',
+    thermosphere: 'bg-gradient-to-t from-purple-800 via-violet-900 to-violet-950',
+    exosphere: 'bg-gradient-to-t from-violet-950 via-slate-900 to-black',
+    space: 'bg-black'
+  };
+  
+  // Background visuals for different layers
+  const renderLayerSpecificElements = () => {
     switch (stage) {
       case 'ground':
-        return 'url(#groundGradient)';
+        return (
+          <div className="absolute inset-0">
+            {/* Launch pad */}
+            <div className="absolute bottom-0 left-0 right-0 h-[15%] bg-gray-800" />
+            <div className="absolute bottom-[15%] left-1/3 right-1/3 h-[5%] bg-gray-700" />
+            
+            {/* Buildings in background */}
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div 
+                key={i}
+                className="absolute bottom-[15%] bg-gray-900"
+                style={{
+                  left: `${5 + i * 12}%`,
+                  height: `${5 + Math.random() * 10}%`,
+                  width: '5%'
+                }}
+              />
+            ))}
+            
+            {/* Clouds */}
+            <div className="absolute bottom-[30%] left-[10%] w-[25%] h-[5%] bg-white/10 rounded-full" />
+            <div className="absolute bottom-[40%] right-[15%] w-[30%] h-[7%] bg-white/10 rounded-full" />
+          </div>
+        );
+        
       case 'troposphere':
-        return 'url(#troposphereGradient)';
+        return (
+          <div className="absolute inset-0">
+            {/* Clouds */}
+            <div className="absolute bottom-[5%] left-[5%] w-[40%] h-[10%] bg-white/20 rounded-full" />
+            <div className="absolute bottom-[15%] right-[10%] w-[50%] h-[12%] bg-white/20 rounded-full" />
+            <div className="absolute bottom-[25%] left-[20%] w-[45%] h-[8%] bg-white/15 rounded-full" />
+            <div className="absolute top-[10%] right-[5%] w-[30%] h-[7%] bg-white/10 rounded-full" />
+          </div>
+        );
+        
       case 'stratosphere':
-        return 'url(#stratosphereGradient)';
+        return (
+          <div className="absolute inset-0">
+            {/* Thin clouds */}
+            <div className="absolute bottom-[5%] left-[15%] w-[70%] h-[3%] bg-white/10 rounded-full" />
+            <div className="absolute bottom-[12%] right-[5%] w-[50%] h-[2%] bg-white/10 rounded-full" />
+            
+            {/* Earth curve visible at bottom */}
+            <div 
+              className="absolute bottom-[-50%] left-[-10%] right-[-10%] h-[60%] bg-blue-800 rounded-[100%]" 
+            />
+          </div>
+        );
+        
       case 'mesosphere':
-        return 'url(#mesosphereGradient)';
+        return (
+          <div className="absolute inset-0">
+            {/* Earth curve more pronounced */}
+            <div 
+              className="absolute bottom-[-65%] left-[-20%] right-[-20%] h-[70%] bg-blue-900 rounded-[100%]" 
+            />
+            
+            {/* Auroras */}
+            <div className="absolute bottom-[10%] left-[10%] right-[10%] h-[15%] bg-green-500/10 blur-xl" />
+            <div className="absolute bottom-[5%] left-[5%] right-[5%] h-[10%] bg-blue-500/10 blur-xl" />
+          </div>
+        );
+        
       case 'thermosphere':
-        return 'url(#thermosphereGradient)';
+        return (
+          <div className="absolute inset-0">
+            {/* Earth curve from high above */}
+            <div 
+              className="absolute bottom-[-85%] left-[-30%] right-[-30%] h-[90%] bg-blue-950 rounded-[100%]" 
+            />
+            
+            {/* Auroras */}
+            <div className="absolute bottom-[5%] left-[5%] right-[5%] h-[20%] bg-purple-500/15 blur-xl" />
+            <div className="absolute bottom-[0%] left-[0%] right-[0%] h-[15%] bg-green-500/15 blur-xl" />
+          </div>
+        );
+        
       case 'exosphere':
-        return 'url(#exosphereGradient)';
+        return (
+          <div className="absolute inset-0">
+            {/* Earth visible as a curved surface in distance */}
+            <div 
+              className="absolute bottom-[-150%] left-[-50%] right-[-50%] h-[160%] bg-blue-950/80 rounded-[100%]" 
+            />
+            
+            {/* Subtle atmospheric glow */}
+            <div className="absolute bottom-[-10%] left-0 right-0 h-[15%] bg-blue-500/10 blur-xl" />
+          </div>
+        );
+        
       case 'space':
-        return 'url(#spaceGradient)';
+        return (
+          <div className="absolute inset-0">
+            {/* Earth visible as a small blue marble */}
+            <div 
+              className="absolute bottom-[-250%] left-[-150%] right-[-150%] h-[300%] bg-blue-950/70 rounded-full border border-blue-400/30" 
+            />
+            
+            {/* Space debris/satellites */}
+            <div className="absolute top-[30%] left-[20%] w-[2%] h-[0.5%] bg-gray-300 rotate-45" />
+            <div className="absolute top-[60%] right-[30%] w-[3%] h-[1%] bg-gray-400 -rotate-30" />
+          </div>
+        );
+        
       default:
-        return 'url(#spaceGradient)';
+        return null;
     }
   };
-
+  
   return (
-    <svg 
-      width={width} 
-      height={height} 
-      viewBox={`0 0 ${width} ${height}`} 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}
+    <div 
+      className={`absolute inset-0 ${backgrounds[stage]} transition-colors duration-1000`}
+      style={{ width, height }}
     >
-      {/* Background with appropriate gradient */}
-      <rect width={width} height={height} fill={getGradient()} />
-      
-      {/* Add visual elements based on stage */}
-      {stage === 'ground' && (
-        <>
-          <rect x="0" y={height - 50} width={width} height="50" fill="#4D4D4D" />
-          <rect x="0" y={height - 60} width={width} height="10" fill="#6D6D6D" />
-          <text x={width/2} y={height - 30} fill="white" fontSize="12" textAnchor="middle">LAUNCH PAD</text>
-        </>
-      )}
-      
-      {/* Gradients */}
-      <defs>
-        <linearGradient id="groundGradient" x1="0" y1="0" x2="0" y2={height} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#4A87C5" />
-          <stop offset="100%" stopColor="#85B7E8" />
-        </linearGradient>
-        
-        <linearGradient id="troposphereGradient" x1="0" y1="0" x2="0" y2={height} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2D6BB3" />
-          <stop offset="100%" stopColor="#4A87C5" />
-        </linearGradient>
-        
-        <linearGradient id="stratosphereGradient" x1="0" y1="0" x2="0" y2={height} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1D4A90" />
-          <stop offset="100%" stopColor="#2D6BB3" />
-        </linearGradient>
-        
-        <linearGradient id="mesosphereGradient" x1="0" y1="0" x2="0" y2={height} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#123070" />
-          <stop offset="100%" stopColor="#1D4A90" />
-        </linearGradient>
-        
-        <linearGradient id="thermosphereGradient" x1="0" y1="0" x2="0" y2={height} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0E1C49" />
-          <stop offset="100%" stopColor="#123070" />
-        </linearGradient>
-        
-        <linearGradient id="exosphereGradient" x1="0" y1="0" x2="0" y2={height} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0A1432" />
-          <stop offset="100%" stopColor="#0E1C49" />
-        </linearGradient>
-        
-        <linearGradient id="spaceGradient" x1="0" y1="0" x2="0" y2={height} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#050A1A" />
-          <stop offset="100%" stopColor="#0A1432" />
-        </linearGradient>
-      </defs>
-    </svg>
+      {renderLayerSpecificElements()}
+    </div>
   );
 };
