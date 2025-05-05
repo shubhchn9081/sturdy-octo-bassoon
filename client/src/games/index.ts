@@ -13,6 +13,7 @@ import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
 import Slots from './Slots';
 import CupAndBall from './CupAndBall';
+import TowerClimb from './TowerClimb';
 
 export const GAMES = [
   // Cup and Ball game temporarily hidden from menu
@@ -31,6 +32,21 @@ export const GAMES = [
     maxMultiplier: 3.0,
     activePlayers: 4215
   }, */
+  {
+    id: 101,
+    name: 'TOWER CLIMB',
+    slug: 'tower-climb',
+    type: 'NOVITO ORIGINALS',
+    description: 'Climb the tower, avoid traps, collect rewards',
+    color: 'bg-indigo-600',
+    iconType: 'ladder',
+    component: TowerClimb,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 15.0,
+    activePlayers: 5124
+  },
   {
     id: 4,
     name: 'MINES',
@@ -187,5 +203,6 @@ export default {
   Keno,
   Wheel,
   Slots,
-  CupAndBall
+  CupAndBall,
+  TowerClimb
 };
