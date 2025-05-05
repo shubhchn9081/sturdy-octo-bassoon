@@ -792,42 +792,42 @@ const RocketLaunchRevised: React.FC = () => {
       <div className="mb-2">
         {gameState === 'waiting' ? (
           <Button
-            className="w-full py-5 bg-gradient-to-r from-[#3DD8C7] to-[#2AA89D] hover:from-[#2DD4BF] hover:to-[#14B8A6] text-black font-bold text-xl rounded-xl shadow-xl border-b-4 border-[#14B8A6]"
+            className="w-full py-3 bg-[#5DDCBD] hover:bg-[#4CCEAF] text-black font-bold text-lg rounded-lg shadow-md"
             disabled={hasPlacedBet || countdown === null}
             onClick={handlePlaceBet}
           >
-            <div className="flex flex-col items-center">
-              <span className="font-bold">PLACE BET</span>
-              <span className="text-sm">
+            <div className="text-center">
+              <div className="tracking-wide">PLACE BET</div>
+              <div className="text-sm font-medium">
                 {countdown === null ? 'Preparing...' : `Launch in ${countdown}s`}
-              </span>
+              </div>
             </div>
           </Button>
         ) : gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
           <Button
-            className="w-full py-5 bg-gradient-to-r from-[#F65E9A] to-[#EC4899] hover:from-[#EC4899] hover:to-[#DB2777] text-white font-bold text-xl rounded-xl shadow-xl border-b-4 border-[#DB2777] animate-pulse"
+            className="w-full py-3 bg-[#F13D5C] hover:bg-[#E32D4C] text-white font-bold text-lg rounded-lg shadow-md animate-pulse"
             onClick={() => handleCashOut(false)}
           >
-            <div className="flex flex-col items-center">
-              <span className="font-bold">CASH OUT</span>
-              <span className="text-xl font-bold">{formatMultiplier(multiplier)}</span>
+            <div className="text-center">
+              <div className="tracking-wide">CASH OUT</div>
+              <div className="text-lg font-bold">{formatMultiplier(multiplier)}</div>
             </div>
           </Button>
         ) : (
           <Button
-            className="w-full py-5 bg-gradient-to-r from-[#172B3A] to-[#1E3A4D] text-gray-300 font-bold text-xl rounded-xl shadow-xl cursor-not-allowed border-b-4 border-[#0D1B25]"
+            className="w-full py-3 bg-[#1A2C3F] text-gray-300 font-bold text-lg rounded-lg shadow-md cursor-not-allowed"
             disabled={true}
           >
-            <div className="flex flex-col items-center">
+            <div className="text-center">
               {gameState === 'crashed' ? (
                 <>
-                  <span className="text-red-500 font-bold">CRASHED</span>
-                  <span className="font-bold text-red-400 text-xl">{formatMultiplier(crashPoint || 0)}</span>
+                  <div className="text-[#F13D5C] tracking-wide">CRASHED</div>
+                  <div className="text-[#F13D5C] font-bold">{formatMultiplier(crashPoint || 0)}</div>
                 </>
               ) : (
                 <>
-                  <span className="font-bold">{hasCashedOut ? 'CASHED OUT' : 'PLACE BET'}</span>
-                  <span className="text-sm text-gray-400">Waiting for next round</span>
+                  <div className="tracking-wide">{hasCashedOut ? 'CASHED OUT' : 'PLACE BET'}</div>
+                  <div className="text-sm text-gray-400 font-medium">Waiting for next round</div>
                 </>
               )}
             </div>
@@ -840,7 +840,7 @@ const RocketLaunchRevised: React.FC = () => {
         {[50, 100, 200, 500].map(amount => (
           <button 
             key={amount}
-            className="py-3 bg-gradient-to-b from-[#1E3A4D] to-[#172B3A] hover:from-[#243442] hover:to-[#1E3A4D] text-white font-bold rounded-lg shadow-md border border-[#2A3F51] transition-colors"
+            className="py-2 bg-[#1A2C3F] hover:bg-[#243442] text-white font-medium rounded-lg shadow-sm border border-[#2A3F51] transition-colors"
             onClick={() => setBetAmount(amount)}
             disabled={gameState !== 'waiting' || hasPlacedBet}
           >
@@ -859,7 +859,7 @@ const RocketLaunchRevised: React.FC = () => {
           <button 
             onClick={() => setBetAmount(Math.max(10, betAmount / 2))}
             disabled={gameState !== 'waiting' || hasPlacedBet}
-            className="h-10 w-12 flex items-center justify-center text-white bg-gradient-to-b from-[#1E3A4D] to-[#172B3A] rounded-lg text-xl shadow-md border border-[#2A3F51] font-bold hover:from-[#243442] hover:to-[#1E3A4D]"
+            className="h-10 w-12 flex items-center justify-center text-white bg-[#1A2C3F] hover:bg-[#243442] rounded-lg text-xl shadow-sm border border-[#2A3F51] font-bold"
           >
             -
           </button>
@@ -874,7 +874,7 @@ const RocketLaunchRevised: React.FC = () => {
           <button 
             onClick={() => setBetAmount(betAmount * 2)}
             disabled={gameState !== 'waiting' || hasPlacedBet}
-            className="h-10 w-12 flex items-center justify-center text-white bg-gradient-to-b from-[#1E3A4D] to-[#172B3A] rounded-lg text-xl shadow-md border border-[#2A3F51] font-bold hover:from-[#243442] hover:to-[#1E3A4D]"
+            className="h-10 w-12 flex items-center justify-center text-white bg-[#1A2C3F] hover:bg-[#243442] rounded-lg text-xl shadow-sm border border-[#2A3F51] font-bold"
           >
             +
           </button>
@@ -896,12 +896,13 @@ const RocketLaunchRevised: React.FC = () => {
             type="number"
             value={autoCashoutInputValue}
             onChange={(e) => handleAutoCashoutChange(e.target.value)}
-            className={`flex-1 bg-[#172B3A] text-white text-center h-10 text-lg ${!isAutoCashoutEnabled ? 'opacity-50' : ''}`}
+            className={`flex-1 bg-[#172B3A] text-white text-center h-10 text-base ${!isAutoCashoutEnabled ? 'opacity-50' : ''} border-[#2A3F51]`}
             disabled={!isAutoCashoutEnabled || gameState !== 'waiting' || hasPlacedBet}
             step="0.01"
             min="1.01"
+            placeholder="2.00"
           />
-          <span className="text-white text-xl">×</span>
+          <span className="text-white text-lg font-medium">×</span>
         </div>
       </div>
       
