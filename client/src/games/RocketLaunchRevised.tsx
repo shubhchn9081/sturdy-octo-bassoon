@@ -819,8 +819,8 @@ const RocketLaunchRevised: React.FC = () => {
         />
       )}
       
-      {/* Game status display - Enhanced for mobile visibility */}
-      <div className="absolute top-2 md:top-4 left-0 right-0 flex justify-center z-30">
+      {/* Game status display - Moved to the left side */}
+      <div className="absolute top-2 md:top-4 left-4 z-30">
         <div className="bg-[#0A1725]/90 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg px-4 md:px-6 py-2 md:py-3 text-center">
           {gameState === 'waiting' && (
             <div className="flex items-center gap-2">
