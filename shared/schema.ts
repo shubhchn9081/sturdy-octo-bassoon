@@ -237,6 +237,19 @@ export type PlinkoGameSettings = {
   forcedMultiplier: number; // Force a specific multiplier result
 };
 
+// Slot games specific settings
+export type SlotSymbol = 'planet' | 'star' | 'rocket' | 'alien' | 'asteroid' | 'comet' | 'galaxy' | 'blackhole' | 'wild';
+
+export type GalacticSpinsOutcome = {
+  reels: SlotSymbol[][]; // 5 reels x 3 rows
+  lines: number; // Number of active paylines
+  win: boolean;
+  winningLines: number[]; // Indices of winning paylines
+  multiplier: number;
+  bonusTriggered: boolean;
+  expandingWilds: number[]; // Indices of reels with expanding wilds
+};
+
 export type MinesGameSettings = {
   minePositions: number[]; // Force specific mine positions
   forceLose: boolean; // Force player to lose on next reveal
