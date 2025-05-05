@@ -546,62 +546,76 @@ const TowerClimb = () => {
       onHalfBet={handleHalfBet}
       onDoubleBet={handleDoubleBet}
       onBet={betAction}
-      betButtonText={betButtonText}
+      betButtonText={gameState.isGameActive && !gameState.isGameOver ? 
+        `Cash Out (${gameState.currentMultiplier.toFixed(2)}x)` : 
+        betButtonText}
       betButtonDisabled={betDisabled || (gameState.isGameActive && !gameState.isGameOver)}
     >
-      <div>
+      {/* Mobile-friendly tower height selector using buttons instead of dropdown */}
+      <div className="mb-3">
         <label className="block text-gray-400 mb-2 text-sm">Tower Height</label>
-        <Select
-          value={gameState.towerHeight.toString()}
-          onValueChange={(value) => setGameState({...gameState, towerHeight: parseInt(value)})}
-          disabled={gameState.isGameActive}
-        >
-          <SelectTrigger className="w-full bg-[#243442] text-white border-none">
-            <SelectValue placeholder="Select tower height" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="5">5 Levels (Easy)</SelectItem>
-            <SelectItem value="10">10 Levels (Medium)</SelectItem>
-            <SelectItem value="15">15 Levels (Hard)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="mt-4">
-        <label className="block text-gray-400 mb-2 text-sm">Current Multiplier</label>
-        <div className="bg-[#243442] p-2 rounded text-white">
-          {gameState.currentMultiplier.toFixed(2)}x
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            {value: "5", label: "Easy (5)"},
+            {value: "10", label: "Medium (10)"},
+            {value: "15", label: "Hard (15)"}
+          ].map(option => (
+            <button
+              key={option.value}
+              className={`p-2 rounded-lg text-center text-sm ${
+                gameState.towerHeight.toString() === option.value 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-[#243442] text-gray-300"
+              }`}
+              onClick={() => setGameState({...gameState, towerHeight: parseInt(option.value)})}
+              disabled={gameState.isGameActive}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
       
-      <div className="mt-4">
-        <label className="block text-gray-400 mb-2 text-sm">Potential Profit</label>
-        <div className="bg-[#243442] p-2 rounded text-white">
-          {formatCrypto(profit)}
-        </div>
-      </div>
-      
-      {/* Fairness verification section */}
-      {gameState.serverSeedHash && (
-        <div className="mt-4 border-t border-gray-700 pt-4">
-          <h3 className="text-sm font-semibold mb-2 text-white">Provably Fair</h3>
-          <div className="text-xs overflow-hidden text-ellipsis">
-            <p className="mb-1">
-              <span className="font-medium text-white">Server Seed Hash:</span>
-              <br />
-              <span className="text-gray-400 break-all">{gameState.serverSeedHash}</span>
-            </p>
-            <p className="mb-1">
-              <span className="font-medium text-white">Client Seed:</span>
-              <br />
-              <span className="text-gray-400 break-all">{clientSeed}</span>
-            </p>
-            <p>
-              <span className="font-medium text-white">Nonce:</span>
-              <br />
-              <span className="text-gray-400">{nonce}</span>
-            </p>
+      {/* Game stats displayed horizontally for mobile */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div>
+          <label className="block text-gray-400 mb-1 text-xs">Multiplier</label>
+          <div className="bg-[#243442] p-2 rounded text-white text-center font-medium">
+            {gameState.currentMultiplier.toFixed(2)}x
           </div>
+        </div>
+        
+        <div>
+          <label className="block text-gray-400 mb-1 text-xs">Profit</label>
+          <div className="bg-[#243442] p-2 rounded text-white text-center font-medium text-green-500">
+            {formatCrypto(profit)}
+          </div>
+        </div>
+      </div>
+      
+      {/* Optimized collapsible fairness verification section */}
+      {gameState.serverSeedHash && (
+        <div className="mt-3">
+          <details className="text-sm">
+            <summary className="font-medium text-blue-400 cursor-pointer mb-1 flex items-center">
+              <span className="mr-1">View Provably Fair Info</span>
+              <span className="text-xs opacity-70">(tap to expand)</span>
+            </summary>
+            <div className="mt-2 pl-2 border-l-2 border-gray-700 text-xs overflow-hidden text-ellipsis">
+              <p className="mb-1 opacity-90">
+                <span className="font-medium text-white">Server Seed Hash:</span>
+                <span className="text-gray-400 break-all block text-xs opacity-80 mt-0.5">{gameState.serverSeedHash.substring(0, 20)}...</span>
+              </p>
+              <p className="mb-1 opacity-90">
+                <span className="font-medium text-white">Client Seed:</span>
+                <span className="text-gray-400 break-all block text-xs opacity-80 mt-0.5">{clientSeed}</span>
+              </p>
+              <p className="opacity-90">
+                <span className="font-medium text-white">Nonce:</span>
+                <span className="text-gray-400 block text-xs opacity-80 mt-0.5">{nonce}</span>
+              </p>
+            </div>
+          </details>
         </div>
       )}
     </GameControls>

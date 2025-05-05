@@ -26,6 +26,82 @@ export const GameControls = ({
   children,
   className
 }: GameControlsProps) => {
+  const [showMobileControls, setShowMobileControls] = React.useState(false);
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  
+  // Thumb-friendly mobile version with collapsible sections
+  if (isMobile) {
+    return (
+      <div className={cn("space-y-3", className)}>
+        {/* Main action button - always visible and large for thumb access */}
+        <button 
+          className="w-full bg-[#4ECD5D] hover:bg-[#3DBB4C] text-black font-bold py-4 rounded-xl text-lg shadow-lg"
+          disabled={betButtonDisabled}
+          onClick={onBet}
+        >
+          {betButtonText}
+        </button>
+      
+        {/* Quick bet amount buttons */}
+        <div className="grid grid-cols-4 gap-2 mb-2">
+          {[10, 50, 100, 500].map(amount => (
+            <button
+              key={`preset-${amount}`}
+              className="py-3 bg-[#243442] rounded-lg text-white font-medium"
+              onClick={() => onBetAmountChange(amount.toString())}
+            >
+              {amount}
+            </button>
+          ))}
+        </div>
+        
+        {/* Collapsible settings button */}
+        <button 
+          className="w-full flex items-center justify-between bg-[#243442] p-3 rounded-lg text-white"
+          onClick={() => setShowMobileControls(!showMobileControls)}
+        >
+          <span className="font-medium">Bet Settings</span>
+          <span className="text-lg">{showMobileControls ? '▲' : '▼'}</span>
+        </button>
+        
+        {/* Collapsible settings panel */}
+        {showMobileControls && (
+          <div className="bg-[#1B2834] p-3 rounded-lg mt-2 space-y-3">
+            {/* Bet amount with large +/- buttons */}
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">Bet Amount</label>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={onHalfBet}
+                  className="h-10 w-10 flex items-center justify-center text-white bg-[#243442] rounded-lg"
+                >
+                  −
+                </button>
+                <input
+                  type="text"
+                  value={betAmount}
+                  onChange={(e) => onBetAmountChange(e.target.value)}
+                  className="flex-1 bg-[#243442] text-white h-10 rounded-lg px-3 text-center"
+                  placeholder="0.00"
+                />
+                <button 
+                  onClick={onDoubleBet}
+                  className="h-10 w-10 flex items-center justify-center text-white bg-[#243442] rounded-lg"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            
+            {/* Game-specific settings */}
+            {children}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Original desktop version
   return (
     <div className={cn("space-y-4", className)}>
       <div className="mb-4">
@@ -138,8 +214,8 @@ const GameLayout = ({
             {gamePanel}
           </div>
 
-          {/* Controls Panel - fixed at bottom */}
-          <div className="w-full bg-[#172B3A] p-3 border-t border-gray-700 shadow-lg">
+          {/* Controls Panel - fixed at bottom, optimized for one-thumb usage */}
+          <div className="w-full bg-[#172B3A] p-2 pb-4 border-t border-gray-700 shadow-lg">
             {controlsPanel}
           </div>
         </div>
