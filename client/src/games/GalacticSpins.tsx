@@ -4,8 +4,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import GalacticSpinsGame from './components/galactic-spins/GalacticSpinsGame';
-import GalacticSpinsPaytable from './components/galactic-spins/GalacticSpinsPaytable';
+// Importing game components
+import GalacticSpinsGame from '@/games/components/galactic-spins/GalacticSpinsGame';
+import GalacticSpinsPaytable from '@/games/components/galactic-spins/GalacticSpinsPaytable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

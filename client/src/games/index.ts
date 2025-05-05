@@ -18,54 +18,51 @@ import RocketLaunchRevised from './RocketLaunchRevised';
 import GalacticSpins from './GalacticSpins';
 
 export const GAMES = [
-  // Galactic Spins as the featured new game
   {
-    id: 120,
-    name: 'GALACTIC SPINS',
-    slug: 'galactic-spins',
+    id: 1,
+    name: 'CRASH',
+    slug: 'crash',
     type: 'NOVITO ORIGINALS',
-    description: 'Space-themed slots with cosmic multipliers',
-    color: 'bg-blue-600',
-    iconType: 'slots',
-    component: GalacticSpins,
-    minBet: 0.1,
-    maxBet: 100,
-    rtp: 96.5,
-    maxMultiplier: 50.0,
-    activePlayers: 7841
-  },
-  // Tower Climb as a popular game
-  {
-    id: 101,
-    name: 'TOWER CLIMB',
-    slug: 'tower-climb',
-    type: 'NOVITO ORIGINALS',
-    description: 'Climb the tower, avoid traps, collect rewards',
-    color: 'bg-indigo-600',
-    iconType: 'ladder',
-    component: TowerClimb,
+    description: 'Bet and cash out before it crashes',
+    color: 'bg-orange-500',
+    iconType: 'crash',
+    component: Crash,
     minBet: 0.00000001,
     maxBet: 100,
-    rtp: 97,
-    maxMultiplier: 15.0,
-    activePlayers: 8523
+    rtp: 99,
+    maxMultiplier: 1000.00,
+    activePlayers: 9876
   },
-  // Cup and Ball game temporarily hidden from menu
-  /* {
-    id: 15,
-    name: 'CUP AND BALL',
-    slug: 'cup-and-ball',
+  {
+    id: 2,
+    name: 'PLINKO',
+    slug: 'plinko',
     type: 'NOVITO ORIGINALS',
-    description: 'Find which cup hides the ball',
-    color: 'bg-orange-600',
-    iconType: 'shuffle',
-    component: CupAndBall,
-    minBet: 1,
+    description: 'Drop balls and win multipliers',
+    color: 'bg-green-500',
+    iconType: 'plinko',
+    component: Plinko,
+    minBet: 0.00000001,
     maxBet: 100,
-    rtp: 98,
-    maxMultiplier: 3.0,
-    activePlayers: 4215
-  }, */
+    rtp: 99,
+    maxMultiplier: 1000.00,
+    activePlayers: 7253
+  },
+  {
+    id: 3,
+    name: 'LIMBO',
+    slug: 'limbo',
+    type: 'NOVITO ORIGINALS',
+    description: 'Target a multiplier and win big',
+    color: 'bg-orange-400',
+    iconType: 'limbo',
+    component: Limbo,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: Infinity,
+    activePlayers: 10890
+  },
   {
     id: 4,
     name: 'MINES',
@@ -95,21 +92,6 @@ export const GAMES = [
     rtp: 99,
     maxMultiplier: 99.00,
     activePlayers: 3705
-  },
-  {
-    id: 2,
-    name: 'PLINKO',
-    slug: 'plinko',
-    type: 'NOVITO ORIGINALS',
-    description: 'Drop balls and win multipliers',
-    color: 'bg-green-500',
-    iconType: 'plinko',
-    component: Plinko,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 99,
-    maxMultiplier: 1000.00,
-    activePlayers: 7253
   },
   {
     id: 11,
@@ -142,52 +124,6 @@ export const GAMES = [
     activePlayers: 3298
   },
   {
-    id: 14,
-    name: 'CRICKET MINES',
-    slug: 'cricket-mines',
-    type: 'NOVITO ORIGINALS',
-    description: 'Hit sixes and avoid getting out',
-    color: 'bg-green-600',
-    iconType: 'mines', 
-    component: CricketMines,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 99,
-    maxMultiplier: 1000,
-    activePlayers: 2891,
-    imageUrl: 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png'
-  },
-  {
-    id: 1,
-    name: 'CRASH',
-    slug: 'crash',
-    type: 'NOVITO ORIGINALS',
-    description: 'Bet and cash out before it crashes',
-    color: 'bg-orange-500',
-    iconType: 'crash',
-    component: Crash,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 99,
-    maxMultiplier: 1000.00,
-    activePlayers: 9876
-  },
-  {
-    id: 3,
-    name: 'LIMBO',
-    slug: 'limbo',
-    type: 'NOVITO ORIGINALS',
-    description: 'Target a multiplier and win big',
-    color: 'bg-orange-400',
-    iconType: 'limbo',
-    component: Limbo,
-    minBet: 0.00000001,
-    maxBet: 100,
-    rtp: 99,
-    maxMultiplier: Infinity,
-    activePlayers: 10890
-  },
-  {
     id: 13,
     name: 'SLOTS',
     slug: 'slots',
@@ -203,6 +139,53 @@ export const GAMES = [
     activePlayers: 5423
   },
   {
+    id: 14,
+    name: 'CRICKET MINES',
+    slug: 'cricket-mines',
+    type: 'NOVITO ORIGINALS',
+    description: 'Hit sixes and avoid getting out',
+    color: 'bg-green-600',
+    iconType: 'mines', 
+    component: CricketMines,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: 1000,
+    activePlayers: 2891,
+    imageUrl: 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png'
+  },
+  // Cup and Ball game temporarily hidden from menu
+  /* {
+    id: 15,
+    name: 'CUP AND BALL',
+    slug: 'cup-and-ball',
+    type: 'NOVITO ORIGINALS',
+    description: 'Find which cup hides the ball',
+    color: 'bg-orange-600',
+    iconType: 'shuffle',
+    component: CupAndBall,
+    minBet: 1,
+    maxBet: 100,
+    rtp: 98,
+    maxMultiplier: 3.0,
+    activePlayers: 4215
+  }, */
+  {
+    id: 101,
+    name: 'TOWER CLIMB',
+    slug: 'tower-climb',
+    type: 'NOVITO ORIGINALS',
+    description: 'Climb the tower, avoid traps, collect rewards',
+    color: 'bg-indigo-600',
+    iconType: 'ladder',
+    component: TowerClimb,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 97,
+    maxMultiplier: 15.0,
+    activePlayers: 8523
+  },
+  {
     id: 150,
     name: 'ROCKET LAUNCH',
     slug: 'rocket-launch',
@@ -216,6 +199,21 @@ export const GAMES = [
     rtp: 98,
     maxMultiplier: 1000.00,
     activePlayers: 8421
+  },
+  {
+    id: 200,
+    name: 'GALACTIC SPINS',
+    slug: 'galactic-spins',
+    type: 'NOVITO ORIGINALS',
+    description: 'Space-themed slots with cosmic multipliers',
+    color: 'bg-blue-600',
+    iconType: 'slots',
+    component: GalacticSpins,
+    minBet: 0.1,
+    maxBet: 100,
+    rtp: 96.5,
+    maxMultiplier: 50.0,
+    activePlayers: 7841
   }
 ];
 
