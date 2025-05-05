@@ -621,20 +621,20 @@ const TowerClimb = () => {
       )}
       
       {/* Tower visualization */}
-      <div className="flex-1 flex flex-col-reverse justify-start items-center overflow-y-auto py-4 space-y-reverse space-y-4">
+      <div className="flex-1 flex flex-col-reverse justify-start items-center overflow-y-auto py-2 md:py-4 space-y-reverse space-y-2 md:space-y-4">
         {gameState.towerLayout.map((level, levelIndex) => (
           <div 
             key={`level-${levelIndex}`} 
             className={cn(
-              "flex justify-center space-x-4 mb-4 p-2 rounded w-full",
+              "flex justify-center space-x-2 md:space-x-4 mb-2 md:mb-4 p-1 md:p-2 rounded w-full",
               levelIndex === gameState.currentLevel ? "bg-accent/50" : ""
             )}
           >
-            <div className="flex-shrink-0 flex items-center mr-2">
-              <span className="text-sm font-medium">Level {levelIndex + 1}</span>
+            <div className="flex-shrink-0 flex items-center mr-1 md:mr-2">
+              <span className="text-xs md:text-sm font-medium">L{levelIndex + 1}</span>
             </div>
             
-            <div className="flex justify-center space-x-4">
+            <div className="flex justify-center space-x-2 md:space-x-4">
               {level.map((tileType, tileIndex) => {
                 const isRevealed = gameState.revealedTiles[levelIndex][tileIndex];
                 const isSelected = gameState.selectedTilePosition === tileIndex && levelIndex === gameState.currentLevel;
@@ -673,12 +673,12 @@ const TowerClimb = () => {
                   >
                     {isRevealed ? (
                       <>
-                        {tileType === TileType.SAFE && <span className="text-2xl">✓</span>}
-                        {tileType === TileType.TRAP && <span className="text-2xl">✗</span>}
-                        {tileType === TileType.SPECIAL_ITEM && <span className="text-2xl">⭐</span>}
+                        {tileType === TileType.SAFE && <span className="text-xl md:text-2xl">✓</span>}
+                        {tileType === TileType.TRAP && <span className="text-xl md:text-2xl">✗</span>}
+                        {tileType === TileType.SPECIAL_ITEM && <span className="text-xl md:text-2xl">⭐</span>}
                       </>
                     ) : (
-                      <span className="text-sm">?</span>
+                      <span className="text-xs md:text-sm">?</span>
                     )}
                   </div>
                 );
@@ -691,14 +691,14 @@ const TowerClimb = () => {
       {/* Game status display */}
       {gameState.isGameOver && (
         <div className={cn(
-          "mt-4 p-4 rounded text-center",
+          "mt-2 md:mt-4 p-2 md:p-4 rounded text-center",
           gameState.hasWon ? "bg-green-700/50" : "bg-red-700/50"
         )}>
-          <h3 className="text-xl font-bold">
+          <h3 className="text-lg md:text-xl font-bold">
             {gameState.hasWon ? 'You Won!' : 'Game Over!'}
           </h3>
           {gameState.hasWon && (
-            <p>You won {formatCrypto(gameState.betAmount * gameState.currentMultiplier)}!</p>
+            <p className="text-sm md:text-base">You won {formatCrypto(gameState.betAmount * gameState.currentMultiplier)}!</p>
           )}
         </div>
       )}
