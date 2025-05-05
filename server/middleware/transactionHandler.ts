@@ -35,6 +35,7 @@ export const transactionHandler = {
       // Get current user to check balance
       const user = await storage.getUser(userId);
       if (!user) {
+        console.error(`User with ID ${userId} not found when checking balance for bet`);
         res.status(404).json({ 
           message: 'User not found',
           success: false 
@@ -42,17 +43,34 @@ export const transactionHandler = {
         return false;
       }
 
-      // Get current balance
+      // Get current balance - handle both formats (object and numeric)
       let userBalance = 0;
       if (typeof user.balance === 'number') {
         userBalance = user.balance;
+        console.log(`User ${userId} has numeric balance: ${userBalance}`);
       } else if (typeof user.balance === 'object' && user.balance !== null) {
         const balanceObj = user.balance as Record<string, number>;
         userBalance = balanceObj[currency] || 0;
+        console.log(`User ${userId} has object balance: ${JSON.stringify(user.balance)}, extracted ${currency}: ${userBalance}`);
+      } else {
+        console.error(`User ${userId} has invalid balance format: ${typeof user.balance}, value: ${JSON.stringify(user.balance)}`);
+      }
+
+      // Ensure amount is properly normalized for validation
+      if (typeof normalizedAmount !== 'number' || isNaN(normalizedAmount)) {
+        console.error(`Invalid amount after normalization: ${normalizedAmount}, original: ${amount}`);
+        res.status(400).json({ 
+          message: 'Invalid bet amount format',
+          success: false,
+          providedAmount: amount,
+          normalizedAmount: normalizedAmount
+        });
+        return false;
       }
 
       // Double-check we have a valid amount after normalization
       if (normalizedAmount <= 0) {
+        console.error(`Bet amount ${normalizedAmount} is not positive, original: ${amount}`);
         res.status(400).json({ 
           message: 'Bet amount must be greater than 0',
           success: false,
@@ -62,8 +80,9 @@ export const transactionHandler = {
         return false;
       }
 
-      // Validate sufficient balance
+      // Validate sufficient balance - with detailed logging for debugging
       if (userBalance < normalizedAmount) {
+        console.error(`Insufficient balance for user ${userId}: has ${userBalance}, needs ${normalizedAmount}`);
         res.status(400).json({ 
           message: `Insufficient balance: ${userBalance}. Need: ${normalizedAmount}`,
           success: false,
@@ -154,8 +173,36 @@ export const transactionHandler = {
     const normalizedBetAmount = normalizeBetAmount(betAmount);
     const normalizedMultiplier = normalizeBetAmount(multiplier);
     
+    console.log(`[Win Processing] Original values - Bet: ${betAmount}, Multiplier: ${multiplier}`);
+    console.log(`[Win Processing] Normalized values - Bet: ${normalizedBetAmount}, Multiplier: ${normalizedMultiplier}`);
+    
+    // Validate normalized bet amount is a number
+    if (typeof normalizedBetAmount !== 'number' || isNaN(normalizedBetAmount)) {
+      console.error(`Invalid bet amount after normalization: ${normalizedBetAmount}, original: ${betAmount}`);
+      res.status(400).json({ 
+        message: 'Invalid bet amount format',
+        success: false,
+        providedAmount: betAmount,
+        normalizedAmount: normalizedBetAmount
+      });
+      return false;
+    }
+    
+    // Validate normalized multiplier is a number
+    if (typeof normalizedMultiplier !== 'number' || isNaN(normalizedMultiplier)) {
+      console.error(`Invalid multiplier after normalization: ${normalizedMultiplier}, original: ${multiplier}`);
+      res.status(400).json({ 
+        message: 'Invalid multiplier format',
+        success: false,
+        providedMultiplier: multiplier,
+        normalizedMultiplier: normalizedMultiplier
+      });
+      return false;
+    }
+    
     // Validate the bet amount and multiplier
     if (normalizedBetAmount <= 0) {
+      console.error(`Bet amount must be positive: ${normalizedBetAmount}`);
       res.status(400).json({ 
         message: 'Invalid bet amount. Must be a positive number.',
         success: false,
@@ -166,6 +213,7 @@ export const transactionHandler = {
     }
 
     if (normalizedMultiplier <= 0) {
+      console.error(`Multiplier must be positive: ${normalizedMultiplier}`);
       res.status(400).json({ 
         message: 'Invalid multiplier. Must be a positive number.',
         success: false,

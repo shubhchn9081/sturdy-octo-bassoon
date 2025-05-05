@@ -272,7 +272,7 @@ export class MemStorage implements IStorage {
       return this.getUser(id);
     }
     
-    console.log(`Updating user ${id} balance with amount: ${amount} ${currency}`);
+    console.log(`[Balance Update] Starting update for user ${id}, amount: ${amount} ${currency}`);
     
     const user = this.users.get(id);
     if (!user) {
@@ -280,33 +280,51 @@ export class MemStorage implements IStorage {
       return undefined;
     }
     
-    // Handle different balance formats
-    let updatedBalance: number;
+    // Handle different balance formats - important to maintain format consistency
+    let updatedBalance: number | Record<string, number>;
     
     if (typeof user.balance === 'number') {
       // Standard numeric balance format
+      console.log(`[Balance Update] User has numeric balance: ${user.balance}`);
       let newBalance = user.balance + amount;
       if (newBalance < 0) newBalance = 0; // Don't allow negative balances
       updatedBalance = newBalance;
+      console.log(`[Balance Update] New numeric balance: ${updatedBalance}`);
     } else if (typeof user.balance === 'object' && user.balance !== null) {
-      // For backwards compatibility - if balance is an object, extract INR value
-      const currentBalance = user.balance as Record<string, number>;
+      // Object-based balance - preserve the structure but update INR value
+      console.log(`[Balance Update] User has object balance: ${JSON.stringify(user.balance)}`);
+      const currentBalance = { ...user.balance as Record<string, number> };
       const currentAmount = currentBalance['INR'] || 0;
       
       // Calculate new amount
       let newAmount = currentAmount + amount;
       if (newAmount < 0) newAmount = 0;
       
-      // Store as a simple number now
-      updatedBalance = newAmount;
+      // Preserve the object structure and update INR
+      currentBalance['INR'] = newAmount;
+      updatedBalance = currentBalance; 
+      console.log(`[Balance Update] New object balance: ${JSON.stringify(updatedBalance)}`);
     } else {
       // Handle unexpected format - create a new numeric balance
+      console.error(`[Balance Update] User ${id} has invalid balance format: ${typeof user.balance}`);
       updatedBalance = Math.max(0, amount);
+      console.log(`[Balance Update] Created new numeric balance: ${updatedBalance}`);
     }
     
-    console.log(`User ${id} balance updated from ${typeof user.balance === 'number' ? user.balance : (user.balance as any)?.INR || 0} to ${updatedBalance}`);
+    // Log balance change
+    const oldBalanceVal = typeof user.balance === 'number' 
+      ? user.balance 
+      : (typeof user.balance === 'object' && user.balance !== null 
+          ? (user.balance as Record<string, number>)['INR'] || 0 
+          : 0);
+          
+    const newBalanceVal = typeof updatedBalance === 'number' 
+      ? updatedBalance 
+      : updatedBalance['INR'];
+      
+    console.log(`[Balance Update] User ${id} balance changed from ${oldBalanceVal} to ${newBalanceVal} (format: ${typeof updatedBalance})`);
     
-    // Update the user record with the new balance (as a simple number)
+    // Update the user record with the new balance
     const updatedUser = { ...user, balance: updatedBalance };
     this.users.set(id, updatedUser);
     
@@ -449,7 +467,7 @@ export class MemStorage implements IStorage {
       return this.getUser(id);
     }
     
-    console.log(`Setting user ${id} balance to exact amount: ${exactAmount} ${currency}`);
+    console.log(`[Balance Set] Setting user ${id} balance to exact amount: ${exactAmount} ${currency}`);
     
     const user = this.users.get(id);
     if (!user) {
@@ -460,11 +478,41 @@ export class MemStorage implements IStorage {
     // Ensure amount is not negative
     const safeAmount = Math.max(0, exactAmount);
     
-    // Always store as a simple number - we're only supporting INR
-    const updatedUser = { ...user, balance: safeAmount };
-    this.users.set(id, updatedUser);
+    // Handle different balance formats - maintain the same structure
+    let updatedBalance: number | Record<string, number>;
     
-    console.log(`User ${id} balance set from ${typeof user.balance === 'number' ? user.balance : (user.balance as any)?.INR || 0} to ${safeAmount}`);
+    if (typeof user.balance === 'number') {
+      // Simple number format
+      console.log(`[Balance Set] User has numeric balance: ${user.balance}`);
+      updatedBalance = safeAmount;
+    } else if (typeof user.balance === 'object' && user.balance !== null) {
+      // Object format - preserve structure but update INR
+      console.log(`[Balance Set] User has object balance: ${JSON.stringify(user.balance)}`);
+      const currentBalance = { ...user.balance as Record<string, number> };
+      currentBalance['INR'] = safeAmount;
+      updatedBalance = currentBalance;
+    } else {
+      // Invalid format - use numeric
+      console.error(`[Balance Set] User ${id} has invalid balance format: ${typeof user.balance}`);
+      updatedBalance = safeAmount;
+    }
+    
+    // Log the change
+    const oldBalanceVal = typeof user.balance === 'number' 
+      ? user.balance 
+      : (typeof user.balance === 'object' && user.balance !== null 
+          ? (user.balance as Record<string, number>)['INR'] || 0 
+          : 0);
+          
+    const newBalanceVal = typeof updatedBalance === 'number' 
+      ? updatedBalance 
+      : updatedBalance['INR'];
+          
+    console.log(`[Balance Set] User ${id} balance changed from ${oldBalanceVal} to ${newBalanceVal} (format: ${typeof updatedBalance})`);
+    
+    // Update user record
+    const updatedUser = { ...user, balance: updatedBalance };
+    this.users.set(id, updatedUser);
     
     return updatedUser;
   }

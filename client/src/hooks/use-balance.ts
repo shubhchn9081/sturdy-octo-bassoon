@@ -122,18 +122,31 @@ export const useBalance = (currency: SupportedCurrency) => {
       }
       
       try {
-        const res = await apiRequest('POST', `/api/bets/${params.betId}/complete`, { 
-          outcome: processedOutcome 
+        // Explicitly use fetch with error handling instead of apiRequest
+        const response = await fetch(`/api/bets/${params.betId}/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ outcome: processedOutcome }),
+          credentials: 'include'
         });
         
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error('Bet completion error:', errorData);
-          throw new Error(errorData.message || 'Error completing bet');
+        // Get response data
+        const responseData = await response.json();
+        
+        // Handle both successful and error responses
+        if (!response.ok) {
+          console.error('Bet completion error:', responseData);
+          throw new Error(responseData.message || 'Error completing bet');
+        }
+        
+        // Check for success: false in the response body
+        if (responseData && responseData.success === false) {
+          console.error('Bet completion reported failure:', responseData);
+          throw new Error(responseData.message || 'Failed to complete bet');
         }
         
         console.log('Bet completed successfully, will refresh balance');
-        return res.json();
+        return responseData;
       } catch (error) {
         console.error('Bet completion API error:', error);
         throw error;

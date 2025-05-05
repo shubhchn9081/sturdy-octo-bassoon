@@ -46,32 +46,40 @@ export const useGameBet = (gameId: number) => {
       currency: 'INR'
     });
     
-    // Validate bet amount - enforce minimum bet of 100 for all games
-    if (betAmount <= 0) {
-      setError('Bet amount must be greater than 0');
+    // Validate bet amount - properly parse it first to ensure it's a valid number
+    const numericBetAmount = parseFloat(betAmount as any);
+    
+    if (isNaN(numericBetAmount) || numericBetAmount <= 0) {
+      const errorMsg = 'Bet amount must be a valid positive number';
+      setError(errorMsg);
       toast({
         title: 'Invalid Bet',
-        description: 'Bet amount must be greater than 0',
+        description: errorMsg,
         variant: 'destructive'
       });
       return false;
     }
     
     // Enforce minimum bet amount of 100
-    if (betAmount < 100) {
-      setError('Bet amount must be at least ₹100');
+    if (numericBetAmount < 100) {
+      const errorMsg = 'Bet amount must be at least ₹100';
+      setError(errorMsg);
       toast({
         title: 'Invalid Bet',
-        description: 'Bet amount must be at least ₹100',
+        description: errorMsg,
         variant: 'destructive'
       });
       return false;
     }
     
+    // Get the current balance - make sure it's a number too
+    const numericBalance = parseFloat(balance as any);
+    
     // Check if player has enough balance
-    if (betAmount > balance) {
-      setError('Insufficient balance to place this bet');
-      console.log(`Insufficient balance: ${betAmount} > ${balance}`);
+    if (isNaN(numericBalance) || numericBetAmount > numericBalance) {
+      const errorMsg = 'Insufficient balance to place this bet';
+      setError(errorMsg);
+      console.log(`Insufficient balance: ${numericBetAmount} > ${numericBalance}`);
       toast({
         title: 'Insufficient Balance',
         description: 'You don\'t have enough funds to place this bet',
@@ -90,12 +98,20 @@ export const useGameBet = (gameId: number) => {
       const gameOptions = gameId === 101 ? { towerHeight: options?.towerHeight || 10 } : options;
       
       // Call the bet API - INR currency is handled on the server side
+      console.log('Making bet API call with amounts:', {
+        numericBetAmount,
+        originalAmount: betAmount,
+        formattedAmount: numericBetAmount.toFixed(2)
+      });
+      
       const betData = await placeBet.mutateAsync({
         gameId,
-        amount: betAmount,
+        amount: numericBetAmount, // Always use the numeric parsed value
         clientSeed,
         options: gameOptions
       });
+      
+      console.log('Bet placed successfully, response:', betData);
       
       // Refresh the player's balance after placing bet
       forceBalanceRefresh();
@@ -108,13 +124,22 @@ export const useGameBet = (gameId: number) => {
       return betData;
       
     } catch (err: any) {
+      console.error('Error placing bet:', err);
       setIsProcessingBet(false);
-      setError(err.message || 'Failed to place bet');
+      
+      // Ensure we have a user-friendly error message
+      const errorMessage = err.message || 'Failed to place bet';
+      setError(errorMessage);
+      
       toast({
         title: 'Bet Failed',
-        description: err.message || 'An error occurred while placing your bet',
+        description: errorMessage,
         variant: 'destructive'
       });
+      
+      // Force a balance refresh to ensure we have accurate balance data
+      forceBalanceRefresh();
+      
       return false;
     }
   };
@@ -124,7 +149,27 @@ export const useGameBet = (gameId: number) => {
     try {
       setIsProcessingBet(true);
       
+      // Validate bet ID
+      if (!betId || typeof betId !== 'number' || betId <= 0) {
+        throw new Error('Invalid bet ID');
+      }
+      
+      // Ensure we have a valid outcome object
+      if (!outcome || typeof outcome !== 'object') {
+        throw new Error('Invalid outcome data');
+      }
+      
       console.log(`Completing bet ID: ${betId}`, outcome);
+      
+      // If outcome contains a multiplier, ensure it's a valid number
+      if (outcome.multiplier !== undefined) {
+        const multiplier = parseFloat(outcome.multiplier as any);
+        if (isNaN(multiplier) || multiplier <= 0) {
+          throw new Error('Invalid multiplier value');
+        }
+        // Normalize the multiplier in the outcome
+        outcome.multiplier = multiplier;
+      }
       
       // Call the complete bet API
       const result = await completeBet.mutateAsync({
@@ -142,10 +187,15 @@ export const useGameBet = (gameId: number) => {
         setIsProcessingBet(false);
       }, 500);
       
+      // Handle win notification
       if (result.win) {
+        // Make sure winAmount is a valid number
+        const winAmount = parseFloat(result.winAmount as any);
+        const formattedWin = !isNaN(winAmount) ? winAmount.toFixed(2) : '0.00';
+        
         toast({
           title: 'You Won!',
-          description: `You won ₹${result.winAmount.toFixed(2)}!`,
+          description: `You won ₹${formattedWin}!`,
           variant: 'default'
         });
       }
@@ -153,13 +203,22 @@ export const useGameBet = (gameId: number) => {
       return result;
       
     } catch (err: any) {
+      console.error('Error completing bet:', err);
       setIsProcessingBet(false);
-      setError(err.message || 'Failed to complete bet');
+      
+      // Ensure we have a user-friendly error message
+      const errorMessage = err.message || 'Failed to complete bet';
+      setError(errorMessage);
+      
       toast({
         title: 'Error',
-        description: err.message || 'An error occurred while processing your bet',
+        description: errorMessage,
         variant: 'destructive'
       });
+      
+      // Force a balance refresh to ensure we have accurate balance data
+      forceBalanceRefresh();
+      
       return false;
     }
   };
