@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Circle, Rocket, CloudLightning, Clock, Flame, ShieldCheck } from 'lucide-react';
 
 // Constants for game display
-const GAME_ID = 150; // New ID for Rocket Launch game
+const GAME_ID = 10; // Rocket Launch game ID from database
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
 const HEIGHT_SCALE = 80; // Scale factor for height display

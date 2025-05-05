@@ -67,6 +67,9 @@ const GameCard = ({
       case 'TOWER CLIMB':
         // Using the new arrival image for Tower Climb
         return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746456001/ChatGPT_Image_May_5_2025_08_09_43_PM_yyk1nr.png';
+      case 'ROCKET LAUNCH':
+        // Using the new rocket launch image
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746485190/ChatGPT_Image_May_6_2025_04_16_08_AM_r932xy.png';
       case 'CRICKET MINES':
         // Using original image as we'll add a banner to hide "STAKE ORIGINALS" text
         return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png';
@@ -325,11 +328,11 @@ const GameCard = ({
             
             {/* Banner to cover "STAKE ORIGINALS" text at bottom */}
             <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
-              name === "TOWER CLIMB" 
+              name === "TOWER CLIMB" || name === "ROCKET LAUNCH"
                 ? "bg-gradient-to-r from-green-700 to-green-500" 
                 : "bg-gradient-to-r from-green-600 to-green-400"
             }`}>
-              {name === "TOWER CLIMB" ? "🔥 New Arrival 🔥" : "High RTP Game"}
+              {name === "TOWER CLIMB" || name === "ROCKET LAUNCH" ? "🔥 New Arrival 🔥" : "High RTP Game"}
             </div>
           </>
         )}
