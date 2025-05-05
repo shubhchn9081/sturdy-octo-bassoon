@@ -48,79 +48,79 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
         <div className="absolute inset-0 bg-gray-800 animate-pulse rounded-lg opacity-50" />
       )}
       
-      {/* Enhanced Realistic Flame Effect */}
+      {/* Enhanced Realistic Flame Effect - Improved for mobile visibility */}
       {flameActive && (
         <div className="absolute" style={{ 
-          bottom: '-25%', /* Reduced gap from -40% to -25% */
+          bottom: '-15%', /* Reduced gap for better visibility */
           left: '42%', 
-          width: '16%', 
-          height: '60%',
+          width: '20%', /* Wider flame */
+          height: '70%', /* Taller flame */
           transform: 'translateX(-50%)',
           zIndex: -1, // Place flames behind the rocket
         }}>
           {/* Main outer flame */}
           <div className="absolute h-full w-full">
             <div className="absolute w-[300%] left-[-100%]">
-              <div className="h-full w-full bg-gradient-to-t from-transparent via-orange-500 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[2px]" 
-                style={{ filter: 'brightness(1.5)' }} />
+              <div className="h-full w-full bg-gradient-to-t from-transparent via-orange-500 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[1px]" 
+                style={{ filter: 'brightness(1.8)' }} /> {/* Increased brightness */}
             </div>
           </div>
           
           {/* Middle flame layer */}
           <div className="absolute h-[90%] w-[80%] left-[10%]">
-            <div className="h-full w-full bg-gradient-to-t from-transparent via-yellow-400 to-white rounded-b-[50%] animate-flame blur-sm" />
+            <div className="h-full w-full bg-gradient-to-t from-transparent via-yellow-400 to-white rounded-b-[50%] animate-flame blur-[1px]" /> {/* Less blur */}
           </div>
           
           {/* Inner bright core */}
           <div className="absolute h-[70%] w-[60%] left-[20%]">
             <div className="h-full w-full bg-gradient-to-t from-transparent via-white to-blue-100 rounded-b-[50%] animate-flame-fast" 
-              style={{ filter: 'brightness(1.3)' }} />
+              style={{ filter: 'brightness(1.5)' }} /> {/* Increased brightness */}
           </div>
           
           {/* Second outer flame */}
           <div className="absolute h-full w-full left-[30%]">
             <div className="absolute w-[300%] left-[-100%]">
-              <div className="h-[90%] w-[70%] bg-gradient-to-t from-transparent via-orange-600 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[3px]" 
-                style={{ filter: 'brightness(1.4)' }} />
+              <div className="h-[90%] w-[70%] bg-gradient-to-t from-transparent via-orange-600 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[2px]" 
+                style={{ filter: 'brightness(1.6)' }} /> {/* Increased brightness */}
             </div>
           </div>
           
           {/* Flame glow effect */}
-          <div className="absolute bottom-[20%] left-[-50%] w-[200%] h-[30%] bg-orange-500 rounded-full opacity-30 blur-xl animate-pulse-slow" />
+          <div className="absolute bottom-[20%] left-[-50%] w-[200%] h-[40%] bg-orange-500 rounded-full opacity-40 blur-xl animate-pulse-slow" /> {/* Increased opacity */}
         </div>
       )}
       
-      {/* Second flame on the right */}
+      {/* Second flame on the right - improved for mobile visibility */}
       {flameActive && (
         <div className="absolute" style={{ 
-          bottom: '-20%', /* Reduced gap from -35% to -20% */
+          bottom: '-12%', /* Reduced gap for better visibility */
           left: '58%', 
-          width: '16%', 
-          height: '55%',
+          width: '18%', /* Wider flame */
+          height: '65%', /* Taller flame */
           transform: 'translateX(-50%)',
           zIndex: -1, // Place flames behind the rocket
         }}>
           {/* Main outer flame */}
           <div className="absolute h-full w-full">
             <div className="absolute w-[300%] left-[-100%]">
-              <div className="h-full w-full bg-gradient-to-t from-transparent via-orange-500 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[2px]" 
-                style={{ filter: 'brightness(1.5)' }} />
+              <div className="h-full w-full bg-gradient-to-t from-transparent via-orange-500 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[1px]" 
+                style={{ filter: 'brightness(1.8)' }} /> {/* Increased brightness */}
             </div>
           </div>
           
           {/* Middle flame layer */}
           <div className="absolute h-[90%] w-[80%] left-[10%]">
-            <div className="h-full w-full bg-gradient-to-t from-transparent via-yellow-400 to-white rounded-b-[50%] animate-flame blur-sm" />
+            <div className="h-full w-full bg-gradient-to-t from-transparent via-yellow-400 to-white rounded-b-[50%] animate-flame blur-[1px]" /> {/* Less blur */}
           </div>
           
           {/* Inner bright core */}
           <div className="absolute h-[70%] w-[60%] left-[20%]">
             <div className="h-full w-full bg-gradient-to-t from-transparent via-white to-blue-100 rounded-b-[50%] animate-flame-fast" 
-              style={{ filter: 'brightness(1.3)' }} />
+              style={{ filter: 'brightness(1.5)' }} /> {/* Increased brightness */}
           </div>
           
           {/* Flame glow effect */}
-          <div className="absolute bottom-[20%] left-[-50%] w-[200%] h-[30%] bg-orange-500 rounded-full opacity-30 blur-xl animate-pulse-slow" />
+          <div className="absolute bottom-[20%] left-[-50%] w-[200%] h-[40%] bg-orange-500 rounded-full opacity-40 blur-xl animate-pulse-slow" /> {/* Increased opacity */}
         </div>
       )}
     </div>
@@ -276,14 +276,14 @@ export const AtmosphereStage: React.FC<{
   height: number
 }> = ({ stage, width, height }) => {
   
-  // Background gradients for different atmosphere layers
+  // Background gradients for different atmosphere layers - brightened for mobile visibility
   const backgrounds = {
-    ground: 'bg-gradient-to-t from-gray-900 via-gray-800 to-blue-900',
-    troposphere: 'bg-gradient-to-t from-blue-900 via-blue-700 to-blue-500',
-    stratosphere: 'bg-gradient-to-t from-blue-500 via-indigo-600 to-indigo-700',
-    mesosphere: 'bg-gradient-to-t from-indigo-700 via-purple-700 to-purple-800',
-    thermosphere: 'bg-gradient-to-t from-purple-800 via-violet-900 to-violet-950',
-    exosphere: 'bg-gradient-to-t from-violet-950 via-slate-900 to-black',
+    ground: 'bg-gradient-to-t from-gray-800 via-gray-700 to-blue-800',
+    troposphere: 'bg-gradient-to-t from-blue-800 via-blue-600 to-blue-400',
+    stratosphere: 'bg-gradient-to-t from-blue-400 via-indigo-500 to-indigo-600',
+    mesosphere: 'bg-gradient-to-t from-indigo-600 via-purple-600 to-purple-700',
+    thermosphere: 'bg-gradient-to-t from-purple-700 via-violet-800 to-violet-900',
+    exosphere: 'bg-gradient-to-t from-violet-900 via-slate-800 to-black',
     space: 'bg-black'
   };
   
@@ -324,11 +324,11 @@ export const AtmosphereStage: React.FC<{
       case 'troposphere':
         return (
           <div className="absolute inset-0">
-            {/* Clouds */}
-            <div className="absolute bottom-[5%] left-[5%] w-[40%] h-[10%] bg-white/20 rounded-full" />
-            <div className="absolute bottom-[15%] right-[10%] w-[50%] h-[12%] bg-white/20 rounded-full" />
-            <div className="absolute bottom-[25%] left-[20%] w-[45%] h-[8%] bg-white/15 rounded-full" />
-            <div className="absolute top-[10%] right-[5%] w-[30%] h-[7%] bg-white/10 rounded-full" />
+            {/* Clouds - increased opacity for better visibility on mobile */}
+            <div className="absolute bottom-[5%] left-[5%] w-[40%] h-[10%] bg-white/40 rounded-full shadow-lg shadow-white/10" />
+            <div className="absolute bottom-[15%] right-[10%] w-[50%] h-[12%] bg-white/40 rounded-full shadow-lg shadow-white/10" />
+            <div className="absolute bottom-[25%] left-[20%] w-[45%] h-[8%] bg-white/35 rounded-full shadow-lg shadow-white/10" />
+            <div className="absolute top-[10%] right-[5%] w-[30%] h-[7%] bg-white/30 rounded-full shadow-lg shadow-white/10" />
           </div>
         );
         
