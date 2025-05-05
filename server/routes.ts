@@ -1055,6 +1055,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Server error' });
     }
   });
+  
+  // Admin endpoint to get bet history for any user
+  app.get('/api/admin/bets', isAdmin, async (req, res) => {
+    try {
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const gameId = req.query.gameId ? parseInt(req.query.gameId as string) : undefined;
+      
+      // If userId is specified, get bets for that user
+      if (userId) {
+        const bets = await storage.getBetHistory(userId, gameId);
+        return res.json(bets);
+      }
+      
+      // If no userId specified, collect all bets
+      // This is a basic implementation and might need pagination for large datasets
+      const users = await storage.getAllUsers();
+      let allBets: any[] = [];
+      
+      // Get bets for each user
+      for (const user of users) {
+        const userBets = await storage.getBetHistory(user.id, gameId);
+        allBets = [...allBets, ...userBets];
+      }
+      
+      // Sort all bets by date (newest first)
+      allBets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      // If looking for a specific user (ID 1039), log their bets for debugging
+      if (userId === 1039) {
+        console.log(`Detailed logs for user ID 1039 bets:`, JSON.stringify(allBets, null, 2));
+      }
+      
+      res.json(allBets);
+    } catch (error) {
+      console.error('Error getting admin bet history:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
 
   app.get('/api/admin/user-game-controls/:userId', isAdmin, async (req, res) => {
     try {

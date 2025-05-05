@@ -440,17 +440,53 @@ export default function AdminPage() {
   
   // Fetch user activity data (bets)
   const { data: userBets, isLoading: userBetsLoading } = useQuery({
-    queryKey: ['/api/admin/user-activity', activityUserId, activityGameId, activityDateRange],
+    queryKey: ['/api/admin/bets', activityUserId, activityGameId, activityDateRange],
     queryFn: async () => {
       // Build the query parameters
       const params = new URLSearchParams();
       if (activityUserId) params.append('userId', activityUserId.toString());
       if (activityGameId) params.append('gameId', activityGameId.toString());
-      if (activityDateRange !== 'all') params.append('dateRange', activityDateRange);
+      
+      // Log what we're fetching for debugging
+      console.log(`Fetching bet history for user ID: ${activityUserId || 'all'}, game ID: ${activityGameId || 'all'}`);
       
       const queryString = params.toString() ? `?${params.toString()}` : '';
-      const response = await apiRequest("GET", `/api/admin/bets${queryString}`);
-      return await response.json();
+      const response = await fetch(`/api/admin/bets${queryString}`);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch bet history:', response.status, response.statusText);
+        throw new Error('Failed to fetch bet history');
+      }
+      
+      const data = await response.json();
+      
+      // Apply date filtering if needed
+      if (activityDateRange !== 'all') {
+        const now = new Date();
+        let cutoffDate = new Date();
+        
+        switch (activityDateRange) {
+          case 'today':
+            cutoffDate.setHours(0, 0, 0, 0); // Start of today
+            break;
+          case 'week':
+            cutoffDate.setDate(now.getDate() - 7); // 7 days ago
+            break;
+          case 'month':
+            cutoffDate.setMonth(now.getMonth() - 1); // 30 days ago
+            break;
+        }
+        
+        // Filter by date
+        return data.filter((bet: Bet) => new Date(bet.createdAt) >= cutoffDate);
+      }
+      
+      // If specifically looking at user 1039, log detailed data for debugging
+      if (activityUserId === 1039) {
+        console.log('Detailed user 1039 bet data:', data);
+      }
+      
+      return data;
     },
     enabled: user?.isAdmin === true && selectedTab === "activity"
   });
