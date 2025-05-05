@@ -9,10 +9,14 @@ import { useWallet } from '@/context/WalletContext';
 import { useGameBet } from '@/hooks/use-game-bet';
 import { useToast } from '@/hooks/use-toast';
 import GameLayout, { GameControls } from '@/components/games/GameLayout';
-import { Shield, Search, ZoomIn, ZapOff } from 'lucide-react';
+import { Shield, Search, ZoomIn, ZapOff, Check, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import gsap from 'gsap';
+
+// Import the images
+const CORRECT_TILE_IMG = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746449584/ChatGPT_Image_May_5_2025_06_22_56_PM_xldogw.png';
+const WRONG_TILE_IMG = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746449805/ChatGPT_Image_May_5_2025_06_26_36_PM_aey2bo.png';
 
 // Define special item types
 enum SpecialItemType {
@@ -752,21 +756,47 @@ const TowerClimb = () => {
                     {isRevealed ? (
                       <>
                         {tileType === TileType.SAFE && 
-                          <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-full h-full flex items-center justify-center bg-green-500/80 rounded-md overflow-hidden">
                             <img 
-                              src="/assets/tower-climb/correct-tile.png" 
+                              src={CORRECT_TILE_IMG}
                               alt="Safe Tile" 
-                              className="w-full h-full object-cover rounded"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.error("Failed to load safe tile image");
+                                e.currentTarget.style.display = 'none';
+                                // Show a check icon instead
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  const icon = document.createElement('div');
+                                  icon.className = 'flex items-center justify-center h-full w-full';
+                                  icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+                                  parent.appendChild(icon);
+                                }
+                              }}
                             />
+                            <Check className="absolute h-8 w-8 text-white opacity-80 drop-shadow-lg" />
                           </div>
                         }
                         {tileType === TileType.TRAP && 
-                          <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-full h-full flex items-center justify-center bg-red-500/80 rounded-md overflow-hidden">
                             <img 
-                              src="/assets/tower-climb/wrong-tile.png" 
+                              src={WRONG_TILE_IMG}
                               alt="Trap Tile" 
-                              className="w-full h-full object-cover rounded"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.error("Failed to load trap tile image");
+                                e.currentTarget.style.display = 'none';
+                                // Show an X icon instead
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  const icon = document.createElement('div');
+                                  icon.className = 'flex items-center justify-center h-full w-full';
+                                  icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                                  parent.appendChild(icon);
+                                }
+                              }}
                             />
+                            <X className="absolute h-8 w-8 text-white opacity-80 drop-shadow-lg" />
                           </div>
                         }
                         {tileType === TileType.SPECIAL_ITEM && 
