@@ -643,111 +643,47 @@ const RocketLaunchRevised: React.FC = () => {
   
   // Render betting controls panel
   const renderBettingPanel = () => (
-    <div className="flex flex-col gap-4 w-full">
-      {/* Betting amount */}
-      <div className="space-y-2">
-        <div className="flex justify-between">
-          <label className="text-sm font-medium text-white">Bet Amount</label>
-          <span className="text-sm text-gray-400">Balance: {formattedBalance}</span>
-        </div>
-        <div className="flex gap-2">
-          <Input
-            type="number"
-            value={betAmount}
-            onChange={(e) => handleBetAmountChange(e.target.value)}
-            className="bg-[#172B3A] text-white"
-            disabled={gameState !== 'waiting' || hasPlacedBet}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setBetAmount(betAmount / 2)}
-            disabled={gameState !== 'waiting' || hasPlacedBet}
-            className="bg-[#172B3A] text-white border-[#2A3F51] hover:bg-[#1F3A4F]"
-          >
-            ½
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setBetAmount(betAmount * 2)}
-            disabled={gameState !== 'waiting' || hasPlacedBet}
-            className="bg-[#172B3A] text-white border-[#2A3F51] hover:bg-[#1F3A4F]"
-          >
-            2×
-          </Button>
-        </div>
-      </div>
-      
-      {/* Auto cashout */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-white">Auto Cashout</label>
-          <Switch
-            checked={isAutoCashoutEnabled}
-            onCheckedChange={setIsAutoCashoutEnabled}
-            disabled={gameState !== 'waiting' || hasPlacedBet}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Input
-            type="number"
-            value={autoCashoutInputValue}
-            onChange={(e) => handleAutoCashoutChange(e.target.value)}
-            className={`bg-[#172B3A] text-white ${!isAutoCashoutEnabled ? 'opacity-50' : ''}`}
-            disabled={!isAutoCashoutEnabled || gameState !== 'waiting' || hasPlacedBet}
-            step="0.01"
-            min="1.01"
-          />
-          <span className="flex items-center text-white">×</span>
-        </div>
-      </div>
-      
-      {/* Action buttons */}
-      <div className="space-y-2">
+    <div className="flex flex-col gap-2 w-full">
+      {/* Action buttons - Always at top for easy thumb access */}
+      <div className="mb-2">
         {gameState === 'waiting' ? (
-          <div className="relative">
-            <Button
-              className="w-full py-6 bg-[#172B3A] border-t-2 border-[#2DD4BF] hover:bg-[#0D1B25] hover:border-[#14B8A6] text-white font-bold"
-              disabled={hasPlacedBet || countdown === null}
-              onClick={handlePlaceBet}
-            >
-              <div className="flex flex-col items-center">
-                <span className="text-lg text-[#2DD4BF] mb-1">Launch Pad</span>
-                <span className="text-sm text-gray-400">
-                  {countdown === null ? 'Preparing for launch...' : `Launch in ${countdown}s`}
-                </span>
-              </div>
-            </Button>
-            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-              <div className="w-5 h-5 bg-[#2DD4BF] rotate-45"></div>
+          <Button
+            className="w-full py-4 bg-[#2DD4BF] hover:bg-[#14B8A6] text-black font-bold text-lg rounded-xl shadow-lg"
+            disabled={hasPlacedBet || countdown === null}
+            onClick={handlePlaceBet}
+          >
+            <div className="flex flex-col items-center">
+              <span className="font-bold">Place Bet</span>
+              <span className="text-xs">
+                {countdown === null ? 'Preparing...' : `Launch in ${countdown}s`}
+              </span>
             </div>
-          </div>
+          </Button>
         ) : gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
           <Button
-            className="w-full py-6 bg-[#EC4899] hover:bg-[#DB2777] text-white font-bold"
+            className="w-full py-4 bg-[#EC4899] hover:bg-[#DB2777] text-white font-bold text-lg rounded-xl shadow-lg"
             onClick={() => handleCashOut(false)}
           >
             <div className="flex flex-col items-center">
-              <span className="text-lg animate-pulse">Cash Out</span>
-              <span className="text-xl font-bold">{formatMultiplier(multiplier)}</span>
+              <span className="animate-pulse">Cash Out</span>
+              <span className="font-bold">{formatMultiplier(multiplier)}</span>
             </div>
           </Button>
         ) : (
           <Button
-            className="w-full py-6 bg-[#172B3A] text-[#94A3B8] font-bold cursor-not-allowed"
+            className="w-full py-4 bg-[#172B3A] text-[#94A3B8] font-bold text-lg rounded-xl shadow-lg cursor-not-allowed"
             disabled={true}
           >
             <div className="flex flex-col items-center">
               {gameState === 'crashed' ? (
                 <>
                   <span className="text-red-500">Crashed</span>
-                  <span className="text-xl font-bold text-red-400">{formatMultiplier(crashPoint || 0)}</span>
+                  <span className="font-bold text-red-400">{formatMultiplier(crashPoint || 0)}</span>
                 </>
               ) : (
                 <>
-                  <span>Place Bet</span>
-                  <span className="text-sm text-gray-500">Waiting for next round</span>
+                  <span>{hasCashedOut ? 'Cashed Out' : 'Place Bet'}</span>
+                  <span className="text-xs">Waiting for next round</span>
                 </>
               )}
             </div>
@@ -755,39 +691,100 @@ const RocketLaunchRevised: React.FC = () => {
         )}
       </div>
       
-      {/* Game info */}
-      <div className="mt-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {WEATHER_CONDITIONS[weatherCondition].icon}
-            <span className="text-sm text-white">{WEATHER_CONDITIONS[weatherCondition].label}</span>
-          </div>
-          <Badge className={`${ATMOSPHERE_STAGES[atmosphereStage].color}`}>
-            {ATMOSPHERE_STAGES[atmosphereStage].label}
-          </Badge>
+      {/* Quick Bet Amounts - Large buttons for thumb use */}
+      <div className="grid grid-cols-4 gap-2">
+        {[50, 100, 200, 500].map(amount => (
+          <button 
+            key={amount}
+            className="py-3 bg-[#172B3A] hover:bg-[#243442] text-white rounded-lg shadow-sm"
+            onClick={() => setBetAmount(amount)}
+            disabled={gameState !== 'waiting' || hasPlacedBet}
+          >
+            {amount}
+          </button>
+        ))}
+      </div>
+      
+      {/* Bet Amount - Large touchable controls */}
+      <div className="mt-2">
+        <div className="flex justify-between mb-1">
+          <label className="text-sm font-medium text-white">Bet Amount</label>
+          <span className="text-sm text-gray-400">Balance: {formattedBalance}</span>
         </div>
-        
-        <div className="text-xs text-gray-400">
-          {WEATHER_CONDITIONS[weatherCondition].description}
-        </div>
-        
-        <div className="text-xs text-gray-400">
-          {ATMOSPHERE_STAGES[atmosphereStage].description}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setBetAmount(Math.max(10, betAmount / 2))}
+            disabled={gameState !== 'waiting' || hasPlacedBet}
+            className="h-10 w-12 flex items-center justify-center text-white bg-[#172B3A] rounded-lg text-xl shadow-sm"
+          >
+            -
+          </button>
+          <Input
+            type="number"
+            value={betAmount}
+            onChange={(e) => handleBetAmountChange(e.target.value)}
+            className="flex-1 bg-[#172B3A] text-white text-center h-10 text-lg"
+            placeholder="0.00"
+            disabled={gameState !== 'waiting' || hasPlacedBet}
+          />
+          <button 
+            onClick={() => setBetAmount(betAmount * 2)}
+            disabled={gameState !== 'waiting' || hasPlacedBet}
+            className="h-10 w-12 flex items-center justify-center text-white bg-[#172B3A] rounded-lg text-xl shadow-sm"
+          >
+            +
+          </button>
         </div>
       </div>
       
-      {/* Game history */}
-      <div className="mt-4">
-        <h3 className="text-sm font-medium text-white mb-2">Recent Crashes</h3>
-        <div className="flex flex-wrap gap-1">
+      {/* Auto Cashout - Large toggle and input */}
+      <div className="mt-2">
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-sm font-medium text-white">Auto Cashout</label>
+          <Switch
+            checked={isAutoCashoutEnabled}
+            onCheckedChange={setIsAutoCashoutEnabled}
+            disabled={gameState !== 'waiting' || hasPlacedBet}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            value={autoCashoutInputValue}
+            onChange={(e) => handleAutoCashoutChange(e.target.value)}
+            className={`flex-1 bg-[#172B3A] text-white text-center h-10 text-lg ${!isAutoCashoutEnabled ? 'opacity-50' : ''}`}
+            disabled={!isAutoCashoutEnabled || gameState !== 'waiting' || hasPlacedBet}
+            step="0.01"
+            min="1.01"
+          />
+          <span className="text-white text-xl">×</span>
+        </div>
+      </div>
+      
+      {/* Game Info - Condensed for Mobile */}
+      <div className="flex justify-between items-center mt-2 bg-[#172B3A] p-2 rounded-lg shadow-sm">
+        <div className="flex items-center gap-2">
+          {WEATHER_CONDITIONS[weatherCondition].icon}
+          <span className="text-sm text-white">{WEATHER_CONDITIONS[weatherCondition].label}</span>
+        </div>
+        <Badge className={`${ATMOSPHERE_STAGES[atmosphereStage].color}`}>
+          {ATMOSPHERE_STAGES[atmosphereStage].label}
+        </Badge>
+      </div>
+      
+      {/* Recent Crashes - Horizontal scrollable row for mobile */}
+      <div className="mt-2">
+        <h3 className="text-sm font-medium text-white mb-1">Recent Crashes</h3>
+        <div className="flex gap-1 overflow-x-auto pb-1">
           {gameHistory.slice(0, 10).map((item, index) => (
             <Badge
               key={index}
               variant="outline"
               className={`
-                ${item.value < 2 ? 'bg-red-500/20 text-red-300' : 
-                  item.value < 10 ? 'bg-yellow-500/20 text-yellow-300' : 
-                    'bg-green-500/20 text-green-300'}
+                text-xs px-2 py-1 font-semibold whitespace-nowrap
+                ${item.value < 2 ? 'bg-red-500/20 text-red-300 border-red-500/50' : 
+                  item.value < 10 ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' : 
+                    'bg-green-500/20 text-green-300 border-green-500/50'}
               `}
             >
               {item.value.toFixed(2)}×
@@ -798,7 +795,7 @@ const RocketLaunchRevised: React.FC = () => {
     </div>
   );
   
-  // Render game display panel
+  // Render game display panel optimized for mobile
   const renderGamePanel = () => (
     <div className="relative w-full h-full flex flex-col" ref={gameContainerRef}>
       {/* Dynamic background based on atmosphere stage */}
@@ -819,22 +816,22 @@ const RocketLaunchRevised: React.FC = () => {
         />
       )}
       
-      {/* Game status display - Moved to the left side */}
-      <div className="absolute top-2 md:top-4 left-4 z-30">
-        <div className="bg-[#0A1725]/90 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg px-4 md:px-6 py-2 md:py-3 text-center">
+      {/* Game status display - Moved to the top-left for better mobile visibility */}
+      <div className="absolute top-2 left-2 z-30">
+        <div className="bg-[#0A1725]/90 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg px-3 py-2 text-center">
           {gameState === 'waiting' && (
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-blue-400 animate-pulse" />
-              <span className="text-base md:text-xl font-bold text-white">
-                {countdown === null ? 'Waiting to start...' : `Launch in ${countdown}s`}
+              <Clock className="h-4 w-4 text-blue-400 animate-pulse" />
+              <span className="text-sm font-bold text-white">
+                {countdown === null ? 'Waiting...' : `Launch: ${countdown}s`}
               </span>
             </div>
           )}
           
           {gameState === 'running' && (
             <div className="flex items-center gap-2">
-              <Rocket className="h-5 w-5 text-[#2DD4BF] animate-pulse" />
-              <span className="text-xl md:text-2xl font-bold text-[#2DD4BF]">
+              <Rocket className="h-4 w-4 text-[#2DD4BF] animate-pulse" />
+              <span className="text-base font-bold text-[#2DD4BF]">
                 {formatMultiplier(multiplier)}
               </span>
             </div>
@@ -842,8 +839,8 @@ const RocketLaunchRevised: React.FC = () => {
           
           {gameState === 'crashed' && (
             <div className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-red-500" />
-              <span className="text-lg md:text-2xl font-bold text-red-500">
+              <Flame className="h-4 w-4 text-red-500" />
+              <span className="text-base font-bold text-red-500">
                 Crashed @ {formatMultiplier(crashPoint || 0)}
               </span>
             </div>
@@ -852,7 +849,7 @@ const RocketLaunchRevised: React.FC = () => {
       </div>
       
       {/* Main game visualization - rocket and trajectory */}
-      <div className="flex-1 relative flex items-center justify-center" ref={gameContainerRef}>
+      <div className="flex-1 relative flex items-center justify-center">
         {/* Atmosphere background - improved visibility for mobile */}
         <div className="absolute inset-0 overflow-hidden bg-gradient-to-t from-indigo-950 to-blue-800">
           {/* Scrolling background that creates illusion of movement */}
@@ -862,54 +859,54 @@ const RocketLaunchRevised: React.FC = () => {
             atmosphereStage={atmosphereStage} 
           />
           
-          {/* Trajectory graph for debug/analysis */}
+          {/* Trajectory graph hidden on mobile for better performance */}
           <canvas
             ref={canvasRef}
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
-            className="absolute top-0 left-0 opacity-20 pointer-events-none"
+            className="absolute top-0 left-0 opacity-10 md:opacity-20 pointer-events-none hidden md:block"
           />
         </div>
         
-        {/* Rocket visualization - fixed position with proper sizing */}
+        {/* Rocket visualization - larger and more central for mobile */}
         <div 
           className="absolute z-20" 
           style={{
-            left: `50%`, // Center horizontally  
-            bottom: '40%', // Moved higher up for better visibility on mobile
+            left: `50%`, 
+            bottom: '35%', // Higher position for mobile
             transform: 'translateX(-50%)',
-            maxHeight: '65%', // Increased height limit
+            maxHeight: '70%', // Larger for better visibility
           }}
         >
           {gameState === 'crashed' ? (
-            <RocketExplosion size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 5) : 110} />
+            <RocketExplosion size={gameContainerSize.width ? Math.min(150, gameContainerSize.width / 4) : 120} />
           ) : (
             <RocketShip 
-              size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 5) : 110} 
+              size={gameContainerSize.width ? Math.min(150, gameContainerSize.width / 4) : 120} 
               flameActive={gameState === 'running'} 
             />
           )}
         </div>
         
-        {/* Fuel gauge - responsive size for mobile with improved visibility */}
-        <div className="absolute bottom-4 left-4 bg-[#0A1725]/70 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg p-2 z-20">
+        {/* Simplified UI for mobile - Fuel gauge more compact */}
+        <div className="absolute bottom-2 left-2 bg-[#0A1725]/70 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg p-1 z-20">
           <FuelGauge 
             level={fuelLevel} 
-            size={gameContainerSize.width ? Math.min(150, gameContainerSize.width / 4.5) : 120} 
+            size={gameContainerSize.width ? Math.min(120, gameContainerSize.width / 5) : 100} 
           />
         </div>
       </div>
       
-      {/* Game history display - optimized for mobile with better visibility */}
-      <div className="absolute bottom-4 right-4 bg-[#0A1725]/90 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg p-2 md:p-3 z-20">
-        <h3 className="text-xs md:text-sm font-medium text-white mb-1 md:mb-2">Recent Crashes</h3>
-        <div className="flex flex-wrap gap-1 max-w-[160px] md:max-w-[180px]">
-          {gameHistory.slice(0, gameContainerSize.width && gameContainerSize.width < 500 ? 6 : 8).map((item, index) => (
+      {/* Game history display - more compact for mobile */}
+      <div className="absolute bottom-2 right-2 bg-[#0A1725]/90 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg p-1 z-20">
+        <h3 className="text-xs font-medium text-white mb-1">Recent</h3>
+        <div className="flex flex-wrap gap-1 max-w-[100px] md:max-w-[180px]">
+          {gameHistory.slice(0, 5).map((item, index) => (
             <Badge
               key={index}
               variant="outline"
               className={`
-                text-xs md:text-sm px-1.5 py-0.5 font-semibold
+                text-xs px-1 py-0.5 font-semibold
                 ${item.value < 2 ? 'bg-red-500/40 text-red-200 border-red-500/50' : 
                   item.value < 10 ? 'bg-yellow-500/40 text-yellow-200 border-yellow-500/50' : 
                     'bg-green-500/40 text-green-200 border-green-500/50'}
@@ -929,6 +926,8 @@ const RocketLaunchRevised: React.FC = () => {
       title="ROCKET LAUNCH"
       controlsPanel={renderBettingPanel()}
       gamePanel={renderGamePanel()}
+      isMobileFriendly={true}
+      mobileFirst={true}
     />
   );
 };

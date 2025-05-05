@@ -209,13 +209,13 @@ const GameLayout = ({
             <h2 className="text-lg font-bold">{title}</h2>
           </div>
           
-          {/* Game Panel - takes up most of the space but not all */}
-          <div className="w-full flex-1 overflow-y-auto">
+          {/* Game Panel - takes exactly 60% of the screen height */}
+          <div className="w-full h-[60vh] relative">
             {gamePanel}
           </div>
 
-          {/* Controls Panel - fixed at bottom, optimized for one-thumb usage */}
-          <div className="w-full bg-[#172B3A] p-2 pb-4 border-t border-gray-700 shadow-lg">
+          {/* Controls Panel - takes the bottom 40% of screen height, no scroll needed */}
+          <div className="w-full h-[40vh] bg-[#172B3A] p-2 overflow-y-auto border-t border-gray-700 shadow-lg">
             {controlsPanel}
           </div>
         </div>
