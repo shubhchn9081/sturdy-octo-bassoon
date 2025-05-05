@@ -84,7 +84,7 @@ const GalacticSpins = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          gameId: 16, // Galactic Spins game ID
+          gameId: 200, // Galactic Spins game ID from index.ts
           amount: totalBet,
           clientSeed,
           lines
