@@ -162,6 +162,18 @@ export type CupAndBallOutcome = {
   shuffleMoves: number[]; // Array of shuffle move indices for animation replay
 };
 
+export type TowerClimbOutcome = {
+  towerLayout: {
+    safe: number[]; // Array of safe positions at each level
+    traps: number[]; // Array of trap positions at each level
+    items: {position: number, type: string}[]; // Array of special item positions and types
+  };
+  levelReached: number; // The highest level reached
+  positionsChosen: number[]; // Positions chosen by the player
+  specialItemsCollected: {type: string, level: number}[]; // Special items collected
+  win: boolean;
+};
+
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -248,6 +260,14 @@ export type SlotsGameSettings = {
 export type CupAndBallGameSettings = {
   forcedBallPosition: number; // Force the ball to be under a specific cup (0, 1, or 2)
   forceLose: boolean; // Force the player to lose regardless of their selection
+};
+
+export type TowerClimbGameSettings = {
+  forcedTrapPositions: number[][]; // Force specific trap positions at each level
+  forcedSafePositions: number[][]; // Force specific safe positions at each level
+  forcedItemPositions: {level: number, position: number, type: string}[]; // Force specific item positions
+  forceLose: boolean; // Force player to lose on next move
+  maxSafeLevel: number; // Maximum level the player can safely reach
 };
 
 // User specific game outcome control table

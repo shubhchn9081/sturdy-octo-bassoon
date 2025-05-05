@@ -15,6 +15,7 @@ import gameControlRoutes from "./routes/gameControl";
 import apayRoutes from "./routes/apay";
 import slotsRoutes from "./routes/slots";
 import cupAndBallRoutes from "./routes/cup-and-ball";
+import towerClimbRoutes from "./routes/tower-climb";
 
 // Function to generate username from full name
 function generateUsernameFromFullName(fullName: string): string {
@@ -79,6 +80,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup cup and ball game routes
   app.use('/api/cup-and-ball', cupAndBallRoutes);
+  
+  // Setup tower climb game routes
+  app.use('/api', towerClimbRoutes);
   
   // prefix all routes with /api
 
