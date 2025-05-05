@@ -20,9 +20,9 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
     }
   }, []);
 
-  // Calculate aspect ratio for the rocket to make it larger and more prominent
-  const aspect = 2.5; // Increased aspect ratio for taller rocket
-  const rocketWidth = size * 1.2; // Increased width by 20%
+  // Adjust rocket size to fit within game canvas
+  const aspect = 1.8; // More reasonable aspect ratio
+  const rocketWidth = size * 0.8; // Keep width proportional to container
   const rocketHeight = size * aspect;
 
   return (

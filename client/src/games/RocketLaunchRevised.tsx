@@ -871,19 +871,20 @@ const RocketLaunchRevised: React.FC = () => {
           />
         </div>
         
-        {/* Rocket visualization - fixed position */}
+        {/* Rocket visualization - fixed position with proper sizing */}
         <div 
           className="absolute z-20" 
           style={{
-            left: `${rocketPosition.x}%`,
-            bottom: '33%', // Fixed position for rocket - more centered
+            left: `50%`, // Center horizontally
+            bottom: '33%', // Fixed position for rocket
             transform: 'translateX(-50%)',
+            maxHeight: '55%', // Prevent overflow
           }}
         >
           {gameState === 'crashed' ? (
-            <RocketExplosion size={100} />
+            <RocketExplosion size={90} />
           ) : (
-            <RocketShip size={120} flameActive={gameState === 'running'} />
+            <RocketShip size={90} flameActive={gameState === 'running'} />
           )}
         </div>
         
