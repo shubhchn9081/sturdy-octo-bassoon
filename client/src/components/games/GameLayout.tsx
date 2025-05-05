@@ -127,14 +127,19 @@ const GameLayout = ({
     return (
       <div className="bg-[#0F212E] min-h-screen text-white">
         {/* Mobile Layout */}
-        <div className="md:hidden flex flex-col">
-          {/* Game Panel always displayed first on mobile */}
-          <div className="w-full">
+        <div className="md:hidden flex flex-col h-[100vh] max-h-[100vh] overflow-hidden">
+          {/* Mobile Header with Title */}
+          <div className="bg-[#172B3A] p-2 text-center">
+            <h2 className="text-lg font-bold">{title}</h2>
+          </div>
+          
+          {/* Game Panel - takes up most of the space but not all */}
+          <div className="w-full flex-1 overflow-y-auto">
             {gamePanel}
           </div>
 
-          {/* Controls Panel */}
-          <div className="w-full bg-[#172B3A]">
+          {/* Controls Panel - fixed at bottom */}
+          <div className="w-full bg-[#172B3A] p-3 border-t border-gray-700 shadow-lg">
             {controlsPanel}
           </div>
         </div>

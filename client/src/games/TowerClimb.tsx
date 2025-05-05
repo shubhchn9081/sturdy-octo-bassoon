@@ -559,18 +559,18 @@ const TowerClimb = () => {
   
   // Game panel that displays the tower
   const gamePanel = (
-    <div className="relative h-full flex flex-col justify-between p-4">
-      <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold">Tower Climb</h2>
-        <p className="text-muted-foreground">Climb the tower and increase your multiplier, but beware of traps!</p>
+    <div className="relative h-full flex flex-col justify-between p-2 md:p-4">
+      <div className="text-center mb-2 md:mb-4">
+        <h2 className="text-xl md:text-2xl font-bold">Tower Climb</h2>
+        <p className="text-xs md:text-sm text-muted-foreground">Climb the tower and increase your multiplier, but beware of traps!</p>
       </div>
       
       {gameState.isGameActive && (
-        <div className="flex justify-center space-x-4 mb-4">
-          <div className="flex items-center space-x-2">
-            <Shield className="h-4 w-4 text-blue-500" />
-            <span className="text-sm">Shields:</span>
-            <Badge variant="outline" className="bg-blue-500/20 text-blue-500">
+        <div className="flex flex-wrap justify-center gap-2 mb-2 md:mb-4">
+          <div className="flex items-center space-x-1 md:space-x-2 bg-blue-500/10 p-1 rounded">
+            <Shield className="h-3 w-3 md:h-4 md:w-4 text-blue-500" />
+            <span className="text-xs md:text-sm">Shields:</span>
+            <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-500">
               {gameState.inventory[SpecialItemType.SHIELD]}
             </Badge>
             <Button
@@ -578,16 +578,16 @@ const TowerClimb = () => {
               size="sm"
               disabled={gameState.inventory[SpecialItemType.SHIELD] <= 0}
               onClick={() => useSpecialItem(SpecialItemType.SHIELD)}
-              className="border-blue-500/50 text-blue-500 hover:bg-blue-500/20"
+              className="text-xs border-blue-500/50 text-blue-500 h-6 md:h-8 px-2"
             >
               Use
             </Button>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-green-500" />
-            <span className="text-sm">Scanners:</span>
-            <Badge variant="outline" className="bg-green-500/20 text-green-500">
+          <div className="flex items-center space-x-1 md:space-x-2 bg-green-500/10 p-1 rounded">
+            <Search className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
+            <span className="text-xs md:text-sm">Scanners:</span>
+            <Badge variant="outline" className="text-xs bg-green-500/20 text-green-500">
               {gameState.inventory[SpecialItemType.SCANNER]}
             </Badge>
             <Button
@@ -595,16 +595,16 @@ const TowerClimb = () => {
               size="sm"
               disabled={gameState.inventory[SpecialItemType.SCANNER] <= 0}
               onClick={() => useSpecialItem(SpecialItemType.SCANNER)}
-              className="border-green-500/50 text-green-500 hover:bg-green-500/20"
+              className="text-xs border-green-500/50 text-green-500 h-6 md:h-8 px-2"
             >
               Use
             </Button>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <ZoomIn className="h-4 w-4 text-purple-500" />
-            <span className="text-sm">Doubles:</span>
-            <Badge variant="outline" className="bg-purple-500/20 text-purple-500">
+          <div className="flex items-center space-x-1 md:space-x-2 bg-purple-500/10 p-1 rounded">
+            <ZoomIn className="h-3 w-3 md:h-4 md:w-4 text-purple-500" />
+            <span className="text-xs md:text-sm">Doubles:</span>
+            <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-500">
               {gameState.inventory[SpecialItemType.DOUBLE]}
             </Badge>
             <Button
@@ -612,7 +612,7 @@ const TowerClimb = () => {
               size="sm"
               disabled={gameState.inventory[SpecialItemType.DOUBLE] <= 0}
               onClick={() => useSpecialItem(SpecialItemType.DOUBLE)}
-              className="border-purple-500/50 text-purple-500 hover:bg-purple-500/20"
+              className="text-xs border-purple-500/50 text-purple-500 h-6 md:h-8 px-2"
             >
               Use
             </Button>
@@ -640,7 +640,7 @@ const TowerClimb = () => {
                 const isSelected = gameState.selectedTilePosition === tileIndex && levelIndex === gameState.currentLevel;
                 
                 let tileClass = cn(
-                  "w-16 h-16 flex items-center justify-center rounded cursor-pointer border transition-all duration-200",
+                  "w-10 h-10 md:w-16 md:h-16 flex items-center justify-center rounded cursor-pointer border transition-all duration-200",
                   isSelected ? "border-2 border-yellow-500" : "border-gray-600",
                   !isRevealed && levelIndex === gameState.currentLevel + 1 ? "hover:bg-gray-600" : "",
                 );
@@ -710,6 +710,8 @@ const TowerClimb = () => {
       title="Tower Climb"
       controlsPanel={gameControlsPanel}
       gamePanel={gamePanel}
+      isMobileFriendly={true}
+      mobileFirst={true}
     />
   );
 };
