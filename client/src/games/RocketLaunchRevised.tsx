@@ -94,8 +94,8 @@ const RocketLaunchRevised: React.FC = () => {
   // Game history
   const [gameHistory, setGameHistory] = useState<{ value: number; timestamp: number }[]>([]);
   
-  // Active bets (player + AI)
-  const [activeBets, setActiveBets] = useState<{
+  // Define the type for an individual bet
+  type Bet = {
     id: number;
     username: string;
     amount: number;
@@ -103,7 +103,10 @@ const RocketLaunchRevised: React.FC = () => {
     status: 'active' | 'won' | 'lost';
     cashoutMultiplier?: number;
     isHidden?: boolean;
-  }[]>([]);
+  };
+  
+  // Active bets (player + AI)
+  const [activeBets, setActiveBets] = useState<Bet[]>([]);
   
   // Intervals for game loop and countdown
   const gameIntervalRef = useRef<number | null>(null);
@@ -565,19 +568,20 @@ const RocketLaunchRevised: React.FC = () => {
     };
     
     // Mark player as having placed a bet - but only visually until API confirms
-    const temporaryBetId = Date.now(); // Create a temporary ID for frontend tracking
+    // Create a temporary numeric ID for frontend tracking
+    const temporaryBetId = Math.floor(Date.now()); // Convert to integer for compatibility with Bet type
+    
+    // Create a new player bet object that matches our Bet type
+    const playerBet: Bet = {
+      id: temporaryBetId,
+      username: 'You',
+      amount: betAmount,
+      isPlayer: true,
+      status: 'active'
+    };
     
     // Add player bet to active bets
-    setActiveBets(prevBets => [
-      ...prevBets,
-      {
-        id: temporaryBetId,
-        username: 'You',
-        amount: betAmount,
-        isPlayer: true,
-        status: 'active'
-      }
-    ]);
+    setActiveBets(prevBets => [...prevBets, playerBet]);
     
     // Send the bet to the backend - wrapped in try/catch with explicit Promise handling
     let betSuccess = false;
