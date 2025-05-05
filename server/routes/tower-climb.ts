@@ -24,8 +24,16 @@ router.post('/tower-climb/bet', async (req: Request, res: Response) => {
     const userId = req.user.id;
     const gameId = 101; // Tower Climb game ID - make sure this matches the frontend and DB
     
-    // Validate the options
-    const validatedOptions = towerClimbOptionsSchema.parse(options || {});
+    // Parse the tower height from options, which might be nested
+    const towerHeightFromOptions = 
+      (options?.towerHeight) || // Direct towerHeight option
+      10; // Default to 10 if not provided
+    
+    // Validate the options with extracted values
+    const validatedOptions = towerClimbOptionsSchema.parse({
+      towerHeight: towerHeightFromOptions,
+      towerWidth: 3 // Default width
+    });
     
     // Get user balance
     const user = await storage.getUser(userId);

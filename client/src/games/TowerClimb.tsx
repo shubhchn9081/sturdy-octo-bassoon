@@ -153,11 +153,7 @@ const TowerClimb = () => {
     try {
       // Place bet using the game bet hook
       const response = await placeGameBet({
-        amount: gameState.betAmount,
-        options: { 
-          towerHeight: gameState.towerHeight,
-        },
-        autoCashout: null
+        towerHeight: gameState.towerHeight
       });
       
       if (!response || !response.betId) {

@@ -75,15 +75,15 @@ export const useGameBet = (gameId: number) => {
       // Generate a client seed for provably fair gameplay
       const clientSeed = Math.random().toString(36).substring(2, 15);
       
+      // Special handling for Tower Climb game
+      const gameOptions = gameId === 101 ? { towerHeight: options?.towerHeight || 10 } : options;
+      
       // Call the bet API - INR currency is handled on the server side
       const betData = await placeBet.mutateAsync({
         gameId,
         amount: betAmount,
         clientSeed,
-        options: {
-          ...options,
-          autoCashout: autoCashoutValue
-        }
+        options: gameOptions
       });
       
       // Refresh the player's balance after placing bet
