@@ -424,7 +424,18 @@ export const ScrollingBackground: React.FC<{
   atmosphereStage: 'ground' | 'troposphere' | 'stratosphere' | 'mesosphere' | 'thermosphere' | 'exosphere' | 'space';
 }> = ({ gameState, multiplier, atmosphereStage }) => {
   const [scrollPosition, setScrollPosition] = useState(0);
-  const [backgroundElements, setBackgroundElements] = useState<{ id: number; y: number; type: string; size: number }[]>([]);
+  const [backgroundElements, setBackgroundElements] = useState<{ 
+    id: number; 
+    y: number; 
+    x: number;
+    type: string; 
+    size: number;
+    shape?: string;
+    color?: string;
+    rotation?: number;
+    opacity?: number;
+    speed?: number;
+  }[]>([]);
   const animationRef = useRef<number | null>(null);
   
   // Generate background elements like clouds, stars etc. that will scroll by
@@ -432,25 +443,153 @@ export const ScrollingBackground: React.FC<{
     // Generate different elements based on atmosphere stage
     const generateElements = () => {
       const elements = [];
-      const totalElements = atmosphereStage === 'ground' ? 10 : 
-                           atmosphereStage === 'troposphere' ? 15 :
-                           atmosphereStage === 'stratosphere' ? 20 : 25;
+      // Significantly increased number of background elements
+      const totalElements = atmosphereStage === 'ground' ? 40 : 
+                           atmosphereStage === 'troposphere' ? 60 :
+                           atmosphereStage === 'stratosphere' ? 80 : 100;
+      
+      // Height range for elements distribution
+      const heightRange = 3000; // Increased to have more elements offscreen ready to scroll in
       
       for (let i = 0; i < totalElements; i++) {
-        let type;
-        if (atmosphereStage === 'ground' || atmosphereStage === 'troposphere') {
-          type = Math.random() > 0.7 ? 'cloud' : 'bird';
+        // Element type depends on atmosphere stage
+        let type, shape, color, size, opacity, rotation, speed;
+        const randomValue = Math.random();
+        
+        // Different element types for different atmosphere stages
+        if (atmosphereStage === 'ground') {
+          if (randomValue < 0.3) {
+            type = 'cloud';
+            shape = 'rounded';
+            color = 'white';
+            size = 20 + Math.random() * 60;
+            opacity = 0.2 + Math.random() * 0.1;
+          } else if (randomValue < 0.5) {
+            type = 'bird';
+            shape = 'vee';
+            color = 'gray';
+            size = 5 + Math.random() * 8;
+            opacity = 0.5 + Math.random() * 0.3;
+            rotation = Math.random() * 45 - 22.5;
+          } else if (randomValue < 0.7) {
+            type = 'building';
+            shape = 'rect';
+            color = 'gray';
+            size = 15 + Math.random() * 25;
+            opacity = 0.4 + Math.random() * 0.3;
+          } else {
+            type = 'tree';
+            shape = 'triangle';
+            color = 'green';
+            size = 10 + Math.random() * 15;
+            opacity = 0.4 + Math.random() * 0.3;
+          }
+          speed = 1.0;
+        } else if (atmosphereStage === 'troposphere') {
+          if (randomValue < 0.4) {
+            type = 'cloud';
+            shape = 'rounded';
+            color = 'white';
+            size = 30 + Math.random() * 70;
+            opacity = 0.15 + Math.random() * 0.1;
+          } else if (randomValue < 0.6) {
+            type = 'bird';
+            shape = 'vee';
+            color = 'white';
+            size = 3 + Math.random() * 5;
+            opacity = 0.4 + Math.random() * 0.2;
+            rotation = Math.random() * 45 - 22.5;
+          } else if (randomValue < 0.9) {
+            type = 'mist';
+            shape = 'blob';
+            color = 'white';
+            size = 50 + Math.random() * 100;
+            opacity = 0.05 + Math.random() * 0.05;
+          } else {
+            type = 'weather';
+            shape = 'lightning';
+            color = 'yellow';
+            size = 5 + Math.random() * 10;
+            opacity = 0.3 + Math.random() * 0.2;
+          }
+          speed = 1.2;
         } else if (atmosphereStage === 'stratosphere' || atmosphereStage === 'mesosphere') {
-          type = Math.random() > 0.6 ? 'star' : 'satellite';
+          if (randomValue < 0.5) {
+            type = 'star';
+            shape = 'circle';
+            color = 'white';
+            size = 1 + Math.random() * 3;
+            opacity = 0.4 + Math.random() * 0.6;
+          } else if (randomValue < 0.65) {
+            type = 'satellite';
+            shape = 'rect';
+            color = 'silver';
+            size = 4 + Math.random() * 8;
+            opacity = 0.6 + Math.random() * 0.4;
+            rotation = Math.random() * 360;
+          } else if (randomValue < 0.85) {
+            type = 'auroras';
+            shape = 'wave';
+            // Different aurora colors
+            const auroraColors = ['#40e0d0', '#9370db', '#7cfc00', '#ff69b4'];
+            color = auroraColors[Math.floor(Math.random() * auroraColors.length)];
+            size = 80 + Math.random() * 160;
+            opacity = 0.1 + Math.random() * 0.15;
+          } else {
+            type = 'meteor';
+            shape = 'line';
+            color = '#ff6347';
+            size = 8 + Math.random() * 15;
+            opacity = 0.7 + Math.random() * 0.3;
+            rotation = Math.random() * 45 - 22.5;
+          }
+          speed = 1.5;
         } else {
-          type = Math.random() > 0.3 ? 'star' : 'debris';
+          // Space elements
+          if (randomValue < 0.6) {
+            type = 'star';
+            shape = 'circle';
+            color = 'white';
+            size = 1 + Math.random() * 4;
+            opacity = 0.7 + Math.random() * 0.3;
+          } else if (randomValue < 0.75) {
+            type = 'debris';
+            shape = 'poly';
+            color = 'gray';
+            size = 2 + Math.random() * 5;
+            opacity = 0.5 + Math.random() * 0.3;
+            rotation = Math.random() * 360;
+          } else if (randomValue < 0.9) {
+            type = 'nebula';
+            shape = 'blob';
+            // Different nebula colors
+            const nebulaColors = ['#663399', '#4169e1', '#ff1493', '#00ced1'];
+            color = nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
+            size = 120 + Math.random() * 200;
+            opacity = 0.07 + Math.random() * 0.08;
+          } else {
+            type = 'planet';
+            shape = 'circle';
+            // Different planet colors
+            const planetColors = ['#b0c4de', '#ffa07a', '#20b2aa', '#f08080'];
+            color = planetColors[Math.floor(Math.random() * planetColors.length)];
+            size = 15 + Math.random() * 25;
+            opacity = 0.3 + Math.random() * 0.3;
+          }
+          speed = 1.8;
         }
         
         elements.push({
           id: i,
-          y: Math.random() * 2000, // Position them down below the screen to scroll up
+          y: Math.random() * heightRange,  // Distribute elements over a larger height range
+          x: Math.random() * 100,           // Random horizontal position
           type,
-          size: type === 'cloud' ? 20 + Math.random() * 60 : 2 + Math.random() * 5
+          shape: shape || 'circle',
+          color: color || 'white',
+          size: size || (2 + Math.random() * 5),
+          opacity: opacity || 0.5,
+          rotation: rotation || 0,
+          speed: speed || 1.0
         });
       }
       
@@ -471,13 +610,13 @@ export const ScrollingBackground: React.FC<{
     }
     
     // Calculate scroll speed based on multiplier - the higher the multiplier, the faster we scroll
-    const scrollSpeed = atmosphereStage === 'ground' ? 0.5 : // Slow start
-                       multiplier < 2 ? multiplier * 0.5 : 
-                       multiplier < 5 ? multiplier * 1 :
-                       multiplier * 1.5; // Speed increases with multiplier
+    const baseScrollSpeed = atmosphereStage === 'ground' ? 0.8 : // Faster start
+                       multiplier < 2 ? multiplier * 0.8 : 
+                       multiplier < 5 ? multiplier * 1.2 :
+                       multiplier * 1.8; // Higher speed increases with multiplier
     
     const animate = () => {
-      setScrollPosition(prev => prev + scrollSpeed);
+      setScrollPosition(prev => prev + baseScrollSpeed);
       animationRef.current = window.requestAnimationFrame(animate);
     };
     
@@ -494,67 +633,209 @@ export const ScrollingBackground: React.FC<{
   // Render background elements that will scroll by the rocket
   const renderElements = () => {
     return backgroundElements.map(element => {
-      // Calculate position with scroll offset
-      const posY = (element.y - scrollPosition) % 1200;
+      // Calculate position with scroll offset, applying element's individual speed modifier
+      const speedMultiplier = element.speed || 1.0;
+      const posY = (element.y - (scrollPosition * speedMultiplier)) % 1500;
       
-      // Only render elements within the viewport 
-      if (posY < -100 || posY > 800) return null;
+      // Only render elements within the viewport with some margin
+      if (posY < -150 || posY > 850) return null;
       
-      // Different elements based on type
-      switch (element.type) {
-        case 'cloud':
+      // Base styles
+      const styles: React.CSSProperties = {
+        top: `${posY}px`,
+        left: `${element.x}%`,
+        opacity: element.opacity || 0.5,
+      };
+      
+      // Different elements based on type and shape
+      switch (element.shape) {
+        case 'circle':
           return (
             <div 
               key={element.id}
-              className="absolute rounded-full bg-white opacity-20"
+              className="absolute rounded-full"
               style={{
-                top: `${posY}px`,
-                left: `${(element.id * 30) % 100}%`, 
-                width: `${element.size}px`,
-                height: `${element.size / 2}px`,
-              }}
-            />
-          );
-        case 'star':
-          return (
-            <div 
-              key={element.id}
-              className="absolute rounded-full bg-white"
-              style={{
-                top: `${posY}px`,
-                left: `${(element.id * 50) % 100}%`, 
+                ...styles,
+                backgroundColor: element.color,
                 width: `${element.size}px`,
                 height: `${element.size}px`,
-                opacity: 0.5 + Math.random() * 0.5
+                boxShadow: element.type === 'star' && element.size > 2 ? 
+                  `0 0 ${element.size * 2}px rgba(255, 255, 255, 0.7)` : 'none'
               }}
             />
           );
-        case 'satellite':
+          
+        case 'rounded':
+          // Clouds and similar rounded shapes
           return (
             <div 
               key={element.id}
-              className="absolute bg-gray-300"
+              className="absolute rounded-full"
               style={{
-                top: `${posY}px`,
-                left: `${(element.id * 40) % 100}%`, 
-                width: `${element.size * 3}px`,
-                height: `${element.size}px`,
-                transform: `rotate(${element.id * 30}deg)`,
-                opacity: 0.7
+                ...styles,
+                backgroundColor: element.color,
+                width: `${element.size}px`,
+                height: `${element.size * 0.6}px`,
+                boxShadow: element.type === 'cloud' ? 
+                  `0 0 ${element.size * 0.5}px rgba(255, 255, 255, 0.1)` : 'none',
+                filter: 'blur(3px)'
               }}
             />
           );
+          
+        case 'rect':
+          // Buildings, satellites, etc.
+          return (
+            <div 
+              key={element.id}
+              className="absolute"
+              style={{
+                ...styles,
+                backgroundColor: element.color,
+                width: `${element.size}px`,
+                height: element.type === 'building' ? 
+                  `${element.size * 3}px` : `${element.size * 0.5}px`,
+                transform: element.rotation ? 
+                  `rotate(${element.rotation}deg)` : 'none'
+              }}
+            />
+          );
+          
+        case 'vee':
+          // Birds and similar V shapes
+          return (
+            <div 
+              key={element.id}
+              className="absolute"
+              style={{
+                ...styles,
+                position: 'absolute',
+              }}
+            >
+              <div
+                style={{
+                  borderLeft: `${element.size/2}px solid transparent`,
+                  borderRight: `${element.size/2}px solid transparent`,
+                  borderBottom: `${element.size}px solid ${element.color}`,
+                  transform: `rotate(${element.rotation || 0}deg)`,
+                }}
+              />
+            </div>
+          );
+          
+        case 'triangle':
+          // Trees, etc.
+          return (
+            <div 
+              key={element.id}
+              className="absolute"
+              style={{
+                ...styles,
+                width: '0',
+                height: '0',
+                borderLeft: `${element.size/2}px solid transparent`,
+                borderRight: `${element.size/2}px solid transparent`,
+                borderBottom: `${element.size}px solid ${element.color}`,
+              }}
+            />
+          );
+          
+        case 'blob':
+          // Nebulas, mist, etc.
+          return (
+            <div 
+              key={element.id}
+              className="absolute rounded-full"
+              style={{
+                ...styles,
+                backgroundColor: element.color,
+                width: `${element.size}px`,
+                height: `${element.size * 0.7}px`,
+                filter: 'blur(15px)',
+                transform: `scale(${0.8 + Math.random() * 0.4})`,
+              }}
+            />
+          );
+          
+        case 'line':
+          // Meteors, shooting stars
+          return (
+            <div 
+              key={element.id}
+              className="absolute"
+              style={{
+                ...styles,
+                width: `${element.size}px`,
+                height: '2px',
+                backgroundColor: element.color,
+                transform: `rotate(${element.rotation || 45}deg)`,
+                boxShadow: `0 0 8px ${element.color}`,
+              }}
+            />
+          );
+          
+        case 'wave':
+          // Auroras
+          return (
+            <div 
+              key={element.id}
+              className="absolute"
+              style={{
+                ...styles,
+                width: `${element.size}px`,
+                height: `${element.size * 0.3}px`,
+                background: `linear-gradient(to bottom, transparent, ${element.color}, transparent)`,
+                borderRadius: '50%',
+                filter: 'blur(10px)',
+                transform: `skew(${Math.random() * 20 - 10}deg, ${Math.random() * 20 - 10}deg)`,
+              }}
+            />
+          );
+          
+        case 'lightning':
+          // Weather effects
+          return (
+            <div 
+              key={element.id}
+              className="absolute"
+              style={{
+                ...styles,
+                width: '2px',
+                height: `${element.size * 3}px`,
+                backgroundColor: element.color,
+                boxShadow: `0 0 5px ${element.color}, 0 0 10px ${element.color}`,
+                transform: `rotate(${Math.random() * 10 - 5}deg) translateX(${Math.random() * 10 - 5}px)`,
+              }}
+            />
+          );
+          
+        case 'poly':
+          // Space debris, asteroids
+          return (
+            <div 
+              key={element.id}
+              className="absolute"
+              style={{
+                ...styles,
+                width: `${element.size}px`,
+                height: `${element.size}px`,
+                backgroundColor: element.color,
+                clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)',
+                transform: `rotate(${element.rotation || 0}deg)`,
+              }}
+            />
+          );
+          
         default:
           return (
             <div 
               key={element.id}
-              className="absolute rounded-full bg-gray-400"
+              className="absolute rounded-full"
               style={{
-                top: `${posY}px`,
-                left: `${(element.id * 20) % 100}%`, 
+                ...styles,
+                backgroundColor: element.color || 'white',
                 width: `${element.size}px`,
                 height: `${element.size}px`,
-                opacity: 0.6
               }}
             />
           );
@@ -564,7 +845,10 @@ export const ScrollingBackground: React.FC<{
   
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {renderElements()}
+      {/* Layer with slight parallax effect for depth */}
+      <div className="absolute inset-0 z-10">
+        {renderElements()}
+      </div>
     </div>
   );
 };
