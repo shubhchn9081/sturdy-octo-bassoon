@@ -853,8 +853,8 @@ const RocketLaunchRevised: React.FC = () => {
       
       {/* Main game visualization - rocket and trajectory */}
       <div className="flex-1 relative flex items-center justify-center" ref={gameContainerRef}>
-        {/* Atmosphere background */}
-        <div className="absolute inset-0 overflow-hidden bg-gradient-to-t from-slate-900 to-blue-900">
+        {/* Atmosphere background - improved visibility for mobile */}
+        <div className="absolute inset-0 overflow-hidden bg-gradient-to-t from-indigo-950 to-blue-800">
           {/* Scrolling background that creates illusion of movement */}
           <ScrollingBackground 
             gameState={gameState} 
@@ -876,16 +876,16 @@ const RocketLaunchRevised: React.FC = () => {
           className="absolute z-20" 
           style={{
             left: `50%`, // Center horizontally  
-            bottom: '28%', // Adjusted position for better flame visibility
+            bottom: '40%', // Moved higher up for better visibility on mobile
             transform: 'translateX(-50%)',
             maxHeight: '65%', // Increased height limit
           }}
         >
           {gameState === 'crashed' ? (
-            <RocketExplosion size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 6) : 110} />
+            <RocketExplosion size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 5) : 110} />
           ) : (
             <RocketShip 
-              size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 6) : 110} 
+              size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 5) : 110} 
               flameActive={gameState === 'running'} 
             />
           )}

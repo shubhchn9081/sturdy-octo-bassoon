@@ -673,14 +673,14 @@ export const ScrollingBackground: React.FC<{
             type = 'atmosphere-gradient';
             shape = 'blob';
             const blueShades = [
-              'rgba(65, 105, 225, 0.1)', // Royal blue
-              'rgba(0, 191, 255, 0.1)',  // Deep sky blue
-              'rgba(30, 144, 255, 0.1)',  // Dodger blue
-              'rgba(0, 0, 139, 0.1)'   // Dark blue
+              'rgba(65, 105, 225, 0.3)', // Royal blue - increased opacity
+              'rgba(0, 191, 255, 0.3)',  // Deep sky blue - increased opacity
+              'rgba(30, 144, 255, 0.3)',  // Dodger blue - increased opacity
+              'rgba(0, 0, 139, 0.3)'   // Dark blue - increased opacity
             ];
             color = blueShades[Math.floor(Math.random() * blueShades.length)];
             size = 300 + Math.random() * 500;
-            opacity = 0.05 + Math.random() * 0.05;
+            opacity = 0.25 + Math.random() * 0.15; // Increased opacity for better visibility on mobile
           }
         } else if (atmosphereStage === 'stratosphere' || atmosphereStage === 'mesosphere') {
           if (layer === 'near') {
