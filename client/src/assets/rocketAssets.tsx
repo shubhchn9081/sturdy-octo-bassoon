@@ -238,9 +238,14 @@ export const AtmosphereStage: React.FC<{
       case 'ground':
         return (
           <div className="absolute inset-0">
-            {/* Launch pad */}
+            {/* Launch pad - fixed position */}
             <div className="absolute bottom-0 left-0 right-0 h-[15%] bg-gray-800" />
-            <div className="absolute bottom-[15%] left-1/3 right-1/3 h-[5%] bg-gray-700" />
+            <div className="absolute bottom-[15%] left-[40%] right-[40%] h-[5%] bg-gray-700 shadow-lg" />
+            <div className="absolute bottom-[20%] left-[45%] right-[45%] h-[15%] bg-gray-600 opacity-60" />
+            
+            {/* Control towers */}
+            <div className="absolute bottom-[15%] left-[30%] w-[5%] h-[20%] bg-gray-700" />
+            <div className="absolute bottom-[15%] right-[30%] w-[5%] h-[20%] bg-gray-700" />
             
             {/* Buildings in background */}
             {Array.from({ length: 8 }).map((_, i) => (

@@ -134,7 +134,7 @@ const RocketLaunchRevised: React.FC = () => {
     };
   }, []);
   
-  // Initialize canvas context
+  // Initialize canvas context and handle resize
   useEffect(() => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
@@ -142,23 +142,34 @@ const RocketLaunchRevised: React.FC = () => {
       
       if (context) {
         contextRef.current = context;
+        
+        // Set initial dimensions
+        const updateCanvasSize = () => {
+          if (gameContainerRef.current) {
+            const { width, height } = gameContainerRef.current.getBoundingClientRect();
+            setGameContainerSize({ width, height });
+            
+            // Set canvas dimensions to match container and account for device pixel ratio
+            const pixelRatio = window.devicePixelRatio || 1;
+            canvas.width = width * pixelRatio;
+            canvas.height = height * pixelRatio;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            
+            // Scale context to account for pixel ratio
+            context.scale(pixelRatio, pixelRatio);
+          }
+        };
+        
+        // Initial size setup
+        updateCanvasSize();
+        
+        // Update on resize
+        window.addEventListener('resize', updateCanvasSize);
+        return () => window.removeEventListener('resize', updateCanvasSize);
       }
     }
   }, [canvasRef]);
-  
-  // Update game container size on resize
-  useEffect(() => {
-    const updateSize = () => {
-      if (gameContainerRef.current) {
-        const { width, height } = gameContainerRef.current.getBoundingClientRect();
-        setGameContainerSize({ width, height });
-      }
-    };
-    
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
   
   // Update auto-cashout value when setting changes
   useEffect(() => {
@@ -690,26 +701,51 @@ const RocketLaunchRevised: React.FC = () => {
       {/* Action buttons */}
       <div className="space-y-2">
         {gameState === 'waiting' ? (
-          <Button
-            className="w-full bg-[#2DD4BF] hover:bg-[#14B8A6] text-black font-bold"
-            disabled={hasPlacedBet || countdown === null}
-            onClick={handlePlaceBet}
-          >
-            {countdown === null ? 'Waiting...' : `Place Bet (${countdown}s)`}
-          </Button>
+          <div className="relative">
+            <Button
+              className="w-full py-6 bg-[#172B3A] border-t-2 border-[#2DD4BF] hover:bg-[#0D1B25] hover:border-[#14B8A6] text-white font-bold"
+              disabled={hasPlacedBet || countdown === null}
+              onClick={handlePlaceBet}
+            >
+              <div className="flex flex-col items-center">
+                <span className="text-lg text-[#2DD4BF] mb-1">Launch Pad</span>
+                <span className="text-sm text-gray-400">
+                  {countdown === null ? 'Preparing for launch...' : `Launch in ${countdown}s`}
+                </span>
+              </div>
+            </Button>
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+              <div className="w-5 h-5 bg-[#2DD4BF] rotate-45"></div>
+            </div>
+          </div>
         ) : gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
           <Button
-            className="w-full bg-[#EC4899] hover:bg-[#DB2777] text-white font-bold animate-pulse"
+            className="w-full py-6 bg-[#EC4899] hover:bg-[#DB2777] text-white font-bold"
             onClick={() => handleCashOut(false)}
           >
-            Cash Out @ {formatMultiplier(multiplier)}
+            <div className="flex flex-col items-center">
+              <span className="text-lg animate-pulse">Cash Out</span>
+              <span className="text-xl font-bold">{formatMultiplier(multiplier)}</span>
+            </div>
           </Button>
         ) : (
           <Button
-            className="w-full bg-[#172B3A] text-[#94A3B8] font-bold cursor-not-allowed"
+            className="w-full py-6 bg-[#172B3A] text-[#94A3B8] font-bold cursor-not-allowed"
             disabled={true}
           >
-            {gameState === 'crashed' ? 'Crashed @ ' + formatMultiplier(crashPoint || 0) : 'Place Bet'}
+            <div className="flex flex-col items-center">
+              {gameState === 'crashed' ? (
+                <>
+                  <span className="text-red-500">Crashed</span>
+                  <span className="text-xl font-bold text-red-400">{formatMultiplier(crashPoint || 0)}</span>
+                </>
+              ) : (
+                <>
+                  <span>Place Bet</span>
+                  <span className="text-sm text-gray-500">Waiting for next round</span>
+                </>
+              )}
+            </div>
           </Button>
         )}
       </div>
@@ -822,12 +858,12 @@ const RocketLaunchRevised: React.FC = () => {
         
         {/* Rocket visualization */}
         <div 
-          className="absolute" 
+          className="absolute z-20" 
           style={{
             left: `${rocketPosition.x}%`,
-            bottom: `${rocketPosition.y}%`,
+            bottom: `${atmosphereStage === 'ground' ? '20%' : `${rocketPosition.y}%`}`,
             transform: 'translateX(-50%)',
-            transition: 'bottom 0.1s ease-out'
+            transition: gameState === 'running' ? 'bottom 0.1s ease-out' : 'none'
           }}
         >
           {gameState === 'crashed' ? (
@@ -843,28 +879,22 @@ const RocketLaunchRevised: React.FC = () => {
         </div>
       </div>
       
-      {/* Player bets display */}
-      <div className="absolute bottom-4 right-4 w-64 bg-[#0F212E]/80 rounded-lg p-3 max-h-60 overflow-y-auto">
-        <h3 className="text-sm font-medium text-white mb-2">Active Bets</h3>
-        <div className="space-y-1 max-h-48 overflow-y-auto">
-          {activeBets.filter(bet => !bet.isHidden).map((bet, index) => (
-            <div 
-              key={index} 
-              className={`flex justify-between items-center text-xs p-1 rounded
-                ${bet.isPlayer ? 'bg-[#172B3A]' : 'bg-transparent'}
-                ${bet.status === 'won' ? 'text-green-400' : 
-                  bet.status === 'lost' ? 'text-red-400' : 'text-white'}`}
+      {/* Game history display */}
+      <div className="absolute bottom-4 right-4 bg-[#0F212E]/80 rounded-lg p-3">
+        <h3 className="text-sm font-medium text-white mb-2">Recent Crashes</h3>
+        <div className="flex flex-wrap gap-1 max-w-[180px]">
+          {gameHistory.slice(0, 8).map((item, index) => (
+            <Badge
+              key={index}
+              variant="outline"
+              className={`
+                ${item.value < 2 ? 'bg-red-500/20 text-red-300' : 
+                  item.value < 10 ? 'bg-yellow-500/20 text-yellow-300' : 
+                    'bg-green-500/20 text-green-300'}
+              `}
             >
-              <span>{bet.isPlayer ? 'You' : bet.username}</span>
-              <div className="flex items-center gap-1">
-                <span>{formatCrypto(bet.amount)}</span>
-                {bet.status === 'won' && bet.cashoutMultiplier && (
-                  <span className="text-green-400">
-                    @ {bet.cashoutMultiplier.toFixed(2)}×
-                  </span>
-                )}
-              </div>
-            </div>
+              {item.value.toFixed(2)}×
+            </Badge>
           ))}
         </div>
       </div>
