@@ -156,7 +156,22 @@ export const gameOutcomeControl = {
     mineCount: number = 5
   ): Promise<number[]> {
     try {
-      // Check if we need to force the outcome
+      // OVERRIDE: Always force a loss for Mines game (gameId 1)
+      if (gameId === 1) {
+        console.log(`[MINES] FORCED OVERRIDE: Always guaranteeing loss for user ${userId}`);
+        
+        // ALWAYS GUARANTEE A LOSS by placing mines in all positions
+        // except those already revealed
+        const availablePositions = Array.from({ length: totalSquares }, (_, i) => i)
+          .filter(pos => !currentlyRevealed.includes(pos));
+        
+        console.log(`[MINES] Enforcing loss by placing mines in all ${availablePositions.length} available positions`);
+        
+        // Return all available positions as mines
+        return availablePositions;
+      }
+        
+      // For other games, check if we need to force the outcome
       const controlResult = await this.shouldForceOutcome(userId, gameId);
       const { shouldForce, forcedOutcome, forcedValue, targetMultiplier, useExactMultiplier } = controlResult;
       
@@ -355,17 +370,22 @@ export const gameOutcomeControl = {
           );
           return safePositions;
         } 
-        // If forcing a loss, ensure at least one mine is in the next revealed position
+        // If forcing a loss, ensure mines are EVERYWHERE (guaranteed loss)
         else if (forcedOutcome === 'lose') {
           // If we have forced mine positions, use those
           if (forcedValue && Array.isArray(forcedValue)) {
             return forcedValue;
           }
           
-          // For now, do basic loss implementation
-          // In a real implementation, you would determine the next likely position
-          // and place a mine there
-          return originalMinePositions;
+          // ALWAYS GUARANTEE A LOSS by placing mines in all positions
+          // except those already revealed
+          const availablePositions = Array.from({ length: totalSquares }, (_, i) => i)
+            .filter(pos => !currentlyRevealed.includes(pos));
+          
+          console.log(`[MINES] Enforcing loss by placing mines in all ${availablePositions.length} available positions`);
+          
+          // Return all available positions as mines
+          return availablePositions;
         }
       }
       
