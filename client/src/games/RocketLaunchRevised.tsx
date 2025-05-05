@@ -875,34 +875,41 @@ const RocketLaunchRevised: React.FC = () => {
         <div 
           className="absolute z-20" 
           style={{
-            left: `50%`, // Center horizontally
-            bottom: '25%', // Positioned slightly lower
+            left: `50%`, // Center horizontally  
+            bottom: '28%', // Adjusted position for better flame visibility
             transform: 'translateX(-50%)',
             maxHeight: '65%', // Increased height limit
           }}
         >
           {gameState === 'crashed' ? (
-            <RocketExplosion size={130} />
+            <RocketExplosion size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 6) : 110} />
           ) : (
-            <RocketShip size={130} flameActive={gameState === 'running'} />
+            <RocketShip 
+              size={gameContainerSize.width ? Math.min(130, gameContainerSize.width / 6) : 110} 
+              flameActive={gameState === 'running'} 
+            />
           )}
         </div>
         
-        {/* Fuel gauge */}
+        {/* Fuel gauge - responsive size for mobile */}
         <div className="absolute bottom-4 left-4">
-          <FuelGauge level={fuelLevel} size={150} />
+          <FuelGauge 
+            level={fuelLevel} 
+            size={gameContainerSize.width ? Math.min(150, gameContainerSize.width / 5) : 120} 
+          />
         </div>
       </div>
       
-      {/* Game history display */}
-      <div className="absolute bottom-4 right-4 bg-[#0F212E]/80 rounded-lg p-3">
-        <h3 className="text-sm font-medium text-white mb-2">Recent Crashes</h3>
-        <div className="flex flex-wrap gap-1 max-w-[180px]">
-          {gameHistory.slice(0, 8).map((item, index) => (
+      {/* Game history display - optimized for mobile */}
+      <div className="absolute bottom-4 right-4 bg-[#0F212E]/80 rounded-lg p-2 md:p-3">
+        <h3 className="text-xs md:text-sm font-medium text-white mb-1 md:mb-2">Recent Crashes</h3>
+        <div className="flex flex-wrap gap-1 max-w-[160px] md:max-w-[180px]">
+          {gameHistory.slice(0, gameContainerSize.width && gameContainerSize.width < 500 ? 6 : 8).map((item, index) => (
             <Badge
               key={index}
               variant="outline"
               className={`
+                text-xs md:text-sm px-1.5 py-0.5
                 ${item.value < 2 ? 'bg-red-500/20 text-red-300' : 
                   item.value < 10 ? 'bg-yellow-500/20 text-yellow-300' : 
                     'bg-green-500/20 text-green-300'}

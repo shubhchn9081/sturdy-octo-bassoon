@@ -20,13 +20,16 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
     }
   }, []);
 
-  // Adjust rocket size to fit within game canvas
+  // Adjust rocket size to fit within game canvas (optimized for mobile)
   const aspect = 1.8; // More reasonable aspect ratio
   const rocketWidth = size * 0.8; // Keep width proportional to container
   const rocketHeight = size * aspect;
+  
+  // Calculate appropriate flame size based on rocket size for mobile optimization
+  const flameHeight = size * 0.6;
 
   return (
-    <div className="relative" style={{ width: rocketWidth, height: rocketHeight + (flameActive ? size * 0.6 : 0) }}>
+    <div className="relative" style={{ width: rocketWidth, height: rocketHeight + (flameActive ? flameHeight : 0) }}>
       {/* Rocket Image - using direct Cloudinary URL */}
       <img 
         ref={imageRef}
@@ -90,7 +93,7 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
       {/* Second flame on the right */}
       {flameActive && (
         <div className="absolute" style={{ 
-          bottom: '-35%', 
+          bottom: '-20%', /* Reduced gap from -35% to -20% */
           left: '58%', 
           width: '16%', 
           height: '55%',
@@ -152,17 +155,18 @@ export const RocketExplosion: React.FC<{ size: number }> = ({ size }) => {
   );
 };
 
-// Fuel gauge component
+// Fuel gauge component - optimized for mobile
 export const FuelGauge: React.FC<{ level: number; size: number }> = ({ level, size }) => {
   // Level should be between 0 and 1
   const safeLevel = Math.max(0, Math.min(1, level));
   const gaugeHeight = size * 0.8;
-  const gaugeWidth = size * 0.3;
+  const gaugeWidth = size * 0.25; // Slimmer for mobile
+  const isSmall = size < 120; // Check if we're on mobile
   
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <div className="flex items-center gap-2">
-        <div className="text-sm text-white font-bold">FUEL</div>
+      <div className="flex items-center gap-1 md:gap-2">
+        <div className={`${isSmall ? 'text-xs' : 'text-sm'} text-white font-bold`}>FUEL</div>
         <div className="relative" style={{ height: gaugeHeight, width: gaugeWidth }}>
           {/* Gauge background */}
           <div 
@@ -177,28 +181,30 @@ export const FuelGauge: React.FC<{ level: number; size: number }> = ({ level, si
               height: `${safeLevel * 100}%`,
             }}
           >
-            {/* Fuel gauge lines */}
-            {Array.from({ length: 10 }).map((_, i) => (
+            {/* Fuel gauge lines - fewer lines on mobile */}
+            {Array.from({ length: isSmall ? 5 : 10 }).map((_, i) => (
               <div 
                 key={i}
                 className="absolute w-full h-[1px] bg-gray-800/40"
-                style={{ bottom: `${i * 10}%` }}
+                style={{ bottom: `${i * (isSmall ? 20 : 10)}%` }}
               />
             ))}
           </div>
           
-          {/* Gauge markings */}
-          {Array.from({ length: 5 }).map((_, i) => (
+          {/* Gauge markings - fewer on mobile */}
+          {Array.from({ length: isSmall ? 3 : 5 }).map((_, i) => (
             <div 
               key={i}
               className="absolute w-full flex justify-between items-center"
-              style={{ bottom: `${i * 25}%`, transform: 'translateY(50%)' }}
+              style={{ bottom: `${i * (isSmall ? 50 : 25)}%`, transform: 'translateY(50%)' }}
             >
-              <div className="w-[4px] h-[2px] bg-gray-400 -ml-[1px]" />
-              <div className="text-[8px] text-gray-300 absolute -left-[20px]">
-                {i * 25}%
-              </div>
-              <div className="w-[4px] h-[2px] bg-gray-400 -mr-[1px]" />
+              <div className="w-[3px] h-[1px] bg-gray-400 -ml-[1px]" />
+              {!isSmall && (
+                <div className="text-[8px] text-gray-300 absolute -left-[20px]">
+                  {i * 25}%
+                </div>
+              )}
+              <div className="w-[3px] h-[1px] bg-gray-400 -mr-[1px]" />
             </div>
           ))}
         </div>
