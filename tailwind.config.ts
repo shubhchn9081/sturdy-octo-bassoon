@@ -236,6 +236,58 @@ export default {
           "100%": { 
             opacity: "0.3" 
           }
+        },
+        "pulse-slow": {
+          "0%": { 
+            opacity: "0.4",
+            transform: "scale(0.95)"
+          },
+          "50%": { 
+            opacity: "1",
+            transform: "scale(1.05)"
+          },
+          "100%": { 
+            opacity: "0.4",
+            transform: "scale(0.95)"
+          }
+        },
+        "meteor": {
+          "0%": { 
+            transform: "translateX(-100px) translateY(-100px) rotate(45deg) scale(0.8)",
+            opacity: "0"
+          },
+          "10%": {
+            opacity: "1"
+          },
+          "100%": { 
+            transform: "translateX(100px) translateY(100px) rotate(45deg) scale(1.2)",
+            opacity: "0"
+          }
+        },
+        "fly": {
+          "0%": { 
+            transform: "translateY(0px) rotate(var(--rotate, 0deg))",
+          },
+          "50%": { 
+            transform: "translateY(-5px) rotate(var(--rotate, 0deg))",
+          },
+          "100%": { 
+            transform: "translateY(0px) rotate(var(--rotate, 0deg))",
+          }
+        },
+        "wave": {
+          "0%": { 
+            transform: "skew(var(--skew-x, 0deg), var(--skew-y, 0deg)) translateY(0px)",
+            opacity: "var(--opacity-base, 0.3)"
+          },
+          "50%": { 
+            transform: "skew(calc(var(--skew-x, 0deg) * -1), calc(var(--skew-y, 0deg) * -1)) translateY(-10px)",
+            opacity: "calc(var(--opacity-base, 0.3) * 1.5)"
+          },
+          "100%": { 
+            transform: "skew(var(--skew-x, 0deg), var(--skew-y, 0deg)) translateY(0px)",
+            opacity: "var(--opacity-base, 0.3)"
+          }
         }
       },
       animation: {
@@ -251,7 +303,11 @@ export default {
         "explosion-outer": "explosion-outer 1s ease-out forwards",
         "explosion-middle": "explosion-middle 0.8s ease-out forwards",
         "explosion-inner": "explosion-inner 0.6s ease-out forwards",
-        "twinkle": "twinkle 3s ease-in-out infinite"
+        "twinkle": "twinkle 3s ease-in-out infinite",
+        "pulse-slow": "pulse-slow 4s ease-in-out infinite",
+        "meteor": "meteor 4s ease-out",
+        "fly": "fly 2s ease-in-out infinite",
+        "wave": "wave 5s ease-in-out infinite"
       },
     },
   },
