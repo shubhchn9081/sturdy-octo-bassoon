@@ -508,13 +508,13 @@ export const ScrollingBackground: React.FC<{
         // Determine which layer this element belongs to
         if (i < nearCount) {
           layer = 'near';
-          speed = 2.0 + Math.random() * 0.5; // Near elements move fastest
+          speed = 4.0 + Math.random() * 1.0; // Near elements move fastest (increased speed)
         } else if (i < nearCount + midCount) {
           layer = 'mid';
-          speed = 1.2 + Math.random() * 0.3; // Mid elements move medium speed
+          speed = 2.0 + Math.random() * 0.5; // Mid elements move medium speed (increased)
         } else {
           layer = 'far';
-          speed = 0.5 + Math.random() * 0.3; // Far elements move slowest
+          speed = 0.8 + Math.random() * 0.4; // Far elements move slowest (increased slightly)
         }
         
         // Different element types for different atmosphere stages
@@ -832,13 +832,14 @@ export const ScrollingBackground: React.FC<{
     }
     
     // Calculate scroll speed based on multiplier - the higher the multiplier, the faster we scroll
-    const baseScrollSpeed = atmosphereStage === 'ground' ? 1.0 : // Faster start
-                       multiplier < 2 ? multiplier * 0.9 : 
-                       multiplier < 5 ? multiplier * 1.3 :
-                       multiplier * 2.0; // Higher speed increases with multiplier
+    // REVERSED direction (negative values) and increased speed by 3-4x
+    const baseScrollSpeed = atmosphereStage === 'ground' ? -3.5 : // Faster start
+                       multiplier < 2 ? multiplier * -3.0 : 
+                       multiplier < 5 ? multiplier * -4.0 :
+                       multiplier * -6.0; // Higher speed increases with multiplier
     
     const animate = () => {
-      setScrollPosition(prev => prev + baseScrollSpeed);
+      setScrollPosition(prev => prev + baseScrollSpeed); // Using negative values for downward movement
       animationRef.current = window.requestAnimationFrame(animate);
     };
     
