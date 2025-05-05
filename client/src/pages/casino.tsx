@@ -33,9 +33,34 @@ const CasinoPage = () => {
       </div>
       
       <div className="mb-6">
-        <div className="flex items-center mb-3 px-2">
-          <Zap className="h-5 w-5 text-green-500 mr-2" />
-          <h2 className="text-xl font-medium text-white">Novito Originals</h2>
+        <div className="mb-4">
+          {/* New arrival highlight */}
+          <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 p-3 mb-4 rounded-lg border border-indigo-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="bg-indigo-600 p-1.5 rounded-md mr-3">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">NEW ARRIVAL</h3>
+                  <p className="text-indigo-300 text-sm">Try our newest game: Tower Climb</p>
+                </div>
+              </div>
+              <div>
+                <button 
+                  onClick={() => window.location.href = '/games/tower-climb'}
+                  className="bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                >
+                  Play Now
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center mb-3 px-2">
+            <Zap className="h-5 w-5 text-green-500 mr-2" />
+            <h2 className="text-xl font-medium text-white">Novito Originals</h2>
+          </div>
         </div>
         
         {/* Game Grid - Optimized for mobile */}

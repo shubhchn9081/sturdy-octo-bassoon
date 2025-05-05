@@ -157,6 +157,19 @@ const GameCard = ({
   // Get game icon based on game type
   const getGameIcon = () => {
     switch (name) {
+      case 'TOWER CLIMB':
+        return (
+          <div className="w-12 h-12 mb-2 flex items-center justify-center">
+            <div className="w-8 h-8 bg-indigo-600 rounded-sm flex items-center justify-center">
+              <div className="relative w-6 h-6">
+                <div className="absolute bottom-0 left-0 w-2 h-4 bg-white rounded-sm"></div>
+                <div className="absolute bottom-0 left-2 w-2 h-6 bg-white rounded-sm"></div>
+                <div className="absolute bottom-0 left-4 w-2 h-3 bg-white rounded-sm"></div>
+                <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        );
       case 'CRICKET MINES':
         return (
           <div className="w-12 h-12 mb-2 flex items-center justify-center">
@@ -285,6 +298,7 @@ const GameCard = ({
       className={cn(
         "game-card",
         "w-full max-w-[146px] mx-auto", // Exact width from Stake.com, centered on mobile
+        name === "TOWER CLIMB" ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#0E1821] rounded-t-lg transform hover:scale-105 transition-all" : "",
         className
       )}
       onClick={() => window.location.href = `/games/${slug}`}
