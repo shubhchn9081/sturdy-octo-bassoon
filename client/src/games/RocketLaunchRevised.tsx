@@ -437,7 +437,8 @@ const RocketLaunchRevised: React.FC = () => {
       // Making the rocket rise much more gradually
       const newRocketPosition = {
         x: 50, // Horizontal position is fixed
-        y: Math.max(5, 80 - (Math.pow(newMultiplier - 1, 0.8) * 4)) // Slower ascent - smaller multiplier (4 instead of 10) and lower exponent (0.8 instead of 1.2)
+        // Adjusted formula to make sure rocket doesn't collide with multiplier display
+        y: Math.max(8, 80 - (Math.pow(newMultiplier - 1, 0.8) * 5)) // Slightly faster ascent to move away from multiplier
       };
       
       // Check for auto cashout
@@ -831,7 +832,7 @@ const RocketLaunchRevised: React.FC = () => {
           )}
           
           {gameState === 'running' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 absolute top-0 right-0 bg-[#0F172A]/80 p-2 rounded-md z-30">
               <Rocket className="h-5 w-5 text-[#2DD4BF] animate-pulse" />
               <span className="text-2xl font-bold text-[#2DD4BF]">
                 {formatMultiplier(multiplier)}
