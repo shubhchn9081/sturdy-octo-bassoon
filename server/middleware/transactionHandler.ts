@@ -105,9 +105,15 @@ export const transactionHandler = {
         
         console.log(`Balance before bet: ${userBalance}, Balance after bet: ${afterBalance}, Amount deducted: ${userBalance - afterBalance}`);
         
-        // Double-check deduction amount
+        // Double-check deduction amount with a tolerance for floating-point precision issues
         if (Math.abs((userBalance - afterBalance) - normalizedAmount) > 0.01) {
           console.warn(`Warning: Expected to deduct ${normalizedAmount} but actual deduction was ${userBalance - afterBalance}`);
+          
+          // If deduction failed but we got no error, it's likely a balance format issue
+          // Log this to help with debugging
+          console.log(`Balance types - Before: ${typeof user.balance}, After: ${typeof afterUser.balance}`);
+          console.log(`Before JSON: ${JSON.stringify(user.balance)}`);
+          console.log(`After JSON: ${JSON.stringify(afterUser.balance)}`);
         }
       }
 
@@ -176,6 +182,27 @@ export const transactionHandler = {
       console.log(`Processing win for user ${userId}: Original Bet: ${betAmount}, Normalized Bet: ${normalizedBetAmount}`);
       console.log(`Multiplier: ${multiplier} (normalized: ${normalizedMultiplier}), Total Return: ${totalReturn}`);
       
+      // Get user current balance for logging
+      const user = await storage.getUser(userId);
+      if (!user) {
+        res.status(404).json({ 
+          message: 'User not found',
+          success: false 
+        });
+        return false;
+      }
+      
+      // Get current balance for better logging
+      let currentBalance = 0;
+      if (typeof user.balance === 'number') {
+        currentBalance = Number(user.balance);
+      } else if (typeof user.balance === 'object' && user.balance !== null) {
+        const balanceObj = user.balance as Record<string, number>;
+        currentBalance = Number(balanceObj[currency] || 0);
+      }
+      
+      console.log(`Current balance before win: ${currentBalance}, Win amount to add: ${totalReturn}`);
+      
       // Update the user balance with the win amount
       const updatedUser = await storage.updateUserBalance(userId, totalReturn, currency);
       
@@ -185,6 +212,19 @@ export const transactionHandler = {
           success: false 
         });
         return false;
+      }
+      
+      // Verify the balance was actually updated
+      const afterUser = await storage.getUser(userId);
+      if (afterUser) {
+        let newBalance = 0;
+        if (typeof afterUser.balance === 'number') {
+          newBalance = afterUser.balance;
+        } else if (typeof afterUser.balance === 'object' && afterUser.balance !== null) {
+          const balanceObj = afterUser.balance as Record<string, number>;
+          newBalance = balanceObj[currency] || 0;
+        }
+        console.log(`Balance after win: ${newBalance}, Expected: ${currentBalance + totalReturn}`);
       }
 
       // Record the transaction

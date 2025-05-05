@@ -1004,53 +1004,65 @@ export class DatabaseStorage implements IStorage {
     // Log the balance update for troubleshooting
     console.log(`Balance update initiated for user ${id} - Amount: ${amount} (original: ${originalAmount}), Currency: ${currency}`);
     
-    const user = await this.getUser(id);
-    if (!user) {
-      console.error(`User with ID ${id} not found during balance update`);
+    try {
+      const user = await this.getUser(id);
+      if (!user) {
+        console.error(`User with ID ${id} not found during balance update`);
+        return undefined;
+      }
+      
+      // Handle different balance formats
+      let updatedBalance: any; // Can be number or object based on current balance
+      let currentBalance: number = 0;
+      
+      if (typeof user.balance === 'number') {
+        // Standard numeric balance format - use explicit conversion
+        currentBalance = Number(user.balance);
+        console.log(`Current balance for user ${id} (numeric): ${currentBalance}`);
+        
+        let newBalance = currentBalance + amount;
+        if (newBalance < 0) newBalance = 0; // Don't allow negative balances
+        updatedBalance = newBalance;
+      } else if (typeof user.balance === 'object' && user.balance !== null) {
+        // Handle object-based balance (JSON)
+        const balanceObj = { ...user.balance as Record<string, number> };
+        // Get current INR balance with safeguards
+        currentBalance = Number(balanceObj['INR'] || 0);
+        console.log(`Current balance for user ${id} (object): ${currentBalance}`);
+        
+        // Calculate new amount
+        let newAmount = currentBalance + amount;
+        if (newAmount < 0) newAmount = 0;
+        
+        // Update the INR value in the object
+        balanceObj['INR'] = newAmount;
+        updatedBalance = balanceObj;
+      } else {
+        // Handle unexpected format - create a new numeric balance
+        console.log(`No existing balance found for user ${id}, creating new balance`);
+        updatedBalance = Math.max(0, amount);
+      }
+      
+      console.log(`Balance update details - User: ${id}, Current: ${currentBalance}, Change: ${amount}, New balance: ${typeof updatedBalance === 'object' ? updatedBalance['INR'] : updatedBalance}`);
+      
+      // Update the user record with the proper balance format
+      const [updatedUser] = await db
+        .update(users)
+        .set({ balance: updatedBalance })
+        .where(eq(users.id, id))
+        .returning();
+      
+      if (!updatedUser) {
+        console.error(`Failed to update balance for user ${id}`);
+        return undefined;
+      }
+      
+      console.log(`Successfully updated balance for user ${id}`);
+      return updatedUser;
+    } catch (error) {
+      console.error(`Error updating balance for user ${id}:`, error);
       return undefined;
     }
-    
-    // Handle different balance formats
-    let updatedBalance: number;
-    let currentBalance: number = 0;
-    
-    if (typeof user.balance === 'number') {
-      // Standard numeric balance format - use explicit conversion
-      currentBalance = Number(user.balance);
-      console.log(`Current balance for user ${id} (numeric): ${currentBalance}`);
-      
-      let newBalance = currentBalance + amount;
-      if (newBalance < 0) newBalance = 0; // Don't allow negative balances
-      updatedBalance = newBalance;
-    } else if (typeof user.balance === 'object' && user.balance !== null) {
-      // For backwards compatibility - if balance is an object, extract INR value
-      const balanceObj = user.balance as Record<string, number>;
-      // Also use explicit conversion here
-      currentBalance = Number(balanceObj['INR'] || 0);
-      console.log(`Current balance for user ${id} (object): ${currentBalance}`);
-      
-      // Calculate new amount
-      let newAmount = currentBalance + amount;
-      if (newAmount < 0) newAmount = 0;
-      
-      // Store as a simple number now
-      updatedBalance = newAmount;
-    } else {
-      // Handle unexpected format - create a new numeric balance
-      console.log(`No existing balance found for user ${id}, creating new balance`);
-      updatedBalance = Math.max(0, amount);
-    }
-    
-    console.log(`Balance update details - User: ${id}, Current: ${currentBalance}, Change: ${amount}, New: ${updatedBalance}`);
-    
-    // Update the user record with the new balance (as a simple number)
-    const [updatedUser] = await db
-      .update(users)
-      .set({ balance: updatedBalance })
-      .where(eq(users.id, id))
-      .returning();
-    
-    return updatedUser || undefined;
   }
   
   // Admin methods
@@ -1103,34 +1115,54 @@ export class DatabaseStorage implements IStorage {
     // Log the balance update for troubleshooting
     console.log(`Setting exact balance for user ${id} - Amount: ${exactAmount} (original: ${originalAmount}), Currency: ${currency}`);
     
-    const user = await this.getUser(id);
-    if (!user) {
-      console.error(`User with ID ${id} not found during balance set operation`);
+    try {
+      const user = await this.getUser(id);
+      if (!user) {
+        console.error(`User with ID ${id} not found during balance set operation`);
+        return undefined;
+      }
+      
+      // Get current balance for logging
+      let currentBalance = 0;
+      let updatedBalance: any; // Can be number or object based on current balance
+      
+      if (typeof user.balance === 'number') {
+        currentBalance = Number(user.balance);
+        // Keep same format for the updated balance (number)
+        updatedBalance = Math.max(0, exactAmount);
+      } else if (typeof user.balance === 'object' && user.balance !== null) {
+        const balanceObj = { ...user.balance as Record<string, number> };
+        currentBalance = Number(balanceObj['INR'] || 0);
+        
+        // Keep the object format but update the INR value
+        balanceObj['INR'] = Math.max(0, exactAmount);
+        updatedBalance = balanceObj;
+      } else {
+        // Default to number if unknown format
+        currentBalance = 0;
+        updatedBalance = Math.max(0, exactAmount);
+      }
+      
+      console.log(`Current balance for user ${id}: ${currentBalance}, Setting to exact amount: ${exactAmount}`);
+      
+      // Update the user record with the appropriate balance format
+      const [updatedUser] = await db
+        .update(users)
+        .set({ balance: updatedBalance })
+        .where(eq(users.id, id))
+        .returning();
+      
+      if (!updatedUser) {
+        console.error(`Failed to set balance for user ${id}`);
+        return undefined;
+      }
+      
+      console.log(`Balance set operation complete. Old: ${currentBalance}, New: ${typeof updatedBalance === 'object' ? updatedBalance['INR'] : updatedBalance}`);
+      return updatedUser;
+    } catch (error) {
+      console.error(`Error setting balance for user ${id}:`, error);
       return undefined;
     }
-    
-    // Get current balance for logging
-    let currentBalance = 0;
-    if (typeof user.balance === 'number') {
-      currentBalance = Number(user.balance);
-    } else if (typeof user.balance === 'object' && user.balance !== null) {
-      const balanceObj = user.balance as Record<string, number>;
-      currentBalance = Number(balanceObj['INR'] || 0);
-    }
-    console.log(`Current balance for user ${id}: ${currentBalance}, Setting to exact amount: ${exactAmount}`);
-    
-    // Ensure amount is not negative
-    const safeAmount = Math.max(0, exactAmount);
-    
-    // Always store as a simple number - we're only supporting INR
-    const [updatedUser] = await db
-      .update(users)
-      .set({ balance: safeAmount })
-      .where(eq(users.id, id))
-      .returning();
-    
-    console.log(`Balance set operation complete. Old: ${currentBalance}, New: ${safeAmount}`);
-    return updatedUser || undefined;
   }
   
   // Game settings methods
