@@ -15,9 +15,26 @@ import Slots from './Slots';
 import CupAndBall from './CupAndBall';
 import TowerClimb from './TowerClimb';
 import RocketLaunchRevised from './RocketLaunchRevised';
+import GalacticSpins from './GalacticSpins';
 
 export const GAMES = [
-  // Tower Climb featured as first game (New Arrival)
+  // Galactic Spins as the featured new game
+  {
+    id: 120,
+    name: 'GALACTIC SPINS',
+    slug: 'galactic-spins',
+    type: 'NOVITO ORIGINALS',
+    description: 'Space-themed slots with cosmic multipliers',
+    color: 'bg-blue-600',
+    iconType: 'slots',
+    component: GalacticSpins,
+    minBet: 0.1,
+    maxBet: 100,
+    rtp: 96.5,
+    maxMultiplier: 50.0,
+    activePlayers: 7841
+  },
+  // Tower Climb as a popular game
   {
     id: 101,
     name: 'TOWER CLIMB',
@@ -222,5 +239,6 @@ export default {
   Slots,
   CupAndBall,
   TowerClimb,
+  GalacticSpins,
   RocketLaunch: RocketLaunchRevised
 };
