@@ -537,6 +537,7 @@ const RocketLaunchRevised: React.FC = () => {
   };
   
   // Handle bet submission
+  // Handle bet placement with improved error handling
   const handlePlaceBet = async () => {
     if (betAmount <= 0) {
       toast({
@@ -556,14 +557,21 @@ const RocketLaunchRevised: React.FC = () => {
       return;
     }
     
-    // Mark player as having placed a bet
-    setHasPlacedBet(true);
+    // Create bet data with correct game ID
+    const betData = {
+      amount: betAmount,
+      clientSeed: Math.random().toString(36).substring(2, 15),
+      gameId: GAME_ID // Ensure we're using the correct game ID
+    };
+    
+    // Mark player as having placed a bet - but only visually until API confirms
+    const temporaryBetId = Date.now(); // Create a temporary ID for frontend tracking
     
     // Add player bet to active bets
     setActiveBets(prevBets => [
       ...prevBets,
       {
-        id: prevBets.length,
+        id: temporaryBetId,
         username: 'You',
         amount: betAmount,
         isPlayer: true,
@@ -571,72 +579,204 @@ const RocketLaunchRevised: React.FC = () => {
       }
     ]);
     
-    // Send the bet to the backend
+    // Send the bet to the backend - wrapped in try/catch with explicit Promise handling
+    let betSuccess = false;
+    let actualBetId: number | null = null;
+    
     try {
-      await placeGameBet({
-        amount: betAmount,
-        clientSeed: Math.random().toString(36).substring(2, 15),
-      });
-    } catch (error) {
+      setHasPlacedBet(true); // Optimistically update UI
+      
+      // Log the bet attempt for debugging
+      console.log(`Attempting to place bet: Game ID ${GAME_ID}, Amount ${betAmount}`);
+      
+      // Define the expected return type for better type checking
+      type PlaceBetResult = {
+        betId?: number;
+        serverSeedHash?: string;
+        amount?: number;
+        success?: boolean;
+      };
+      
+      const result = await Promise.resolve(placeGameBet(betData))
+        .catch(error => {
+          // This catch specifically handles Promise rejections
+          console.error('Promise rejected during bet placement:', error);
+          throw new Error(error?.message || 'Bet placement failed with unhandled promise rejection');
+        }) as PlaceBetResult; // Cast to the expected type
+        
+      // If we get here, the API call was successful
+      console.log('Bet placed successfully:', result);
+      
+      // Check if we have a valid bet ID in response
+      if (result && typeof result.betId === 'number') {
+        betSuccess = true;
+        actualBetId = result.betId;
+        
+        // Update the bet in our active bets with the real ID from backend
+        setActiveBets(prevBets => 
+          prevBets.map(bet => {
+            if (bet.isPlayer && bet.id === temporaryBetId) {
+              return { ...bet, id: actualBetId as number }; // Assert the type to avoid TS error
+            }
+            return bet;
+          })
+        );
+      } else {
+        throw new Error('Server returned success but with no bet ID');
+      }
+      
+    } catch (error: any) {
       console.error('Error placing bet:', error);
+      
+      // Show a friendly error to the user with specific details if available
+      const errorMessage = error?.message || "There was an error processing your bet";
       toast({
         title: "Failed to place bet",
-        description: "There was an error processing your bet",
+        description: errorMessage,
         variant: "destructive"
       });
       
       // Revert bet if backend fails
       setHasPlacedBet(false);
       setActiveBets(prevBets => prevBets.filter(bet => !bet.isPlayer));
+      
+      // Log detailed error for debugging
+      console.error('Detailed bet error:', { 
+        error, 
+        betData, 
+        gameId: GAME_ID, 
+        temporaryBetId 
+      });
+      
+      return; // Exit early
+    }
+    
+    // Only if bet was successful, show confirmation
+    if (betSuccess) {
+      toast({
+        title: "Bet Placed",
+        description: `Bet of ${betAmount.toFixed(2)} placed successfully! Good luck!`,
+        variant: "default"
+      });
     }
   };
   
-  // Handle cashout
+  // Handle cashout with improved error handling
   const handleCashOut = async (auto = false) => {
     if (gameState !== 'running' || !hasPlacedBet || hasCashedOut) return;
     
-    // Mark player as having cashed out
-    setHasCashedOut(true);
+    // Don't update UI until we've confirmed with the server
+    let cashoutSuccess = false;
     
-    // Update player bet status
-    setActiveBets(prevBets => 
-      prevBets.map(bet => {
-        if (bet.isPlayer && bet.status === 'active') {
-          return {
-            ...bet,
-            status: 'won',
-            cashoutMultiplier: multiplier
-          };
-        }
-        return bet;
-      })
-    );
-    
-    // Play cashout sound effect
-    try {
-      const cashoutSound = new Audio('/sounds/cashout.mp3');
-      cashoutSound.play();
-    } catch (error) {
-      console.error('Failed to play cashout sound:', error);
+    // Find the player's active bet
+    const playerBet = activeBets.find(bet => bet.isPlayer && bet.status === 'active');
+    if (!playerBet || playerBet.id === undefined) {
+      console.error('Could not find player bet for cashout');
+      toast({
+        title: "Cashout Failed",
+        description: "Could not find your active bet",
+        variant: "destructive"
+      });
+      return;
     }
     
-    // Send the cashout to the backend
+    // Prepare cashout data
+    const cashoutData = {
+      completed: true,
+      multiplier: multiplier,
+      profit: betAmount * (multiplier - 1)
+    };
+    
     try {
-      // Find the player's active bet ID
-      const playerBet = activeBets.find(bet => bet.isPlayer);
-      if (playerBet && playerBet.id !== undefined) {
-        await completeGameBet(playerBet.id, {
-          completed: true,
-          multiplier: multiplier,
-          profit: betAmount * (multiplier - 1)
+      // Optimistically update UI
+      setHasCashedOut(true);
+      
+      // Update player bet status in the UI
+      setActiveBets(prevBets => 
+        prevBets.map(bet => {
+          if (bet.isPlayer && bet.status === 'active') {
+            return {
+              ...bet,
+              status: 'won',
+              cashoutMultiplier: multiplier
+            };
+          }
+          return bet;
+        })
+      );
+      
+      // Log the cashout attempt for debugging
+      console.log(`Attempting to cash out bet ID ${playerBet.id} at ${multiplier}x`);
+      
+      // Send the cashout to the backend with explicit promise handling
+      const result = await Promise.resolve(completeGameBet(playerBet.id, cashoutData))
+        .catch(error => {
+          // This catch specifically handles Promise rejections
+          console.error('Promise rejected during cashout:', error);
+          throw new Error(error?.message || 'Cashout failed with unhandled promise rejection');
         });
+      
+      // If we reach here, the cashout was successful
+      console.log('Cashout successful:', result);
+      cashoutSuccess = true;
+      
+      // Play cashout sound effect
+      try {
+        const cashoutSound = new Audio('/sounds/cashout.mp3');
+        cashoutSound.play().catch(soundError => {
+          console.warn('Sound effect failed, but cashout was successful:', soundError);
+        });
+      } catch (soundError) {
+        console.warn('Failed to play cashout sound:', soundError);
+        // Don't treat sound failure as a cashout failure
       }
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error cashing out:', error);
+      
+      // Show a friendly error to the user with specific details if available
+      const errorMessage = error?.message || "There was an error processing your cashout";
       toast({
         title: "Failed to cash out",
-        description: "There was an error processing your cashout",
+        description: errorMessage,
         variant: "destructive"
+      });
+      
+      // Since we updated the UI optimistically, revert if the backend fails
+      setHasCashedOut(false);
+      
+      // Revert the player bet status in the UI
+      setActiveBets(prevBets => 
+        prevBets.map(bet => {
+          if (bet.isPlayer && bet.id === playerBet.id) {
+            return {
+              ...bet,
+              status: 'active',
+              cashoutMultiplier: undefined
+            };
+          }
+          return bet;
+        })
+      );
+      
+      // Log detailed error for debugging
+      console.error('Detailed cashout error:', { 
+        error, 
+        playerBet, 
+        multiplier, 
+        cashoutData 
+      });
+      
+      return; // Exit early
+    }
+    
+    // Only if cashout was successful, show confirmation
+    if (cashoutSuccess) {
+      const winAmount = betAmount * (multiplier - 1);
+      toast({
+        title: `${auto ? 'Auto-Cashout' : 'Cashout'} Successful!`,
+        description: `You won ${winAmount.toFixed(2)} at ${multiplier.toFixed(2)}x!`,
+        variant: "default"
       });
     }
   };
