@@ -77,7 +77,7 @@ const RocketLaunchRevised: React.FC = () => {
   const [multiplier, setMultiplier] = useState<number>(1.0);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [atmosphereStage, setAtmosphereStage] = useState<AtmosphereStageType>('ground');
-  const [rocketPosition, setRocketPosition] = useState({ x: 50, y: 80 });
+  const [rocketPosition, setRocketPosition] = useState({ x: 35, y: 80 });
   const [fuelLevel, setFuelLevel] = useState(1.0);
   const [weatherCondition, setWeatherCondition] = useState<'clear' | 'turbulent' | 'storm'>('clear');
   const [crashPoint, setCrashPoint] = useState<number | null>(null);
@@ -345,7 +345,7 @@ const RocketLaunchRevised: React.FC = () => {
     setHasCashedOut(false);
     setDataPoints([]);
     setAtmosphereStage('ground');
-    setRocketPosition({ x: 50, y: 80 });
+    setRocketPosition({ x: 35, y: 80 });
     setFuelLevel(1.0);
     setWeatherCondition(['clear', 'turbulent', 'storm'][Math.floor(Math.random() * 3)] as 'clear' | 'turbulent' | 'storm');
     setActiveBets(createInitialBets());
@@ -437,7 +437,7 @@ const RocketLaunchRevised: React.FC = () => {
       // We no longer move the rocket - it stays fixed
       // Instead, the background elements scroll to create the illusion of movement
       const newRocketPosition = {
-        x: 50, // Horizontal position is fixed
+        x: 35, // Horizontal position moved to the left to avoid collision with multiplier display
         y: 33  // Vertical position is also fixed - matches the CSS in the render function
       };
       
