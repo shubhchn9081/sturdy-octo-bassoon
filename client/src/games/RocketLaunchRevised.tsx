@@ -883,7 +883,7 @@ const RocketLaunchRevised: React.FC = () => {
           {gameState === 'crashed' ? (
             <RocketExplosion size={100} />
           ) : (
-            <RocketShip size={60} flameActive={gameState === 'running'} />
+            <RocketShip size={120} flameActive={gameState === 'running'} />
           )}
         </div>
         

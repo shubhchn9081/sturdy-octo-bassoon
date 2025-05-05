@@ -5,26 +5,24 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
   size, 
   flameActive = true 
 }) => {
-  // Preload the rocket image - using direct Cloudinary URL
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // Set image as loaded by default for immediate display
+  const [imageLoaded, setImageLoaded] = useState(true);
   const imageRef = useRef<HTMLImageElement>(null);
   
   // Direct Cloudinary URL
   const rocketImageUrl = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746465473/erasebg-transformed_rqzmrs.png';
 
+  // No preloading needed since we're displaying immediately
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => setImageLoaded(true);
-    img.src = rocketImageUrl;
-
-    if (imageRef.current && imageRef.current.complete) {
+    // Force the image to show even if it's still loading
+    if (imageRef.current) {
       setImageLoaded(true);
     }
   }, []);
 
-  // Calculate aspect ratio for the rocket
-  const aspect = 1.2; // Adjust based on the actual image aspect ratio
-  const rocketWidth = size;
+  // Calculate aspect ratio for the rocket to make it larger and more prominent
+  const aspect = 2.5; // Increased aspect ratio for taller rocket
+  const rocketWidth = size * 1.2; // Increased width by 20%
   const rocketHeight = size * aspect;
 
   return (
