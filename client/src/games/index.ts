@@ -184,6 +184,21 @@ export const GAMES = [
     rtp: 97,
     maxMultiplier: 10.00,
     activePlayers: 5423
+  },
+  {
+    id: 150,
+    name: 'ROCKET LAUNCH',
+    slug: 'rocket-launch',
+    type: 'NOVITO ORIGINALS',
+    description: 'Launch into space for huge multipliers',
+    color: 'bg-cyan-600',
+    iconType: 'rocket',
+    component: RocketLaunch,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 98,
+    maxMultiplier: 1000.00,
+    activePlayers: 8421
   }
 ];
 
@@ -206,5 +221,6 @@ export default {
   Wheel,
   Slots,
   CupAndBall,
-  TowerClimb
+  TowerClimb,
+  RocketLaunch
 };
