@@ -13,6 +13,7 @@ export default {
       transitionProperty: {
         'width': 'width',
         'height': 'height',
+        'height-opacity': 'height, opacity',
       },
       colors: {
         background: "hsl(var(--background))",
@@ -128,6 +129,113 @@ export default {
             backgroundColor: "#2f2f3d", 
             boxShadow: "inset 0 0 5px #1e1e2f"
           }
+        },
+        "flame": {
+          "0%": { 
+            transform: "scaleY(0.8)",
+            opacity: "0.8" 
+          },
+          "50%": { 
+            transform: "scaleY(1.2)",
+            opacity: "1" 
+          },
+          "100%": { 
+            transform: "scaleY(1)",
+            opacity: "0.9" 
+          }
+        },
+        "flame-fast": {
+          "0%": { 
+            transform: "scaleY(0.9) scaleX(0.85)",
+            opacity: "0.8" 
+          },
+          "50%": { 
+            transform: "scaleY(1.1) scaleX(1.05)",
+            opacity: "1" 
+          },
+          "100%": { 
+            transform: "scaleY(0.9) scaleX(0.95)",
+            opacity: "0.9" 
+          }
+        },
+        "flame-outer": {
+          "0%": { 
+            height: "70%",
+            opacity: "0.9" 
+          },
+          "50%": { 
+            height: "100%",
+            opacity: "1" 
+          },
+          "100%": { 
+            height: "85%",
+            opacity: "0.8" 
+          }
+        },
+        "flame-inner": {
+          "0%": { 
+            height: "60%",
+            opacity: "0.7" 
+          },
+          "50%": { 
+            height: "80%",
+            opacity: "0.9" 
+          },
+          "100%": { 
+            height: "65%",
+            opacity: "0.8" 
+          }
+        },
+        "explosion-outer": {
+          "0%": { 
+            transform: "scale(0.5)",
+            opacity: "1" 
+          },
+          "100%": { 
+            transform: "scale(2)",
+            opacity: "0" 
+          }
+        },
+        "explosion-middle": {
+          "0%": { 
+            transform: "scale(0.7)",
+            opacity: "1" 
+          },
+          "100%": { 
+            transform: "scale(1.8)",
+            opacity: "0" 
+          }
+        },
+        "explosion-inner": {
+          "0%": { 
+            transform: "scale(1)",
+            opacity: "1" 
+          },
+          "100%": { 
+            transform: "scale(1.5)",
+            opacity: "0" 
+          }
+        },
+        "particle-explosion": {
+          "0%": { 
+            transform: "translate(0, 0) scale(1)",
+            opacity: "1" 
+          },
+          "100%": { 
+            transform: "translate(var(--x, 50px), var(--y, 50px)) scale(0)",
+            opacity: "0" 
+          }
+        },
+        "twinkle": {
+          "0%": { 
+            opacity: "0.3" 
+          },
+          "50%": { 
+            opacity: "1" 
+          },
+          "100%": { 
+            opacity: "0.3" 
+          }
         }
       },
       animation: {
@@ -135,7 +243,15 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "pop": "pop 0.5s ease-out",
         "explosion": "explosion 0.7s ease-out",
-        "revealGem": "revealGem 0.5s ease-out"
+        "revealGem": "revealGem 0.5s ease-out",
+        "flame": "flame 0.6s ease-in-out infinite",
+        "flame-fast": "flame-fast 0.4s ease-in-out infinite",
+        "flame-outer": "flame-outer 0.5s ease-in-out infinite",
+        "flame-inner": "flame-inner 0.4s ease-in-out infinite", 
+        "explosion-outer": "explosion-outer 1s ease-out forwards",
+        "explosion-middle": "explosion-middle 0.8s ease-out forwards",
+        "explosion-inner": "explosion-inner 0.6s ease-out forwards",
+        "twinkle": "twinkle 3s ease-in-out infinite"
       },
     },
   },
