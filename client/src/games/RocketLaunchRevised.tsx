@@ -353,8 +353,8 @@ const RocketLaunchRevised: React.FC = () => {
     setWeatherCondition(['clear', 'turbulent', 'storm'][Math.floor(Math.random() * 3)] as 'clear' | 'turbulent' | 'storm');
     setActiveBets(createInitialBets());
     
-    // Start countdown for next game
-    const countdownSeconds = 5;
+    // Start countdown for next game - increased to 10 seconds as requested
+    const countdownSeconds = 10;
     setCountdown(countdownSeconds);
     
     countdownIntervalRef.current = window.setInterval(() => {
@@ -659,7 +659,7 @@ const RocketLaunchRevised: React.FC = () => {
     if (betSuccess) {
       toast({
         title: "Bet Placed",
-        description: `Bet of ${betAmount.toFixed(2)} placed successfully! Good luck!`,
+        description: `Bet of ₹${betAmount.toFixed(2)} placed successfully! Good luck!`,
         variant: "default"
       });
     }
@@ -777,9 +777,10 @@ const RocketLaunchRevised: React.FC = () => {
     // Only if cashout was successful, show confirmation
     if (cashoutSuccess) {
       const winAmount = betAmount * (multiplier - 1);
+      const totalAmount = betAmount * multiplier;
       toast({
         title: `${auto ? 'Auto-Cashout' : 'Cashout'} Successful!`,
-        description: `You won ${winAmount.toFixed(2)} at ${multiplier.toFixed(2)}x!`,
+        description: `You won ₹${winAmount.toFixed(2)} at ${multiplier.toFixed(2)}x! (Total: ₹${totalAmount.toFixed(2)})`,
         variant: "default"
       });
     }
@@ -792,12 +793,12 @@ const RocketLaunchRevised: React.FC = () => {
       <div className="mb-2">
         {gameState === 'waiting' ? (
           <Button
-            className="w-full py-3 bg-[#5DDCBD] hover:bg-[#4CCEAF] text-black font-bold text-lg rounded-lg shadow-md"
+            className="w-full h-16 bg-[#5DDCBD] hover:bg-[#4CCEAF] text-black font-bold rounded-lg shadow-md"
             disabled={hasPlacedBet || countdown === null}
             onClick={handlePlaceBet}
           >
-            <div className="text-center">
-              <div className="tracking-wide">PLACE BET</div>
+            <div className="flex flex-col items-center justify-center">
+              <div className="text-lg tracking-wide">PLACE BET</div>
               <div className="text-sm font-medium">
                 {countdown === null ? 'Preparing...' : `Launch in ${countdown}s`}
               </div>
@@ -805,28 +806,33 @@ const RocketLaunchRevised: React.FC = () => {
           </Button>
         ) : gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
           <Button
-            className="w-full py-3 bg-[#F13D5C] hover:bg-[#E32D4C] text-white font-bold text-lg rounded-lg shadow-md animate-pulse"
+            className="w-full h-16 bg-[#F13D5C] hover:bg-[#E32D4C] text-white font-bold rounded-lg shadow-md animate-pulse"
             onClick={() => handleCashOut(false)}
           >
-            <div className="text-center">
-              <div className="tracking-wide">CASH OUT</div>
-              <div className="text-lg font-bold">{formatMultiplier(multiplier)}</div>
+            <div className="flex flex-col items-center justify-center">
+              <div className="text-lg tracking-wide">CASH OUT</div>
+              <div className="flex items-center gap-1">
+                <span className="text-lg font-bold">{formatMultiplier(multiplier)}</span>
+                <span className="text-sm font-medium">
+                  (₹{(betAmount * multiplier).toFixed(2)})
+                </span>
+              </div>
             </div>
           </Button>
         ) : (
           <Button
-            className="w-full py-3 bg-[#1A2C3F] text-gray-300 font-bold text-lg rounded-lg shadow-md cursor-not-allowed"
+            className="w-full h-16 bg-[#1A2C3F] text-gray-300 font-bold rounded-lg shadow-md cursor-not-allowed"
             disabled={true}
           >
-            <div className="text-center">
+            <div className="flex flex-col items-center justify-center">
               {gameState === 'crashed' ? (
                 <>
-                  <div className="text-[#F13D5C] tracking-wide">CRASHED</div>
+                  <div className="text-[#F13D5C] text-lg tracking-wide">CRASHED</div>
                   <div className="text-[#F13D5C] font-bold">{formatMultiplier(crashPoint || 0)}</div>
                 </>
               ) : (
                 <>
-                  <div className="tracking-wide">{hasCashedOut ? 'CASHED OUT' : 'PLACE BET'}</div>
+                  <div className="text-lg tracking-wide">{hasCashedOut ? 'CASHED OUT' : 'PLACE BET'}</div>
                   <div className="text-sm text-gray-400 font-medium">Waiting for next round</div>
                 </>
               )}
