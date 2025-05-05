@@ -107,6 +107,9 @@ export function extractBetAmount(data: any): number {
     return normalizeBetAmount(data);
   }
   
+  // Deep debug logging for the entire bet structure
+  console.log('DEBUGGING BET OPTIONS STRUCTURE:', JSON.stringify(data, null, 2));
+  
   // First, check for our specific Mines game nested structure
   // This is the main cause of our bug: { options: { amount: 200000, ... } }
   if (data.options && typeof data.options === 'object') {
@@ -126,16 +129,27 @@ export function extractBetAmount(data: any): number {
           usingOptAmount: optionsAmount > directAmount
         });
         
-        // Return the larger of the two amounts
-        return Math.max(optionsAmount, directAmount);
+        // Always use the direct amount parameter for consistency
+        return directAmount > 0 ? directAmount : optionsAmount;
       }
     }
     
     // Also check if options.options exists (deeply nested)
     if (data.options.options && typeof data.options.options === 'object') {
-      const deepAmount = normalizeBetAmount(data.options.options.amount);
-      if (deepAmount > 0) {
-        return deepAmount;
+      // Log the deeply nested structure
+      console.log('FOUND DEEPLY NESTED OPTIONS:', JSON.stringify(data.options.options, null, 2));
+      
+      if ('amount' in data.options.options && typeof data.options.options.amount !== 'undefined') {
+        const deepAmount = normalizeBetAmount(data.options.options.amount);
+        if (deepAmount > 0) {
+          console.log('Using deeply nested amount value:', deepAmount);
+          
+          // Also check the direct amount for comparison
+          const directAmount = 'amount' in data ? normalizeBetAmount(data.amount) : 0;
+          
+          // Always prefer the direct amount if it's valid
+          return directAmount > 0 ? directAmount : deepAmount;
+        }
       }
     }
   }
