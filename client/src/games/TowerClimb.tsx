@@ -531,8 +531,10 @@ const TowerClimb = () => {
   let betDisabled = isProcessingBet;
   
   if (gameState.isGameActive && !gameState.isGameOver) {
-    betButtonText = `Cash Out (${gameState.currentMultiplier.toFixed(2)}x)`;
+    betButtonText = `💰 Cash Out (${gameState.currentMultiplier.toFixed(2)}x)`;
     betAction = cashOut;
+    // Set betDisabled to false explicitly to ensure the cash out button works
+    betDisabled = false;
   } else if (gameState.isGameOver) {
     betButtonText = "Play Again";
     betAction = resetGame;
@@ -546,10 +548,8 @@ const TowerClimb = () => {
       onHalfBet={handleHalfBet}
       onDoubleBet={handleDoubleBet}
       onBet={betAction}
-      betButtonText={gameState.isGameActive && !gameState.isGameOver ? 
-        `Cash Out (${gameState.currentMultiplier.toFixed(2)}x)` : 
-        betButtonText}
-      betButtonDisabled={betDisabled || (gameState.isGameActive && !gameState.isGameOver)}
+      betButtonText={betButtonText}
+      betButtonDisabled={betDisabled}
     >
       {/* Mobile-friendly tower height selector using buttons instead of dropdown */}
       <div className="mb-3">
