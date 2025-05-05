@@ -64,6 +64,9 @@ const GameCard = ({
   const getImageSource = () => {
     // For games with Cloudinary images
     switch (name) {
+      case 'TOWER CLIMB':
+        // Using the new arrival image for Tower Climb
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746456001/ChatGPT_Image_May_5_2025_08_09_43_PM_yyk1nr.png';
       case 'CRICKET MINES':
         // Using original image as we'll add a banner to hide "STAKE ORIGINALS" text
         return 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png';
