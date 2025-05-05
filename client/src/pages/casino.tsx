@@ -8,7 +8,7 @@ import GameCard from '@/components/games/GameCard';
 
 const CasinoPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: apiGames = [], isLoading } = useQuery({
+  const { data: apiGames = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/games']
   });
   
@@ -35,21 +35,21 @@ const CasinoPage = () => {
       <div className="mb-6">
         <div className="mb-4">
           {/* New arrival highlight */}
-          <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 p-3 mb-4 rounded-lg border border-indigo-700">
+          <div className="bg-gradient-to-r from-green-900 via-green-800 to-green-900 p-3 mb-4 rounded-lg border border-green-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="bg-indigo-600 p-1.5 rounded-md mr-3">
+                <div className="bg-green-600 p-1.5 rounded-md mr-3">
                   <Sparkles className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">NEW ARRIVAL</h3>
-                  <p className="text-indigo-300 text-sm">Try our newest game: Tower Climb</p>
+                  <p className="text-green-300 text-sm">Try our newest game: Tower Climb</p>
                 </div>
               </div>
               <div>
                 <button 
                   onClick={() => window.location.href = '/games/tower-climb'}
-                  className="bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                  className="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
                 >
                   Play Now
                 </button>
@@ -76,7 +76,7 @@ const CasinoPage = () => {
               color={game.color}
               iconType={game.iconType}
               multiplier={game.maxMultiplier && game.maxMultiplier < 1000 ? `${game.maxMultiplier.toFixed(2)}x` : undefined}
-              imageUrl={apiGames.find((g: any) => g.id === game.id)?.imageUrl || null}
+              imageUrl={apiGames.find(g => g.id === game.id)?.imageUrl || null}
             />
           ))}
         </div>

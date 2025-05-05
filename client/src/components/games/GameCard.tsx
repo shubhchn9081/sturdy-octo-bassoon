@@ -298,7 +298,6 @@ const GameCard = ({
       className={cn(
         "game-card",
         "w-full max-w-[146px] mx-auto", // Exact width from Stake.com, centered on mobile
-        name === "TOWER CLIMB" ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#0E1821] rounded-t-lg transform hover:scale-105 transition-all" : "",
         className
       )}
       onClick={() => window.location.href = `/games/${slug}`}
@@ -327,7 +326,7 @@ const GameCard = ({
             {/* Banner to cover "STAKE ORIGINALS" text at bottom */}
             <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
               name === "TOWER CLIMB" 
-                ? "bg-gradient-to-r from-indigo-600 to-purple-500 animate-pulse" 
+                ? "bg-gradient-to-r from-green-700 to-green-500" 
                 : "bg-gradient-to-r from-green-600 to-green-400"
             }`}>
               {name === "TOWER CLIMB" ? "🔥 New Arrival 🔥" : "High RTP Game"}
