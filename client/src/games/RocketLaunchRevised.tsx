@@ -819,22 +819,22 @@ const RocketLaunchRevised: React.FC = () => {
         />
       )}
       
-      {/* Game status display */}
-      <div className="absolute top-4 left-0 right-0 flex justify-center">
-        <div className="bg-[#0F212E]/80 rounded-lg px-6 py-2 text-center">
+      {/* Game status display - Enhanced for mobile visibility */}
+      <div className="absolute top-2 md:top-4 left-0 right-0 flex justify-center z-30">
+        <div className="bg-[#0A1725]/90 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg px-4 md:px-6 py-2 md:py-3 text-center">
           {gameState === 'waiting' && (
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-400 animate-pulse" />
-              <span className="text-xl font-bold text-white">
+              <span className="text-base md:text-xl font-bold text-white">
                 {countdown === null ? 'Waiting to start...' : `Launch in ${countdown}s`}
               </span>
             </div>
           )}
           
           {gameState === 'running' && (
-            <div className="flex items-center gap-2 absolute top-0 right-0 bg-[#0F172A]/80 p-2 rounded-md z-30">
+            <div className="flex items-center gap-2">
               <Rocket className="h-5 w-5 text-[#2DD4BF] animate-pulse" />
-              <span className="text-2xl font-bold text-[#2DD4BF]">
+              <span className="text-xl md:text-2xl font-bold text-[#2DD4BF]">
                 {formatMultiplier(multiplier)}
               </span>
             </div>
@@ -843,7 +843,7 @@ const RocketLaunchRevised: React.FC = () => {
           {gameState === 'crashed' && (
             <div className="flex items-center gap-2">
               <Flame className="h-5 w-5 text-red-500" />
-              <span className="text-2xl font-bold text-red-500">
+              <span className="text-lg md:text-2xl font-bold text-red-500">
                 Crashed @ {formatMultiplier(crashPoint || 0)}
               </span>
             </div>
@@ -891,17 +891,17 @@ const RocketLaunchRevised: React.FC = () => {
           )}
         </div>
         
-        {/* Fuel gauge - responsive size for mobile */}
-        <div className="absolute bottom-4 left-4">
+        {/* Fuel gauge - responsive size for mobile with improved visibility */}
+        <div className="absolute bottom-4 left-4 bg-[#0A1725]/70 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg p-2 z-20">
           <FuelGauge 
             level={fuelLevel} 
-            size={gameContainerSize.width ? Math.min(150, gameContainerSize.width / 5) : 120} 
+            size={gameContainerSize.width ? Math.min(150, gameContainerSize.width / 4.5) : 120} 
           />
         </div>
       </div>
       
-      {/* Game history display - optimized for mobile */}
-      <div className="absolute bottom-4 right-4 bg-[#0F212E]/80 rounded-lg p-2 md:p-3">
+      {/* Game history display - optimized for mobile with better visibility */}
+      <div className="absolute bottom-4 right-4 bg-[#0A1725]/90 border border-blue-500/30 shadow-lg shadow-blue-500/20 rounded-lg p-2 md:p-3 z-20">
         <h3 className="text-xs md:text-sm font-medium text-white mb-1 md:mb-2">Recent Crashes</h3>
         <div className="flex flex-wrap gap-1 max-w-[160px] md:max-w-[180px]">
           {gameHistory.slice(0, gameContainerSize.width && gameContainerSize.width < 500 ? 6 : 8).map((item, index) => (
@@ -909,10 +909,10 @@ const RocketLaunchRevised: React.FC = () => {
               key={index}
               variant="outline"
               className={`
-                text-xs md:text-sm px-1.5 py-0.5
-                ${item.value < 2 ? 'bg-red-500/20 text-red-300' : 
-                  item.value < 10 ? 'bg-yellow-500/20 text-yellow-300' : 
-                    'bg-green-500/20 text-green-300'}
+                text-xs md:text-sm px-1.5 py-0.5 font-semibold
+                ${item.value < 2 ? 'bg-red-500/40 text-red-200 border-red-500/50' : 
+                  item.value < 10 ? 'bg-yellow-500/40 text-yellow-200 border-yellow-500/50' : 
+                    'bg-green-500/40 text-green-200 border-green-500/50'}
               `}
             >
               {item.value.toFixed(2)}×
