@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { useWallet } from '@/context/WalletContext';
 import { useGameBet } from '@/hooks/use-game-bet';
-import { toast } from '@/hooks/use-toast';
-import { GameLayout, GameControls, GamePanel } from '@/components/layout/GameLayout';
+import { useToast } from '@/hooks/use-toast';
+import GameLayout, { GameControls } from '@/components/games/GameLayout';
 import { Shield, Search, ZoomIn, ZapOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -445,129 +445,119 @@ const TowerClimb = () => {
     }
   };
   
+  // Handle bet amount changes
+  const handleBetAmountChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue >= 0) {
+      setGameState({...gameState, betAmount: numValue});
+    }
+  };
+  
+  // Handle half bet
+  const handleHalfBet = () => {
+    const halfAmount = gameState.betAmount / 2;
+    setGameState({...gameState, betAmount: Math.max(0.1, halfAmount)});
+  };
+  
+  // Handle double bet
+  const handleDoubleBet = () => {
+    const doubleAmount = gameState.betAmount * 2;
+    setGameState({...gameState, betAmount: Math.min(doubleAmount, balance)});
+  };
+  
+  // Function to reset game for play again
+  const resetGame = async () => {
+    setGameState({
+      ...gameState,
+      isGameActive: false,
+      isGameOver: false,
+      currentLevel: 0,
+      currentMultiplier: 1.0,
+      betId: null,
+      serverSeedHash: null,
+    });
+    return Promise.resolve();
+  };
+
+  // Determine bet button text and action
+  let betButtonText = "Start Climbing";
+  let betAction = startGame;
+  let betDisabled = isProcessingBet;
+  
+  if (gameState.isGameActive && !gameState.isGameOver) {
+    betButtonText = `Cash Out (${gameState.currentMultiplier.toFixed(2)}x)`;
+    betAction = cashOut;
+  } else if (gameState.isGameOver) {
+    betButtonText = "Play Again";
+    betAction = resetGame;
+  }
+  
   // Game controls panel
   const gameControlsPanel = (
-    <GameControls>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-muted-foreground mb-2">Bet Amount</label>
-          <Input
-            type="number"
-            min="0.1"
-            step="0.1"
-            value={gameState.betAmount}
-            onChange={(e) => setGameState({...gameState, betAmount: parseFloat(e.target.value) || 0})}
-            disabled={gameState.isGameActive}
-            className="w-full bg-panel-bg text-foreground"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-muted-foreground mb-2">Tower Height</label>
-          <Select
-            value={gameState.towerHeight.toString()}
-            onValueChange={(value) => setGameState({...gameState, towerHeight: parseInt(value)})}
-            disabled={gameState.isGameActive}
-          >
-            <SelectTrigger className="w-full bg-panel-bg text-foreground">
-              <SelectValue placeholder="Select tower height" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5 Levels (Easy)</SelectItem>
-              <SelectItem value="10">10 Levels (Medium)</SelectItem>
-              <SelectItem value="15">15 Levels (Hard)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <label className="block text-muted-foreground mb-2">Current Multiplier</label>
-          <Input
-            type="text"
-            value={`${gameState.currentMultiplier.toFixed(2)}x`}
-            readOnly
-            className="w-full bg-panel-bg text-foreground"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-muted-foreground mb-2">Potential Profit</label>
-          <Input
-            type="text"
-            value={formatCrypto(profit)}
-            readOnly
-            className="w-full bg-panel-bg text-foreground"
-          />
-        </div>
-        
-        <div className="space-x-2 mt-4">
-          {!gameState.isGameActive && !gameState.isGameOver && (
-            <Button 
-              variant="default" 
-              className="w-full" 
-              onClick={startGame}
-              disabled={isProcessingBet}
-            >
-              Start Climbing
-            </Button>
-          )}
-          
-          {gameState.isGameActive && !gameState.isGameOver && (
-            <Button 
-              variant="destructive" 
-              className="w-full"
-              onClick={cashOut}
-              disabled={isProcessingBet}
-            >
-              Cash Out ({gameState.currentMultiplier.toFixed(2)}x)
-            </Button>
-          )}
-          
-          {gameState.isGameOver && (
-            <Button 
-              variant="default" 
-              className="w-full" 
-              onClick={() => {
-                setGameState({
-                  ...gameState,
-                  isGameActive: false,
-                  isGameOver: false,
-                  currentLevel: 0,
-                  currentMultiplier: 1.0,
-                  betId: null,
-                  serverSeedHash: null,
-                });
-              }}
-            >
-              Play Again
-            </Button>
-          )}
-        </div>
-        
-        {/* Fairness verification section */}
-        {gameState.serverSeedHash && (
-          <div className="mt-4 border-t pt-4">
-            <h3 className="text-sm font-semibold mb-2">Provably Fair</h3>
-            <div className="text-xs overflow-hidden text-ellipsis">
-              <p className="mb-1">
-                <span className="font-medium">Server Seed Hash:</span>
-                <br />
-                <span className="text-muted-foreground break-all">{gameState.serverSeedHash}</span>
-              </p>
-              <p className="mb-1">
-                <span className="font-medium">Client Seed:</span>
-                <br />
-                <span className="text-muted-foreground break-all">{clientSeed}</span>
-              </p>
-              <p>
-                <span className="font-medium">Nonce:</span>
-                <br />
-                <span className="text-muted-foreground">{nonce}</span>
-              </p>
-            </div>
-          </div>
-        )}
+    <GameControls
+      betAmount={gameState.betAmount.toString()}
+      onBetAmountChange={handleBetAmountChange}
+      onHalfBet={handleHalfBet}
+      onDoubleBet={handleDoubleBet}
+      onBet={betAction}
+      betButtonText={betButtonText}
+      betButtonDisabled={betDisabled || (gameState.isGameActive && !gameState.isGameOver)}
+    >
+      <div>
+        <label className="block text-gray-400 mb-2 text-sm">Tower Height</label>
+        <Select
+          value={gameState.towerHeight.toString()}
+          onValueChange={(value) => setGameState({...gameState, towerHeight: parseInt(value)})}
+          disabled={gameState.isGameActive}
+        >
+          <SelectTrigger className="w-full bg-[#243442] text-white border-none">
+            <SelectValue placeholder="Select tower height" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="5">5 Levels (Easy)</SelectItem>
+            <SelectItem value="10">10 Levels (Medium)</SelectItem>
+            <SelectItem value="15">15 Levels (Hard)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+      
+      <div className="mt-4">
+        <label className="block text-gray-400 mb-2 text-sm">Current Multiplier</label>
+        <div className="bg-[#243442] p-2 rounded text-white">
+          {gameState.currentMultiplier.toFixed(2)}x
+        </div>
+      </div>
+      
+      <div className="mt-4">
+        <label className="block text-gray-400 mb-2 text-sm">Potential Profit</label>
+        <div className="bg-[#243442] p-2 rounded text-white">
+          {formatCrypto(profit)}
+        </div>
+      </div>
+      
+      {/* Fairness verification section */}
+      {gameState.serverSeedHash && (
+        <div className="mt-4 border-t border-gray-700 pt-4">
+          <h3 className="text-sm font-semibold mb-2 text-white">Provably Fair</h3>
+          <div className="text-xs overflow-hidden text-ellipsis">
+            <p className="mb-1">
+              <span className="font-medium text-white">Server Seed Hash:</span>
+              <br />
+              <span className="text-gray-400 break-all">{gameState.serverSeedHash}</span>
+            </p>
+            <p className="mb-1">
+              <span className="font-medium text-white">Client Seed:</span>
+              <br />
+              <span className="text-gray-400 break-all">{clientSeed}</span>
+            </p>
+            <p>
+              <span className="font-medium text-white">Nonce:</span>
+              <br />
+              <span className="text-gray-400">{nonce}</span>
+            </p>
+          </div>
+        </div>
+      )}
     </GameControls>
   );
   
