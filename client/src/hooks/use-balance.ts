@@ -70,15 +70,31 @@ export const useBalance = (currency: SupportedCurrency) => {
       console.log('Placing bet with data:', betData);
       
       try {
-        const res = await apiRequest('POST', '/api/bets/place', betData);
+        // Explicitly use fetch with error handling instead of apiRequest
+        const response = await fetch('/api/bets/place', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(betData),
+          credentials: 'include'
+        });
         
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error('Bet placement error:', errorData);
-          throw new Error(errorData.message || 'Error placing bet');
+        // Get response data
+        const responseData = await response.json();
+        
+        // Handle both successful and error responses
+        if (!response.ok) {
+          console.error('Bet placement error:', responseData);
+          throw new Error(responseData.message || 'Error placing bet');
         }
         
-        return res.json();
+        // Even if response.ok is true, check for success: false in the response body
+        if (responseData && responseData.success === false) {
+          console.error('Bet placement reported failure:', responseData);
+          throw new Error(responseData.message || 'Failed to place bet');
+        }
+        
+        console.log('Bet placed successfully:', responseData);
+        return responseData;
       } catch (error) {
         console.error('Bet API error:', error);
         throw error;
