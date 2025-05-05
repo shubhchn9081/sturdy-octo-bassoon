@@ -5,14 +5,17 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
   size, 
   flameActive = true 
 }) => {
-  // Preload the rocket image
+  // Preload the rocket image - using direct Cloudinary URL
   const [imageLoaded, setImageLoaded] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
+  
+  // Direct Cloudinary URL
+  const rocketImageUrl = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746465473/erasebg-transformed_rqzmrs.png';
 
   useEffect(() => {
     const img = new Image();
     img.onload = () => setImageLoaded(true);
-    img.src = '/new-rocket.png';
+    img.src = rocketImageUrl;
 
     if (imageRef.current && imageRef.current.complete) {
       setImageLoaded(true);
@@ -26,10 +29,10 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
 
   return (
     <div className="relative" style={{ width: rocketWidth, height: rocketHeight + (flameActive ? size * 0.6 : 0) }}>
-      {/* Rocket Image */}
+      {/* Rocket Image - using direct Cloudinary URL */}
       <img 
         ref={imageRef}
-        src="/new-rocket.png" 
+        src={rocketImageUrl} 
         alt="Rocket"
         className={`absolute top-0 left-0 w-full h-auto transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{ 
