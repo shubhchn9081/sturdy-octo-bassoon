@@ -312,14 +312,15 @@ const RocketLaunchRevised: React.FC = () => {
   };
   
   // Function to determine atmosphere stage based on multiplier
+  // Adjusted for slower progression through the atmosphere stages
   const getAtmosphereStage = (multiplier: number): AtmosphereStageType => {
-    if (multiplier < 1.5) return 'ground';
-    if (multiplier < 2.0) return 'troposphere';
-    if (multiplier < 3.0) return 'stratosphere';
-    if (multiplier < 5.0) return 'mesosphere';
-    if (multiplier < 10.0) return 'thermosphere';
-    if (multiplier < 20.0) return 'exosphere';
-    return 'space';
+    if (multiplier < 1.25) return 'ground';           // First stage from 1.00x to 1.25x
+    if (multiplier < 1.60) return 'troposphere';      // Second stage from 1.25x to 1.60x
+    if (multiplier < 2.00) return 'stratosphere';     // Third stage from 1.60x to 2.00x  
+    if (multiplier < 2.50) return 'mesosphere';       // Fourth stage from 2.00x to 2.50x
+    if (multiplier < 3.50) return 'thermosphere';     // Fifth stage from 2.50x to 3.50x
+    if (multiplier < 5.00) return 'exosphere';        // Sixth stage from 3.50x to 5.00x
+    return 'space';                                   // Final stage above 5.00x
   };
   
   // Reset the game for a new round
@@ -417,8 +418,10 @@ const RocketLaunchRevised: React.FC = () => {
         growthRate = 0.1; // Even faster in storm
       }
       
-      // Calculate new multiplier
-      let newMultiplier = baseMultiplier * Math.exp(growthRate * elapsed);
+      // Calculate new multiplier - using SIGNIFICANTLY SLOWER growth for better UX
+      // We're reducing the growth rate significantly to make the game last longer
+      let slowedGrowthRate = growthRate * 0.25; // 75% slower growth
+      let newMultiplier = baseMultiplier * Math.exp(slowedGrowthRate * elapsed);
       
       // Round to 2 decimal places for display
       newMultiplier = Math.floor(newMultiplier * 100) / 100;
@@ -427,13 +430,14 @@ const RocketLaunchRevised: React.FC = () => {
       // Calculate fuel level (decreases as multiplier increases)
       const newFuelLevel = Math.max(0, 1.0 - (newMultiplier - 1.0) / (newCrashPoint - 1.0));
       
-      // Determine atmosphere stage
+      // Determine atmosphere stage - increased thresholds for slower progression
       const newAtmosphereStage = getAtmosphereStage(newMultiplier);
       
-      // Update rocket position - rises slower initially, then faster
+      // Update rocket position - MUCH slower ascent
+      // Making the rocket rise much more gradually
       const newRocketPosition = {
         x: 50, // Horizontal position is fixed
-        y: Math.max(5, 80 - (Math.pow(newMultiplier - 1, 1.2) * 10)) // Rocket rises as multiplier increases
+        y: Math.max(5, 80 - (Math.pow(newMultiplier - 1, 0.8) * 4)) // Slower ascent - smaller multiplier (4 instead of 10) and lower exponent (0.8 instead of 1.2)
       };
       
       // Check for auto cashout

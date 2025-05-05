@@ -284,65 +284,121 @@ export const AtmosphereStage: React.FC<{
             <div className="absolute bottom-[5%] left-[15%] w-[70%] h-[3%] bg-white/10 rounded-full" />
             <div className="absolute bottom-[12%] right-[5%] w-[50%] h-[2%] bg-white/10 rounded-full" />
             
-            {/* Earth curve visible at bottom */}
-            <div 
-              className="absolute bottom-[-50%] left-[-10%] right-[-10%] h-[60%] bg-blue-800 rounded-[100%]" 
-            />
+            {/* Subtle horizon line instead of big earth curve */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2%] bg-blue-800/30" />
           </div>
         );
         
       case 'mesosphere':
         return (
           <div className="absolute inset-0">
-            {/* Earth curve more pronounced */}
-            <div 
-              className="absolute bottom-[-65%] left-[-20%] right-[-20%] h-[70%] bg-blue-900 rounded-[100%]" 
-            />
+            {/* Just a thin horizon line */}
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-blue-700/40" />
             
             {/* Auroras */}
             <div className="absolute bottom-[10%] left-[10%] right-[10%] h-[15%] bg-green-500/10 blur-xl" />
             <div className="absolute bottom-[5%] left-[5%] right-[5%] h-[10%] bg-blue-500/10 blur-xl" />
+            
+            {/* Stars appearing in the distance */}
+            {Array.from({ length: 15 }).map((_, i) => (
+              <div 
+                key={i}
+                className="absolute bg-white rounded-full"
+                style={{
+                  top: `${Math.random() * 60}%`,
+                  left: `${Math.random() * 100}%`,
+                  width: `${1 + Math.random() * 2}px`,
+                  height: `${1 + Math.random() * 2}px`,
+                  opacity: 0.2 + Math.random() * 0.4
+                }}
+              />
+            ))}
           </div>
         );
         
       case 'thermosphere':
         return (
           <div className="absolute inset-0">
-            {/* Earth curve from high above */}
-            <div 
-              className="absolute bottom-[-85%] left-[-30%] right-[-30%] h-[90%] bg-blue-950 rounded-[100%]" 
-            />
+            {/* No visible earth, just stars and auroras */}
             
             {/* Auroras */}
             <div className="absolute bottom-[5%] left-[5%] right-[5%] h-[20%] bg-purple-500/15 blur-xl" />
             <div className="absolute bottom-[0%] left-[0%] right-[0%] h-[15%] bg-green-500/15 blur-xl" />
+            
+            {/* Stars */}
+            {Array.from({ length: 30 }).map((_, i) => (
+              <div 
+                key={i}
+                className="absolute bg-white rounded-full"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  width: `${1 + Math.random() * 2}px`,
+                  height: `${1 + Math.random() * 2}px`,
+                  opacity: 0.4 + Math.random() * 0.6
+                }}
+              />
+            ))}
           </div>
         );
         
       case 'exosphere':
         return (
           <div className="absolute inset-0">
-            {/* Earth visible as a curved surface in distance */}
-            <div 
-              className="absolute bottom-[-150%] left-[-50%] right-[-50%] h-[160%] bg-blue-950/80 rounded-[100%]" 
-            />
+            {/* Very subtle atmospheric glow instead of large earth */}
+            <div className="absolute bottom-0 left-0 right-0 h-[5%] bg-blue-500/5 blur-xl" />
             
-            {/* Subtle atmospheric glow */}
-            <div className="absolute bottom-[-10%] left-0 right-0 h-[15%] bg-blue-500/10 blur-xl" />
+            {/* Many stars */}
+            {Array.from({ length: 50 }).map((_, i) => (
+              <div 
+                key={i}
+                className="absolute bg-white rounded-full"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  width: `${1 + Math.random() * 3}px`,
+                  height: `${1 + Math.random() * 3}px`,
+                  opacity: 0.5 + Math.random() * 0.5
+                }}
+              />
+            ))}
+            
+            {/* Distant galaxies */}
+            <div className="absolute top-[20%] left-[10%] w-[15%] h-[8%] bg-purple-500/10 blur-lg rounded-full" />
+            <div className="absolute top-[60%] right-[20%] w-[10%] h-[5%] bg-blue-500/10 blur-lg rounded-full" />
           </div>
         );
         
       case 'space':
         return (
           <div className="absolute inset-0">
-            {/* Earth visible as a small blue marble */}
+            {/* Small distant earth instead of huge blue circle */}
             <div 
-              className="absolute bottom-[-250%] left-[-150%] right-[-150%] h-[300%] bg-blue-950/70 rounded-full border border-blue-400/30" 
+              className="absolute bottom-[5%] right-[10%] w-[5%] h-[5%] bg-blue-600/60 rounded-full border border-blue-400/30" 
             />
             
             {/* Space debris/satellites */}
             <div className="absolute top-[30%] left-[20%] w-[2%] h-[0.5%] bg-gray-300 rotate-45" />
             <div className="absolute top-[60%] right-[30%] w-[3%] h-[1%] bg-gray-400 -rotate-30" />
+            
+            {/* Many bright stars */}
+            {Array.from({ length: 70 }).map((_, i) => (
+              <div 
+                key={i}
+                className="absolute bg-white rounded-full"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  width: `${1 + Math.random() * 3}px`,
+                  height: `${1 + Math.random() * 3}px`,
+                  opacity: 0.6 + Math.random() * 0.4
+                }}
+              />
+            ))}
+            
+            {/* Distant nebulae */}
+            <div className="absolute top-[40%] left-[30%] w-[25%] h-[20%] bg-purple-500/5 blur-xl rounded-full" />
+            <div className="absolute top-[20%] right-[40%] w-[15%] h-[10%] bg-blue-500/5 blur-xl rounded-full" />
           </div>
         );
         
