@@ -151,6 +151,9 @@ const TowerClimb = () => {
       return;
     }
     
+    // Reset the level refs array to match tower height
+    levelRefs.current = new Array(gameState.towerHeight).fill(null);
+    
     try {
       // Place bet using the game bet hook
       const response = await placeGameBet({
@@ -667,7 +670,8 @@ const TowerClimb = () => {
       <div className="flex-1 flex flex-col-reverse justify-start items-center overflow-y-auto py-2 md:py-4 space-y-reverse space-y-2 md:space-y-4">
         {gameState.towerLayout.map((level, levelIndex) => (
           <div 
-            key={`level-${levelIndex}`} 
+            key={`level-${levelIndex}`}
+            ref={el => levelRefs.current[levelIndex] = el} 
             className={cn(
               "flex justify-center space-x-2 md:space-x-4 mb-2 md:mb-4 p-1 md:p-2 rounded w-full",
               levelIndex === gameState.currentLevel ? "bg-accent/50" : ""
