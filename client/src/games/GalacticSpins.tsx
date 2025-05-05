@@ -235,7 +235,7 @@ const GalacticSpins = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <label className="text-sm text-gray-400">Bet Amount ({balance?.currency || 'INR'})</label>
+                      <label className="text-sm text-gray-400">Bet Amount (INR)</label>
                       <span className="text-sm">{betAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -282,7 +282,7 @@ const GalacticSpins = () => {
                     <div className="flex justify-between items-center pt-1">
                       <div>
                         <label className="text-sm text-gray-400">Total Bet</label>
-                        <div className="text-lg font-bold">{calculateTotalBet().toFixed(2)} {balance?.currency || 'INR'}</div>
+                        <div className="text-lg font-bold">{calculateTotalBet().toFixed(2)} INR</div>
                       </div>
                       <div className="space-x-2">
                         <Button
@@ -357,7 +357,7 @@ const GalacticSpins = () => {
                     )}
                   </div>
                   <div className={result.win ? 'text-green-400' : 'text-gray-400'}>
-                    {result.win ? `+${result.winAmount.toFixed(2)}` : '0.00'} {balance?.currency || 'INR'}
+                    {result.win ? `+${result.winAmount.toFixed(2)}` : '0.00'} INR
                   </div>
                 </div>
               ))
