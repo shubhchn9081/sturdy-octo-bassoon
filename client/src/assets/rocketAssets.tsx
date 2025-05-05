@@ -1,74 +1,122 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-// Rocket ship component
+// Rocket ship component using the new image
 export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({ 
   size, 
   flameActive = true 
 }) => {
+  // Preload the rocket image
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setImageLoaded(true);
+    img.src = '/new-rocket.png';
+
+    if (imageRef.current && imageRef.current.complete) {
+      setImageLoaded(true);
+    }
+  }, []);
+
+  // Calculate aspect ratio for the rocket
+  const aspect = 1.2; // Adjust based on the actual image aspect ratio
+  const rocketWidth = size;
+  const rocketHeight = size * aspect;
+
   return (
-    <div className="relative" style={{ width: size, height: size * 2 }}>
-      {/* Rocket body */}
-      <div 
-        className="absolute w-full h-[60%] bg-gradient-to-b from-white to-gray-300 rounded-full"
+    <div className="relative" style={{ width: rocketWidth, height: rocketHeight + (flameActive ? size * 0.6 : 0) }}>
+      {/* Rocket Image */}
+      <img 
+        ref={imageRef}
+        src="/new-rocket.png" 
+        alt="Rocket"
+        className={`absolute top-0 left-0 w-full h-auto transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{ 
-          top: '10%',
-          clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)'
+          filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))',
+          objectFit: 'contain',
         }}
-      >
-        {/* Windows */}
-        <div className="absolute w-[30%] h-[20%] bg-blue-400 rounded-full left-[35%] top-[20%]" />
-        <div className="absolute w-[20%] h-[15%] bg-blue-400 rounded-full left-[40%] top-[50%]" />
-      </div>
-      
-      {/* Rocket nose */}
-      <div 
-        className="absolute w-[60%] h-[20%] bg-red-500 rounded-t-full"
-        style={{ 
-          left: '20%',
-          top: '0%'
-        }}
+        onLoad={() => setImageLoaded(true)}
       />
       
-      {/* Rocket fins */}
-      <div 
-        className="absolute w-[30%] h-[20%] bg-red-500"
-        style={{ 
-          left: '-15%',
-          bottom: '20%',
-          transform: 'skew(30deg, 0deg)'
-        }}
-      />
-      <div 
-        className="absolute w-[30%] h-[20%] bg-red-500"
-        style={{ 
-          right: '-15%',
-          bottom: '20%',
-          transform: 'skew(-30deg, 0deg)'
-        }}
-      />
+      {/* Placeholder while image loads */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 bg-gray-800 animate-pulse rounded-lg opacity-50" />
+      )}
       
-      {/* Rocket base */}
-      <div 
-        className="absolute w-[80%] h-[10%] bg-gray-700 rounded-b-lg"
-        style={{ 
-          left: '10%',
-          bottom: '10%'
-        }}
-      />
-      
-      {/* Flame effect when active */}
+      {/* Enhanced Realistic Flame Effect */}
       {flameActive && (
-        <div className="absolute" style={{ bottom: '0%', left: '20%', width: '60%', height: '30%' }}>
-          <div className="h-full w-full relative overflow-hidden">
-            <div className="absolute inset-0 flex justify-center items-end">
-              <div className="w-full animate-flame-outer">
-                <div className="h-full w-full bg-orange-500 rounded-t-full animate-flame" />
-              </div>
-              <div className="w-[60%] absolute animate-flame-inner">
-                <div className="h-full w-full bg-yellow-300 rounded-t-full animate-flame-fast" />
-              </div>
+        <div className="absolute" style={{ 
+          bottom: '-40%', 
+          left: '42%', 
+          width: '16%', 
+          height: '60%',
+          transform: 'translateX(-50%)',
+          zIndex: -1, // Place flames behind the rocket
+        }}>
+          {/* Main outer flame */}
+          <div className="absolute h-full w-full">
+            <div className="absolute w-[300%] left-[-100%]">
+              <div className="h-full w-full bg-gradient-to-t from-transparent via-orange-500 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[2px]" 
+                style={{ filter: 'brightness(1.5)' }} />
             </div>
           </div>
+          
+          {/* Middle flame layer */}
+          <div className="absolute h-[90%] w-[80%] left-[10%]">
+            <div className="h-full w-full bg-gradient-to-t from-transparent via-yellow-400 to-white rounded-b-[50%] animate-flame blur-sm" />
+          </div>
+          
+          {/* Inner bright core */}
+          <div className="absolute h-[70%] w-[60%] left-[20%]">
+            <div className="h-full w-full bg-gradient-to-t from-transparent via-white to-blue-100 rounded-b-[50%] animate-flame-fast" 
+              style={{ filter: 'brightness(1.3)' }} />
+          </div>
+          
+          {/* Second outer flame */}
+          <div className="absolute h-full w-full left-[30%]">
+            <div className="absolute w-[300%] left-[-100%]">
+              <div className="h-[90%] w-[70%] bg-gradient-to-t from-transparent via-orange-600 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[3px]" 
+                style={{ filter: 'brightness(1.4)' }} />
+            </div>
+          </div>
+          
+          {/* Flame glow effect */}
+          <div className="absolute bottom-[20%] left-[-50%] w-[200%] h-[30%] bg-orange-500 rounded-full opacity-30 blur-xl animate-pulse-slow" />
+        </div>
+      )}
+      
+      {/* Second flame on the right */}
+      {flameActive && (
+        <div className="absolute" style={{ 
+          bottom: '-35%', 
+          left: '58%', 
+          width: '16%', 
+          height: '55%',
+          transform: 'translateX(-50%)',
+          zIndex: -1, // Place flames behind the rocket
+        }}>
+          {/* Main outer flame */}
+          <div className="absolute h-full w-full">
+            <div className="absolute w-[300%] left-[-100%]">
+              <div className="h-full w-full bg-gradient-to-t from-transparent via-orange-500 to-yellow-500 rounded-b-[50%] animate-flame-outer blur-[2px]" 
+                style={{ filter: 'brightness(1.5)' }} />
+            </div>
+          </div>
+          
+          {/* Middle flame layer */}
+          <div className="absolute h-[90%] w-[80%] left-[10%]">
+            <div className="h-full w-full bg-gradient-to-t from-transparent via-yellow-400 to-white rounded-b-[50%] animate-flame blur-sm" />
+          </div>
+          
+          {/* Inner bright core */}
+          <div className="absolute h-[70%] w-[60%] left-[20%]">
+            <div className="h-full w-full bg-gradient-to-t from-transparent via-white to-blue-100 rounded-b-[50%] animate-flame-fast" 
+              style={{ filter: 'brightness(1.3)' }} />
+          </div>
+          
+          {/* Flame glow effect */}
+          <div className="absolute bottom-[20%] left-[-50%] w-[200%] h-[30%] bg-orange-500 rounded-full opacity-30 blur-xl animate-pulse-slow" />
         </div>
       )}
     </div>
