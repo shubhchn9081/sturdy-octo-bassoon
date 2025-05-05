@@ -34,20 +34,26 @@ export const useGameBet = (gameId: number) => {
   const [error, setError] = useState<string | null>(null);
   
   // Place a bet for any game type
-  const handlePlaceBet = async (options?: Record<string, any>) => {
+  const handlePlaceBet = async (betOptions?: Record<string, any>) => {
     // Clear any previous errors
     setError(null);
     
+    // Get client seed from options or generate one
+    const clientSeed = betOptions?.clientSeed || Math.random().toString(36).substring(2, 15);
+    
+    // Get bet amount from options or use default
+    const amountToUse = betOptions?.amount || betAmount;
+    
     console.log("Placing bet with data:", {
-      amount: betAmount,
-      gameId,
-      clientSeed: Math.random().toString(36).substring(2, 15),
-      options,
+      amount: amountToUse,
+      gameId: betOptions?.gameId || gameId,
+      clientSeed,
+      options: betOptions?.options,
       currency: 'INR'
     });
     
     // Validate bet amount - properly parse it first to ensure it's a valid number
-    const numericBetAmount = parseFloat(betAmount as any);
+    const numericBetAmount = parseFloat(amountToUse as any);
     
     if (isNaN(numericBetAmount) || numericBetAmount <= 0) {
       const errorMsg = 'Bet amount must be a valid positive number';
@@ -91,24 +97,18 @@ export const useGameBet = (gameId: number) => {
     try {
       setIsProcessingBet(true);
       
-      // Generate a client seed for provably fair gameplay
-      const clientSeed = Math.random().toString(36).substring(2, 15);
-      
-      // Special handling for Tower Climb game
-      const gameOptions = gameId === 101 ? { towerHeight: options?.towerHeight || 10 } : options;
-      
       // Call the bet API - INR currency is handled on the server side
       console.log('Making bet API call with amounts:', {
         numericBetAmount,
-        originalAmount: betAmount,
+        originalAmount: amountToUse,
         formattedAmount: numericBetAmount.toFixed(2)
       });
       
       const betData = await placeBet.mutateAsync({
-        gameId,
+        gameId: betOptions?.gameId || gameId,
         amount: numericBetAmount, // Always use the numeric parsed value
         clientSeed,
-        options: gameOptions
+        options: betOptions?.options
       });
       
       console.log('Bet placed successfully, response:', betData);

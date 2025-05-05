@@ -201,14 +201,18 @@ const MinesGame = () => {
       // Make sure we use the correct bet amount - must be at least 100 for minimum bet requirement
       const safeBetAmount = Math.max(100, betAmount);
       
-      // Place bet using our unified wallet system - ensuring the amount is in the main parameter
+      // Generate a client seed for provably fair gameplay
+      const clientSeed = Math.random().toString(36).substring(2, 12);
+      
+      // Place bet using our unified wallet system - fixing the format
       const response = await placeGameBet({
-        amount: safeBetAmount, // Always ensure minimum bet amount
-        options: { 
+        amount: safeBetAmount,
+        gameId: 1,
+        clientSeed,
+        options: {
           mineCount,
-          totalCells: TOTAL_CELLS 
-        },
-        autoCashout: null
+          totalCells: TOTAL_CELLS
+        }
       });
       
       // Store the bet ID from the response
