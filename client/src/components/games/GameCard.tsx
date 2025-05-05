@@ -308,8 +308,12 @@ const GameCard = ({
             />
             
             {/* Banner to cover "STAKE ORIGINALS" text at bottom */}
-            <div className="absolute bottom-0 left-0 w-full bg-gradient-to-r from-green-600 to-green-400 py-1 px-2 text-white text-xs font-semibold text-center">
-              High RTP Game
+            <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
+              name === "TOWER CLIMB" 
+                ? "bg-gradient-to-r from-indigo-600 to-purple-500 animate-pulse" 
+                : "bg-gradient-to-r from-green-600 to-green-400"
+            }`}>
+              {name === "TOWER CLIMB" ? "🔥 New Arrival 🔥" : "High RTP Game"}
             </div>
           </>
         )}
