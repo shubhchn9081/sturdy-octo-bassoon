@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Ban, CheckCircle, ChevronsUpDown, Edit, Lock, Plus, RefreshCw, Shield, Trash2, Unlock, Users } from "lucide-react";
+import { AlertCircle, Ban, CheckCircle, ChevronsUpDown, Edit, History, Lock, Plus, RefreshCw, Shield, Trash2, Unlock, Users, Wallet } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
@@ -65,6 +65,16 @@ export default function AdminPage() {
   const [globalControlAffectedGames, setGlobalControlAffectedGames] = useState<number[]>([]);
   const [globalTargetMultiplier, setGlobalTargetMultiplier] = useState<number>(2.0);
   const [globalUseExactMultiplier, setGlobalUseExactMultiplier] = useState<boolean>(false);
+  
+  // Withdrawals state
+  const [withdrawalSearchQuery, setWithdrawalSearchQuery] = useState("");
+  const [withdrawalSortOrder, setWithdrawalSortOrder] = useState<"newest" | "oldest">("newest");
+  const [withdrawalStatusFilter, setWithdrawalStatusFilter] = useState<string>("all");
+  
+  // User activity state
+  const [activityUserId, setActivityUserId] = useState<number | null>(null);
+  const [activityGameId, setActivityGameId] = useState<number | null>(null);
+  const [activityDateRange, setActivityDateRange] = useState<"all" | "today" | "week" | "month">("all");
   
   // Redirect if not admin
   useEffect(() => {
@@ -373,6 +383,77 @@ export default function AdminPage() {
       });
     }
   });
+  
+  // Fetch withdrawals
+  const { data: withdrawals, isLoading: withdrawalsLoading } = useQuery({
+    queryKey: ['/api/admin/withdrawals'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/transactions?type=WITHDRAWAL");
+      return await response.json();
+    },
+    enabled: user?.isAdmin === true && selectedTab === "withdrawals"
+  });
+  
+  // Approve withdrawal
+  const approveWithdrawalMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("POST", `/api/admin/transactions/${id}/approve`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/withdrawals'] });
+      toast({
+        title: "Success",
+        description: "Withdrawal has been approved",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve withdrawal",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Reject withdrawal
+  const rejectWithdrawalMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("POST", `/api/admin/transactions/${id}/reject`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/withdrawals'] });
+      toast({
+        title: "Success",
+        description: "Withdrawal has been rejected",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reject withdrawal",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Fetch user activity data (bets)
+  const { data: userBets, isLoading: userBetsLoading } = useQuery({
+    queryKey: ['/api/admin/user-activity', activityUserId, activityGameId, activityDateRange],
+    queryFn: async () => {
+      // Build the query parameters
+      const params = new URLSearchParams();
+      if (activityUserId) params.append('userId', activityUserId.toString());
+      if (activityGameId) params.append('gameId', activityGameId.toString());
+      if (activityDateRange !== 'all') params.append('dateRange', activityDateRange);
+      
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+      const response = await apiRequest("GET", `/api/admin/bets${queryString}`);
+      return await response.json();
+    },
+    enabled: user?.isAdmin === true && selectedTab === "activity"
+  });
 
   // Handle edit balance
   const handleEditBalance = () => {
@@ -423,6 +504,43 @@ export default function AdminPage() {
   // Toggle sort order
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === "newest" ? "oldest" : "newest");
+  };
+  
+  // Filter withdrawals
+  const filteredWithdrawals = useMemo(() => {
+    if (!withdrawals) return [];
+    
+    // Filter by search query
+    let filtered = withdrawals.filter((transaction: Transaction) => {
+      if (!withdrawalSearchQuery) return true;
+      
+      const query = withdrawalSearchQuery.toLowerCase();
+      // Search by user ID, username, or description
+      return (
+        transaction.userId.toString().includes(query) ||
+        (transaction.description && transaction.description.toLowerCase().includes(query))
+      );
+    });
+    
+    // Filter by status
+    if (withdrawalStatusFilter !== 'all') {
+      filtered = filtered.filter((transaction: Transaction) => 
+        transaction.status.toLowerCase() === withdrawalStatusFilter.toLowerCase()
+      );
+    }
+    
+    // Sort by date
+    return filtered.sort((a: Transaction, b: Transaction) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      
+      return withdrawalSortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+  }, [withdrawals, withdrawalSearchQuery, withdrawalStatusFilter, withdrawalSortOrder]);
+  
+  // Toggle withdrawal sort order
+  const toggleWithdrawalSortOrder = () => {
+    setWithdrawalSortOrder(withdrawalSortOrder === "newest" ? "oldest" : "newest");
   };
   
   // Download users as CSV
@@ -1049,6 +1167,295 @@ export default function AdminPage() {
             </CardContent>
           </Card>
           </div>
+        </TabsContent>
+
+        {/* Withdrawals Tab */}
+        <TabsContent value="withdrawals">
+          <Card>
+            <CardHeader>
+              <CardTitle>Withdrawal Management</CardTitle>
+              <CardDescription>
+                View and process user withdrawal requests
+              </CardDescription>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4 justify-between items-end">
+                <div className="relative w-full sm:w-auto">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by user ID or description..."
+                    className="pl-8 w-full sm:w-[300px]"
+                    value={withdrawalSearchQuery}
+                    onChange={(e) => setWithdrawalSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <select 
+                    className="border border-gray-300 rounded-md p-2 bg-background"
+                    value={withdrawalStatusFilter}
+                    onChange={(e) => setWithdrawalStatusFilter(e.target.value)}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleWithdrawalSortOrder}
+                    className="flex items-center gap-1"
+                  >
+                    {withdrawalSortOrder === "newest" ? (
+                      <>
+                        <SortDesc className="h-4 w-4" /> Newest First
+                      </>
+                    ) : (
+                      <>
+                        <SortAsc className="h-4 w-4" /> Oldest First
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {withdrawalsLoading ? (
+                <div className="flex justify-center my-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>User ID</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredWithdrawals.length > 0 ? (
+                      filteredWithdrawals.map((transaction: Transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell>{transaction.id}</TableCell>
+                          <TableCell>{transaction.userId}</TableCell>
+                          <TableCell>{transaction.amount.toFixed(2)} {transaction.currency}</TableCell>
+                          <TableCell>{transaction.description || "Standard Withdrawal"}</TableCell>
+                          <TableCell>
+                            {transaction.status === "PENDING" && (
+                              <Badge variant="outline" className="text-yellow-500 border-yellow-500">Pending</Badge>
+                            )}
+                            {transaction.status === "COMPLETED" && (
+                              <Badge variant="default" className="bg-green-600">Completed</Badge>
+                            )}
+                            {transaction.status === "REJECTED" && (
+                              <Badge variant="destructive">Rejected</Badge>
+                            )}
+                            {transaction.status === "FAILED" && (
+                              <Badge variant="destructive">Failed</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(transaction.createdAt).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="flex gap-2">
+                            {transaction.status === "PENDING" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() => approveWithdrawalMutation.mutate(transaction.id)}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" /> Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => rejectWithdrawalMutation.mutate(transaction.id)}
+                                >
+                                  <Ban className="h-4 w-4 mr-1" /> Reject
+                                </Button>
+                              </>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="h-24 text-center">
+                          No withdrawals found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* User Activity Tab */}
+        <TabsContent value="activity">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Gaming Activity</CardTitle>
+              <CardDescription>
+                Monitor user betting activity and gaming patterns
+              </CardDescription>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4 justify-between items-end">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                  <div>
+                    <Label>Select User</Label>
+                    <select 
+                      className="border border-gray-300 rounded-md p-2 bg-background w-full mt-1"
+                      value={activityUserId || ""}
+                      onChange={(e) => setActivityUserId(e.target.value ? parseInt(e.target.value) : null)}
+                    >
+                      <option value="">All Users</option>
+                      {users?.map((user: User) => (
+                        <option key={user.id} value={user.id}>
+                          {user.username} (ID: {user.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Select Game</Label>
+                    <select 
+                      className="border border-gray-300 rounded-md p-2 bg-background w-full mt-1"
+                      value={activityGameId || ""}
+                      onChange={(e) => setActivityGameId(e.target.value ? parseInt(e.target.value) : null)}
+                    >
+                      <option value="">All Games</option>
+                      {games?.map((game: Game) => (
+                        <option key={game.id} value={game.id}>
+                          {game.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Time Period</Label>
+                    <select 
+                      className="border border-gray-300 rounded-md p-2 bg-background w-full mt-1"
+                      value={activityDateRange}
+                      onChange={(e) => setActivityDateRange(e.target.value as any)}
+                    >
+                      <option value="all">All Time</option>
+                      <option value="today">Today</option>
+                      <option value="week">Last 7 Days</option>
+                      <option value="month">Last 30 Days</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {userBetsLoading ? (
+                <div className="flex justify-center my-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <>
+                  {/* Summary cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl">Total Bets</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold">
+                          {userBets?.length || 0}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl">Total Wagered</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold">
+                          {userBets ? userBets.reduce((sum: number, bet: Bet) => sum + bet.amount, 0).toFixed(2) : "0.00"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl">Total Wins</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold text-green-500">
+                          {userBets ? userBets.filter((bet: Bet) => bet.profit > 0).length || 0 : 0}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl">Total Losses</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold text-red-500">
+                          {userBets ? userBets.filter((bet: Bet) => bet.profit <= 0).length || 0 : 0}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  {/* Bets table */}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Game</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Outcome</TableHead>
+                        <TableHead>Profit</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {userBets && userBets.length > 0 ? (
+                        userBets.map((bet: Bet) => (
+                          <TableRow key={bet.id}>
+                            <TableCell>{bet.id}</TableCell>
+                            <TableCell>{bet.userId}</TableCell>
+                            <TableCell>
+                              {games?.find(g => g.id === bet.gameId)?.name || `Game #${bet.gameId}`}
+                            </TableCell>
+                            <TableCell>{bet.amount.toFixed(2)}</TableCell>
+                            <TableCell>
+                              {bet.profit > 0 ? (
+                                <Badge className="bg-green-600">Win</Badge>
+                              ) : (
+                                <Badge variant="destructive">Loss</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className={bet.profit > 0 ? "text-green-500" : "text-red-500"}>
+                              {bet.profit > 0 ? '+' : ''}{bet.profit.toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(bet.createdAt).toLocaleString()}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="h-24 text-center">
+                            No bet data found with the selected filters
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Statistics Tab */}
