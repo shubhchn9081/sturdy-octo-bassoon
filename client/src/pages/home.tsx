@@ -132,30 +132,6 @@ const HomePage = () => {
           ))}
         </div>
       </div>
-      
-      {/* Add this section after all the game sections */}
-      <div className="mt-8 pt-8 border-t border-[#172B3A]">
-        <div className="text-center">
-          <p className="text-sm text-gray-500">© 2025 Novito.in | All Rights Reserved.</p>
-          <div className="flex justify-center space-x-4 mt-4">
-            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
-              <div className="w-3 h-3 bg-[#243442]"></div>
-            </div>
-            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
-              <div className="w-3 h-3 bg-[#243442]"></div>
-            </div>
-            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
-              <div className="w-3 h-3 bg-[#243442]"></div>
-            </div>
-            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
-              <div className="w-3 h-3 bg-[#243442]"></div>
-            </div>
-            <div className="w-6 h-6 rounded-full bg-[#172B3A] flex items-center justify-center">
-              <div className="w-3 h-3 bg-[#243442]"></div>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
   );
 };
