@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+// Import React hooks at the top
+import { useEffect } from 'react';
+
 // Define the types
 export type GameState = 'waiting' | 'countdown' | 'running' | 'crashed';
 export type BetStatus = 'active' | 'won' | 'lost';
@@ -427,11 +430,13 @@ export const useRocketLaunchStore = create<RocketLaunchStore>()(
 );
 
 // Helper hook
+import { useEffect } from 'react';
+
 export function useRocketLaunch() {
   const store = useRocketLaunchStore();
   
   // Initialize the game on first load
-  React.useEffect(() => {
+  useEffect(() => {
     if (store.gameState === 'waiting' && store.dataPoints.length === 0) {
       store.resetGame();
     }

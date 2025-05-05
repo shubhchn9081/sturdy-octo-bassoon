@@ -14,6 +14,7 @@ import CoinFlip from './CoinFlip';
 import Slots from './Slots';
 import CupAndBall from './CupAndBall';
 import TowerClimb from './TowerClimb';
+import RocketLaunch from './RocketLaunch';
 
 export const GAMES = [
   // Tower Climb featured as first game (New Arrival)
