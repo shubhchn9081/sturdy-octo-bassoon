@@ -13,6 +13,7 @@ import Wheel from '@/games/Wheel';
 import Slots from '@/games/Slots';
 import CupAndBall from '@/games/CupAndBall';
 import TowerClimb from '@/games/TowerClimb';
+import RocketLaunch from '@/games/RocketLaunch';
 
 
 type Game = typeof GAMES[0];
@@ -28,7 +29,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   wheel: Wheel,
   slots: Slots,
   'cup-and-ball': CupAndBall,
-  'tower-climb': TowerClimb
+  'tower-climb': TowerClimb,
+  'rocket-launch': RocketLaunch
 };
 
 const GamePage = () => {
