@@ -12,6 +12,7 @@ import GameLayout, { GameControls } from '@/components/games/GameLayout';
 import { Shield, Search, ZoomIn, ZapOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import gsap from 'gsap';
 
 // Define special item types
 enum SpecialItemType {
@@ -198,11 +199,53 @@ const TowerClimb = () => {
     }
   };
   
+  // Reference to all level divs for animations
+  const levelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  // Function to animate level completion
+  const animateLevelComplete = (currentLevel: number, nextLevel: number) => {
+    // Get the current and next level elements
+    const currentLevelEl = levelRefs.current[currentLevel];
+    const nextLevelEl = levelRefs.current[nextLevel];
+    
+    if (currentLevelEl) {
+      // Animate current level (zoom and fade out)
+      gsap.to(currentLevelEl, {
+        scale: 1.03,
+        opacity: 0.7,
+        boxShadow: '0 0 20px rgba(255,255,255,0.4)',
+        duration: 0.5,
+        ease: 'power1.out'
+      });
+    }
+    
+    if (nextLevelEl) {
+      // Highlight the next level
+      gsap.fromTo(nextLevelEl,
+        { 
+          scale: 0.95,
+          opacity: 0.8,
+          boxShadow: '0 0 0px rgba(255,255,255,0)'
+        },
+        {
+          scale: 1,
+          opacity: 1,
+          boxShadow: '0 0 15px rgba(255,255,255,0.3)',
+          duration: 0.7,
+          ease: 'elastic.out(1, 0.5)'
+        }
+      );
+    }
+  };
+  
   // Function to handle climbing to the next level
   const climbNextLevel = async (position: number) => {
     if (!gameState.isGameActive || gameState.isGameOver || !gameState.betId) return;
     
     const nextLevel = gameState.currentLevel + 1;
+    
+    // Animate the level transition
+    animateLevelComplete(gameState.currentLevel, nextLevel);
     
     // Check if we've reached the top of the tower
     if (nextLevel >= gameState.towerHeight) {
@@ -640,9 +683,13 @@ const TowerClimb = () => {
                 const isSelected = gameState.selectedTilePosition === tileIndex && levelIndex === gameState.currentLevel;
                 
                 let tileClass = cn(
-                  "w-10 h-10 md:w-16 md:h-16 flex items-center justify-center rounded cursor-pointer border transition-all duration-200",
-                  isSelected ? "border-2 border-yellow-500" : "border-gray-600",
-                  !isRevealed && levelIndex === gameState.currentLevel + 1 ? "hover:bg-gray-600" : "",
+                  "w-10 h-10 md:w-16 md:h-16 flex items-center justify-center rounded-lg cursor-pointer border transition-all duration-200",
+                  isSelected 
+                    ? "border-2 border-yellow-500 ring-2 ring-yellow-500/50" 
+                    : "border-gray-600",
+                  !isRevealed && levelIndex === gameState.currentLevel + 1 
+                    ? "hover:bg-gray-600 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]" 
+                    : "",
                 );
                 
                 if (isRevealed) {
@@ -664,21 +711,80 @@ const TowerClimb = () => {
                 return (
                   <div
                     key={`tile-${levelIndex}-${tileIndex}`}
-                    className={tileClass}
+                    ref={(el) => {
+                      // Store the tile element reference
+                      if (el && isRevealed && !el.classList.contains('animated-reveal')) {
+                        el.classList.add('animated-reveal');
+                        // Add animation when a tile is revealed
+                        gsap.fromTo(el, 
+                          { rotateY: -180, scale: 0.8 },
+                          { 
+                            rotateY: 0, 
+                            scale: 1, 
+                            duration: 0.6, 
+                            ease: "back.out(1.7)",
+                            clearProps: "all" 
+                          }
+                        );
+                      }
+                    }}
+                    className={cn(
+                      tileClass,
+                      "relative overflow-hidden transform transition-transform duration-200 active:scale-95 hover:scale-105",
+                      "shadow-lg", // Basic shadow
+                      "before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/20 before:to-transparent before:opacity-50", // Glass effect
+                      "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-t after:from-black/20 after:to-transparent after:opacity-30", // Bottom shadow
+                    )}
                     onClick={() => {
                       if (gameState.isGameActive && levelIndex === gameState.currentLevel + 1) {
                         climbNextLevel(tileIndex);
                       }
                     }}
+                    style={{
+                      perspective: '1000px',
+                      transformStyle: 'preserve-3d'
+                    }}
                   >
                     {isRevealed ? (
                       <>
-                        {tileType === TileType.SAFE && <span className="text-xl md:text-2xl">✓</span>}
-                        {tileType === TileType.TRAP && <span className="text-xl md:text-2xl">✗</span>}
-                        {tileType === TileType.SPECIAL_ITEM && <span className="text-xl md:text-2xl">⭐</span>}
+                        {tileType === TileType.SAFE && 
+                          <div className="w-full h-full flex items-center justify-center">
+                            <img 
+                              src="/assets/tower-climb/correct-tile.png" 
+                              alt="Safe Tile" 
+                              className="w-full h-full object-cover rounded"
+                            />
+                          </div>
+                        }
+                        {tileType === TileType.TRAP && 
+                          <div className="w-full h-full flex items-center justify-center">
+                            <img 
+                              src="/assets/tower-climb/wrong-tile.png" 
+                              alt="Trap Tile" 
+                              className="w-full h-full object-cover rounded"
+                            />
+                          </div>
+                        }
+                        {tileType === TileType.SPECIAL_ITEM && 
+                          <div className="w-full h-full flex items-center justify-center bg-purple-500/80">
+                            <span className="text-xl md:text-2xl animate-pulse">⭐</span>
+                          </div>
+                        }
                       </>
                     ) : (
-                      <span className="text-xs md:text-sm">?</span>
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-600 to-gray-800 rounded-md">
+                        <div className="relative flex items-center justify-center w-full h-full">
+                          {/* Add 3D effect with gradient overlays */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/10 rounded-t-md"></div>
+                          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 rounded-b-md"></div>
+                          
+                          {/* Light reflection effect on top */}
+                          <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/20 to-transparent rounded-t-md"></div>
+                          
+                          {/* Question mark with shadow */}
+                          <span className="text-xl md:text-2xl font-bold relative text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">?</span>
+                        </div>
+                      </div>
                     )}
                   </div>
                 );
