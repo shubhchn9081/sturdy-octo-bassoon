@@ -60,7 +60,7 @@ const TowerClimb = () => {
   
   // Game state
   const [gameState, setGameState] = useState<GameState>({
-    betAmount: 1, // Default bet amount
+    betAmount: 100, // Set to minimum bet amount of 100
     currentLevel: 0,
     currentMultiplier: 1.0,
     towerHeight: DEFAULT_TOWER_HEIGHT,

@@ -28,7 +28,7 @@ export const useGameBet = (gameId: number) => {
   }, []);
   
   // State for bet amount and auto-cashout
-  const [betAmount, setBetAmount] = useState<number>(10.00);
+  const [betAmount, setBetAmount] = useState<number>(gameId === 101 ? 100.00 : 10.00);
   const [autoCashoutValue, setAutoCashoutValue] = useState<number | null>(null);
   const [isProcessingBet, setIsProcessingBet] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,12 +46,23 @@ export const useGameBet = (gameId: number) => {
       currency: 'INR'
     });
     
-    // Validate bet amount
+    // Validate bet amount - enforce minimum bet of 100 for all games
     if (betAmount <= 0) {
       setError('Bet amount must be greater than 0');
       toast({
         title: 'Invalid Bet',
         description: 'Bet amount must be greater than 0',
+        variant: 'destructive'
+      });
+      return false;
+    }
+    
+    // Enforce minimum bet amount of 100
+    if (betAmount < 100) {
+      setError('Bet amount must be at least ₹100');
+      toast({
+        title: 'Invalid Bet',
+        description: 'Bet amount must be at least ₹100',
         variant: 'destructive'
       });
       return false;
