@@ -48,7 +48,7 @@ export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({
       {/* Enhanced Realistic Flame Effect */}
       {flameActive && (
         <div className="absolute" style={{ 
-          bottom: '-40%', 
+          bottom: '-25%', /* Reduced gap from -40% to -25% */
           left: '42%', 
           width: '16%', 
           height: '60%',
