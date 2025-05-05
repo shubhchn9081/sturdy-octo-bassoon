@@ -54,18 +54,19 @@ export function getPlinkoMultiplier(path: number[], risk: string, rows: number):
 
 // Crash
 export function calculateCrashPoint(): number {
-  // Generate crash point with 99% RTP
+  // Generate crash point with 100% RTP (no house edge)
   // Formula: (1 / (1 - random))
-  // where random is a number between 0 and 0.99
-  const random = Math.min(0.99, Math.random());
+  // where random is a number between 0 and 1.0
+  const random = Math.min(1.0, Math.random());
   return parseFloat((1 / (1 - random)).toFixed(2));
 }
 
 // Limbo
 export function calculateLimboResult(): number {
   // Similar to crash but with different distribution
+  // Now using 100% RTP (no house edge)
   const random = Math.random();
-  return parseFloat((1 / (1 - (random * 0.99))).toFixed(2));
+  return parseFloat((1 / (1 - random)).toFixed(2));
 }
 
 // Dragon Tower
