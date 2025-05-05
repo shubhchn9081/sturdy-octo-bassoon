@@ -756,7 +756,7 @@ const TowerClimb = () => {
                     {isRevealed ? (
                       <>
                         {tileType === TileType.SAFE && 
-                          <div className="w-full h-full flex items-center justify-center bg-green-500/80 rounded-md overflow-hidden">
+                          <div className="w-full h-full flex items-center justify-center bg-green-500/30 rounded-md overflow-hidden">
                             <img 
                               src={CORRECT_TILE_IMG}
                               alt="Safe Tile" 
@@ -764,21 +764,17 @@ const TowerClimb = () => {
                               onError={(e) => {
                                 console.error("Failed to load safe tile image");
                                 e.currentTarget.style.display = 'none';
-                                // Show a check icon instead
+                                // Show a green background
                                 const parent = e.currentTarget.parentElement;
                                 if (parent) {
-                                  const icon = document.createElement('div');
-                                  icon.className = 'flex items-center justify-center h-full w-full';
-                                  icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
-                                  parent.appendChild(icon);
+                                  parent.className = "w-full h-full flex items-center justify-center bg-green-500/80 rounded-md";
                                 }
                               }}
                             />
-                            <Check className="absolute h-8 w-8 text-white opacity-80 drop-shadow-lg" />
                           </div>
                         }
                         {tileType === TileType.TRAP && 
-                          <div className="w-full h-full flex items-center justify-center bg-red-500/80 rounded-md overflow-hidden">
+                          <div className="w-full h-full flex items-center justify-center bg-red-500/30 rounded-md overflow-hidden">
                             <img 
                               src={WRONG_TILE_IMG}
                               alt="Trap Tile" 
@@ -786,17 +782,13 @@ const TowerClimb = () => {
                               onError={(e) => {
                                 console.error("Failed to load trap tile image");
                                 e.currentTarget.style.display = 'none';
-                                // Show an X icon instead
+                                // Show a red background
                                 const parent = e.currentTarget.parentElement;
                                 if (parent) {
-                                  const icon = document.createElement('div');
-                                  icon.className = 'flex items-center justify-center h-full w-full';
-                                  icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
-                                  parent.appendChild(icon);
+                                  parent.className = "w-full h-full flex items-center justify-center bg-red-500/80 rounded-md";
                                 }
                               }}
                             />
-                            <X className="absolute h-8 w-8 text-white opacity-80 drop-shadow-lg" />
                           </div>
                         }
                         {tileType === TileType.SPECIAL_ITEM && 
