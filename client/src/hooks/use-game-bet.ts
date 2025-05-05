@@ -104,11 +104,34 @@ export const useGameBet = (gameId: number) => {
         formattedAmount: numericBetAmount.toFixed(2)
       });
       
+      // CRITICAL FIX: Sanitize options to prevent duplicate amount fields
+      let sanitizedOptions = null;
+      
+      if (betOptions?.options && typeof betOptions.options === 'object') {
+        // Create a deep copy of options to avoid mutating the original
+        sanitizedOptions = JSON.parse(JSON.stringify(betOptions.options));
+        
+        // Remove any amount properties to prevent conflicts with the main amount
+        if ('amount' in sanitizedOptions) {
+          console.log('⚠️ Removing conflicting amount from options:', sanitizedOptions.amount);
+          delete sanitizedOptions.amount;
+        }
+        
+        // Also check for nested options.options.amount
+        if (sanitizedOptions.options && typeof sanitizedOptions.options === 'object') {
+          if ('amount' in sanitizedOptions.options) {
+            console.log('⚠️ Removing deeply nested amount from options.options:', sanitizedOptions.options.amount);
+            delete sanitizedOptions.options.amount;
+          }
+        }
+      }
+      
+      // Create a clean bet data payload with the single bet amount in the top level only
       const betData = await placeBet.mutateAsync({
         gameId: betOptions?.gameId || gameId,
-        amount: numericBetAmount, // Always use the numeric parsed value
+        amount: numericBetAmount, // Always use the numeric parsed value at the top level only
         clientSeed,
-        options: betOptions?.options
+        options: sanitizedOptions
       });
       
       console.log('Bet placed successfully, response:', betData);

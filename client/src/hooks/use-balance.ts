@@ -58,13 +58,39 @@ export const useBalance = (currency: SupportedCurrency) => {
         throw new Error('Invalid bet amount');
       }
       
-      // Format the bet data to match the server's expected schema
-      // Note: currency is now always INR and handled on the server side
+      // CRITICAL FIX: Format the bet data to match the server's expected schema
+      // Ensure the entire bet data structure is clean and doesn't include nested amount fields
+      // This solves the double/conflicting amount issue causing bet failures
+      
+      let cleanOptions: Record<string, any> = {};
+      
+      // If options exist, make sure they don't contain an amount field
+      if (params.options && typeof params.options === 'object') {
+        // Create a clean copy without amount properties
+        cleanOptions = { ...params.options } as Record<string, any>;
+        
+        // Remove amount from options to avoid conflict
+        if ('amount' in cleanOptions) {
+          console.log('⚠️ Removing nested amount from options:', cleanOptions.amount);
+          delete cleanOptions.amount;
+        }
+        
+        // Also check for deeply nested options structure if it exists
+        if ('options' in cleanOptions && cleanOptions.options !== null && typeof cleanOptions.options === 'object') {
+          const nestedOptions = cleanOptions.options as Record<string, any>;
+          if ('amount' in nestedOptions) {
+            console.log('⚠️ Removing deeply nested amount from options.options:', nestedOptions.amount);
+            delete nestedOptions.amount;
+          }
+        }
+      }
+      
+      // Create a clean bet data payload
       const betData = {
         gameId: params.gameId,
-        amount: betAmount, // Use the validated and parsed bet amount
+        amount: betAmount, // Use the validated and parsed bet amount as the single source of truth
         clientSeed: params.clientSeed,
-        options: params.options || {}
+        options: cleanOptions
       };
       
       console.log('Placing bet with data:', betData);

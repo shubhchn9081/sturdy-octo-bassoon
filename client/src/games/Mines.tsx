@@ -204,12 +204,16 @@ const MinesGame = () => {
       // Generate a client seed for provably fair gameplay
       const clientSeed = Math.random().toString(36).substring(2, 12);
       
-      // Place bet using our unified wallet system - fixing the format
+      console.log(`🎮 Starting Mines game with bet amount: ${safeBetAmount}, mineCount: ${mineCount}`);
+      
+      // CRITICAL FIX: Place bet using our unified wallet system with a flat structure
+      // The placeGameBet function will sanitize any nested amount fields
       const response = await placeGameBet({
         amount: safeBetAmount,
         gameId: 1,
         clientSeed,
         options: {
+          // Only include game-specific options, not the amount
           mineCount,
           totalCells: TOTAL_CELLS
         }
