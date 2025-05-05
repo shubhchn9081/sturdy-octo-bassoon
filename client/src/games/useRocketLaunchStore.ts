@@ -110,7 +110,7 @@ export const useRocketLaunchStore = create<RocketLaunchStore>()(
           username: aiPlayerNames[Math.floor(Math.random() * aiPlayerNames.length)],
           amount: parseFloat((Math.random() * 100 + 10).toFixed(2)),
           isPlayer: false,
-          status: 'active',
+          status: 'active' as BetStatus,
           isHidden: Math.random() > 0.7
         }));
       };
@@ -150,7 +150,7 @@ export const useRocketLaunchStore = create<RocketLaunchStore>()(
                 username: 'You',
                 amount: state.betAmount,
                 isPlayer: true,
-                status: 'active'
+                status: 'active' as BetStatus
               }
             ]
           }));
@@ -340,7 +340,7 @@ export const useRocketLaunchStore = create<RocketLaunchStore>()(
                   if (Math.random() < cashoutChance) {
                     return {
                       ...bet,
-                      status: 'won',
+                      status: 'won' as BetStatus,
                       cashoutMultiplier: newMultiplier
                     };
                   }
@@ -391,7 +391,7 @@ export const useRocketLaunchStore = create<RocketLaunchStore>()(
           // Update any remaining active bets as lost
           const updatedBets = activeBets.map(bet => {
             if (bet.status === 'active') {
-              return { ...bet, status: 'lost' };
+              return { ...bet, status: 'lost' as BetStatus };
             }
             return bet;
           });
@@ -430,8 +430,6 @@ export const useRocketLaunchStore = create<RocketLaunchStore>()(
 );
 
 // Helper hook
-import { useEffect } from 'react';
-
 export function useRocketLaunch() {
   const store = useRocketLaunchStore();
   
