@@ -2,6 +2,9 @@ import { pgTable, text, serial, integer, boolean, real, timestamp, jsonb, varcha
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Define slot game symbol types
+export type SlotSymbol = 'planet' | 'star' | 'rocket' | 'alien' | 'asteroid' | 'comet' | 'galaxy' | 'blackhole' | 'wild';
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
