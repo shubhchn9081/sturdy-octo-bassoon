@@ -34,10 +34,10 @@ router.post('/play', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Game not found' });
     }
     
-    // Check if the game is slots
-    if (game.slug !== 'slots') {
+    // Check if the game is a slot type game
+    if (game.slug !== 'slots' && game.slug !== 'galactic-spins') {
       return res.status(400).json({ 
-        message: 'Invalid game type for this endpoint. Use only for slots game.'
+        message: 'Invalid game type for this endpoint. Use only for slot games.'
       });
     }
     
@@ -56,7 +56,10 @@ router.post('/play', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    if (user.balance < amount) {
+    // Make sure user.balance is a number
+    const userBalance = typeof user.balance === 'number' ? user.balance : 0;
+    
+    if (userBalance < amount) {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
     

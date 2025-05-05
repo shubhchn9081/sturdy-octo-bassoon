@@ -74,57 +74,118 @@ const GalacticSpins = () => {
     setSpinResults(null);
     
     try {
-      // Mock API request - this would be replaced with a real API call
-      // to the backend when integrated
-      setTimeout(() => {
-        // This is a simplified mock result - the real implementation would
-        // connect to the backend
-        const mockResult: SpinResult = {
-          reels: generateRandomReels(),
-          lines: lines,
-          win: Math.random() > 0.6, // 40% chance of winning
-          winningLines: [Math.floor(Math.random() * lines)],
-          multiplier: Math.random() > 0.8 ? 5 : 2, // 20% chance of 5x, else 2x
-          bonusTriggered: Math.random() > 0.9, // 10% chance of bonus
-          expandingWilds: Math.random() > 0.7 ? [Math.floor(Math.random() * 5)] : [], // 30% chance of expanding wild
-          winAmount: Math.random() > 0.6 ? totalBet * (Math.random() > 0.8 ? 5 : 2) : 0
-        };
+      // Generate a client seed
+      const clientSeed = Math.random().toString(36).substring(2, 15);
+      
+      // Call the server API to place the bet and get results
+      const response = await fetch('/api/slots/play', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gameId: 16, // Galactic Spins game ID
+          amount: totalBet,
+          clientSeed,
+          lines
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error processing bet');
+      }
+      
+      const data = await response.json();
+      
+      // Process the server response
+      // We need to map the server response to our SpinResult format
+      const serverOutcome = data.outcome;
+      
+      // Transform the slot result to match our visualization format
+      // This is where we connect the server result to our UI
+      const resultReels = generateSpinResultReels(serverOutcome);
+      
+      const result: SpinResult = {
+        reels: resultReels,
+        lines: lines,
+        win: serverOutcome.win,
+        winningLines: serverOutcome.winningLines || [],
+        multiplier: data.multiplier || 1,
+        bonusTriggered: serverOutcome.bonusTriggered || false,
+        expandingWilds: serverOutcome.expandingWilds || [],
+        winAmount: data.payout
+      };
+      
+      // Update UI with result
+      setReels(resultReels);
+      setSpinResults(result);
+      setGameHistory(prev => [result, ...prev.slice(0, 9)]); // Keep last 10 spins
+      
+      // Show toast for wins
+      if (result.win) {
+        toast({
+          title: "You Won!",
+          description: `${result.winAmount.toFixed(2)} INR`
+        });
         
-        setReels(mockResult.reels);
-        setSpinResults(mockResult);
-        setGameHistory(prev => [mockResult, ...prev.slice(0, 9)]); // Keep last 10 spins
-        
-        // Show toast for wins
-        if (mockResult.win) {
+        // If bonus triggered, show special toast
+        if (result.bonusTriggered) {
           toast({
-            title: "You Won!",
-            description: `${mockResult.winAmount.toFixed(2)} INR`
+            title: "Bonus Round Triggered!",
+            description: "Free spins awarded!"
           });
-          
-          // If bonus triggered, show special toast
-          if (mockResult.bonusTriggered) {
-            toast({
-              title: "Bonus Round Triggered!",
-              description: "Free spins awarded!"
-            });
-          }
         }
-        
-        setIsSpinning(false);
-        refreshBalance();
-        
-        // Continue auto-spin if enabled
-        if (autoSpin) {
-          setTimeout(() => {
-            handleSpin();
-          }, 2000);
-        }
-      }, 3000); // Simulate 3-second slot spin
+      }
+      
+      // Refresh user balance to reflect changes
+      refreshBalance();
+      
+      // Continue auto-spin if enabled
+      if (autoSpin) {
+        setTimeout(() => {
+          handleSpin();
+        }, 2000);
+      }
+      
     } catch (err) {
+      console.error('Error processing bet:', err);
+      setError(err instanceof Error ? err.message : 'Error connecting to game server');
+    } finally {
       setIsSpinning(false);
-      setError('Error connecting to game server');
-      console.error(err);
     }
+  };
+  
+  // Convert server outcome to visual reels
+  const generateSpinResultReels = (serverOutcome: any): SlotSymbol[][] => {
+    const symbols: SlotSymbol[] = ['planet', 'star', 'rocket', 'alien', 'asteroid', 'comet', 'galaxy', 'blackhole', 'wild'];
+    const resultReels: SlotSymbol[][] = [];
+    
+    // If we have specific reels from server, use those
+    if (serverOutcome.reels && Array.isArray(serverOutcome.reels)) {
+      // Map server's number values to our symbol types
+      for (let i = 0; i < 5; i++) {
+        const reel: SlotSymbol[] = [];
+        for (let j = 0; j < 3; j++) {
+          // Use the server's reel value or generate a random one if not available
+          const reelValue = serverOutcome.reels[i] !== undefined ? serverOutcome.reels[i] % symbols.length : Math.floor(Math.random() * symbols.length);
+          reel.push(symbols[reelValue]);
+        }
+        resultReels.push(reel);
+      }
+    } else {
+      // Fallback to random generation if server doesn't provide reels
+      for (let i = 0; i < 5; i++) {
+        const reel: SlotSymbol[] = [];
+        for (let j = 0; j < 3; j++) {
+          const randomIndex = Math.floor(Math.random() * symbols.length);
+          reel.push(symbols[randomIndex]);
+        }
+        resultReels.push(reel);
+      }
+    }
+    
+    return resultReels;
   };
   
   // Generate random reels (for mock implementation)

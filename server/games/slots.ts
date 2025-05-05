@@ -2,6 +2,14 @@ import { SlotsOutcome } from '@shared/schema';
 import { gameOutcomeControl } from '../middleware/gameOutcomeControl';
 import { generateRandomNumber } from './provably-fair';
 
+// Extended outcome for Galactic Spins game with additional features
+export interface GalacticSpinsOutcome extends SlotsOutcome {
+  expandingWilds: number[];  // Indices of reels that have expanding wilds
+  winningLines: number[];    // Indices of winning paylines
+  bonusTriggered: boolean;   // Whether bonus free spins are triggered
+  multiplier: number;        // Win multiplier
+}
+
 interface SlotsBetParams {
   betAmount: number;
   lines: number; // Number of paylines
@@ -245,21 +253,41 @@ export async function processSlotBet(
   serverSeed: string,
   clientSeed: string,
   nonce: number,
-  luckyNumber?: number
+  luckyNumber?: number,
+  lines: number = 1
 ): Promise<{
-  outcome: SlotsOutcome;
+  outcome: SlotsOutcome | GalacticSpinsOutcome;
   payout: number;
   serverSeed: string;
   clientSeed: string;
   nonce: number;
+  multiplier?: number;
 }> {
+  // Get the game to check what type of slot game it is
+  const storage = await import('../storage').then(m => m.storage);
+  const game = await storage.getGame(gameId);
+  
+  if (game?.slug === 'galactic-spins') {
+    return processGalacticSpinsBet(
+      userId,
+      gameId,
+      betAmount,
+      serverSeed,
+      clientSeed,
+      nonce,
+      lines,
+      luckyNumber
+    );
+  }
+  
+  // For regular slots game
   // Generate slot outcome
   const outcome = await generateSlotsOutcome(
     userId,
     gameId,
     {
       betAmount,
-      lines: 1, // Default to 1 line for simplicity
+      lines: 1, // Default to 1 line for regular slots
       luckyNumber
     },
     serverSeed,
@@ -271,7 +299,6 @@ export async function processSlotBet(
   const payout = calculateSlotsPayout(outcome, betAmount);
   
   // Update user balance
-  const storage = await import('../storage').then(m => m.storage);
   await storage.updateUserBalance(userId, payout - betAmount);
   
   // Return result
@@ -281,5 +308,135 @@ export async function processSlotBet(
     serverSeed,
     clientSeed,
     nonce
+  };
+}
+
+/**
+ * Process a Galactic Spins bet with enhanced features
+ */
+export async function processGalacticSpinsBet(
+  userId: number,
+  gameId: number,
+  betAmount: number,
+  serverSeed: string,
+  clientSeed: string,
+  nonce: number,
+  lines: number = 10, // Default to 10 lines for Galactic Spins
+  luckyNumber?: number
+): Promise<{
+  outcome: GalacticSpinsOutcome;
+  payout: number;
+  serverSeed: string;
+  clientSeed: string;
+  nonce: number;
+  multiplier: number;
+}> {
+  // Check if the outcome should be forced by admin controls
+  const controlResult = await gameOutcomeControl.shouldForceOutcome(userId, gameId);
+  const { shouldForce, forcedOutcome, targetMultiplier } = controlResult;
+  
+  // Generate base outcome first
+  const baseOutcome = await generateSlotsOutcome(
+    userId,
+    gameId,
+    {
+      betAmount,
+      lines,
+      luckyNumber
+    },
+    serverSeed,
+    clientSeed,
+    nonce
+  );
+  
+  // Enhanced features specific to Galactic Spins
+  let expandingWilds: number[] = [];
+  let winningLines: number[] = [];
+  let bonusTriggered = false;
+  let multiplier = 1;
+  
+  // For a winning spin, calculate additional features
+  if (baseOutcome.win) {
+    // Random expanding wilds (0-2 reels)
+    const numExpandingWilds = Math.floor(generateRandomNumber(serverSeed, clientSeed, nonce + 10) * 3);
+    for (let i = 0; i < numExpandingWilds; i++) {
+      const reelIndex = Math.floor(generateRandomNumber(serverSeed, clientSeed, nonce + 11 + i) * 5);
+      if (!expandingWilds.includes(reelIndex)) {
+        expandingWilds.push(reelIndex);
+      }
+    }
+    
+    // Winning paylines - for now just generate between 1-lines random winning lines
+    const numWinningLines = Math.floor(generateRandomNumber(serverSeed, clientSeed, nonce + 20) * lines) + 1;
+    for (let i = 0; i < numWinningLines; i++) {
+      const lineIndex = Math.floor(generateRandomNumber(serverSeed, clientSeed, nonce + 21 + i) * lines);
+      if (!winningLines.includes(lineIndex)) {
+        winningLines.push(lineIndex);
+      }
+    }
+    
+    // Bonus trigger chance (10%)
+    bonusTriggered = generateRandomNumber(serverSeed, clientSeed, nonce + 30) < 0.1;
+    
+    // Multiplier - weighted towards lower multipliers but can go up to 50x
+    const multiplierRoll = generateRandomNumber(serverSeed, clientSeed, nonce + 40);
+    if (multiplierRoll < 0.8) {
+      // 80% chance of 1-5x
+      multiplier = Math.floor(multiplierRoll * 5) + 1;
+    } else if (multiplierRoll < 0.95) {
+      // 15% chance of 5-20x
+      multiplier = Math.floor((multiplierRoll - 0.8) * 15 / 0.15) + 5;
+    } else {
+      // 5% chance of 20-50x
+      multiplier = Math.floor((multiplierRoll - 0.95) * 30 / 0.05) + 20;
+    }
+    
+    // Apply admin controls if necessary
+    if (shouldForce && forcedOutcome === 'win' && targetMultiplier) {
+      multiplier = targetMultiplier;
+    }
+  }
+  
+  // Calculate final payout
+  const baseBet = betAmount * lines;
+  const payout = baseOutcome.win ? baseBet * multiplier : 0;
+  
+  // Create the full Galactic Spins outcome
+  const outcome: GalacticSpinsOutcome = {
+    ...baseOutcome,
+    expandingWilds,
+    winningLines,
+    bonusTriggered,
+    multiplier
+  };
+  
+  // Update user balance
+  const storage = await import('../storage').then(m => m.storage);
+  await storage.updateUserBalance(userId, payout - baseBet);
+  
+  // Save bet to history
+  await storage.createBet({
+    userId,
+    gameId,
+    amount: baseBet,
+    payout,
+    serverSeed,
+    clientSeed,
+    nonce,
+    outcome: { 
+      ...outcome,
+      multiplier
+    },
+    completed: true
+  });
+  
+  // Return full result
+  return {
+    outcome,
+    payout,
+    serverSeed,
+    clientSeed,
+    nonce,
+    multiplier
   };
 }
