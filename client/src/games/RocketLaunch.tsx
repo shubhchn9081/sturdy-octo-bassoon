@@ -294,11 +294,15 @@ const RocketLaunch: React.FC = () => {
     
     // Here you would normally send the cashout to the backend
     try {
-      await completeGameBet({
-        completed: true,
-        multiplier: currentMultiplier,
-        profit: betAmount * (currentMultiplier - 1)
-      });
+      // Find the player's active bet ID
+      const playerBet = activeBets.find(bet => bet.isPlayer);
+      if (playerBet && playerBet.id) {
+        await completeGameBet(playerBet.id, {
+          completed: true,
+          multiplier: currentMultiplier,
+          profit: betAmount * (currentMultiplier - 1)
+        });
+      }
     } catch (error) {
       console.error('Error cashing out:', error);
       toast({
