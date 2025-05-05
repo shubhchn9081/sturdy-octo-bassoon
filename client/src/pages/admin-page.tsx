@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { User, Game, UserGameControl } from "@shared/schema";
+import { User, Game, UserGameControl, Bet, Transaction } from "@shared/schema";
 import { Download, Search, SortDesc, SortAsc } from "lucide-react";
 // Create a typed balance interface
 interface UserBalance {
@@ -546,12 +546,18 @@ export default function AdminPage() {
       </Card>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-5 mb-8">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" /> Users
           </TabsTrigger>
           <TabsTrigger value="games" className="flex items-center gap-2">
             <ChevronsUpDown className="h-4 w-4" /> Game Control
+          </TabsTrigger>
+          <TabsTrigger value="withdrawals" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" /> Withdrawals
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <History className="h-4 w-4" /> User Activity
           </TabsTrigger>
           <TabsTrigger value="stats" className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" /> Statistics
