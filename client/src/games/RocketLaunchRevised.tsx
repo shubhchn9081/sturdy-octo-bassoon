@@ -9,7 +9,8 @@ import {
   SpaceBackground, 
   FuelGauge, 
   GalaxyBackground, 
-  AtmosphereStage 
+  AtmosphereStage,
+  ScrollingBackground
 } from '@/assets/rocketAssets';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/context/WalletContext';
@@ -433,12 +434,11 @@ const RocketLaunchRevised: React.FC = () => {
       // Determine atmosphere stage - increased thresholds for slower progression
       const newAtmosphereStage = getAtmosphereStage(newMultiplier);
       
-      // Update rocket position - MUCH slower ascent
-      // Making the rocket rise much more gradually
+      // We no longer move the rocket - it stays fixed
+      // Instead, the background elements scroll to create the illusion of movement
       const newRocketPosition = {
         x: 50, // Horizontal position is fixed
-        // Adjusted formula to make sure rocket doesn't collide with multiplier display
-        y: Math.max(8, 80 - (Math.pow(newMultiplier - 1, 0.8) * 5)) // Slightly faster ascent to move away from multiplier
+        y: 33  // Vertical position is also fixed - matches the CSS in the render function
       };
       
       // Check for auto cashout
@@ -852,23 +852,32 @@ const RocketLaunchRevised: React.FC = () => {
       </div>
       
       {/* Main game visualization - rocket and trajectory */}
-      <div className="flex-1 relative flex items-center justify-center">
-        {/* Trajectory graph for debug/analysis */}
-        <canvas
-          ref={canvasRef}
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
-          className="absolute top-0 left-0 opacity-30 pointer-events-none"
-        />
+      <div className="flex-1 relative flex items-center justify-center" ref={gameContainerRef}>
+        {/* Atmosphere background */}
+        <div className="absolute inset-0 overflow-hidden bg-gradient-to-t from-slate-900 to-blue-900">
+          {/* Scrolling background that creates illusion of movement */}
+          <ScrollingBackground 
+            gameState={gameState} 
+            multiplier={multiplier} 
+            atmosphereStage={atmosphereStage} 
+          />
+          
+          {/* Trajectory graph for debug/analysis */}
+          <canvas
+            ref={canvasRef}
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
+            className="absolute top-0 left-0 opacity-20 pointer-events-none"
+          />
+        </div>
         
-        {/* Rocket visualization */}
+        {/* Rocket visualization - fixed position */}
         <div 
           className="absolute z-20" 
           style={{
             left: `${rocketPosition.x}%`,
-            bottom: `${atmosphereStage === 'ground' ? '20%' : `${rocketPosition.y}%`}`,
+            bottom: '33%', // Fixed position for rocket - more centered
             transform: 'translateX(-50%)',
-            transition: gameState === 'running' ? 'bottom 0.1s ease-out' : 'none'
           }}
         >
           {gameState === 'crashed' ? (

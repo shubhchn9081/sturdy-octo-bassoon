@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 // Rocket ship component
 export const RocketShip: React.FC<{ size: number; flameActive?: boolean }> = ({ 
@@ -413,6 +413,158 @@ export const AtmosphereStage: React.FC<{
       style={{ width, height }}
     >
       {renderLayerSpecificElements()}
+    </div>
+  );
+};
+
+// ScrollingBackground - Creates illusion of rocket ascending while staying in place
+export const ScrollingBackground: React.FC<{ 
+  gameState: 'waiting' | 'countdown' | 'running' | 'crashed';
+  multiplier: number;
+  atmosphereStage: 'ground' | 'troposphere' | 'stratosphere' | 'mesosphere' | 'thermosphere' | 'exosphere' | 'space';
+}> = ({ gameState, multiplier, atmosphereStage }) => {
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [backgroundElements, setBackgroundElements] = useState<{ id: number; y: number; type: string; size: number }[]>([]);
+  const animationRef = useRef<number | null>(null);
+  
+  // Generate background elements like clouds, stars etc. that will scroll by
+  useEffect(() => {
+    // Generate different elements based on atmosphere stage
+    const generateElements = () => {
+      const elements = [];
+      const totalElements = atmosphereStage === 'ground' ? 10 : 
+                           atmosphereStage === 'troposphere' ? 15 :
+                           atmosphereStage === 'stratosphere' ? 20 : 25;
+      
+      for (let i = 0; i < totalElements; i++) {
+        let type;
+        if (atmosphereStage === 'ground' || atmosphereStage === 'troposphere') {
+          type = Math.random() > 0.7 ? 'cloud' : 'bird';
+        } else if (atmosphereStage === 'stratosphere' || atmosphereStage === 'mesosphere') {
+          type = Math.random() > 0.6 ? 'star' : 'satellite';
+        } else {
+          type = Math.random() > 0.3 ? 'star' : 'debris';
+        }
+        
+        elements.push({
+          id: i,
+          y: Math.random() * 2000, // Position them down below the screen to scroll up
+          type,
+          size: type === 'cloud' ? 20 + Math.random() * 60 : 2 + Math.random() * 5
+        });
+      }
+      
+      return elements;
+    };
+    
+    setBackgroundElements(generateElements());
+  }, [atmosphereStage]);
+  
+  // Animation loop for scrolling effect
+  useEffect(() => {
+    if (gameState !== 'running') {
+      if (animationRef.current) {
+        window.cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      return;
+    }
+    
+    // Calculate scroll speed based on multiplier - the higher the multiplier, the faster we scroll
+    const scrollSpeed = atmosphereStage === 'ground' ? 0.5 : // Slow start
+                       multiplier < 2 ? multiplier * 0.5 : 
+                       multiplier < 5 ? multiplier * 1 :
+                       multiplier * 1.5; // Speed increases with multiplier
+    
+    const animate = () => {
+      setScrollPosition(prev => prev + scrollSpeed);
+      animationRef.current = window.requestAnimationFrame(animate);
+    };
+    
+    animationRef.current = window.requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        window.cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [gameState, multiplier, atmosphereStage]);
+  
+  // Render background elements that will scroll by the rocket
+  const renderElements = () => {
+    return backgroundElements.map(element => {
+      // Calculate position with scroll offset
+      const posY = (element.y - scrollPosition) % 1200;
+      
+      // Only render elements within the viewport 
+      if (posY < -100 || posY > 800) return null;
+      
+      // Different elements based on type
+      switch (element.type) {
+        case 'cloud':
+          return (
+            <div 
+              key={element.id}
+              className="absolute rounded-full bg-white opacity-20"
+              style={{
+                top: `${posY}px`,
+                left: `${(element.id * 30) % 100}%`, 
+                width: `${element.size}px`,
+                height: `${element.size / 2}px`,
+              }}
+            />
+          );
+        case 'star':
+          return (
+            <div 
+              key={element.id}
+              className="absolute rounded-full bg-white"
+              style={{
+                top: `${posY}px`,
+                left: `${(element.id * 50) % 100}%`, 
+                width: `${element.size}px`,
+                height: `${element.size}px`,
+                opacity: 0.5 + Math.random() * 0.5
+              }}
+            />
+          );
+        case 'satellite':
+          return (
+            <div 
+              key={element.id}
+              className="absolute bg-gray-300"
+              style={{
+                top: `${posY}px`,
+                left: `${(element.id * 40) % 100}%`, 
+                width: `${element.size * 3}px`,
+                height: `${element.size}px`,
+                transform: `rotate(${element.id * 30}deg)`,
+                opacity: 0.7
+              }}
+            />
+          );
+        default:
+          return (
+            <div 
+              key={element.id}
+              className="absolute rounded-full bg-gray-400"
+              style={{
+                top: `${posY}px`,
+                left: `${(element.id * 20) % 100}%`, 
+                width: `${element.size}px`,
+                height: `${element.size}px`,
+                opacity: 0.6
+              }}
+            />
+          );
+      }
+    });
+  };
+  
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {renderElements()}
     </div>
   );
 };
