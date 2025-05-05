@@ -326,14 +326,16 @@ const GameCard = ({
               }}
             />
             
-            {/* Banner to cover "STAKE ORIGINALS" text at bottom */}
-            <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
-              name === "TOWER CLIMB" || name === "ROCKET LAUNCH"
-                ? "bg-gradient-to-r from-green-700 to-green-500" 
-                : "bg-gradient-to-r from-green-600 to-green-400"
-            }`}>
-              {name === "TOWER CLIMB" || name === "ROCKET LAUNCH" ? "🔥 New Arrival 🔥" : "High RTP Game"}
-            </div>
+            {/* Banner to cover "STAKE ORIGINALS" text at bottom - excluding ROCKET LAUNCH */}
+            {name !== "ROCKET LAUNCH" && (
+              <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
+                name === "TOWER CLIMB" 
+                  ? "bg-gradient-to-r from-green-700 to-green-500" 
+                  : "bg-gradient-to-r from-green-600 to-green-400"
+              }`}>
+                {name === "TOWER CLIMB" ? "🔥 New Arrival 🔥" : "High RTP Game"}
+              </div>
+            )}
           </>
         )}
         
