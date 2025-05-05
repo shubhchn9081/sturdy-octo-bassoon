@@ -630,53 +630,57 @@ const TowerClimb = () => {
       </div>
       
       {gameState.isGameActive && (
-        <div className="flex flex-wrap justify-center gap-2 mb-2 md:mb-4">
-          <div className="flex items-center space-x-1 md:space-x-2 bg-blue-500/10 p-1 rounded">
-            <Shield className="h-3 w-3 md:h-4 md:w-4 text-blue-500" />
-            <span className="text-xs md:text-sm">Shields:</span>
-            <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-500">
+        <div className="grid grid-cols-3 gap-2 mb-2 md:mb-4">
+          {/* Special item buttons optimized for thumb usage */}
+          <div className="flex flex-col items-center bg-blue-500/10 p-2 rounded-lg">
+            <div className="flex items-center justify-center mb-1">
+              <Shield className="h-5 w-5 text-blue-500 mr-1" />
+              <span className="text-sm font-medium">Shield</span>
+            </div>
+            <Badge variant="outline" className="mb-1 text-sm bg-blue-500/20 text-blue-500 px-2">
               {gameState.inventory[SpecialItemType.SHIELD]}
             </Badge>
             <Button
               variant="outline"
-              size="sm"
               disabled={gameState.inventory[SpecialItemType.SHIELD] <= 0}
               onClick={() => useSpecialItem(SpecialItemType.SHIELD)}
-              className="text-xs border-blue-500/50 text-blue-500 h-6 md:h-8 px-2"
+              className="w-full text-sm border-blue-500/50 text-blue-500 font-medium py-2 rounded-lg"
             >
               Use
             </Button>
           </div>
           
-          <div className="flex items-center space-x-1 md:space-x-2 bg-green-500/10 p-1 rounded">
-            <Search className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
-            <span className="text-xs md:text-sm">Scanners:</span>
-            <Badge variant="outline" className="text-xs bg-green-500/20 text-green-500">
+          <div className="flex flex-col items-center bg-green-500/10 p-2 rounded-lg">
+            <div className="flex items-center justify-center mb-1">
+              <Search className="h-5 w-5 text-green-500 mr-1" />
+              <span className="text-sm font-medium">Scanner</span>
+            </div>
+            <Badge variant="outline" className="mb-1 text-sm bg-green-500/20 text-green-500 px-2">
               {gameState.inventory[SpecialItemType.SCANNER]}
             </Badge>
             <Button
               variant="outline"
-              size="sm"
               disabled={gameState.inventory[SpecialItemType.SCANNER] <= 0}
               onClick={() => useSpecialItem(SpecialItemType.SCANNER)}
-              className="text-xs border-green-500/50 text-green-500 h-6 md:h-8 px-2"
+              className="w-full text-sm border-green-500/50 text-green-500 font-medium py-2 rounded-lg"
             >
               Use
             </Button>
           </div>
           
-          <div className="flex items-center space-x-1 md:space-x-2 bg-purple-500/10 p-1 rounded">
-            <ZoomIn className="h-3 w-3 md:h-4 md:w-4 text-purple-500" />
-            <span className="text-xs md:text-sm">Doubles:</span>
-            <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-500">
+          <div className="flex flex-col items-center bg-purple-500/10 p-2 rounded-lg">
+            <div className="flex items-center justify-center mb-1">
+              <ZoomIn className="h-5 w-5 text-purple-500 mr-1" />
+              <span className="text-sm font-medium">Double</span>
+            </div>
+            <Badge variant="outline" className="mb-1 text-sm bg-purple-500/20 text-purple-500 px-2">
               {gameState.inventory[SpecialItemType.DOUBLE]}
             </Badge>
             <Button
               variant="outline"
-              size="sm"
               disabled={gameState.inventory[SpecialItemType.DOUBLE] <= 0}
               onClick={() => useSpecialItem(SpecialItemType.DOUBLE)}
-              className="text-xs border-purple-500/50 text-purple-500 h-6 md:h-8 px-2"
+              className="w-full text-sm border-purple-500/50 text-purple-500 font-medium py-2 rounded-lg"
             >
               Use
             </Button>
@@ -699,19 +703,23 @@ const TowerClimb = () => {
               <span className="text-xs md:text-sm font-medium">L{levelIndex + 1}</span>
             </div>
             
-            <div className="flex justify-center space-x-2 md:space-x-4">
+            <div className="flex justify-center space-x-3 md:space-x-4">
               {level.map((tileType, tileIndex) => {
                 const isRevealed = gameState.revealedTiles[levelIndex][tileIndex];
                 const isSelected = gameState.selectedTilePosition === tileIndex && levelIndex === gameState.currentLevel;
+                const isNextLevel = levelIndex === gameState.currentLevel + 1;
                 
                 let tileClass = cn(
-                  "w-10 h-10 md:w-16 md:h-16 flex items-center justify-center rounded-lg cursor-pointer border transition-all duration-200",
+                  // Larger tile size on mobile for easier thumb tapping
+                  "w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-lg cursor-pointer border transition-all duration-200",
                   isSelected 
                     ? "border-2 border-yellow-500 ring-2 ring-yellow-500/50" 
                     : "border-gray-600",
-                  !isRevealed && levelIndex === gameState.currentLevel + 1 
-                    ? "hover:bg-gray-600 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]" 
+                  !isRevealed && isNextLevel 
+                    ? "hover:bg-gray-600 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] border-2 border-blue-500/70" 
                     : "",
+                  // Add subtle pulse animation to next level tiles to draw attention
+                  !isRevealed && isNextLevel ? "animate-pulse" : "",
                 );
                 
                 if (isRevealed) {
