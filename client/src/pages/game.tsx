@@ -55,10 +55,10 @@ const GamePage = () => {
     setCurrentGame(game);
     
     // Update document title
-    document.title = `${game.name} - Stake.com`;
+    document.title = `${game.name} - Novito`;
     
     return () => {
-      document.title = 'Stake.com';
+      document.title = 'Novito Instant Casino';
     };
   }, [match, params, setLocation]);
   

@@ -32,7 +32,7 @@ export default function SponsorshipsPage() {
         <CardContent>
           <div className="mb-8">
             <p className="text-[#7F8990] mb-4">
-              Stake.com has established itself as a major player in the world of sports sponsorships, 
+              Novito has established itself as a major player in the world of sports sponsorships, 
               partnering with some of the biggest teams, athletes, and events across the globe. 
               Our sponsorships represent our commitment to excellence, innovation, and excitement.
             </p>
@@ -127,7 +127,7 @@ export default function SponsorshipsPage() {
             <h3 className="text-lg font-semibold mb-4">Interested in a Partnership?</h3>
             <p className="text-[#7F8990] mb-6 max-w-2xl mx-auto">
               If you represent a sports team, athlete, or organization and are interested in exploring 
-              sponsorship opportunities with Stake.com, we'd love to hear from you.
+              sponsorship opportunities with Novito, we'd love to hear from you.
             </p>
             <Button className="bg-[#1375e1] hover:bg-[#1060c0]">
               Contact Our Partnerships Team
