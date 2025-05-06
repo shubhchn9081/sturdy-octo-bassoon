@@ -43,7 +43,7 @@ export default function PaymentInfoPage() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Supported Cryptocurrencies</h3>
                   <p className="text-[#7F8990] mb-6">
-                    Stake.com supports a wide range of cryptocurrencies for deposits and withdrawals. 
+                    Novito supports a wide range of cryptocurrencies for deposits and withdrawals. 
                     We're continuously working to add more options to provide you with the most flexible experience.
                   </p>
                   
@@ -148,7 +148,7 @@ export default function PaymentInfoPage() {
                     </li>
                     <li>
                       <span className="font-medium text-white">Step 5: Wait for confirmation</span>
-                      <p>Depending on the cryptocurrency and network congestion, your funds will appear in your Stake.com account after a certain number of blockchain confirmations.</p>
+                      <p>Depending on the cryptocurrency and network congestion, your funds will appear in your Novito account after a certain number of blockchain confirmations.</p>
                     </li>
                   </ol>
                 </CardContent>
@@ -174,7 +174,7 @@ export default function PaymentInfoPage() {
                     <div>
                       <h4 className="font-medium text-white mb-3">Deposit Fees</h4>
                       <p className="text-[#7F8990] mb-6">
-                        Stake.com does not charge any fees for deposits. However, blockchain network fees apply and are deducted from the transaction by the network.
+                        Novito does not charge any fees for deposits. However, blockchain network fees apply and are deducted from the transaction by the network.
                       </p>
                       
                       <h4 className="font-medium text-white mb-3">Important Notes</h4>

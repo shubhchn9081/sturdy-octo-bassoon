@@ -300,12 +300,12 @@ const GameCard = ({
     <div 
       className={cn(
         "game-card",
-        "w-full max-w-[146px] mx-auto", // Exact width from Stake.com, centered on mobile
+        "w-full max-w-[146px] mx-auto", // Standard game card width, centered on mobile
         className
       )}
       onClick={() => window.location.href = `/games/${slug}`}
     >
-      {/* Main card content - matching Stake.com layout - responsive height */}
+      {/* Main card content - responsive height */}
       <div className="relative w-full h-[176px]">
         {/* Background gradient or image */}
         <div 
@@ -326,7 +326,7 @@ const GameCard = ({
               }}
             />
             
-            {/* Banner to cover "STAKE ORIGINALS" text at bottom - excluding ROCKET LAUNCH */}
+            {/* Banner at bottom - excluding ROCKET LAUNCH */}
             {name !== "ROCKET LAUNCH" && (
               <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
                 name === "TOWER CLIMB" 
@@ -341,7 +341,7 @@ const GameCard = ({
         
         {/* No text overlay as images already contain game names */}
         
-        {/* Multiplier badge in top right if available - exact Stake.com style */}
+        {/* Multiplier badge in top right if available */}
         {multiplier && (
           <div className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-yellow-400 text-white text-[8px] sm:text-[10px] font-bold py-0.5 px-1 sm:px-1.5 rounded-sm flex items-center">
             <div className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-orange-500 mr-0.5 sm:mr-1"></div>

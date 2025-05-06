@@ -25,7 +25,7 @@ export default function GuidesPage() {
             <CardTitle className="text-2xl font-bold ml-3">How-to Guides</CardTitle>
           </div>
           <CardDescription className="text-[#7F8990]">
-            Learn everything you need to know about using Stake.com
+            Learn everything you need to know about using Novito
           </CardDescription>
         </CardHeader>
         <CardContent>

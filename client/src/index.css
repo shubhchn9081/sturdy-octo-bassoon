@@ -95,7 +95,7 @@
     display: none; /* Chrome, Safari and Opera */
   }
   
-  /* Game grid layout styles - Stake.com exact match */
+  /* Game grid layout styles - Novito game grid */
   .game-grid {
     @apply grid grid-cols-[repeat(auto-fill,minmax(146px,1fr))] gap-1 p-1 justify-items-center items-start;
   }
