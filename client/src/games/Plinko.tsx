@@ -47,6 +47,9 @@ const PlinkoGame: React.FC = () => {
   const [betAmount, setBetAmount] = useState('0.00000100');
   const [isDropping, setIsDropping] = useState(false);
   const [isManualMode, setIsManualMode] = useState(true);
+  const [ballsCount, setBallsCount] = useState(5); // Default to 5 balls for auto mode
+  const [remainingBalls, setRemainingBalls] = useState(0); // Track remaining balls during auto mode
+  const [autoBetInProgress, setAutoBetInProgress] = useState(false); // Track if auto betting is in progress
   
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
