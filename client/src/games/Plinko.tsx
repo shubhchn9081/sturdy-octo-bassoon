@@ -300,12 +300,13 @@ const PlinkoGame: React.FC = () => {
           ease: ease,
         });
         
-        // Then sink into bucket
+        // Then sink into bucket - but keep the ball visible
         tl.to(ball, {
           x: point.x,
           y: point.y + 10, // Sink below the visible area
-          opacity: 0, // Fade out as it sinks
-          scale: 0.5, // Shrink as it sinks
+          // Remove opacity and scale properties to prevent disappearing
+          // opacity: 0, // This was causing the balls to disappear
+          // scale: 0.5, // This was causing issues with GSAP
           duration: time * 0.3,
           ease: "power2.in", // Accelerate as it sinks
           onComplete: () => {
