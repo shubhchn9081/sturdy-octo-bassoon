@@ -462,13 +462,24 @@ const PlinkoGame: React.FC = () => {
     }
   };
   
-  // Handle placing a bet
-  const placePlinkobet = async () => {
-    if (isDropping) return;
-    
-    // No need to check for user authentication as we're handling this at the app level
-    // The wallet system will prevent bets if there's no authentication
-    
+  // Stop auto betting
+  const stopAutoBet = () => {
+    setRemainingBalls(0);
+    setAutoBetInProgress(false);
+    toast({
+      title: "Auto Mode Stopped",
+      description: "Auto betting has been stopped.",
+    });
+  };
+
+  // Process a single bet (for both manual and auto mode)
+  const processSingleBet = async () => {
+    // Check if we should continue
+    if (!isManualMode && remainingBalls <= 0) {
+      setAutoBetInProgress(false);
+      return;
+    }
+
     const betAmountValue = parseFloat(betAmount);
     if (isNaN(betAmountValue) || betAmountValue <= 0) {
       toast({
@@ -476,6 +487,7 @@ const PlinkoGame: React.FC = () => {
         description: "Please enter a valid bet amount.",
         variant: "destructive",
       });
+      setAutoBetInProgress(false);
       return;
     }
     
@@ -486,13 +498,14 @@ const PlinkoGame: React.FC = () => {
         description: "You don't have enough balance to place this bet",
         variant: "destructive"
       });
+      setAutoBetInProgress(false);
       return;
     }
     
     setIsDropping(true);
     
     try {
-      // Place the bet with our new wallet system
+      // Place the bet with our wallet system
       const response = await placeGameBet({
         amount: betAmountValue,
         options: {
@@ -535,17 +548,31 @@ const PlinkoGame: React.FC = () => {
           
           console.log("Bet completed successfully");
           
-          // Show toast notification
-          toast({
-            title: isWin ? "Win!" : "Better luck next time!",
-            description: isWin 
-              ? `You won ${symbol}${winAmount.toFixed(2)}` 
-              : "No win this time.",
-            variant: isWin ? "default" : "destructive",
-          });
+          // Show toast notification (only if in manual mode or for the last auto ball)
+          if (isManualMode || remainingBalls <= 1) {
+            toast({
+              title: isWin ? "Win!" : "Better luck next time!",
+              description: isWin 
+                ? `You won ${symbol}${winAmount.toFixed(2)}` 
+                : "No win this time.",
+              variant: isWin ? "default" : "destructive",
+            });
+          }
           
           // Refresh balance
           refreshBalance();
+
+          // Continue with next ball in auto mode
+          if (!isManualMode && remainingBalls > 1) {
+            setRemainingBalls(prev => prev - 1);
+            setTimeout(() => {
+              setIsDropping(false);
+              processSingleBet();
+            }, 500); // Small delay between drops
+          } else {
+            setIsDropping(false);
+            setAutoBetInProgress(false);
+          }
         } catch (completeError: any) {
           console.error("Error completing bet:", completeError);
           toast({
@@ -553,6 +580,8 @@ const PlinkoGame: React.FC = () => {
             description: completeError.message || "Your bet was placed but we had trouble processing the result. Your balance will update shortly.",
             variant: "destructive",
           });
+          setIsDropping(false);
+          setAutoBetInProgress(false);
         }
       }
       
@@ -563,8 +592,23 @@ const PlinkoGame: React.FC = () => {
         description: error.message || "There was an error placing your bet. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsDropping(false);
+      setAutoBetInProgress(false);
+    }
+  };
+
+  // Handle placing a bet (entry point)
+  const placePlinkobet = async () => {
+    if (isDropping) return;
+    
+    if (isManualMode) {
+      // Manual mode - just place a single bet
+      processSingleBet();
+    } else {
+      // Auto mode - start the sequence of multiple ball drops
+      setAutoBetInProgress(true);
+      setRemainingBalls(ballsCount);
+      processSingleBet();
     }
   };
   
@@ -625,10 +669,10 @@ const PlinkoGame: React.FC = () => {
             {/* Bet Button */}
             <button 
               onClick={placePlinkobet}
-              disabled={isDropping}
+              disabled={isDropping || autoBetInProgress}
               className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md mb-4 disabled:opacity-50"
             >
-              {isDropping ? 'Dropping...' : 'Bet'}
+              {isDropping ? 'Dropping...' : isManualMode ? 'Bet' : `Drop ${ballsCount} Balls`}
             </button>
             
             {/* Risk Selector */}
@@ -688,6 +732,55 @@ const PlinkoGame: React.FC = () => {
                 Auto
               </button>
             </div>
+            
+            {/* Auto Mode Settings - Only shown when in Auto mode */}
+            {!isManualMode && (
+              <div className="mb-4 p-3 bg-[#1A2C3A] rounded-md transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm text-gray-400">Number of Balls</div>
+                  <div className="flex items-center bg-[#0F212E] rounded-md">
+                    <button 
+                      onClick={() => setBallsCount(prev => Math.max(1, prev - 1))}
+                      className="px-3 py-1 text-white hover:bg-[#172B3A] rounded-l-md"
+                    >
+                      -
+                    </button>
+                    <span className="px-3 py-1 text-white">{ballsCount}</span>
+                    <button 
+                      onClick={() => setBallsCount(prev => Math.min(100, prev + 1))}
+                      className="px-3 py-1 text-white hover:bg-[#172B3A] rounded-r-md"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Display current progress if auto betting is in progress */}
+                {autoBetInProgress && (
+                  <div className="mt-3">
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="text-sm text-gray-400">Progress</div>
+                      <div className="text-sm text-white">{ballsCount - remainingBalls + 1}/{ballsCount} balls</div>
+                    </div>
+                    <div className="w-full bg-[#0F212E] rounded-full h-2 mb-3">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all" 
+                        style={{ width: `${((ballsCount - remainingBalls + (isDropping ? 1 : 0)) / ballsCount) * 100}%` }}
+                      />
+                    </div>
+                    
+                    {/* Stop button */}
+                    <button
+                      onClick={stopAutoBet}
+                      disabled={!autoBetInProgress}
+                      className="w-full py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md disabled:opacity-50"
+                    >
+                      Stop Auto Betting
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* Footer */}
             <div className="flex justify-between pt-4 border-t border-gray-700">
