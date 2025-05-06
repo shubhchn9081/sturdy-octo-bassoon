@@ -26,10 +26,13 @@ const HomePage = () => {
     game.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  // Get featured games (first 4)
+  // Sort games by ID in descending order (newest to oldest)
+  const sortedGames = [...filteredGames].sort((a, b) => b.id - a.id);
+  
+  // Get featured games (first 4 from original order for consistency)
   const featuredGames = filteredGames.slice(0, 4);
-  // Get all games
-  const allGames = filteredGames;
+  // Get all games sorted by newest to oldest
+  const allGames = sortedGames;
   
   // Promotions data
   const promotions = [
@@ -109,7 +112,7 @@ const HomePage = () => {
             <div className="flex items-center space-x-1">
               <span className="text-gray-400 text-xs md:text-sm">Sort by</span>
               <div className="bg-[#172B3A] text-white py-1 px-2 rounded-md text-xs md:text-sm flex items-center">
-                Popular <span className="ml-1">▼</span>
+                Newest <span className="ml-1">▼</span>
               </div>
             </div>
           </div>
