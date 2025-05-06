@@ -47,9 +47,6 @@ const PlinkoGame: React.FC = () => {
   const [betAmount, setBetAmount] = useState('0.00000100');
   const [isDropping, setIsDropping] = useState(false);
   const [isManualMode, setIsManualMode] = useState(true);
-  const [ballsCount, setBallsCount] = useState(5); // Default to 5 balls for auto mode
-  const [remainingBalls, setRemainingBalls] = useState(0); // Track remaining balls during auto mode
-  const [autoBetInProgress, setAutoBetInProgress] = useState(false); // Track if auto betting is in progress
   
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -300,13 +297,12 @@ const PlinkoGame: React.FC = () => {
           ease: ease,
         });
         
-        // Then sink into bucket - but keep the ball visible
+        // Then sink into bucket
         tl.to(ball, {
           x: point.x,
           y: point.y + 10, // Sink below the visible area
-          // Remove opacity and scale properties to prevent disappearing
-          // opacity: 0, // This was causing the balls to disappear
-          // scale: 0.5, // This was causing issues with GSAP
+          opacity: 0, // Fade out as it sinks
+          scale: 0.5, // Shrink as it sinks
           duration: time * 0.3,
           ease: "power2.in", // Accelerate as it sinks
           onComplete: () => {
@@ -463,129 +459,13 @@ const PlinkoGame: React.FC = () => {
     }
   };
   
-  // Stop auto betting
-  const stopAutoBet = () => {
-    setRemainingBalls(0);
-    setAutoBetInProgress(false);
-    toast({
-      title: "Auto Mode Stopped",
-      description: "Auto betting has been stopped.",
-    });
-  };
-
-  // Process a batch of balls simultaneously in auto mode
-  const processBallBatch = async (count: number) => {
-    // Track how many balls can be dropped concurrently
-    const MAX_CONCURRENT_BALLS = 5;
-    const activeBalls = {count: 0};
-    const betAmountValue = parseFloat(betAmount);
+  // Handle placing a bet
+  const placePlinkobet = async () => {
+    if (isDropping) return;
     
-    // Update UI to show progress
-    const updateProgress = (completed: number) => {
-      setRemainingBalls(count - completed);
-    };
+    // No need to check for user authentication as we're handling this at the app level
+    // The wallet system will prevent bets if there's no authentication
     
-    // Process a single ball in the batch
-    const processBall = async (index: number): Promise<void> => {
-      try {
-        // Limit concurrent ball drops to MAX_CONCURRENT_BALLS
-        while (activeBalls.count >= MAX_CONCURRENT_BALLS) {
-          await new Promise(resolve => setTimeout(resolve, 10));
-        }
-        
-        activeBalls.count++;
-        
-        // Place the bet with our wallet system
-        const response = await placeGameBet({
-          amount: betAmountValue,
-          options: {
-            risk,
-            rows
-          },
-          autoCashout: null
-        });
-        
-        if (!response || !response.betId) {
-          console.error("Failed to place bet");
-          return;
-        }
-        
-        const betId = response.betId;
-        console.log("Bet placed successfully with ID:", betId);
-        
-        // Animate the ball drop and get result
-        const winMultiplier = await animateBallDrop();
-        
-        if (winMultiplier) {
-          // Calculate winnings
-          const winAmount = betAmountValue * winMultiplier;
-          const isWin = winAmount > 0;
-          
-          // Complete the bet
-          await completeGameBet(betId, {
-            win: isWin,
-            multiplier: winMultiplier,
-            payout: winAmount,
-            result: winMultiplier
-          });
-          
-          // Update UI only occasionally to avoid too many updates
-          if (index % 5 === 0 || index === count - 1) {
-            refreshBalance();
-          }
-        }
-      } catch (error) {
-        console.error("Error with ball drop:", error);
-      } finally {
-        activeBalls.count--;
-        updateProgress(index + 1);
-      }
-    };
-    
-    try {
-      // Set initial ball count
-      updateProgress(0);
-      setAutoBetInProgress(true);
-      
-      // Create a queue of balls to drop
-      const promises = [];
-      for (let i = 0; i < count; i++) {
-        // Add a small staggered delay between starting each ball
-        const promise = new Promise<void>(async (resolve) => {
-          // Staggered start times create a cascade effect
-          await new Promise(r => setTimeout(r, i * 25));
-          await processBall(i);
-          resolve();
-        });
-        
-        promises.push(promise);
-      }
-      
-      // Wait for all balls to complete
-      await Promise.all(promises);
-      
-      // Final balance refresh
-      refreshBalance();
-      
-      // Show completion toast
-      toast({
-        title: "Auto Betting Complete",
-        description: `Completed dropping ${count} balls`,
-      });
-    } finally {
-      setAutoBetInProgress(false);
-      setIsDropping(false);
-    }
-  };
-
-  // Process a single bet (for both manual and auto mode)
-  const processSingleBet = async () => {
-    // Check if we should continue
-    if (!isManualMode && remainingBalls <= 0) {
-      setAutoBetInProgress(false);
-      return;
-    }
-
     const betAmountValue = parseFloat(betAmount);
     if (isNaN(betAmountValue) || betAmountValue <= 0) {
       toast({
@@ -593,7 +473,6 @@ const PlinkoGame: React.FC = () => {
         description: "Please enter a valid bet amount.",
         variant: "destructive",
       });
-      setAutoBetInProgress(false);
       return;
     }
     
@@ -604,108 +483,85 @@ const PlinkoGame: React.FC = () => {
         description: "You don't have enough balance to place this bet",
         variant: "destructive"
       });
-      setAutoBetInProgress(false);
       return;
     }
     
-    // In auto mode, we don't block subsequent ball drops
-    // This allows multiple balls to be in the air simultaneously
-    if (isManualMode) {
-      setIsDropping(true);
+    setIsDropping(true);
+    
+    try {
+      // Place the bet with our new wallet system
+      const response = await placeGameBet({
+        amount: betAmountValue,
+        options: {
+          risk,
+          rows
+        },
+        autoCashout: null
+      });
       
-      try {
-        // Place the bet with our wallet system
-        const response = await placeGameBet({
-          amount: betAmountValue,
-          options: {
-            risk,
-            rows
-          },
-          autoCashout: null
+      if (!response || !response.betId) {
+        throw new Error("Failed to place bet");
+      }
+      
+      const betId = response.betId;
+      console.log("Bet placed successfully with ID:", betId);
+      
+      // Animate the ball drop and get result
+      const winMultiplier = await animateBallDrop();
+      
+      if (winMultiplier) {
+        // Calculate winnings
+        const winAmount = betAmountValue * winMultiplier;
+        const isWin = winAmount > 0;
+        
+        console.log("Game result:", { 
+          multiplier: winMultiplier, 
+          winAmount, 
+          isWin 
         });
         
-        if (!response || !response.betId) {
-          throw new Error("Failed to place bet");
-        }
-        
-        const betId = response.betId;
-        console.log("Bet placed successfully with ID:", betId);
-        
-        // Animate the ball drop and get result
-        const winMultiplier = await animateBallDrop();
-        
-        if (winMultiplier) {
-          // Calculate winnings
-          const winAmount = betAmountValue * winMultiplier;
-          const isWin = winAmount > 0;
-          
-          console.log("Game result:", { 
-            multiplier: winMultiplier, 
-            winAmount, 
-            isWin 
+        // Complete the bet with our wallet system
+        try {
+          // Use the completeGameBet function to update the outcome
+          await completeGameBet(betId, {
+            win: isWin,
+            multiplier: winMultiplier,
+            payout: winAmount,
+            result: winMultiplier
           });
           
-          // Complete the bet with our wallet system
-          try {
-            // Use the completeGameBet function to update the outcome
-            await completeGameBet(betId, {
-              win: isWin,
-              multiplier: winMultiplier,
-              payout: winAmount,
-              result: winMultiplier
-            });
-            
-            console.log("Bet completed successfully");
-            
-            // Show toast notification for manual mode
-            toast({
-              title: isWin ? "Win!" : "Better luck next time!",
-              description: isWin 
-                ? `You won ${symbol}${winAmount.toFixed(2)}` 
-                : "No win this time.",
-              variant: isWin ? "default" : "destructive",
-            });
-            
-            // Refresh balance
-            refreshBalance();
-          } catch (completeError: any) {
-            console.error("Error completing bet:", completeError);
-            toast({
-              title: "Error Completing Bet",
-              description: completeError.message || "Your bet was placed but we had trouble processing the result. Your balance will update shortly.",
-              variant: "destructive",
-            });
-          }
+          console.log("Bet completed successfully");
+          
+          // Show toast notification
+          toast({
+            title: isWin ? "Win!" : "Better luck next time!",
+            description: isWin 
+              ? `You won ${symbol}${winAmount.toFixed(2)}` 
+              : "No win this time.",
+            variant: isWin ? "default" : "destructive",
+          });
+          
+          // Refresh balance
+          refreshBalance();
+        } catch (completeError: any) {
+          console.error("Error completing bet:", completeError);
+          toast({
+            title: "Error Completing Bet",
+            description: completeError.message || "Your bet was placed but we had trouble processing the result. Your balance will update shortly.",
+            variant: "destructive",
+          });
         }
-      } catch (error: any) {
-        console.error("Error placing bet:", error);
-        toast({
-          title: "Bet Failed",
-          description: error.message || "There was an error placing your bet. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsDropping(false);
       }
-    } else {
-      // For auto mode, process all balls in batches for a "rainfall" effect
-      // We're calling a completely different function for auto mode
-      processBallBatch(ballsCount);
-    }
-  };
-
-  // Handle placing a bet (entry point)
-  const placePlinkobet = async () => {
-    if (isDropping) return;
-    
-    if (isManualMode) {
-      // Manual mode - just place a single bet
-      processSingleBet();
-    } else {
-      // Auto mode - start the sequence of multiple ball drops
-      setAutoBetInProgress(true);
-      setRemainingBalls(ballsCount);
-      processSingleBet();
+      
+    } catch (error: any) {
+      console.error("Error placing bet:", error);
+      toast({
+        title: "Bet Failed",
+        description: error.message || "There was an error placing your bet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDropping(false);
     }
   };
   
@@ -766,13 +622,10 @@ const PlinkoGame: React.FC = () => {
             {/* Bet Button */}
             <button 
               onClick={placePlinkobet}
-              disabled={(isManualMode && isDropping) || autoBetInProgress}
+              disabled={isDropping}
               className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md mb-4 disabled:opacity-50"
             >
-              {autoBetInProgress ? `Dropping ${ballsCount - remainingBalls + 1}/${ballsCount}...` : 
-               isDropping ? 'Dropping...' : 
-               isManualMode ? 'Bet' : 
-               `Drop ${ballsCount} Balls`}
+              {isDropping ? 'Dropping...' : 'Bet'}
             </button>
             
             {/* Risk Selector */}
@@ -832,55 +685,6 @@ const PlinkoGame: React.FC = () => {
                 Auto
               </button>
             </div>
-            
-            {/* Auto Mode Settings - Only shown when in Auto mode */}
-            {!isManualMode && (
-              <div className="mb-4 p-3 bg-[#1A2C3A] rounded-md transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-sm text-gray-400">Number of Balls</div>
-                  <div className="flex items-center bg-[#0F212E] rounded-md">
-                    <button 
-                      onClick={() => setBallsCount(prev => Math.max(1, prev - 1))}
-                      className="px-3 py-1 text-white hover:bg-[#172B3A] rounded-l-md"
-                    >
-                      -
-                    </button>
-                    <span className="px-3 py-1 text-white">{ballsCount}</span>
-                    <button 
-                      onClick={() => setBallsCount(prev => Math.min(100, prev + 1))}
-                      className="px-3 py-1 text-white hover:bg-[#172B3A] rounded-r-md"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Display current progress if auto betting is in progress */}
-                {autoBetInProgress && (
-                  <div className="mt-3">
-                    <div className="flex justify-between items-center mb-1">
-                      <div className="text-sm text-gray-400">Progress</div>
-                      <div className="text-sm text-white">{ballsCount - remainingBalls + 1}/{ballsCount} balls</div>
-                    </div>
-                    <div className="w-full bg-[#0F212E] rounded-full h-2 mb-3">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full transition-all" 
-                        style={{ width: `${((ballsCount - remainingBalls + (isDropping ? 1 : 0)) / ballsCount) * 100}%` }}
-                      />
-                    </div>
-                    
-                    {/* Stop button */}
-                    <button
-                      onClick={stopAutoBet}
-                      disabled={!autoBetInProgress}
-                      className="w-full py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md disabled:opacity-50"
-                    >
-                      Stop Auto Betting
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
             
             {/* Footer */}
             <div className="flex justify-between pt-4 border-t border-gray-700">
