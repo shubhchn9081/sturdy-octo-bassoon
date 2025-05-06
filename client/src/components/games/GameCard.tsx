@@ -350,7 +350,7 @@ const GameCard = ({
         )}
       </div>
       
-      {/* Player count - exactly matching Stake.com styling */}
+      {/* Player count indicator */}
       <div className="bg-[#172B3A] px-2 py-0.5 text-[10px] text-green-400 flex items-center justify-center rounded-b-lg">
         <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1"></div>
         {activePlayers.toLocaleString()} playing

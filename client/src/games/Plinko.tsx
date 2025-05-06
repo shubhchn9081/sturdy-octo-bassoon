@@ -570,7 +570,7 @@ const PlinkoGame: React.FC = () => {
       {/* Game area */}
       <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col w-full max-w-md">
-          {/* Canvas container - fixed width for exact Stake.com look */}
+          {/* Canvas container - fixed width for consistent look */}
           <div className="w-full flex justify-center bg-[#0E1C27] p-4">
             <canvas 
               ref={canvasRef} 
