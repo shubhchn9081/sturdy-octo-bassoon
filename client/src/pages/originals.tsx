@@ -37,7 +37,7 @@ const OriginalsPage = () => {
   });
   
   // Filter only Novito Originals games
-  const originalsGames = combinedGames.filter(game => game.type === 'STAKE ORIGINALS');
+  const originalsGames = combinedGames.filter(game => game.type === 'NOVITO ORIGINALS');
   
   return (
     <div className="mx-auto px-4 py-2 bg-[#0E1821]">
