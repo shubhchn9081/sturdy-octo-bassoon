@@ -15,7 +15,6 @@ import Slots from './Slots';
 import CupAndBall from './CupAndBall';
 import TowerClimb from './TowerClimb';
 import RocketLaunchRevised from './RocketLaunchRevised';
-import GalacticSpins from './GalacticSpins';
 
 export const GAMES = [
   {
@@ -200,21 +199,7 @@ export const GAMES = [
     maxMultiplier: 1000.00,
     activePlayers: 8421
   },
-  {
-    id: 200,
-    name: 'GALACTIC SPINS',
-    slug: 'galactic-spins',
-    type: 'NOVITO ORIGINALS',
-    description: 'Space-themed slots with cosmic multipliers',
-    color: 'bg-blue-600',
-    iconType: 'slots',
-    component: GalacticSpins,
-    minBet: 0.1,
-    maxBet: 100,
-    rtp: 96.5,
-    maxMultiplier: 50.0,
-    activePlayers: 7841
-  }
+
 ];
 
 export const getGameBySlug = (slug: string) => {
@@ -237,6 +222,5 @@ export default {
   Slots,
   CupAndBall,
   TowerClimb,
-  GalacticSpins,
   RocketLaunch: RocketLaunchRevised
 };

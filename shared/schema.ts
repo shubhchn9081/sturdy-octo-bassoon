@@ -2,8 +2,7 @@ import { pgTable, text, serial, integer, boolean, real, timestamp, jsonb, varcha
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Define slot game symbol types
-export type SlotSymbol = 'planet' | 'star' | 'rocket' | 'alien' | 'asteroid' | 'comet' | 'galaxy' | 'blackhole' | 'wild';
+// Schema types for the application
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -243,15 +242,7 @@ export type PlinkoGameSettings = {
 // Slot games specific settings
 export type SlotSymbol = 'planet' | 'star' | 'rocket' | 'alien' | 'asteroid' | 'comet' | 'galaxy' | 'blackhole' | 'wild';
 
-export type GalacticSpinsOutcome = {
-  reels: SlotSymbol[][]; // 5 reels x 3 rows
-  lines: number; // Number of active paylines
-  win: boolean;
-  winningLines: number[]; // Indices of winning paylines
-  multiplier: number;
-  bonusTriggered: boolean;
-  expandingWilds: number[]; // Indices of reels with expanding wilds
-};
+// GalacticSpins game has been removed
 
 export type MinesGameSettings = {
   minePositions: number[]; // Force specific mine positions

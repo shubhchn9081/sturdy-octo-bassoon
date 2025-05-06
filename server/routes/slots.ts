@@ -36,7 +36,7 @@ router.post('/play', async (req: Request, res: Response) => {
     }
     
     // Check if the game is a slot type game
-    if (game.slug !== 'slots' && game.slug !== 'galactic-spins') {
+    if (game.slug !== 'slots') {
       return res.status(400).json({ 
         message: 'Invalid game type for this endpoint. Use only for slot games.'
       });
@@ -57,8 +57,8 @@ router.post('/play', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Calculate total amount needed based on number of lines (if applicable)
-    const totalAmount = game.slug === 'galactic-spins' && lines ? amount * lines : amount;
+    // Calculate total amount needed
+    const totalAmount = amount;
     
     // Handle balance check - our balance is stored as a JSONB object with currency keys
     let userBalance = 0;

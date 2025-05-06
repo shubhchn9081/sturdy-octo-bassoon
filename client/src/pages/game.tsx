@@ -14,7 +14,6 @@ import Slots from '@/games/Slots';
 import CupAndBall from '@/games/CupAndBall';
 import TowerClimb from '@/games/TowerClimb';
 import RocketLaunchRevised from '@/games/RocketLaunchRevised';
-import GalacticSpins from '@/games/GalacticSpins';
 
 
 type Game = typeof GAMES[0];
@@ -31,8 +30,7 @@ const GameComponents: Record<string, React.ComponentType> = {
   slots: Slots,
   'cup-and-ball': CupAndBall,
   'tower-climb': TowerClimb,
-  'rocket-launch': RocketLaunchRevised,
-  'galactic-spins': GalacticSpins
+  'rocket-launch': RocketLaunchRevised
 };
 
 const GamePage = () => {
