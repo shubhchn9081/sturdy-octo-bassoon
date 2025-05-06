@@ -472,6 +472,111 @@ const PlinkoGame: React.FC = () => {
     });
   };
 
+  // Process a batch of balls simultaneously in auto mode
+  const processBallBatch = async (count: number) => {
+    // Track how many balls can be dropped concurrently
+    const MAX_CONCURRENT_BALLS = 5;
+    const activeBalls = {count: 0};
+    const betAmountValue = parseFloat(betAmount);
+    
+    // Update UI to show progress
+    const updateProgress = (completed: number) => {
+      setRemainingBalls(count - completed);
+    };
+    
+    // Process a single ball in the batch
+    const processBall = async (index: number): Promise<void> => {
+      try {
+        // Limit concurrent ball drops to MAX_CONCURRENT_BALLS
+        while (activeBalls.count >= MAX_CONCURRENT_BALLS) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        
+        activeBalls.count++;
+        
+        // Place the bet with our wallet system
+        const response = await placeGameBet({
+          amount: betAmountValue,
+          options: {
+            risk,
+            rows
+          },
+          autoCashout: null
+        });
+        
+        if (!response || !response.betId) {
+          console.error("Failed to place bet");
+          return;
+        }
+        
+        const betId = response.betId;
+        console.log("Bet placed successfully with ID:", betId);
+        
+        // Animate the ball drop and get result
+        const winMultiplier = await animateBallDrop();
+        
+        if (winMultiplier) {
+          // Calculate winnings
+          const winAmount = betAmountValue * winMultiplier;
+          const isWin = winAmount > 0;
+          
+          // Complete the bet
+          await completeGameBet(betId, {
+            win: isWin,
+            multiplier: winMultiplier,
+            payout: winAmount,
+            result: winMultiplier
+          });
+          
+          // Update UI only occasionally to avoid too many updates
+          if (index % 5 === 0 || index === count - 1) {
+            refreshBalance();
+          }
+        }
+      } catch (error) {
+        console.error("Error with ball drop:", error);
+      } finally {
+        activeBalls.count--;
+        updateProgress(index + 1);
+      }
+    };
+    
+    try {
+      // Set initial ball count
+      updateProgress(0);
+      setAutoBetInProgress(true);
+      
+      // Create a queue of balls to drop
+      const promises = [];
+      for (let i = 0; i < count; i++) {
+        // Add a small staggered delay between starting each ball
+        const promise = new Promise<void>(async (resolve) => {
+          // Staggered start times create a cascade effect
+          await new Promise(r => setTimeout(r, i * 25));
+          await processBall(i);
+          resolve();
+        });
+        
+        promises.push(promise);
+      }
+      
+      // Wait for all balls to complete
+      await Promise.all(promises);
+      
+      // Final balance refresh
+      refreshBalance();
+      
+      // Show completion toast
+      toast({
+        title: "Auto Betting Complete",
+        description: `Completed dropping ${count} balls`,
+      });
+    } finally {
+      setAutoBetInProgress(false);
+      setIsDropping(false);
+    }
+  };
+
   // Process a single bet (for both manual and auto mode)
   const processSingleBet = async () => {
     // Check if we should continue
@@ -506,54 +611,52 @@ const PlinkoGame: React.FC = () => {
     // This allows multiple balls to be in the air simultaneously
     if (isManualMode) {
       setIsDropping(true);
-    }
-    
-    try {
-      // Place the bet with our wallet system
-      const response = await placeGameBet({
-        amount: betAmountValue,
-        options: {
-          risk,
-          rows
-        },
-        autoCashout: null
-      });
       
-      if (!response || !response.betId) {
-        throw new Error("Failed to place bet");
-      }
-      
-      const betId = response.betId;
-      console.log("Bet placed successfully with ID:", betId);
-      
-      // Animate the ball drop and get result
-      const winMultiplier = await animateBallDrop();
-      
-      if (winMultiplier) {
-        // Calculate winnings
-        const winAmount = betAmountValue * winMultiplier;
-        const isWin = winAmount > 0;
-        
-        console.log("Game result:", { 
-          multiplier: winMultiplier, 
-          winAmount, 
-          isWin 
+      try {
+        // Place the bet with our wallet system
+        const response = await placeGameBet({
+          amount: betAmountValue,
+          options: {
+            risk,
+            rows
+          },
+          autoCashout: null
         });
         
-        // Complete the bet with our wallet system
-        try {
-          // Use the completeGameBet function to update the outcome
-          await completeGameBet(betId, {
-            win: isWin,
-            multiplier: winMultiplier,
-            payout: winAmount,
-            result: winMultiplier
+        if (!response || !response.betId) {
+          throw new Error("Failed to place bet");
+        }
+        
+        const betId = response.betId;
+        console.log("Bet placed successfully with ID:", betId);
+        
+        // Animate the ball drop and get result
+        const winMultiplier = await animateBallDrop();
+        
+        if (winMultiplier) {
+          // Calculate winnings
+          const winAmount = betAmountValue * winMultiplier;
+          const isWin = winAmount > 0;
+          
+          console.log("Game result:", { 
+            multiplier: winMultiplier, 
+            winAmount, 
+            isWin 
           });
           
-          console.log("Bet completed successfully");
-          
-          // Show toast notification (only if in manual mode or for the last auto ball)
-          if (isManualMode || remainingBalls <= 1) {
+          // Complete the bet with our wallet system
+          try {
+            // Use the completeGameBet function to update the outcome
+            await completeGameBet(betId, {
+              win: isWin,
+              multiplier: winMultiplier,
+              payout: winAmount,
+              result: winMultiplier
+            });
+            
+            console.log("Bet completed successfully");
+            
+            // Show toast notification for manual mode
             toast({
               title: isWin ? "Win!" : "Better luck next time!",
               description: isWin 
@@ -561,44 +664,32 @@ const PlinkoGame: React.FC = () => {
                 : "No win this time.",
               variant: isWin ? "default" : "destructive",
             });
+            
+            // Refresh balance
+            refreshBalance();
+          } catch (completeError: any) {
+            console.error("Error completing bet:", completeError);
+            toast({
+              title: "Error Completing Bet",
+              description: completeError.message || "Your bet was placed but we had trouble processing the result. Your balance will update shortly.",
+              variant: "destructive",
+            });
           }
-          
-          // Refresh balance
-          refreshBalance();
-
-          // Continue with next ball in auto mode
-          if (!isManualMode && remainingBalls > 1) {
-            setRemainingBalls(prev => prev - 1);
-            // Start next ball drop much sooner, without waiting for current one to finish
-            setTimeout(() => {
-              setIsDropping(false);
-              processSingleBet();
-            }, 100); // Very short delay between drops to allow overlapping ball animations
-          } else {
-            setIsDropping(false);
-            setAutoBetInProgress(false);
-          }
-        } catch (completeError: any) {
-          console.error("Error completing bet:", completeError);
-          toast({
-            title: "Error Completing Bet",
-            description: completeError.message || "Your bet was placed but we had trouble processing the result. Your balance will update shortly.",
-            variant: "destructive",
-          });
-          setIsDropping(false);
-          setAutoBetInProgress(false);
         }
+      } catch (error: any) {
+        console.error("Error placing bet:", error);
+        toast({
+          title: "Bet Failed",
+          description: error.message || "There was an error placing your bet. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsDropping(false);
       }
-      
-    } catch (error: any) {
-      console.error("Error placing bet:", error);
-      toast({
-        title: "Bet Failed",
-        description: error.message || "There was an error placing your bet. Please try again.",
-        variant: "destructive",
-      });
-      setIsDropping(false);
-      setAutoBetInProgress(false);
+    } else {
+      // For auto mode, process all balls in batches for a "rainfall" effect
+      // We're calling a completely different function for auto mode
+      processBallBatch(ballsCount);
     }
   };
 
