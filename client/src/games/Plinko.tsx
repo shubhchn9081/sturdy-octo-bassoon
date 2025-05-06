@@ -502,7 +502,11 @@ const PlinkoGame: React.FC = () => {
       return;
     }
     
-    setIsDropping(true);
+    // In auto mode, we don't block subsequent ball drops
+    // This allows multiple balls to be in the air simultaneously
+    if (isManualMode) {
+      setIsDropping(true);
+    }
     
     try {
       // Place the bet with our wallet system
@@ -565,10 +569,11 @@ const PlinkoGame: React.FC = () => {
           // Continue with next ball in auto mode
           if (!isManualMode && remainingBalls > 1) {
             setRemainingBalls(prev => prev - 1);
+            // Start next ball drop much sooner, without waiting for current one to finish
             setTimeout(() => {
               setIsDropping(false);
               processSingleBet();
-            }, 500); // Small delay between drops
+            }, 100); // Very short delay between drops to allow overlapping ball animations
           } else {
             setIsDropping(false);
             setAutoBetInProgress(false);
@@ -669,10 +674,13 @@ const PlinkoGame: React.FC = () => {
             {/* Bet Button */}
             <button 
               onClick={placePlinkobet}
-              disabled={isDropping || autoBetInProgress}
+              disabled={(isManualMode && isDropping) || autoBetInProgress}
               className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md mb-4 disabled:opacity-50"
             >
-              {isDropping ? 'Dropping...' : isManualMode ? 'Bet' : `Drop ${ballsCount} Balls`}
+              {autoBetInProgress ? `Dropping ${ballsCount - remainingBalls + 1}/${ballsCount}...` : 
+               isDropping ? 'Dropping...' : 
+               isManualMode ? 'Bet' : 
+               `Drop ${ballsCount} Balls`}
             </button>
             
             {/* Risk Selector */}
