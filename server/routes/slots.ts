@@ -1,117 +1,260 @@
-import { Router, Request, Response } from 'express';
-import { z } from 'zod';
+import express from 'express';
 import { storage } from '../storage';
-import { processSlotBet } from '../games/slots';
-import { createServerSeed, hashServerSeed } from '../games/provably-fair';
+import { z } from 'zod';
+import crypto from 'crypto';
 
-const router = Router();
+const router = express.Router();
 
-// Schema for validating slot bet request
-const slotBetSchema = z.object({
-  gameId: z.number().int().positive(),
+// Schema for slot play request
+const slotPlaySchema = z.object({
+  gameId: z.number(),
   amount: z.number().positive(),
-  clientSeed: z.string().min(1),
-  luckyNumber: z.number().int().min(0).max(9).optional(),
-  lines: z.number().int().min(1).max(20).optional(), // Number of lines for multi-line slots
+  clientSeed: z.string(),
+  luckySymbol: z.union([z.string(), z.number()]).optional(),
+  theme: z.string().optional()
 });
 
-// Handler for processing slot bets
-router.post('/play', async (req: Request, res: Response) => {
+// Helper function to calculate random outcome based on provably fair algorithm
+function calculateSlotOutcome(serverSeed: string, clientSeed: string, nonce: number, gameTheme: string = 'default') {
+  // Create the combined seed
+  const combinedSeed = `${serverSeed}:${clientSeed}:${nonce}`;
+  const hash = crypto.createHash('sha256').update(combinedSeed).digest('hex');
+  
+  // Generate 3 reels for basic slot machine
+  const reels = [];
+  for (let i = 0; i < 3; i++) {
+    // Use 4 characters of the hash for each reel (more entropy)
+    const segment = hash.substring(i * 8, (i + 1) * 8);
+    const decimal = parseInt(segment, 16);
+    
+    // Different themes have different symbols and ranges
+    let symbolRange = 10; // Default range
+    
+    // Specific theme handling
+    if (gameTheme === 'space') {
+      symbolRange = 10; // Space theme has 10 symbols
+      const spaceSymbols = ["🚀", "🪐", "🌎", "🌙", "☄️", "🛸", "👽", "⭐", "🌌", "🔭"];
+      reels.push(spaceSymbols[decimal % symbolRange]);
+    } else if (gameTheme === 'adventure') {
+      symbolRange = 10; // Adventure theme has 10 symbols
+      const adventureSymbols = ["💎", "🏺", "🗿", "🔱", "👑", "🐍", "🗡️", "🧭", "🔥", "🪙"];
+      reels.push(adventureSymbols[decimal % symbolRange]);
+    } else if (gameTheme === 'fantasy') {
+      symbolRange = 10; // Fantasy theme has 10 symbols
+      const fantasySymbols = ["🐉", "🔥", "🏰", "⚔️", "🛡️", "📜", "💰", "🧙", "🏆", "🔮"];
+      reels.push(fantasySymbols[decimal % symbolRange]);
+    } else if (gameTheme === 'classic') {
+      symbolRange = 10; // Classic theme has 10 symbols
+      const classicSymbols = ["7", "BAR", "🍒", "🍋", "🍊", "🍇", "🔔", "💎", "⭐", "WILD"];
+      reels.push(classicSymbols[decimal % symbolRange]);
+    } else if (gameTheme === 'sports') {
+      symbolRange = 10; // Sports theme has 10 symbols
+      const sportsSymbols = ["⚽", "🥅", "👟", "🏆", "🏟️", "🧤", "🥇", "🎯", "🎪", "🎲"];
+      reels.push(sportsSymbols[decimal % symbolRange]);
+    } else {
+      // Default numeric reels (0-9)
+      reels.push(decimal % symbolRange);
+    }
+  }
+  
+  return reels;
+}
+
+// Helper function to determine if the outcome is a win
+function determineSlotWin(reels: (string | number)[], luckySymbol?: string | number): {
+  win: boolean;
+  multiplier: number;
+  luckyNumberHit: boolean;
+} {
+  // Check if all reels match (three of a kind)
+  const allMatch = reels[0] === reels[1] && reels[1] === reels[2];
+  
+  // Check if lucky symbol hit
+  const luckyNumberHit = luckySymbol !== undefined && 
+                        (reels[0] === luckySymbol || 
+                         reels[1] === luckySymbol || 
+                         reels[2] === luckySymbol);
+  
+  // Check if it's a sequence (only for numeric reels)
+  let isSequence = false;
+  if (typeof reels[0] === 'number' && typeof reels[1] === 'number' && typeof reels[2] === 'number') {
+    const sorted = [...reels].sort((a, b) => (a as number) - (b as number));
+    isSequence = (sorted[1] as number) === (sorted[0] as number) + 1 && 
+                (sorted[2] as number) === (sorted[1] as number) + 1;
+  }
+  
+  // Calculate multiplier based on outcome
+  let multiplier = 0;
+  let win = false;
+  
+  if (allMatch) {
+    if (reels[0] === "7" || reels[0] === "🚀" || reels[0] === "💎" || reels[0] === "🐉" || reels[0] === "⚽") {
+      // Three 7s, rockets, diamonds, dragons, or soccer balls (highest symbol in each theme)
+      multiplier = 10;
+    } else if (reels[0] === "WILD" || reels[0] === "🏆" || reels[0] === "💰" || reels[0] === "🏺") {
+      // Three WILDs or other high-value symbols
+      multiplier = 8;
+    } else if (reels[0] === "BAR" || reels[0] === "🏰" || reels[0] === "🪐" || reels[0] === "🗿" || reels[0] === "🥅") {
+      // Three BARs or medium-high value symbols
+      multiplier = 7;
+    } else if (reels[0] === "💎" || reels[0] === "⚔️" || reels[0] === "🌎" || reels[0] === "🔱" || reels[0] === "👟") {
+      // Three diamonds or medium value symbols
+      multiplier = 6;
+    } else if (reels[0] === "🔔" || reels[0] === "🛡️" || reels[0] === "🌙" || reels[0] === "👑" || reels[0] === "🏟️" || reels[0] === "🧤") {
+      // Three bells or medium value symbols
+      multiplier = 5;
+    } else if (reels[0] === "⭐" || reels[0] === "📜" || reels[0] === "☄️" || reels[0] === "🐍" || reels[0] === "🥇") {
+      // Three stars or medium value symbols
+      multiplier = 4;
+    } else if (reels[0] === "🍇" || reels[0] === "🔮" || reels[0] === "🛸" || reels[0] === "🗡️" || reels[0] === "🎯") {
+      // Three grapes or medium-low value symbols
+      multiplier = 3;
+    } else if (reels[0] === "🍊" || reels[0] === "🧙" || reels[0] === "👽" || reels[0] === "🧭" || reels[0] === "🎪") {
+      // Three oranges or medium-low value symbols
+      multiplier = 3;
+    } else if (reels[0] === "🍋" || reels[0] === "🏆" || reels[0] === "⭐" || reels[0] === "🔥" || reels[0] === "🎲") {
+      // Three lemons or low value symbols
+      multiplier = 2;
+    } else if (reels[0] === "🍒" || reels[0] === "WILD" || reels[0] === "🌌" || reels[0] === "🪙" || reels[0] === "🎲") {
+      // Three cherries or lowest value symbols
+      multiplier = 2;
+    } else {
+      // Three of any other symbols
+      multiplier = 5;
+    }
+    win = true;
+  } else if (isSequence) {
+    // Sequence of numbers (e.g. 1,2,3)
+    multiplier = 3;
+    win = true;
+  } else if (luckyNumberHit) {
+    // Lucky number hit
+    multiplier = 15; // High multiplier for lucky number
+    win = true;
+  }
+  
+  return { win, multiplier, luckyNumberHit };
+}
+
+/**
+ * Play a slot game
+ * POST /api/slots/play
+ */
+router.post('/play', async (req, res) => {
   try {
-    // Make sure user is authenticated
-    if (!req.isAuthenticated()) {
+    // Ensure user is authenticated
+    if (!req.session || !(req.session as any).userId) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    // Extract and validate request data
-    const { gameId, amount, clientSeed, luckyNumber, lines } = slotBetSchema.parse(req.body);
+    const userId = (req.session as any).userId;
     
-    // Get user from session
-    const userId = req.user.id;
-    
-    // Get the game
-    const game = await storage.getGame(gameId);
-    if (!game) {
-      return res.status(404).json({ message: 'Game not found' });
-    }
-    
-    // Check if the game is a slot type game
-    if (game.slug !== 'slots') {
+    // Validate request body
+    const validationResult = slotPlaySchema.safeParse(req.body);
+    if (!validationResult.success) {
       return res.status(400).json({ 
-        message: 'Invalid game type for this endpoint. Use only for slot games.'
+        message: 'Invalid request',
+        errors: validationResult.error.format() 
       });
     }
     
-    // Validate bet amount
-    if (amount < game.minBet || amount > game.maxBet) {
-      return res.status(400).json({
-        message: `Bet amount must be between ${game.minBet} and ${game.maxBet}`,
-        minBet: game.minBet,
-        maxBet: game.maxBet
-      });
-    }
+    const { gameId, amount, clientSeed, luckySymbol, theme = 'default' } = validationResult.data;
     
-    // Check if user has enough balance
+    // Get the user
     const user = await storage.getUser(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Calculate total amount needed
-    const totalAmount = amount;
-    
-    // Handle balance check - our balance is stored as a JSONB object with currency keys
-    let userBalance = 0;
-    if (typeof user.balance === 'number') {
-      // Legacy format - direct number
-      userBalance = user.balance;
-    } else if (typeof user.balance === 'object' && user.balance !== null) {
-      // Current format - JSONB with currency keys, we use INR
-      userBalance = (user.balance as any).INR || 0;
+    // Check if the user has enough balance
+    const userBalance = user.balance as { [key: string]: number };
+    const balance = userBalance.INR || 0;
+    if (balance < amount) {
+      return res.status(400).json({ message: 'Insufficient balance' });
     }
     
-    if (userBalance < totalAmount) {
-      return res.status(400).json({ 
-        message: 'Insufficient balance',
-        required: totalAmount,
-        available: userBalance
-      });
-    }
-    
-    // Generate server seed and nonce
-    const serverSeed = createServerSeed();
-    const hashedServerSeed = hashServerSeed(serverSeed);
+    // Generate server seed for provably fair gameplay
+    const serverSeed = crypto.randomBytes(32).toString('hex');
     const nonce = Math.floor(Math.random() * 1000000);
     
-    // Process the bet
-    const result = await processSlotBet(
-      userId,
+    // Calculate the outcome based on seeds
+    const reels = calculateSlotOutcome(serverSeed, clientSeed, nonce, theme);
+    
+    // Determine if it's a win and calculate multiplier
+    const { win, multiplier, luckyNumberHit } = determineSlotWin(reels, luckySymbol);
+    
+    // Calculate profit/loss
+    const profit = win ? amount * multiplier - amount : -amount;
+    
+    // Update user's balance
+    await storage.updateUserBalance(user.id, profit);
+    
+    // Create bet record
+    const bet = await storage.createBet({
+      userId: user.id,
       gameId,
       amount,
-      serverSeed,
       clientSeed,
+      multiplier: win ? multiplier : 0,
+      profit,
+      completed: true,
+      serverSeed,
       nonce,
-      luckyNumber,
-      lines || 1 // Default to 1 line if not specified
-    );
+      outcome: {
+        reels,
+        win,
+        multiplier,
+        luckyNumberHit
+      }
+    });
+    
+    // Create transaction record
+    await storage.createTransaction({
+      userId: user.id,
+      type: win ? 'bet_win' : 'bet_loss',
+      amount: Math.abs(profit),
+      currency: 'INR',
+      status: 'completed',
+      description: `Slot game ${gameId} - ${win ? 'Win' : 'Loss'}`
+    });
     
     // Return result to client
-    res.json(result);
+    return res.status(200).json({
+      id: bet.id,
+      outcome: {
+        reels,
+        win,
+        luckyNumberHit
+      },
+      profit,
+      multiplier: win ? multiplier : 0,
+      clientSeed,
+      serverSeed,
+      nonce
+    });
     
   } catch (error) {
-    console.error('Error processing slot bet:', error);
+    console.error('Error in slot game play:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Get slot games list
+ * GET /api/slots/games
+ */
+router.get('/games', async (req, res) => {
+  try {
+    // Get all games
+    const allGames = await storage.getAllGames();
     
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        message: 'Invalid request data', 
-        errors: error.errors 
-      });
-    }
+    // Filter slot games
+    const slotGames = allGames.filter(game => game.type.toLowerCase().includes('slot'));
     
-    res.status(500).json({ 
-      message: 'Server error',
-      error: error instanceof Error ? error.message : String(error)
-    });
+    return res.status(200).json(slotGames);
+  } catch (error) {
+    console.error('Error fetching slot games:', error);
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 

@@ -220,7 +220,7 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
         
         // Function to create the next interval with different timing
         const createNextInterval = () => {
-          const config = animationIntervals[intervalIndex];
+          const animConfig = animationIntervals[intervalIndex];
           
           // Clear any existing interval
           if (currentInterval) clearInterval(currentInterval);
@@ -229,6 +229,7 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
           currentInterval = setInterval(() => {
             // Update the values with a random symbol
             tempValues = [...tempValues];
+            // Use the slot configuration from the component props
             const randomSymbolIndex = Math.floor(Math.random() * config.symbols.length);
             tempValues[i] = config.symbols[randomSymbolIndex];
             setReelValues(tempValues);
@@ -236,7 +237,8 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
             count++;
             
             // Move to next interval configuration after enough iterations
-            if (count >= config.count && intervalIndex < animationIntervals.length - 1) {
+            const currentIntervalConfig = animationIntervals[intervalIndex];
+            if (count >= currentIntervalConfig.count && intervalIndex < animationIntervals.length - 1) {
               intervalIndex++;
               count = 0;
               createNextInterval();
