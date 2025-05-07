@@ -881,7 +881,7 @@ const RocketLaunchRevised: React.FC = () => {
           />
           <button 
             onClick={() => setBetAmount(betAmount * 2)}
-            disabled={gameState !== 'waiting' || hasPlacedBet}
+            disabled={(gameState !== 'waiting' && gameState !== 'running') || hasPlacedBet}
             className="h-10 w-12 flex items-center justify-center text-white bg-[#1A2C3F] hover:bg-[#243442] rounded-lg text-xl shadow-sm border border-[#2A3F51] font-bold"
           >
             +
@@ -896,7 +896,7 @@ const RocketLaunchRevised: React.FC = () => {
           <Switch
             checked={isAutoCashoutEnabled}
             onCheckedChange={setIsAutoCashoutEnabled}
-            disabled={gameState !== 'waiting' || hasPlacedBet}
+            disabled={(gameState !== 'waiting' && gameState !== 'running') || hasPlacedBet}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -905,7 +905,7 @@ const RocketLaunchRevised: React.FC = () => {
             value={autoCashoutInputValue}
             onChange={(e) => handleAutoCashoutChange(e.target.value)}
             className={`flex-1 bg-[#172B3A] text-white text-center h-10 text-base ${!isAutoCashoutEnabled ? 'opacity-50' : ''} border-[#2A3F51]`}
-            disabled={!isAutoCashoutEnabled || gameState !== 'waiting' || hasPlacedBet}
+            disabled={!isAutoCashoutEnabled || (gameState !== 'waiting' && gameState !== 'running') || hasPlacedBet}
             step="0.01"
             min="1.01"
             placeholder="2.00"
