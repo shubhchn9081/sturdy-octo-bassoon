@@ -134,11 +134,11 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
           }}
         >
           {/* Cup Image */}
-          <div className="w-32 h-40 relative flex items-center justify-center">
+          <div className="w-32 h-44 relative flex items-center justify-center z-10">
             <img 
               src="/images/cup-game/red-cup.png" 
               alt="Red Cup" 
-              className="w-full h-full object-contain transform-gpu"
+              className="w-full h-full object-contain transform-gpu filter drop-shadow-lg"
             />
           </div>
           
@@ -151,7 +151,7 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
         {/* Ball shown when needed */}
         {showBall && (
           <motion.div
-            className="w-16 h-16 mt-4 flex items-center justify-center"
+            className="w-20 h-20 mt-4 flex items-center justify-center z-5"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -159,7 +159,7 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
             <img 
               src="/images/cup-game/ball.png" 
               alt="Ball" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain filter drop-shadow-md"
             />
           </motion.div>
         )}
