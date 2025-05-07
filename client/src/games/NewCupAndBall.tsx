@@ -16,8 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-// Import the standalone CupGame component
-import CupGame from './EnhancedCupGame';
+// Import the custom images cup game component
+import CupGame from './EnhancedCupGameWithCustomImages';
 
 // Constants
 const GAME_ID = 16; // New ID for the Cup Game
