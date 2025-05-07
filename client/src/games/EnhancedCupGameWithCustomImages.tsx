@@ -342,29 +342,38 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     } as React.CSSProperties,
     cup: {
       width: '120px',
-      height: '140px',
+      height: '160px',
       position: 'absolute',
       transformOrigin: 'bottom center',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
       ...(customStyles.cup || {})
     } as React.CSSProperties,
     cupImage: {
       width: '100%',
       height: '100%',
       objectFit: 'contain',
+      filter: 'drop-shadow(0px 10px 8px rgba(0,0,0,0.3))',
     } as React.CSSProperties,
     ball: {
-      width: '50px',
-      height: '50px',
+      width: '60px',
+      height: '60px',
       position: 'absolute',
       bottom: '60px',
-      zIndex: 1,
+      zIndex: 5,
       transition: 'all 0.5s ease-in-out',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
       ...(customStyles.ball || {})
     } as React.CSSProperties,
     ballImage: {
       width: '100%',
       height: '100%',
       objectFit: 'contain',
+      filter: 'drop-shadow(0px 5px 5px rgba(0,0,0,0.5))',
     } as React.CSSProperties,
     gameResult: {
       position: 'absolute',
