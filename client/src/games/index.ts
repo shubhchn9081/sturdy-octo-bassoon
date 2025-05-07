@@ -153,8 +153,8 @@ export const GAMES = [
     activePlayers: 2891,
     imageUrl: 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1745078272/ChatGPT_Image_Apr_19_2025_09_27_40_PM_hitkbs.png'
   },
-  // Cup and Ball game temporarily hidden from menu
-  /* {
+  // New enhanced Cup and Ball game (now active)
+  {
     id: 15,
     name: 'CUP AND BALL',
     slug: 'cup-and-ball',
@@ -167,8 +167,9 @@ export const GAMES = [
     maxBet: 100,
     rtp: 98,
     maxMultiplier: 3.0,
-    activePlayers: 4215
-  }, */
+    activePlayers: 4215,
+    imageUrl: 'https://res.cloudinary.com/dq8b1e8qy/image/upload/v1746581124/cup-game_nf3fpx.jpg'
+  },
   {
     id: 101,
     name: 'TOWER CLIMB',
