@@ -60,79 +60,37 @@ const CupGameControls = ({
   const selectedDifficulty = difficultyDetails[difficulty];
 
   return (
-    <div className="space-y-3 px-2 py-1">
-      <h2 className="text-lg md:text-xl font-bold">Game Controls</h2>
-      
-      <div className="space-y-3">
-        <div>
-          <label className="block text-xs md:text-sm font-medium mb-1">Difficulty</label>
-          <Select 
-            value={difficulty} 
-            onValueChange={(value) => onDifficultyChange(value)}
-            disabled={isPlaying}
-          >
-            <SelectTrigger className="w-full h-8 md:h-10 text-xs md:text-sm">
-              <SelectValue placeholder="Select Difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="easy">Easy</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="hard">Hard</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Mobile optimized game details - grid layout */}
-        <div className="grid grid-cols-3 gap-1 mt-1">
-          <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
-            <div className="flex items-center justify-center">
-              <span className="text-xs md:text-sm">Shuffles</span>
-            </div>
-            <span className="font-medium text-xs md:text-sm">{selectedDifficulty.shuffles}</span>
+    <div className="px-1 py-1">
+      {/* For mobile view, create a more compact layout */}
+      {isMobile ? (
+        <div className="space-y-1">
+          {/* Combine difficulty and bet amount in one row */}
+          <div className="flex items-center gap-2">
+            {/* Large start button at the top for easy thumb access */}
+            {!isPlaying ? (
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 h-14 w-full text-lg font-bold rounded-lg"
+                onClick={onStart}
+              >
+                START ▶
+              </Button>
+            ) : (
+              <Button 
+                className="bg-red-600 hover:bg-red-700 h-14 w-full text-lg font-bold rounded-lg" 
+                onClick={onReset}
+                disabled={gamePhase !== 'complete'}
+              >
+                {gamePhase === 'complete' ? 'PLAY AGAIN ▶' : 'IN PROGRESS...'}
+              </Button>
+            )}
           </div>
           
-          <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
-            <div className="flex items-center justify-center">
-              <span className="text-xs md:text-sm">Speed</span>
-            </div>
-            <span className="font-medium text-xs md:text-sm">{selectedDifficulty.speed}</span>
-          </div>
-          
-          <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
-            <div className="flex items-center justify-center">
-              <span className="text-xs md:text-sm">Payout</span>
-            </div>
-            <span className="font-medium text-xs md:text-sm">{selectedDifficulty.multiplier}x</span>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs md:text-sm font-medium mb-1">Bet Amount</label>
-          <div className="flex space-x-2 mb-1">
-            <Input
-              type="number"
-              value={betAmount}
-              onChange={onBetAmountChange}
-              disabled={isPlaying}
-              className="flex-1 h-8 md:h-10 text-xs md:text-sm"
-            />
-          </div>
-          <Slider
-            value={[betAmount]}
-            min={100}
-            max={5000}
-            step={100}
-            onValueChange={onBetAmountSlider}
-            disabled={isPlaying}
-            className="my-2"
-          />
-          
-          {/* Bet amount quick selectors */}
-          <div className="grid grid-cols-4 gap-1 mt-1">
+          {/* Quick bet buttons in a row */}
+          <div className="grid grid-cols-4 gap-1">
             {[100, 500, 1000, 5000].map(amount => (
               <button
                 key={amount}
-                className={`text-xs md:text-sm py-1 px-2 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
+                className={`text-sm py-2 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
                 onClick={() => onBetAmountSlider([amount])}
                 disabled={isPlaying}
               >
@@ -140,57 +98,160 @@ const CupGameControls = ({
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="mt-2">
-          <label className="block text-xs md:text-sm font-medium mb-1">Payout Information</label>
-          <div className="bg-slate-800 p-2 rounded-md">
-            <div className="flex justify-between mb-1">
-              <span className="text-xs md:text-sm">Bet Amount:</span>
-              <span className="font-medium text-xs md:text-sm">{betAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between mb-1">
-              <span className="text-xs md:text-sm">Multiplier:</span>
-              <span className="font-medium text-xs md:text-sm">{payoutMultiplier}x</span>
-            </div>
-            <div className="flex justify-between font-medium">
-              <span className="text-xs md:text-sm">Potential Profit:</span>
-              <span className="text-green-400 text-xs md:text-sm">{potentialProfit.toFixed(2)}</span>
+          
+          {/* Compact details grid */}
+          <div className="flex justify-between">
+            <select 
+              value={difficulty}
+              onChange={(e) => onDifficultyChange(e.target.value)}
+              disabled={isPlaying}
+              className="bg-slate-800 rounded-md py-1 px-2 text-sm w-1/3"
+            >
+              <option value="easy">Easy (1.5x)</option>
+              <option value="medium">Medium (2x)</option>
+              <option value="hard">Hard (3x)</option>
+            </select>
+            
+            <div className="bg-slate-800 rounded-md py-1 px-2 text-center flex-1 ml-1">
+              <span className="text-green-400 text-sm font-medium">Win: {potentialProfit.toFixed(0)}</span>
             </div>
           </div>
         </div>
+      ) : (
+        /* Original desktop layout */
+        <div className="space-y-3">
+          <h2 className="text-lg md:text-xl font-bold">Game Controls</h2>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs md:text-sm font-medium mb-1">Difficulty</label>
+              <Select 
+                value={difficulty} 
+                onValueChange={(value) => onDifficultyChange(value)}
+                disabled={isPlaying}
+              >
+                <SelectTrigger className="w-full h-8 md:h-10 text-xs md:text-sm">
+                  <SelectValue placeholder="Select Difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        {gameResult && gamePhase === 'complete' && (
-          <div className={`mt-2 p-2 rounded-md ${gameResult.win ? 'bg-green-800' : 'bg-red-800'}`}>
-            <h3 className="text-xs md:text-sm font-bold mb-1">{gameResult.win ? 'You Won!' : 'You Lost'}</h3>
-            {gameResult.win && (
-              <div className="flex justify-between">
-                <span className="text-xs md:text-sm">Profit:</span>
-                <span className="font-medium text-xs md:text-sm">{gameResult.profit.toFixed(2)}</span>
+            {/* Game details - grid layout */}
+            <div className="grid grid-cols-3 gap-1 mt-1">
+              <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span className="text-xs md:text-sm">Shuffles</span>
+                </div>
+                <span className="font-medium text-xs md:text-sm">{selectedDifficulty.shuffles}</span>
+              </div>
+              
+              <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span className="text-xs md:text-sm">Speed</span>
+                </div>
+                <span className="font-medium text-xs md:text-sm">{selectedDifficulty.speed}</span>
+              </div>
+              
+              <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span className="text-xs md:text-sm">Payout</span>
+                </div>
+                <span className="font-medium text-xs md:text-sm">{selectedDifficulty.multiplier}x</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs md:text-sm font-medium mb-1">Bet Amount</label>
+              <div className="flex space-x-2 mb-1">
+                <Input
+                  type="number"
+                  value={betAmount}
+                  onChange={onBetAmountChange}
+                  disabled={isPlaying}
+                  className="flex-1 h-8 md:h-10 text-xs md:text-sm"
+                />
+              </div>
+              <Slider
+                value={[betAmount]}
+                min={100}
+                max={5000}
+                step={100}
+                onValueChange={onBetAmountSlider}
+                disabled={isPlaying}
+                className="my-2"
+              />
+              
+              {/* Bet amount quick selectors */}
+              <div className="grid grid-cols-4 gap-1 mt-1">
+                {[100, 500, 1000, 5000].map(amount => (
+                  <button
+                    key={amount}
+                    className={`text-xs md:text-sm py-1 px-2 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
+                    onClick={() => onBetAmountSlider([amount])}
+                    disabled={isPlaying}
+                  >
+                    {amount}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-2">
+              <label className="block text-xs md:text-sm font-medium mb-1">Payout Information</label>
+              <div className="bg-slate-800 p-2 rounded-md">
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs md:text-sm">Bet Amount:</span>
+                  <span className="font-medium text-xs md:text-sm">{betAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs md:text-sm">Multiplier:</span>
+                  <span className="font-medium text-xs md:text-sm">{payoutMultiplier}x</span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span className="text-xs md:text-sm">Potential Profit:</span>
+                  <span className="text-green-400 text-xs md:text-sm">{potentialProfit.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {gameResult && gamePhase === 'complete' && (
+              <div className={`mt-2 p-2 rounded-md ${gameResult.win ? 'bg-green-800' : 'bg-red-800'}`}>
+                <h3 className="text-xs md:text-sm font-bold mb-1">{gameResult.win ? 'You Won!' : 'You Lost'}</h3>
+                {gameResult.win && (
+                  <div className="flex justify-between">
+                    <span className="text-xs md:text-sm">Profit:</span>
+                    <span className="font-medium text-xs md:text-sm">{gameResult.profit.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        <div className="flex justify-between space-x-2 mt-3">
-          {!isPlaying ? (
-            <Button 
-              className={`flex-1 bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : 'h-8 md:h-10 text-xs md:text-sm'}`}
-              onClick={onStart}
-            >
-              {isMobile ? 'START ▶' : 'Start Game'}
-            </Button>
-          ) : (
-            <Button 
-              className={`flex-1 bg-red-600 hover:bg-red-700 ${isMobile ? 'h-14 text-lg' : 'h-8 md:h-10 text-xs md:text-sm'}`} 
-              onClick={onReset}
-              disabled={gamePhase !== 'complete'}
-            >
-              {gamePhase === 'complete' ? (isMobile ? 'PLAY AGAIN ▶' : 'Play Again') : 'In Progress...'}
-            </Button>
-          )}
+            <div className="flex justify-between space-x-2 mt-3">
+              {!isPlaying ? (
+                <Button 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 h-8 md:h-10 text-xs md:text-sm"
+                  onClick={onStart}
+                >
+                  Start Game
+                </Button>
+              ) : (
+                <Button 
+                  className="flex-1 bg-red-600 hover:bg-red-700 h-8 md:h-10 text-xs md:text-sm" 
+                  onClick={onReset}
+                  disabled={gamePhase !== 'complete'}
+                >
+                  {gamePhase === 'complete' ? 'Play Again' : 'In Progress...'}
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
