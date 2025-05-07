@@ -239,7 +239,12 @@ const SlotsPage = () => {
             <Button
               variant="outline"
               className="bg-[#1375e1] hover:bg-[#1060c0] text-white border-[#1375e1]"
-              onClick={() => window.scrollTo({ top: document.getElementById('featured-slots')?.offsetTop - 100, behavior: 'smooth' })}
+              onClick={() => {
+                const featuredSection = document.getElementById('featured-slots');
+                if (featuredSection) {
+                  window.scrollTo({ top: featuredSection.offsetTop - 100, behavior: 'smooth' });
+                }
+              }}
             >
               <Trophy className="w-4 h-4 mr-2" /> 
               Featured Slots
@@ -369,11 +374,11 @@ const SlotsPage = () => {
                 <CardContent className="p-4 flex justify-between items-center">
                   <h3 className="font-bold text-lg">{category}</h3>
                   <div className="bg-[#1375e1] h-8 w-8 rounded-full flex items-center justify-center">
-                    {slotGames?.filter(game => 
+                    {(slotGames ? slotGames.filter(game => 
                       category === 'Featured' ? game.featured : 
                       category === 'New Releases' ? game.newRelease : 
                       game.category === category
-                    ).length || 0}
+                    ).length : 0)}
                   </div>
                 </CardContent>
               </Card>
