@@ -15,7 +15,7 @@ const cupPulseKeyframes = `
 }`;
 
 // Image paths
-const cupImagePath = '/images/cup-game/red-cup.png';
+const cupImagePath = '/images/cup-game/red-cup.png'; // Using newly uploaded cup image
 const ballImagePath = '/images/cup-game/ball.png';
 
 // Inject the animation styles into the document head
