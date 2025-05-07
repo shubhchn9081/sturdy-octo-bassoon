@@ -1,5 +1,29 @@
 import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 
+// Define the cup pulse animation keyframes
+const cupPulseKeyframes = `
+@keyframes cupPulse {
+  0% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+}`;
+
+// Inject the animation styles into the document head
+const insertCupGameStyles = () => {
+  if (typeof document !== 'undefined' && !document.getElementById('cup-game-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'cup-game-styles';
+    styleSheet.textContent = cupPulseKeyframes;
+    document.head.appendChild(styleSheet);
+  }
+};
+
 // Type definitions
 interface CupGameProps {
   onCorrectGuess?: () => void;
@@ -113,11 +137,11 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     if (gamePhase !== 'guessing') return;
     
     if (cupPositions.indexOf(ballPosition) === cupIndex) {
-      setMessage('💰 JACKPOT! YOU WIN! 💰');
+      setMessage('✅ JACKPOT! YOU WIN! ✅');
       playSound(successSound);
       if (onCorrectGuess) onCorrectGuess();
     } else {
-      setMessage('❌ BETTER LUCK NEXT TIME! ❌');
+      setMessage('❌ TIME! YOU LOSE! ❌');
       playSound(hitSound);
       if (onWrongGuess) onWrongGuess();
     }
@@ -254,7 +278,7 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       left: `${leftPositions[position]}%`,
       transform: 'translateX(-50%)',
       transition: gamePhase === 'playing' 
-        ? `all ${0.3 / speed}s cubic-bezier(0.4, 0, 0.2, 1)` 
+        ? `all ${0.25 / speed}s cubic-bezier(0.4, 0, 0.2, 1)` 
         : 'all 0.5s ease-in-out',
       zIndex: 5,
       ...(customStyles.cup || {})
@@ -262,12 +286,15 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     
     // When in starting phase and this is the cup over the ball, show it lifted
     if (gamePhase === 'starting' && index === ballPosition) {
-      style.transform = 'translateX(-50%) translateY(-50px)';
+      style.transform = 'translateX(-50%) translateY(-60px)';
     }
     
-    // When game in guessing phase, add hover effect
+    // When game in guessing phase, add hover effect and subtle animation
     if (gamePhase === 'guessing') {
       style.cursor = 'pointer';
+      style.animation = `${index === 0 ? '1.2s' : index === 1 ? '1s' : '1.4s'} cupPulse infinite ease-in-out`;
+      style.transform = `translateX(-50%) translateY(-${Math.random() * 3}px)`;
+      style.boxShadow = '0 15px 25px rgba(0,0,0,0.6), inset 0 -5px 10px rgba(0,0,0,0.2), inset 0 5px 10px rgba(255,255,255,0.2)';
     }
     
     return style;
@@ -279,21 +306,26 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       display: 'flex',
       flexDirection: 'column',
       margin: '0 auto',
-      background: 'white',
+      background: '#0a111c',
+      backgroundImage: 'linear-gradient(to bottom, #1a2435, #0a111c)',
       borderRadius: '12px',
-      boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+      boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
       padding: '2rem',
-      maxWidth: '500px',
+      maxWidth: '600px',
+      border: '1px solid #2a3445',
       ...(customStyles.container || {})
     } as React.CSSProperties,
     gameArea: {
-      height: '300px',
+      height: '350px',
       width: '100%',
       position: 'relative',
-      backgroundColor: '#f9f9f9',
+      backgroundColor: '#101a27',
+      backgroundImage: 'linear-gradient(to bottom, #15222f, #0c1520)',
       borderRadius: '12px',
       overflow: 'hidden',
       marginBottom: '20px',
+      boxShadow: 'inset 0 0 30px rgba(0,0,0,0.5)',
+      border: '1px solid #2a3445',
       ...(customStyles.gameArea || {})
     } as React.CSSProperties,
     cupsContainer: {
@@ -304,55 +336,104 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       width: '100%',
       position: 'relative',
       padding: '20px',
+      backgroundImage: 'radial-gradient(circle at center 30%, rgba(40, 80, 120, 0.2) 0%, transparent 70%)',
       ...(customStyles.cupsContainer || {})
     } as React.CSSProperties,
     cup: {
-      width: '90px',
-      height: '120px',
+      width: '120px',
+      height: '140px',
       position: 'absolute',
       transformOrigin: 'bottom center',
-      boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
-      backgroundImage: 'url(https://res.cloudinary.com/dbbig5cq5/image/upload/v1746582213/Inverted_Red_Plastic_Cup_zdvtjf.png)',
-      backgroundSize: 'contain',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      // Remove background color as we're using an image
+      backgroundColor: 'transparent',
       ...(customStyles.cupBase || {})
     } as React.CSSProperties,
-    cupOverlay: {
+    // The cup consists of multiple parts for a 3D effect
+    cupTop: {
       position: 'absolute',
-      top: 0,
-      left: 0,
       width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
-      // Remove background for overlay as it's part of the image now
-      ...(customStyles.cupOverlay || {})
+      height: '20px',
+      top: '0',
+      borderRadius: '8px 8px 0 0',
+      backgroundColor: '#d32f2f', 
+      boxShadow: 'inset 0 3px 5px rgba(255,255,255,0.3), inset 0 -2px 5px rgba(0,0,0,0.2)',
+      border: '2px solid #b71c1c',
+      borderBottom: 'none',
+      zIndex: 3
     } as React.CSSProperties,
-    ball: {
-      width: '40px',
-      height: '40px',
+    cupBody: {
       position: 'absolute',
-      bottom: '80px',
-      zIndex: 1,
-      transition: 'all 0.5s ease-in-out',
-      backgroundImage: 'url(https://res.cloudinary.com/dbbig5cq5/image/upload/v1746582623/ChatGPT_Image_May_7_2025_07_20_04_AM_j7yscy.png)',
-      backgroundSize: 'contain',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.7))', // Golden glow effect
-      ...(customStyles.ball || {})
+      width: '100%',
+      height: '110px',
+      top: '20px',
+      backgroundImage: 'linear-gradient(to bottom, #d32f2f 0%, #b71c1c 100%)',
+      borderRadius: '2px 2px 60px 60px',
+      boxShadow: '0 10px 20px rgba(0,0,0,0.4)',
+      overflow: 'hidden',
+      zIndex: 2
     } as React.CSSProperties,
-    ballHighlight: {
+    cupShine: {
       position: 'absolute',
       top: '0',
       left: '0',
       width: '100%',
       height: '100%',
-      // Remove background color for highlight as we're using an image with built-in highlights
+      background: 'linear-gradient(130deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%)',
+      borderRadius: 'inherit',
+      pointerEvents: 'none'
+    } as React.CSSProperties,
+    cupShadow: {
+      position: 'absolute',
+      bottom: '-15px',
+      left: '5%',
+      width: '90%',
+      height: '15px',
+      borderRadius: '50%',
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      filter: 'blur(5px)',
+      zIndex: 1
+    } as React.CSSProperties,
+    ball: {
+      width: '50px',
+      height: '50px',
+      position: 'absolute',
+      bottom: '60px',
+      zIndex: 1,
+      transition: 'all 0.5s ease-in-out',
+      backgroundColor: 'transparent',
+      ...(customStyles.ball || {})
+    } as React.CSSProperties,
+    // The ball consists of multiple elements to create a 3D effect
+    ballSphere: {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      borderRadius: '50%',
+      backgroundImage: 'radial-gradient(circle at 30% 30%, #ffeb3b, #ffd700 50%, #ffc107 100%)',
+      boxShadow: '0 0 20px rgba(255, 215, 0, 0.8)',
+      zIndex: 2
+    } as React.CSSProperties,
+    ballHighlight: {
+      position: 'absolute',
+      top: '15%',
+      left: '15%',
+      width: '25%',
+      height: '25%',
+      borderRadius: '50%',
+      background: 'rgba(255, 255, 255, 0.9)',
+      filter: 'blur(2px)',
       animation: 'pulse 2s infinite ease-in-out',
-      filter: 'brightness(1.2)',
-      ...(customStyles.ballHighlight || {})
+      zIndex: 3
+    } as React.CSSProperties,
+    ballShadow: {
+      position: 'absolute',
+      bottom: '-10px',
+      left: '10%',
+      width: '80%',
+      height: '10px',
+      borderRadius: '50%',
+      backgroundColor: 'rgba(0,0,0,0.2)',
+      filter: 'blur(3px)',
+      zIndex: 1
     } as React.CSSProperties,
     gameResult: {
       position: 'absolute',
@@ -425,9 +506,49 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     startGame
   }), [startGame]);
 
+  // Add CSS for the TIME! title
+  const timeTitleStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '10px',
+    left: '0',
+    width: '100%',
+    textAlign: 'center',
+    fontSize: '2.5rem',
+    fontWeight: 'bold',
+    color: 'white',
+    textShadow: '0 0 15px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 0, 0, 0.8)',
+    fontFamily: 'Arial, sans-serif',
+    letterSpacing: '3px',
+    zIndex: 10,
+    pointerEvents: 'none',
+    opacity: gamePhase === 'guessing' ? 1 : 0,
+    transition: 'opacity 0.5s ease'
+  };
+
+  // Add CSS for the red X
+  const redXStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '4%',
+    right: '27%',
+    transform: 'translateY(-50%)',
+    color: '#ff2222',
+    fontSize: '5rem',
+    fontWeight: 'bold',
+    textShadow: '0 0 10px rgba(255, 0, 0, 0.8)',
+    opacity: gamePhase === 'guessing' ? 1 : 0,
+    transition: 'opacity 0.5s ease',
+    pointerEvents: 'none'
+  };
+
   return (
     <div style={gameStyles.container}>
       <div style={gameStyles.gameArea}>
+        {gamePhase === 'guessing' && (
+          <>
+            <div style={timeTitleStyle}>TIME!</div>
+            <div style={redXStyle}>✕</div>
+          </>
+        )}
         <div style={gameStyles.cupsContainer}>
           {[0, 1, 2].map((index) => (
             <div 
