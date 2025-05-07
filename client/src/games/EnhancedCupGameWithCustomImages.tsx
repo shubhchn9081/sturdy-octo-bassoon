@@ -17,6 +17,8 @@ const cupPulseKeyframes = `
 // Image paths
 const cupImagePath = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746582213/Inverted_Red_Plastic_Cup_zdvtjf.png'; // Using red plastic cup from Cloudinary
 const ballImagePath = '/images/cup-game/ball.png';
+// Desktop banner placeholder image
+const desktopBannerImagePath = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746632950/SHELL_GAME_with_Coins_and_Cups_diaryi.png';
 
 // Inject the animation styles into the document head
 const insertCupGameStyles = () => {
@@ -150,11 +152,12 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     // Preload images to avoid mobile rendering issues
     const cupImg = new Image();
     const ballImg = new Image();
+    const bannerImg = new Image();
     
     let loadedCount = 0;
-    const totalImages = 2;
+    const totalImages = 3; // Updated for banner
     
-    // Mark images as loaded when both are ready
+    // Mark images as loaded when all are ready
     const markAsLoaded = () => {
       loadedCount++;
       if (loadedCount === totalImages) {
@@ -164,10 +167,12 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     
     cupImg.onload = markAsLoaded;
     ballImg.onload = markAsLoaded;
+    bannerImg.onload = markAsLoaded;
     
     // Set sources to trigger loading
     cupImg.src = cupImagePath;
     ballImg.src = ballImagePath;
+    bannerImg.src = desktopBannerImagePath;
     
     return () => {
       // Clean up audio elements
@@ -553,7 +558,22 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
 
   return (
     <div style={gameStyles.container}>
-      {/* Game instructions removed as per requirements */}
+      {/* Desktop banner - only shown on desktop */}
+      {!isMobileView && (
+        <div className="relative w-full mb-4 overflow-hidden rounded-lg shadow-lg" style={{ maxHeight: '180px' }}>
+          <img 
+            src={desktopBannerImagePath} 
+            alt="Shell Game with Coins and Cups" 
+            className="w-full object-cover"
+            style={{ maxHeight: '180px' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 w-full p-3 text-white">
+            <h3 className="text-xl font-bold">Cup and Ball Game</h3>
+            <p className="text-sm">Find the hidden ball under the cups!</p>
+          </div>
+        </div>
+      )}
       
       <div style={gameStyles.gameArea}>
         {/* Sound button removed as per requirements */}
