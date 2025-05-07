@@ -15,7 +15,7 @@ const cupPulseKeyframes = `
 }`;
 
 // Image paths
-const cupImagePath = '/images/cup-game/red-cup.png'; // Using newly uploaded cup image
+const cupImagePath = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746582213/Inverted_Red_Plastic_Cup_zdvtjf.png'; // Using red plastic cup from Cloudinary
 const ballImagePath = '/images/cup-game/ball.png';
 
 // Inject the animation styles into the document head
@@ -355,7 +355,8 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
       width: '100%',
       height: '100%',
       objectFit: 'contain',
-      filter: 'drop-shadow(0px 10px 8px rgba(0,0,0,0.3))',
+      filter: 'drop-shadow(0px 10px 8px rgba(0,0,0,0.4))',
+      transform: 'scale(1.05)',
     } as React.CSSProperties,
     ball: {
       width: '60px',
