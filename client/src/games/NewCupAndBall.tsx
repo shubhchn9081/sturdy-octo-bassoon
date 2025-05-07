@@ -388,7 +388,7 @@ const NewCupAndBall = () => {
   );
   
   const gamePanel = (
-    <div className="h-full flex items-center justify-center">
+    <div className="h-full w-full flex items-center justify-center">
       <CupGame
         ref={cupGameRef}
         onCorrectGuess={handleCorrectGuess}
@@ -398,16 +398,22 @@ const NewCupAndBall = () => {
         customStyles={{
           container: {
             background: '#1a293a',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+            width: '100%'
           },
           gameArea: {
-            backgroundColor: '#0f1e2d'
+            backgroundColor: '#0f1e2d',
+            width: '100%'
           },
           cup: {
-            backgroundColor: '#e74c3c'
+            zIndex: 20,
+            width: '130px',
+            height: '180px'
           },
           ball: {
-            backgroundColor: '#2ecc71'
+            zIndex: 10,
+            width: '70px',
+            height: '70px'
           },
           gameResult: {
             color: '#ffffff'
