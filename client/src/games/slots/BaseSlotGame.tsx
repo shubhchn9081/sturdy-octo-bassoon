@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sparkles, Loader2, AlertCircle, Info, Dices, Wallet, RefreshCw, Settings } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import gsap from 'gsap';
 
 export interface Payout {
   combination: string[];
@@ -106,6 +107,80 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     }
   };
   
+  // Create virtual reel strips (longer than visible area)
+  const createVirtualReelStrip = (reelIndex: number): string[] => {
+    // Create a strip with 5x more symbols than visible
+    const reelStrip: string[] = [];
+    for (let i = 0; i < 15; i++) {
+      reelStrip.push(config.symbols[Math.floor(Math.random() * config.symbols.length)]);
+    }
+    return reelStrip;
+  };
+
+  // Animate reels with GSAP
+  const animateReels = (finalOutcome: string[][], winDelay = 500): void => {
+    // For each reel
+    reelRefs.current.forEach((reelEl, reelIndex) => {
+      if (!reelEl) return;
+      
+      // Get all symbol containers in this reel
+      const symbolsContainer = reelEl.querySelector('.reel-container');
+      if (!symbolsContainer) return;
+      
+      // Create a blank virtual reel (which will spin)
+      const virtualSymbols = createVirtualReelStrip(reelIndex);
+      
+      // Add the final symbols at the end of the virtual reel
+      finalOutcome[reelIndex].forEach((symbol: string) => {
+        virtualSymbols.push(symbol);
+      });
+      
+      // Create the HTML for the virtual reel
+      symbolsContainer.innerHTML = '';
+      virtualSymbols.forEach(symbol => {
+        const symbolEl = document.createElement('div');
+        symbolEl.className = `flex items-center justify-center text-4xl p-2 my-1 h-20`;
+        symbolEl.textContent = symbol;
+        symbolsContainer.appendChild(symbolEl);
+      });
+      
+      // Calculate the final position (height of all symbols except the last visible ones)
+      const finalPosition = -(virtualSymbols.length - 3) * 80; // 80px is the height of each symbol
+      
+      // Animate the reel with GSAP
+      gsap.fromTo(
+        symbolsContainer,
+        { y: 0 },
+        { 
+          y: finalPosition, 
+          duration: 2 + reelIndex * 0.3, // Each reel stops after the previous one
+          ease: "power1.out",
+          onComplete: () => {
+            // If this is the last reel, check for win and update game state
+            if (reelIndex === reelRefs.current.length - 1) {
+              setTimeout(() => {
+                // Game state will be updated from the handleSpin function
+                // where we set the multiplier and profit values
+                if (profit > 0) {
+                  setGameState('winning');
+                  playWinSound(profit);
+                } else {
+                  setGameState('losing');
+                  playLoseSound();
+                }
+                
+                // Check autoplay conditions if necessary
+                if (isAutoPlaying) {
+                  handleAutoPlayConditions(profit);
+                }
+              }, winDelay);
+            }
+          }
+        }
+      );
+    });
+  };
+
   // Handle spin
   const handleSpin = async () => {
     if (gameState === 'spinning') return;
@@ -135,15 +210,6 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     setMultiplier(0);
     setProfit(0);
     
-    // Animate reels with random symbols during spinning
-    const spinInterval = setInterval(() => {
-      setReels(prevReels => 
-        prevReels.map(reel => 
-          reel.map(() => config.symbols[Math.floor(Math.random() * config.symbols.length)])
-        )
-      );
-    }, 100);
-    
     try {
       // Generate a random client seed
       const clientSeed = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -167,37 +233,24 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       
       const data = await response.json();
       
-      // Stop spinning animation
-      clearInterval(spinInterval);
-      
       // Update balance after spin
       await fetchBalance();
       
       if (data && data.outcome) {
         console.log('Slot spin response:', data);
-        // Set final reels and results after a delay for animation
-        setTimeout(() => {
-          setReels(data.outcome.reels);
-          setWinningLines(data.outcome.winningLines || []);
-          setMultiplier(data.multiplier);
-          setProfit(data.profit);
-          
-          // Update game state
-          if (data.profit > 0) {
-            setGameState('winning');
-            playWinSound(data.profit);
-          } else {
-            setGameState('losing');
-            playLoseSound();
-          }
-          
-          // Check autoplay conditions
-          handleAutoPlayConditions(data.profit);
-        }, 500);
+        
+        // Initialize GSAP animation for reels
+        animateReels(data.outcome.reels);
+        
+        // Update state with outcome data
+        setWinningLines(data.outcome.winningLines || []);
+        setMultiplier(data.multiplier);
+        setProfit(data.profit);
+      } else {
+        throw new Error("Invalid response from server");
       }
     } catch (error) {
       // Handle error
-      clearInterval(spinInterval);
       console.error('Error spinning:', error);
       setGameState('idle');
       toast({
@@ -323,42 +376,50 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     }).format(amount);
   };
   
+  // References for reels
+  const reelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
   // Render a single reel
   const renderReel = (reel: string[], reelIndex: number) => (
     <div 
       key={reelIndex}
-      className="bg-slate-800 rounded-lg overflow-hidden"
+      ref={el => reelRefs.current[reelIndex] = el}
+      className="bg-slate-800 rounded-lg overflow-hidden relative"
       style={{
         flex: '1',
         margin: '0 4px',
+        height: '240px',
+        position: 'relative',
         ...customStyles.reel
       }}
     >
-      {reel.map((symbol, symbolIndex) => (
-        <div 
-          key={symbolIndex}
-          className={`flex items-center justify-center text-4xl p-2 my-1 
-            ${winningLines.includes(symbolIndex) && gameState === 'winning' ? 'bg-yellow-500/20' : ''}
-            ${symbol === luckySymbol ? 'text-yellow-400' : ''}
-          `}
-        >
-          {symbol}
-          
-          {/* Highlight effect for winning symbols */}
-          {winningLines.includes(symbolIndex) && gameState === 'winning' && (
-            <motion.div
-              className="absolute inset-0 rounded-lg"
-              animate={{
-                boxShadow: ['0 0 0 rgba(255,255,0,0)', '0 0 20px rgba(255,255,0,0.7)', '0 0 0 rgba(255,255,0,0)'],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-              }}
-            />
-          )}
-        </div>
-      ))}
+      <div className="reel-container" style={{ position: 'absolute', width: '100%' }}>
+        {reel.map((symbol, symbolIndex) => (
+          <div 
+            key={symbolIndex}
+            className={`flex items-center justify-center text-4xl p-2 my-1 h-20
+              ${winningLines.includes(symbolIndex) && gameState === 'winning' ? 'bg-yellow-500/20' : ''}
+              ${symbol === luckySymbol ? 'text-yellow-400' : ''}
+            `}
+          >
+            {symbol}
+            
+            {/* Highlight effect for winning symbols */}
+            {winningLines.includes(symbolIndex) && gameState === 'winning' && (
+              <motion.div
+                className="absolute inset-0 rounded-lg"
+                animate={{
+                  boxShadow: ['0 0 0 rgba(255,255,0,0)', '0 0 20px rgba(255,255,0,0.7)', '0 0 0 rgba(255,255,0,0)'],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
   
@@ -410,16 +471,6 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       >
         {/* Reels */}
         {reels.map((reel, index) => renderReel(reel, index))}
-        
-        {/* Spinning overlay */}
-        {gameState === 'spinning' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl">
-            <div className="text-center">
-              <Loader2 size={48} className="animate-spin mx-auto mb-2 text-blue-500" />
-              <p className="text-xl font-bold">Spinning...</p>
-            </div>
-          </div>
-        )}
         
         {/* Win overlay */}
         <AnimatePresence>
