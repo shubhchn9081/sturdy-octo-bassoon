@@ -356,45 +356,15 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     } as React.CSSProperties,
     cup: {
       width: '120px',
-      height: '140px',
+      height: '160px',
       position: 'absolute',
       transformOrigin: 'bottom center',
       backgroundColor: 'transparent',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
       ...(customStyles.cup || {})
-    } as React.CSSProperties,
-    // The cup consists of multiple parts for a 3D effect
-    cupTop: {
-      position: 'absolute',
-      width: '100%',
-      height: '20px',
-      top: '0',
-      borderRadius: '8px 8px 0 0',
-      backgroundColor: '#d32f2f', 
-      boxShadow: 'inset 0 3px 5px rgba(255,255,255,0.3), inset 0 -2px 5px rgba(0,0,0,0.2)',
-      border: '2px solid #b71c1c',
-      borderBottom: 'none',
-      zIndex: 3
-    } as React.CSSProperties,
-    cupBody: {
-      position: 'absolute',
-      width: '100%',
-      height: '110px',
-      top: '20px',
-      backgroundImage: 'linear-gradient(to bottom, #d32f2f 0%, #b71c1c 100%)',
-      borderRadius: '2px 2px 60px 60px',
-      boxShadow: '0 10px 20px rgba(0,0,0,0.4)',
-      overflow: 'hidden',
-      zIndex: 2
-    } as React.CSSProperties,
-    cupShine: {
-      position: 'absolute',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      background: 'linear-gradient(130deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%)',
-      borderRadius: 'inherit',
-      pointerEvents: 'none'
     } as React.CSSProperties,
     cupShadow: {
       position: 'absolute',
@@ -408,47 +378,17 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       zIndex: 1
     } as React.CSSProperties,
     ball: {
-      width: '50px',
-      height: '50px',
+      width: '60px',
+      height: '60px',
       position: 'absolute',
       bottom: '60px',
-      zIndex: 1,
+      zIndex: 5,
       transition: 'all 0.5s ease-in-out',
       backgroundColor: 'transparent',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
       ...(customStyles.ball || {})
-    } as React.CSSProperties,
-    // The ball consists of multiple elements to create a 3D effect
-    ballSphere: {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      borderRadius: '50%',
-      backgroundImage: 'radial-gradient(circle at 30% 30%, #ffeb3b, #ffd700 50%, #ffc107 100%)',
-      boxShadow: '0 0 20px rgba(255, 215, 0, 0.8)',
-      zIndex: 2
-    } as React.CSSProperties,
-    ballHighlight: {
-      position: 'absolute',
-      top: '15%',
-      left: '15%',
-      width: '25%',
-      height: '25%',
-      borderRadius: '50%',
-      background: 'rgba(255, 255, 255, 0.9)',
-      filter: 'blur(2px)',
-      animation: 'pulse 2s infinite ease-in-out',
-      zIndex: 3
-    } as React.CSSProperties,
-    ballShadow: {
-      position: 'absolute',
-      bottom: '-10px',
-      left: '10%',
-      width: '80%',
-      height: '10px',
-      borderRadius: '50%',
-      backgroundColor: 'rgba(0,0,0,0.2)',
-      filter: 'blur(3px)',
-      zIndex: 1
     } as React.CSSProperties,
     gameResult: {
       position: 'absolute',
@@ -544,7 +484,8 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain'
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0px 10px 8px rgba(0,0,0,0.3))'
                 }}
               />
             </div>
@@ -565,7 +506,8 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain'
+                objectFit: 'contain',
+                filter: 'drop-shadow(0px 5px 5px rgba(0,0,0,0.3))'
               }}
             />
           </div>
