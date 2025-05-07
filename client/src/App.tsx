@@ -34,6 +34,7 @@ import PaymentInfoPage from "@/pages/payment-info-page";
 import GuidesPage from "@/pages/guides-page";
 import PromotionsPage from "@/pages/promotions-page";
 import AccountPage from "@/pages/account-page";
+import SlotsPage from "@/pages/slots-page";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
@@ -55,6 +56,7 @@ function Router() {
             <ProtectedRoute path="/games/:gameSlug" component={Game} />
             <ProtectedRoute path="/casino/games/:gameSlug" component={Game} />
             <ProtectedRoute path="/casino" component={CasinoPage} />
+            <ProtectedRoute path="/slots" component={SlotsPage} />
             <ProtectedRoute path="/originals" component={Originals} />
             <ProtectedRoute path="/sports" component={SportsPage} />
             <Route path="/admin">
