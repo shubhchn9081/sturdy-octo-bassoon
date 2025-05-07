@@ -203,19 +203,19 @@ const GameLayout = ({
     return (
       <div className="bg-[#0F212E] min-h-screen text-white">
         {/* Mobile Layout */}
-        <div className="md:hidden flex flex-col h-[100vh] overflow-y-auto">
+        <div className="md:hidden flex flex-col h-[100vh]">
           {/* Mobile Header with Title */}
           <div className="bg-[#172B3A] p-2 text-center sticky top-0 z-50">
             <h2 className="text-lg font-bold">{title}</h2>
           </div>
           
-          {/* Game Panel - Fixed height based on content */}
-          <div className="w-full h-[50vh] min-h-[280px] relative">
+          {/* Game Panel - Fixed height */}
+          <div className="w-full h-[45vh] relative">
             {gamePanel}
           </div>
 
-          {/* Controls Panel - Auto height based on content with scrolling if needed */}
-          <div className="w-full bg-[#172B3A] p-4 border-t border-gray-700 shadow-lg flex-shrink-0">
+          {/* Controls Panel - With overflow scrolling if needed */}
+          <div className="w-full bg-[#172B3A] p-2 border-t border-gray-700 shadow-lg h-[50vh] overflow-y-auto">
             {controlsPanel}
           </div>
         </div>
