@@ -92,20 +92,46 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
   // Handle window resize to update mobile detection
   useEffect(() => {
     const handleResize = () => {
-      setIsMobileView(window.innerWidth < 768);
+      const smallScreen = window.innerWidth < 768;
+      const lowHeight = window.innerHeight < 600;
+      // Consider both width and height for better mobile detection
+      setIsMobileView(smallScreen || lowHeight);
+      
+      // Log for debugging
+      if (smallScreen || lowHeight) {
+        console.log("Setting initial ball position:", ballPosition);
+        console.log(`Mobile view detected: ${window.innerWidth}x${window.innerHeight}`);
+      }
     };
     
     // Set initial value
     handleResize();
     
-    // Add event listener
-    window.addEventListener('resize', handleResize);
+    // Add event listener with throttling to improve performance
+    let resizeTimeout: number | null = null;
+    const throttledResize = () => {
+      if (resizeTimeout === null) {
+        resizeTimeout = window.setTimeout(() => {
+          resizeTimeout = null;
+          handleResize();
+        }, 200); // 200ms throttle
+      }
+    };
+    
+    window.addEventListener('resize', throttledResize);
+    
+    // Also check orientation change specifically (critical for mobile)
+    window.addEventListener('orientationchange', handleResize);
     
     // Clean up
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', throttledResize);
+      window.removeEventListener('orientationchange', handleResize);
+      if (resizeTimeout) {
+        window.clearTimeout(resizeTimeout);
+      }
     };
-  }, []);
+  }, [ballPosition]);
   
   // Initialize audio elements and preload images
   useEffect(() => {
@@ -341,10 +367,15 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
       ...(customStyles.cup || {})
     };
     
-    // Adjust size for mobile
+    // Adjust size and positioning for mobile
     if (isMobileView) {
-      style.width = '100px';
-      style.height = '140px';
+      style.width = '80px';  // Make cups smaller on mobile
+      style.height = '120px';
+      style.touchAction = 'none'; // Prevent any default touch behaviors
+      
+      // Adjust spacing for mobile views
+      const mobilePositions = [20, 50, 80]; // Closer together for small screens
+      style.left = `${mobilePositions[position]}%`;
     }
     
     // When in starting phase and this is the cup over the ball, show it lifted
@@ -426,16 +457,17 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
       transform: 'scale(1.05)',
     } as React.CSSProperties,
     ball: {
-      width: isMobileDevice ? '50px' : '60px',
-      height: isMobileDevice ? '50px' : '60px',
+      width: isMobileDevice ? '40px' : '60px',
+      height: isMobileDevice ? '40px' : '60px',
       position: 'absolute',
-      bottom: isMobileDevice ? '40px' : '60px',
+      bottom: isMobileDevice ? '30px' : '60px',
       zIndex: 5,
       transition: 'all 0.5s ease-in-out',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       touchAction: 'none', // Prevent additional touch events
+      pointerEvents: 'none', // Ensure the ball doesn't interfere with touch events
       ...(customStyles.ball || {})
     } as React.CSSProperties,
     ballImage: {
@@ -562,19 +594,26 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
             </div>
           ))}
           
-          {/* Ball */}
+          {/* Ball - improved positioning for mobile */}
           <div 
             style={{
               ...gameStyles.ball,
               opacity: (gamePhase === 'ready' || gamePhase === 'starting' || gamePhase === 'ended') ? 1 : 0,
-              left: `${[25, 50, 75][ballPosition]}%`,
-              transform: 'translateX(-50%)'
+              left: isMobileDevice ? `${[20, 50, 80][ballPosition]}%` : `${[25, 50, 75][ballPosition]}%`,
+              transform: 'translateX(-50%)',
+              // Add a shadow to make it more visible on smaller screens
+              filter: isMobileDevice ? 'drop-shadow(0px 3px 5px rgba(0,0,0,0.5))' : 'none'
             }}
           >
             <img 
               src={ballImagePath} 
               alt="Ball" 
-              style={gameStyles.ballImage}
+              style={{
+                ...gameStyles.ballImage,
+                width: '100%',
+                height: '100%'
+              }}
+              onDragStart={(e) => e.preventDefault()}
             />
           </div>
         </div>
