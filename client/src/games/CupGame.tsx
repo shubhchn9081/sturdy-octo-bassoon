@@ -19,6 +19,10 @@ import {
 // Constants
 const GAME_ID = 16; // New ID for the Cup Game
 
+// Image paths
+const cupImagePath = '/images/cup-game/red-cup.png';
+const ballImagePath = '/images/cup-game/ball.png';
+
 // Game component itself - directly from the provided file
 const CupGameComponent = ({ 
   onCorrectGuess, 
@@ -274,46 +278,36 @@ const CupGameComponent = ({
     cup: {
       width: '80px',
       height: '100px',
-      backgroundColor: '#d32f2f',
-      borderRadius: '5px 5px 40px 40px',
       position: 'absolute',
       transformOrigin: 'bottom center',
-      boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
       ...(customStyles.cupBase || {})
     },
-    cupOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
+    cupImage: {
       width: '100%',
       height: '100%',
-      background: 'linear-gradient(130deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%)',
-      borderRadius: '5px 5px 40px 40px',
-      pointerEvents: 'none',
-      ...(customStyles.cupOverlay || {})
+      objectFit: 'contain',
+      ...(customStyles.cupImage || {})
     },
     ball: {
       width: '30px',
       height: '30px',
-      backgroundColor: '#4CAF50',
-      borderRadius: '50%',
       position: 'absolute',
       bottom: '80px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
       zIndex: 1,
       transition: 'all 0.5s ease-in-out',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
       ...(customStyles.ball || {})
     },
-    ballHighlight: {
-      position: 'absolute',
-      top: '5px',
-      left: '7px',
-      width: '10px',
-      height: '5px',
-      backgroundColor: 'rgba(255,255,255,0.6)',
-      borderRadius: '50%',
-      transform: 'rotate(30deg)',
-      ...(customStyles.ballHighlight || {})
+    ballImage: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain',
+      ...(customStyles.ballImage || {})
     },
     gameResult: {
       position: 'absolute',
@@ -380,7 +374,11 @@ const CupGameComponent = ({
               }}
               onClick={() => gamePhase === 'guessing' ? handleCupClick(index) : undefined}
             >
-              <div style={gameStyles.cupOverlay}></div>
+              <img
+                src={cupImagePath}
+                alt={`Cup ${index + 1}`}
+                style={gameStyles.cupImage}
+              />
             </div>
           ))}
           
@@ -393,7 +391,11 @@ const CupGameComponent = ({
               transform: 'translateX(-50%)'
             }}
           >
-            <div style={gameStyles.ballHighlight}></div>
+            <img
+              src={ballImagePath}
+              alt="Ball"
+              style={gameStyles.ballImage}
+            />
           </div>
         </div>
         
