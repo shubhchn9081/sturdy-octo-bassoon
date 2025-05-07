@@ -91,7 +91,12 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
   const { shuffleCount, speed } = difficultySettings[difficulty as keyof typeof difficultySettings] || difficultySettings.medium;
   
   // Initialize audio elements
+  // Initialize effect for animation and audio
   useEffect(() => {
+    // Insert cup animation
+    insertCupGameStyles();
+    
+    // Set up audio
     const success = new Audio();
     success.src = 'https://assets.codepen.io/21542/success-1.mp3';
     setSuccessSound(success);
@@ -104,6 +109,12 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       // Clean up audio elements
       success.pause();
       hit.pause();
+      
+      // Remove animation styles when component unmounts
+      const styleEl = document.getElementById('cup-game-styles');
+      if (styleEl) {
+        styleEl.remove();
+      }
     }
   }, []);
   
@@ -559,7 +570,16 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
               }}
               onClick={() => gamePhase === 'guessing' ? handleCupClick(index) : undefined}
             >
-              <div style={gameStyles.cupOverlay}></div>
+              {/* Cup Top */}
+              <div style={gameStyles.cupTop}></div>
+              
+              {/* Cup Body */}
+              <div style={gameStyles.cupBody}>
+                <div style={gameStyles.cupShine}></div>
+              </div>
+              
+              {/* Cup Shadow */}
+              <div style={gameStyles.cupShadow}></div>
             </div>
           ))}
           
@@ -572,7 +592,9 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
               transform: 'translateX(-50%)'
             }}
           >
+            <div style={gameStyles.ballSphere}></div>
             <div style={gameStyles.ballHighlight}></div>
+            <div style={gameStyles.ballShadow}></div>
           </div>
         </div>
         
