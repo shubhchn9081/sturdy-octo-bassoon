@@ -140,11 +140,11 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     if (gamePhase !== 'guessing') return;
     
     if (cupPositions.indexOf(ballPosition) === cupIndex) {
-      setMessage('YOU WIN!');
+      setMessage('');
       playSound(successSound);
       if (onCorrectGuess) onCorrectGuess();
     } else {
-      setMessage('YOU LOSE!');
+      setMessage('');
       playSound(hitSound);
       if (onWrongGuess) onWrongGuess();
     }
@@ -423,17 +423,10 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
 
   return (
     <div style={gameStyles.container}>
-      <div style={gameStyles.instructions}>
-        {getDifficultyInstructions()}
-      </div>
+      {/* Game instructions removed as per requirements */}
       
       <div style={gameStyles.gameArea}>
-        <button 
-          onClick={toggleMute}
-          style={gameStyles.soundButton}
-        >
-          {isMuted ? '🔇' : '🔊'}
-        </button>
+        {/* Sound button removed as per requirements */}
         
         <div style={gameStyles.cupsContainer}>
           {/* Cups */}
@@ -471,12 +464,7 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
           </div>
         </div>
         
-        {/* Game message */}
-        {message && (
-          <div style={gameStyles.gameResult}>
-            {message}
-          </div>
-        )}
+        {/* Game message removed as per requirements */}
       </div>
     </div>
   );
