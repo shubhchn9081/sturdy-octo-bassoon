@@ -791,16 +791,18 @@ const RocketLaunchRevised: React.FC = () => {
     <div className="flex flex-col gap-2 w-full">
       {/* Action buttons - Always at top for easy thumb access */}
       <div className="mb-2">
-        {gameState === 'waiting' ? (
+        {(gameState === 'waiting' || gameState === 'running') && !hasPlacedBet ? (
           <Button
             className="w-full h-16 bg-[#5DDCBD] hover:bg-[#4CCEAF] text-black font-bold rounded-lg shadow-md"
-            disabled={hasPlacedBet || countdown === null}
+            disabled={countdown === null}
             onClick={handlePlaceBet}
           >
             <div className="flex flex-col items-center justify-center">
               <div className="text-lg tracking-wide">PLACE BET</div>
               <div className="text-sm font-medium">
-                {countdown === null ? 'Preparing...' : `Launch in ${countdown}s`}
+                {countdown === null ? 'Preparing...' : 
+                 gameState === 'waiting' ? `Launch in ${countdown}s` : 
+                 `Current: ${formatMultiplier(multiplier)}`}
               </div>
             </div>
           </Button>
@@ -848,7 +850,7 @@ const RocketLaunchRevised: React.FC = () => {
             key={amount}
             className="py-2 bg-[#1A2C3F] hover:bg-[#243442] text-white font-medium rounded-lg shadow-sm border border-[#2A3F51] transition-colors"
             onClick={() => setBetAmount(amount)}
-            disabled={gameState !== 'waiting' || hasPlacedBet}
+            disabled={(gameState !== 'waiting' && gameState !== 'running') || hasPlacedBet}
           >
             {amount}
           </button>
@@ -864,7 +866,7 @@ const RocketLaunchRevised: React.FC = () => {
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setBetAmount(Math.max(10, betAmount / 2))}
-            disabled={gameState !== 'waiting' || hasPlacedBet}
+            disabled={(gameState !== 'waiting' && gameState !== 'running') || hasPlacedBet}
             className="h-10 w-12 flex items-center justify-center text-white bg-[#1A2C3F] hover:bg-[#243442] rounded-lg text-xl shadow-sm border border-[#2A3F51] font-bold"
           >
             -
@@ -875,7 +877,7 @@ const RocketLaunchRevised: React.FC = () => {
             onChange={(e) => handleBetAmountChange(e.target.value)}
             className="flex-1 bg-[#172B3A] text-white text-center h-10 text-lg border-[#2A3F51] shadow-inner"
             placeholder="0.00"
-            disabled={gameState !== 'waiting' || hasPlacedBet}
+            disabled={(gameState !== 'waiting' && gameState !== 'running') || hasPlacedBet}
           />
           <button 
             onClick={() => setBetAmount(betAmount * 2)}
