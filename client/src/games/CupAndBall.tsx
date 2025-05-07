@@ -20,8 +20,8 @@ import GameLayout from '@/components/games/GameLayout';
 import type { GameLayoutProps } from '@/components/games/GameLayout';
 // Import cup game components directly
 import CupControls from '@/games/cup-and-ball/CupControls';
-// Import the new enhanced version with improved animations
-import NewCupAndBallGame from '@/games/cup-and-ball/NewCupAndBallGame';
+// Import the custom version with provided cup and ball images
+import EnhancedCupGameWithImages from '@/games/cup-and-ball/EnhancedCupGameWithImages';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
@@ -264,7 +264,7 @@ const CupAndBall = () => {
   );
   
   const gamePanel = (
-    <NewCupAndBallGame
+    <EnhancedCupGameWithImages
       gamePhase={gamePhase}
       ballPosition={ballPosition}
       selectedCup={selectedCup}
