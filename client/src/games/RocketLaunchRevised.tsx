@@ -945,6 +945,32 @@ const RocketLaunchRevised: React.FC = () => {
           ))}
         </div>
       </div>
+      
+      {/* Main Action Button - Visible at bottom of mobile UI */}
+      <div className="mt-4">
+        {(gameState === 'waiting' || gameState === 'running') && !hasPlacedBet ? (
+          <Button 
+            className="w-full h-14 bg-[#5DDCBD] hover:bg-[#4CCEAF] text-black font-bold rounded-lg shadow-md"
+            onClick={handlePlaceBet}
+          >
+            PLACE BET
+          </Button>
+        ) : gameState === 'running' && hasPlacedBet && !hasCashedOut ? (
+          <Button
+            className="w-full h-14 bg-[#F13D5C] hover:bg-[#E32D4C] text-white font-bold rounded-lg shadow-md animate-pulse"
+            onClick={() => handleCashOut(false)}
+          >
+            CASH OUT {formatMultiplier(multiplier)}×
+          </Button>
+        ) : (
+          <Button
+            className="w-full h-14 bg-[#1A2C3F] text-gray-300 font-bold rounded-lg shadow-md"
+            disabled={true}
+          >
+            {gameState === 'crashed' ? 'CRASHED' : hasCashedOut ? 'CASHED OUT' : 'PLACE BET'}
+          </Button>
+        )}
+      </div>
     </div>
   );
   
