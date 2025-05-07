@@ -12,6 +12,7 @@ import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
 import Slots from '@/games/Slots';
 import CupAndBall from '@/games/CupAndBall';
+import NewCupAndBall from '@/games/NewCupAndBall';
 import TowerClimb from '@/games/TowerClimb';
 import RocketLaunchRevised from '@/games/RocketLaunchRevised';
 
@@ -29,6 +30,7 @@ const GameComponents: Record<string, React.ComponentType> = {
   wheel: Wheel,
   slots: Slots,
   'cup-and-ball': CupAndBall,
+  'new-cup-game': NewCupAndBall,
   'tower-climb': TowerClimb,
   'rocket-launch': RocketLaunchRevised
 };

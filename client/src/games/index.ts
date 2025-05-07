@@ -13,6 +13,7 @@ import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
 import Slots from './Slots';
 import CupAndBall from './CupAndBall';
+import NewCupAndBall from './NewCupAndBall';
 import TowerClimb from './TowerClimb';
 import RocketLaunchRevised from './RocketLaunchRevised';
 
@@ -155,14 +156,14 @@ export const GAMES = [
   },
   // New enhanced Cup and Ball game (now active)
   {
-    id: 15,
-    name: 'CUP AND BALL',
-    slug: 'cup-and-ball',
+    id: 16,
+    name: 'NEW CUP GAME',
+    slug: 'new-cup-game',
     type: 'NOVITO ORIGINALS',
-    description: 'Find which cup hides the ball',
+    description: 'Find which cup hides the ball - smooth version',
     color: 'bg-orange-600',
     iconType: 'shuffle',
-    component: CupAndBall,
+    component: NewCupAndBall,
     minBet: 1,
     maxBet: 100,
     rtp: 98,
@@ -222,6 +223,7 @@ export default {
   Wheel,
   Slots,
   CupAndBall,
+  NewCupAndBall,
   TowerClimb,
   RocketLaunch: RocketLaunchRevised
 };
