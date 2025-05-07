@@ -1,19 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Toggle } from '@/components/ui/toggle';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CircleDollarSign, Play, Pause, Settings, HelpCircle, Volume2, VolumeX, Loader2, CheckCircle, XCircle, RotateCcw, Lock, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useWallet } from '@/context/WalletContext';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Sparkles, Loader2, AlertCircle, Info, Dices, Wallet, RefreshCw, Settings } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { queryClient } from '@/lib/queryClient';
 
-// Define slot game symbol types
 export interface Payout {
   combination: string[];
   multiplier: number;
@@ -40,7 +33,6 @@ export interface SlotConfiguration {
   reelCount: number;
 }
 
-// Interface for custom styles
 interface CustomStyles {
   container?: React.CSSProperties;
   reelsContainer?: React.CSSProperties;
@@ -48,17 +40,14 @@ interface CustomStyles {
   button?: React.CSSProperties;
 }
 
-// Props for the base slot game component
 interface BaseSlotGameProps {
   config: SlotConfiguration;
   gameId: number;
   customStyles?: CustomStyles;
 }
 
-// Game states
 type GameState = 'idle' | 'spinning' | 'winning' | 'losing';
 
-// AutoPlay settings interface
 interface AutoPlaySettings {
   enabled: boolean;
   spins: number;
@@ -69,236 +58,260 @@ interface AutoPlaySettings {
 }
 
 const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyles = {} }) => {
-  // Game state
+  const { toast } = useToast();
+  const [betAmount, setBetAmount] = useState<number>(100);
   const [gameState, setGameState] = useState<GameState>('idle');
   const [reels, setReels] = useState<string[][]>([]);
-  const [selectedLuckySymbol, setSelectedLuckySymbol] = useState<string>(config.luckySymbol);
-  const [betAmount, setBetAmount] = useState<number>(100);
-  const [winAmount, setWinAmount] = useState<number>(0);
   const [winningLines, setWinningLines] = useState<number[]>([]);
+  const [multiplier, setMultiplier] = useState<number>(0);
+  const [profit, setProfit] = useState<number>(0);
+  const [balance, setBalance] = useState<number>(10000);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
+  const [showPayTable, setShowPayTable] = useState<boolean>(false);
   const [autoPlaySettings, setAutoPlaySettings] = useState<AutoPlaySettings>({
     enabled: false,
-    spins: 10,
+    spins: 5,
     stopOnWin: false,
     stopOnLoss: false,
     stopOnBigWin: false,
     remainingSpins: 0
   });
-  const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [showPaytable, setShowPaytable] = useState<boolean>(false);
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [selectedTab, setSelectedTab] = useState<string>('play');
-  const [hasSpinStarted, setHasSpinStarted] = useState<boolean>(false);
+  const [luckySymbol, setLuckySymbol] = useState<string>(config.luckySymbol);
   
-  // References
-  const spinTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const spinAudioRef = useRef<HTMLAudioElement | null>(null);
-  const winAudioRef = useRef<HTMLAudioElement | null>(null);
-  const loseAudioRef = useRef<HTMLAudioElement | null>(null);
+  const spinButtonRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
-  // Hooks
-  const { toast } = useToast();
-  const { balance, refreshBalance } = useWallet();
-  
-  // Initialize game
+  // Initialize reels
   useEffect(() => {
-    // Initialize audio elements
-    spinAudioRef.current = new Audio('/sounds/spin.mp3');
-    winAudioRef.current = new Audio('/sounds/win.mp3');
-    loseAudioRef.current = new Audio('/sounds/lose.mp3');
-    
-    // Create initial reels state
-    initializeReels();
-    
-    // Clean up on unmount
-    return () => {
-      if (spinTimeoutRef.current) {
-        clearTimeout(spinTimeoutRef.current);
-      }
-    };
-  }, []);
-  
-  // Initialize reels with random symbols
-  const initializeReels = () => {
-    const initialReels: string[][] = [];
-    
-    for (let i = 0; i < config.reelCount; i++) {
-      const reel: string[] = [];
-      for (let j = 0; j < 3; j++) {
-        const randomIndex = Math.floor(Math.random() * config.symbols.length);
-        reel.push(config.symbols[randomIndex]);
-      }
-      initialReels.push(reel);
-    }
-    
+    // Generate initial random reels
+    const initialReels = Array(config.reelCount || 3).fill(0).map(() => 
+      Array(3).fill(0).map(() => config.symbols[Math.floor(Math.random() * config.symbols.length)])
+    );
     setReels(initialReels);
-  };
+    
+    // Fetch initial balance
+    fetchBalance();
+  }, [config]);
   
-  // Handle bet amount change
-  const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 10 && value <= 10000) {
-      setBetAmount(value);
-    }
-  };
-  
-  // Increment/decrement bet amount
-  const adjustBetAmount = (adjustment: number) => {
-    const newAmount = Math.max(10, Math.min(10000, betAmount + adjustment));
-    setBetAmount(newAmount);
-  };
-  
-  // Play audio
-  const playAudio = (audioRef: React.RefObject<HTMLAudioElement>) => {
-    if (audioRef.current && !isMuted) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {
-        // Silent catch for browsers that block autoplay
-      });
-    }
-  };
-  
-  // Handle spin button click
-  const handleSpin = async () => {
-    // Don't allow spinning if already spinning or if bet amount is greater than balance
-    if (gameState === 'spinning' || betAmount > (balance || 0)) {
-      if (betAmount > (balance || 0)) {
-        toast({
-          title: "Insufficient balance",
-          description: "Please lower your bet amount or add funds to your wallet.",
-          variant: "destructive"
-        });
+  // Fetch user balance
+  const fetchBalance = async () => {
+    try {
+      const response = await fetch('/api/user/balance');
+      if (response.ok) {
+        const data = await response.json();
+        setBalance(data.balance || 0);
       }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+  
+  // Handle spin
+  const handleSpin = async () => {
+    if (gameState === 'spinning') return;
+    
+    // Validate bet amount
+    if (betAmount < 100) {
+      toast({
+        title: "Invalid bet amount",
+        description: "Minimum bet amount is ₹100",
+        variant: "destructive"
+      });
       return;
     }
     
-    setHasSpinStarted(true);
+    if (betAmount > balance) {
+      toast({
+        title: "Insufficient balance",
+        description: "You don't have enough balance for this bet",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Start spinning animation
     setGameState('spinning');
-    setWinAmount(0);
     setWinningLines([]);
-    playAudio(spinAudioRef);
+    setMultiplier(0);
+    setProfit(0);
+    
+    // Animate reels with random symbols during spinning
+    const spinInterval = setInterval(() => {
+      setReels(prevReels => 
+        prevReels.map(reel => 
+          reel.map(() => config.symbols[Math.floor(Math.random() * config.symbols.length)])
+        )
+      );
+    }, 100);
     
     try {
-      // Call the API to make a bet
-      const result = await apiRequest('/api/slots/spin', {
+      // Call API to get the spin result
+      const response = await apiRequest<{
+        outcome: {
+          reels: string[][];
+          multiplier: number;
+          winningLines: number[];
+          hasLuckySymbol: boolean;
+        };
+        profit: number;
+        multiplier: number;
+      }>({
         method: 'POST',
+        url: '/api/slots/spin',
         data: {
           gameId,
           amount: betAmount,
-          luckySymbol: selectedLuckySymbol
+          luckySymbol
         }
       });
       
-      if (result && result.outcome) {
-        // Schedule the spin result to show after animation
-        spinTimeoutRef.current = setTimeout(() => {
-          // Set the reels to show the outcome
-          setReels(result.outcome.reels);
+      // Stop spinning animation
+      clearInterval(spinInterval);
+      
+      // Update balance after spin
+      await fetchBalance();
+      
+      if (response.outcome) {
+        // Set final reels and results after a delay for animation
+        setTimeout(() => {
+          setReels(response.outcome.reels);
+          setWinningLines(response.outcome.winningLines || []);
+          setMultiplier(response.multiplier);
+          setProfit(response.profit);
           
-          // Set winning information
-          const isWin = result.profit > 0;
-          setWinAmount(result.profit);
-          
-          if (isWin) {
+          // Update game state
+          if (response.profit > 0) {
             setGameState('winning');
-            playAudio(winAudioRef);
-            setWinningLines(result.outcome.winningLines || []);
+            playWinSound(response.profit);
           } else {
             setGameState('losing');
-            playAudio(loseAudioRef);
+            playLoseSound();
           }
           
-          // Refresh balance
-          refreshBalance();
-          
-          // Handle autoplay logic
-          handleAutoPlayAfterSpin(isWin, result.profit);
-          
-        }, 2000); // Show result after 2 seconds of spinning animation
+          // Check autoplay conditions
+          handleAutoPlayConditions(response.profit);
+        }, 500);
       }
     } catch (error) {
+      // Handle error
+      clearInterval(spinInterval);
+      console.error('Error spinning:', error);
+      setGameState('idle');
       toast({
-        title: "Error spinning",
-        description: "There was an error while spinning. Please try again.",
+        title: "Error",
+        description: "Failed to spin. Please try again.",
         variant: "destructive"
       });
-      setGameState('idle');
     }
   };
   
-  // Handle autoplay after spin
-  const handleAutoPlayAfterSpin = (isWin: boolean, profit: number) => {
-    if (!isAutoPlaying) return;
-    
-    const settings = { ...autoPlaySettings };
-    settings.remainingSpins -= 1;
-    
-    // Check if we should stop autoplay
-    const shouldStop = 
-      settings.remainingSpins <= 0 ||
-      (settings.stopOnWin && isWin) ||
-      (settings.stopOnLoss && !isWin) ||
-      (settings.stopOnBigWin && isWin && profit >= betAmount * 5);
-    
-    if (shouldStop) {
+  // Play win sound with different sounds for different win amounts
+  const playWinSound = (profit: number) => {
+    // This would be implemented with actual sound files
+    console.log(`Playing win sound for profit: ${profit}`);
+  };
+  
+  // Play lose sound
+  const playLoseSound = () => {
+    // This would be implemented with actual sound files
+    console.log('Playing lose sound');
+  };
+  
+  // Handle auto play conditions
+  const handleAutoPlayConditions = (latestProfit: number) => {
+    if (!autoPlaySettings.enabled || autoPlaySettings.remainingSpins <= 0) {
       setIsAutoPlaying(false);
-      setAutoPlaySettings({ ...settings, remainingSpins: 0 });
       return;
     }
     
-    setAutoPlaySettings(settings);
+    let shouldStop = false;
     
-    // Schedule next autoplay spin
-    spinTimeoutRef.current = setTimeout(() => {
+    // Check stop conditions
+    if (autoPlaySettings.stopOnWin && latestProfit > 0) {
+      shouldStop = true;
+    }
+    
+    if (autoPlaySettings.stopOnLoss && latestProfit < 0) {
+      shouldStop = true;
+    }
+    
+    if (autoPlaySettings.stopOnBigWin && latestProfit > betAmount * 5) {
+      shouldStop = true;
+    }
+    
+    if (shouldStop) {
+      setIsAutoPlaying(false);
+      setAutoPlaySettings(prev => ({
+        ...prev,
+        remainingSpins: 0
+      }));
+      return;
+    }
+    
+    // Continue auto play
+    setAutoPlaySettings(prev => ({
+      ...prev,
+      remainingSpins: prev.remainingSpins - 1
+    }));
+    
+    // Schedule next spin
+    setTimeout(() => {
       setGameState('idle');
-      handleSpin();
-    }, 1500);
+      if (spinButtonRef.current) {
+        spinButtonRef.current.click();
+      }
+    }, 2000);
   };
   
-  // Start autoplay
+  // Start auto play
   const startAutoPlay = () => {
     if (gameState === 'spinning') return;
     
     setIsAutoPlaying(true);
-    setAutoPlaySettings({
-      ...autoPlaySettings,
-      remainingSpins: autoPlaySettings.spins
-    });
-    setGameState('idle');
-    handleSpin();
-  };
-  
-  // Stop autoplay
-  const stopAutoPlay = () => {
-    setIsAutoPlaying(false);
-    if (spinTimeoutRef.current) {
-      clearTimeout(spinTimeoutRef.current);
+    setAutoPlaySettings(prev => ({
+      ...prev,
+      enabled: true,
+      remainingSpins: prev.spins
+    }));
+    
+    // Trigger first spin
+    if (spinButtonRef.current) {
+      spinButtonRef.current.click();
     }
   };
   
-  // Toggle mute
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
+  // Stop auto play
+  const stopAutoPlay = () => {
+    setIsAutoPlaying(false);
+    setAutoPlaySettings(prev => ({
+      ...prev,
+      enabled: false,
+      remainingSpins: 0
+    }));
   };
   
-  // Get button text based on game state
-  const getButtonText = () => {
-    if (gameState === 'spinning') return 'Spinning...';
-    if (gameState === 'winning') return `Win ${winAmount}!`;
-    if (gameState === 'losing') return 'Spin Again';
-    return 'Spin';
+  // Handle bet amount change
+  const handleBetAmountChange = (value: number) => {
+    // Ensure bet is within range (min 100, max 10000)
+    const newBet = Math.max(100, Math.min(10000, value));
+    setBetAmount(newBet);
   };
   
-  // Get button icon based on game state
-  const getButtonIcon = () => {
-    if (gameState === 'spinning') return <Loader2 className="mr-2 h-4 w-4 animate-spin" />;
-    if (gameState === 'winning') return <CheckCircle className="mr-2 h-4 w-4" />;
-    if (gameState === 'losing') return <XCircle className="mr-2 h-4 w-4" />;
-    return <Play className="mr-2 h-4 w-4" />;
+  // Toggle pay table
+  const togglePayTable = () => {
+    setShowPayTable(prev => !prev);
   };
   
-  // Format currency
+  // Choose lucky symbol
+  const handleLuckySymbolChange = (symbol: string) => {
+    setLuckySymbol(symbol);
+    toast({
+      title: "Lucky Symbol Selected",
+      description: `Your lucky symbol is now ${symbol}`,
+    });
+  };
+  
+  // Format currency display
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -307,379 +320,340 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     }).format(amount);
   };
   
-  // Reset game
-  const resetGame = () => {
-    setGameState('idle');
-    setWinAmount(0);
-    setWinningLines([]);
-    initializeReels();
-  };
+  // Render a single reel
+  const renderReel = (reel: string[], reelIndex: number) => (
+    <div 
+      key={reelIndex}
+      className="bg-slate-800 rounded-lg overflow-hidden"
+      style={{
+        flex: '1',
+        margin: '0 4px',
+        ...customStyles.reel
+      }}
+    >
+      {reel.map((symbol, symbolIndex) => (
+        <div 
+          key={symbolIndex}
+          className={`flex items-center justify-center text-4xl p-2 my-1 
+            ${winningLines.includes(symbolIndex) && gameState === 'winning' ? 'bg-yellow-500/20' : ''}
+            ${symbol === luckySymbol ? 'text-yellow-400' : ''}
+          `}
+        >
+          {symbol}
+          
+          {/* Highlight effect for winning symbols */}
+          {winningLines.includes(symbolIndex) && gameState === 'winning' && (
+            <motion.div
+              className="absolute inset-0 rounded-lg"
+              animate={{
+                boxShadow: ['0 0 0 rgba(255,255,0,0)', '0 0 20px rgba(255,255,0,0.7)', '0 0 0 rgba(255,255,0,0)'],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+              }}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
   
   return (
     <div 
-      className="h-full flex flex-col relative overflow-hidden p-4"
-      style={customStyles.container}
+      ref={containerRef}
+      className="relative bg-slate-900 rounded-lg p-4 text-white overflow-hidden"
+      style={{
+        minHeight: '400px',
+        ...customStyles.container
+      }}
     >
       {/* Game header */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-xl font-bold text-white">{config.name}</h2>
-          <p className="text-sm text-gray-300">{config.description}</p>
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={toggleMute}
-            className="text-white hover:text-white hover:bg-white/10"
-          >
-            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setShowPaytable(true)}
-            className="text-white hover:text-white hover:bg-white/10"
-          >
-            <Info size={18} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="text-white hover:text-white hover:bg-white/10"
-          >
-            <Settings size={18} />
-          </Button>
-        </div>
-      </div>
-      
-      <div className="flex-grow flex flex-col">
-        {/* Slot machine display */}
-        <div 
-          className="flex-grow flex flex-col justify-center items-center p-4 rounded-lg mb-4"
-          style={customStyles.reelsContainer}
-        >
-          {/* Win amount display */}
-          <AnimatePresence>
-            {winAmount > 0 && (
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                className="absolute top-16 left-0 right-0 flex justify-center items-center z-10"
-              >
-                <div className="bg-green-500/90 text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg">
-                  + {formatCurrency(winAmount)}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          
-          {/* Reels display */}
-          <div className="flex justify-center gap-2 w-full max-w-lg">
-            {reels.map((reel, reelIndex) => (
-              <div 
-                key={reelIndex} 
-                className="flex-1 rounded-lg overflow-hidden relative"
-                style={customStyles.reel}
-              >
-                <div className={`flex flex-col transition-transform duration-2000 ${gameState === 'spinning' ? 'animate-slot-spin' : ''}`}>
-                  {reel.map((symbol, symbolIndex) => (
-                    <div 
-                      key={symbolIndex}
-                      className={`
-                        h-24 flex justify-center items-center text-4xl sm:text-5xl md:text-6xl p-3
-                        ${winningLines.includes(symbolIndex) ? 'bg-yellow-400/30 animate-pulse' : ''}
-                        ${symbol === selectedLuckySymbol ? 'bg-blue-500/20' : ''}
-                      `}
-                    >
-                      {symbol}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Lucky symbol indicator */}
-          <div className="mt-4 bg-slate-800/60 px-3 py-1 rounded-full text-sm text-center">
-            <span className="mr-2 text-gray-400">Lucky Symbol:</span>
-            <span className="text-xl">{selectedLuckySymbol}</span>
-          </div>
+          <h2 className="text-xl font-bold">{config.name}</h2>
+          <p className="text-sm text-slate-400">{config.theme}</p>
         </div>
         
-        {/* Game controls */}
-        <div className="bg-slate-800/50 rounded-lg p-4">
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="mb-4 bg-slate-700/50">
-              <TabsTrigger value="play">Play</TabsTrigger>
-              <TabsTrigger value="autoplay">Auto Play</TabsTrigger>
-              <TabsTrigger value="symbol">Lucky Symbol</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="play" className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col flex-1">
-                  <div className="flex items-center mb-1">
-                    <CircleDollarSign size={16} className="text-gray-400 mr-1" />
-                    <span className="text-sm text-gray-400">Bet Amount</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => adjustBetAmount(-100)}
-                      disabled={betAmount <= 100}
-                      className="px-2"
-                    >
-                      -
-                    </Button>
-                    <Input
-                      type="number"
-                      value={betAmount}
-                      onChange={handleBetAmountChange}
-                      min={10}
-                      max={10000}
-                      className="mx-2 text-center bg-slate-800/50 border-slate-700"
-                    />
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => adjustBetAmount(100)}
-                      disabled={betAmount >= 10000}
-                      className="px-2"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-                
-                <Button 
-                  onClick={handleSpin} 
-                  disabled={gameState === 'spinning' || betAmount > (balance || 0)}
-                  className="h-14 w-28"
-                  style={customStyles.button}
-                >
-                  {getButtonIcon()}
-                  {getButtonText()}
-                </Button>
-              </div>
-              
-              <div className="flex justify-between text-sm">
-                <div>
-                  <span className="text-gray-400">Balance: </span>
-                  <span className="text-white font-medium">{formatCurrency(balance || 0)}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Potential Win: </span>
-                  <span className="text-green-400 font-medium">Up to {formatCurrency(betAmount * config.maxMultiplier)}</span>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="autoplay" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-400 mb-2 block">Number of Spins</label>
-                  <div className="flex items-center gap-2">
-                    <Slider 
-                      value={[autoPlaySettings.spins]} 
-                      onValueChange={(value) => setAutoPlaySettings({...autoPlaySettings, spins: value[0]})}
-                      min={5}
-                      max={100}
-                      step={5}
-                    />
-                    <span className="min-w-[40px] text-center">{autoPlaySettings.spins}</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-400 mb-1">Stop Conditions</div>
-                  <div className="flex flex-wrap gap-2">
-                    <Toggle 
-                      pressed={autoPlaySettings.stopOnWin}
-                      onPressedChange={(pressed) => setAutoPlaySettings({...autoPlaySettings, stopOnWin: pressed})}
-                      className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
-                    >
-                      On Any Win
-                    </Toggle>
-                    <Toggle 
-                      pressed={autoPlaySettings.stopOnBigWin}
-                      onPressedChange={(pressed) => setAutoPlaySettings({...autoPlaySettings, stopOnBigWin: pressed})}
-                      className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
-                    >
-                      On Big Win
-                    </Toggle>
-                    <Toggle 
-                      pressed={autoPlaySettings.stopOnLoss}
-                      onPressedChange={(pressed) => setAutoPlaySettings({...autoPlaySettings, stopOnLoss: pressed})}
-                      className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
-                    >
-                      On Loss
-                    </Toggle>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  {!isAutoPlaying ? (
-                    <Button 
-                      onClick={startAutoPlay}
-                      disabled={gameState === 'spinning' || betAmount > (balance || 0)}
-                      className="w-full"
-                      style={customStyles.button}
-                    >
-                      <Play className="mr-2 h-4 w-4" />
-                      Start Auto Play
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={stopAutoPlay}
-                      variant="destructive"
-                      className="w-full"
-                    >
-                      <Pause className="mr-2 h-4 w-4" />
-                      Stop ({autoPlaySettings.remainingSpins} Spins Left)
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="symbol" className="space-y-4">
-              <div className="space-y-3">
-                <div className="text-sm text-gray-400 mb-1">Choose Your Lucky Symbol</div>
-                <div className="grid grid-cols-5 gap-2">
-                  {config.symbols.map((symbol) => (
-                    <Button 
-                      key={symbol}
-                      variant={selectedLuckySymbol === symbol ? "default" : "outline"}
-                      className={`h-12 text-xl ${selectedLuckySymbol === symbol ? '' : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700/50'}`}
-                      onClick={() => setSelectedLuckySymbol(symbol)}
-                      disabled={gameState === 'spinning'}
-                    >
-                      {symbol}
-                    </Button>
-                  ))}
-                </div>
-                
-                <div className="p-3 rounded-lg bg-slate-800/50 text-sm">
-                  {config.specialSymbols.find(s => s.symbol === selectedLuckySymbol)?.description || 
-                  "Your lucky symbol provides additional win chances when it appears on the reels!"}
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={togglePayTable}>
+            <Info size={16} className="mr-1" />
+            Pay Table
+          </Button>
+          
+          <Button variant="outline" size="sm" onClick={fetchBalance}>
+            <RefreshCw size={16} className="mr-1" />
+            Refresh Balance
+          </Button>
         </div>
       </div>
       
-      {/* Paytable Dialog */}
-      <Dialog open={showPaytable} onOpenChange={setShowPaytable}>
-        <DialogContent className="max-w-xl bg-slate-900 text-white border-slate-700">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl mb-2">{config.name} Paytable</DialogTitle>
-            <DialogDescription className="text-center text-gray-400">
-              Match 3 symbols horizontally to win!
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-700">
-                  <TableHead className="text-gray-300">Symbol</TableHead>
-                  <TableHead className="text-gray-300">Combination</TableHead>
-                  <TableHead className="text-gray-300">Multiplier</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {config.payouts.map((payout, index) => (
-                  <TableRow key={index} className="border-slate-800">
-                    <TableCell className="text-3xl">{payout.combination[0]}</TableCell>
-                    <TableCell>{payout.description}</TableCell>
-                    <TableCell className="text-amber-400 font-medium">{payout.multiplier}x</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold border-b border-slate-700 pb-2">Special Symbols</h3>
-              {config.specialSymbols.map((symbol, index) => (
-                <div key={index} className="flex items-start p-3 bg-slate-800/50 rounded-lg">
-                  <div className="text-3xl mr-3">{symbol.symbol}</div>
-                  <div>
-                    <div className="font-medium mb-1">{symbol.name}</div>
-                    <div className="text-sm text-gray-400">{symbol.description}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="p-4 bg-slate-800/50 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">Lucky Symbol Feature</h3>
-              <p className="text-sm text-gray-400">
-                Choose your lucky symbol before spinning. When your lucky symbol appears anywhere on the reels,
-                it provides additional winning opportunities! The lucky symbol gives an extra {config.luckyMultiplier}x multiplier.
-              </p>
+      {/* Balance display */}
+      <div className="bg-slate-800 rounded-lg p-3 mb-4 flex justify-between items-center">
+        <div className="flex items-center">
+          <Wallet size={18} className="mr-2 text-slate-400" />
+          <span className="text-slate-400">Balance:</span>
+        </div>
+        <span className="text-xl font-bold">{formatCurrency(balance)}</span>
+      </div>
+      
+      {/* Reels container */}
+      <div 
+        className="relative flex mb-4 bg-slate-800/50 rounded-xl p-3"
+        style={{
+          minHeight: '200px',
+          ...customStyles.reelsContainer
+        }}
+      >
+        {/* Reels */}
+        {reels.map((reel, index) => renderReel(reel, index))}
+        
+        {/* Spinning overlay */}
+        {gameState === 'spinning' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl">
+            <div className="text-center">
+              <Loader2 size={48} className="animate-spin mx-auto mb-2 text-blue-500" />
+              <p className="text-xl font-bold">Spinning...</p>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+        
+        {/* Win overlay */}
+        <AnimatePresence>
+          {gameState === 'winning' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <div className="text-center text-yellow-400 bg-black/60 py-3 px-8 rounded-xl backdrop-blur-sm">
+                <Sparkles size={48} className="mx-auto mb-2" />
+                <motion.h2
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: [0.8, 1.2, 1] }}
+                  transition={{ duration: 0.5 }}
+                  className="text-3xl font-bold mb-1"
+                >
+                  YOU WON!
+                </motion.h2>
+                <p className="text-xl">{formatCurrency(profit)}</p>
+                <p className="text-sm">({multiplier}x)</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       
-      {/* Settings Dialog */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="bg-slate-900 text-white border-slate-700">
-          <DialogHeader>
-            <DialogTitle>Game Settings</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <label className="text-gray-300">Sound Effects</label>
-              <Toggle 
-                pressed={!isMuted}
-                onPressedChange={(pressed) => setIsMuted(!pressed)}
-                className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
+      {/* Game controls */}
+      <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr] gap-4">
+        {/* Bet controls */}
+        <div className="bg-slate-800 rounded-lg p-3">
+          <div className="mb-3">
+            <label className="text-sm text-slate-400 mb-1 block">Bet Amount</label>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleBetAmountChange(Math.max(100, betAmount - 100))}
+                disabled={gameState === 'spinning' || betAmount <= 100}
               >
-                {isMuted ? 'Off' : 'On'}
-              </Toggle>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <label className="text-gray-300">Quick Spin</label>
-              <Toggle className="data-[state=on]:bg-green-700 data-[state=on]:text-white">
-                Off
-              </Toggle>
-            </div>
-            
-            <div className="pt-4 border-t border-slate-700">
-              <Button variant="secondary" className="w-full" onClick={resetGame}>
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Reset Game
+                -
+              </Button>
+              <Input
+                type="number"
+                value={betAmount}
+                onChange={(e) => handleBetAmountChange(Number(e.target.value))}
+                className="text-center"
+                disabled={gameState === 'spinning'}
+              />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleBetAmountChange(Math.min(10000, betAmount + 100))}
+                disabled={gameState === 'spinning' || betAmount >= 10000}
+              >
+                +
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Intro overlay for first-time players */}
-      {!hasSpinStarted && (
-        <div className="absolute inset-0 bg-black/70 flex flex-col justify-center items-center text-center p-8 z-20">
-          <h2 className="text-2xl font-bold mb-4">{config.name}</h2>
-          <p className="text-lg mb-6">{config.description}</p>
-          <div className="text-7xl mb-6">{config.symbols.slice(0, 3).join(' ')}</div>
-          <p className="text-gray-300 mb-8">Match 3 symbols to win up to {config.maxMultiplier}x your bet!</p>
-          <Button 
-            size="lg"
-            onClick={() => setHasSpinStarted(true)}
-            style={customStyles.button}
-          >
-            <Play className="mr-2 h-5 w-5" />
-            Start Playing
-          </Button>
+          
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleBetAmountChange(100)}
+              disabled={gameState === 'spinning'}
+            >
+              ₹100
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleBetAmountChange(500)}
+              disabled={gameState === 'spinning'}
+            >
+              ₹500
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleBetAmountChange(1000)}
+              disabled={gameState === 'spinning'}
+            >
+              ₹1,000
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleBetAmountChange(5000)}
+              disabled={gameState === 'spinning'}
+            >
+              ₹5,000
+            </Button>
+          </div>
         </div>
-      )}
+        
+        {/* Lucky symbol selector */}
+        <div className="bg-slate-800 rounded-lg p-3">
+          <label className="text-sm text-slate-400 mb-2 block">Lucky Symbol</label>
+          <div className="grid grid-cols-4 gap-2">
+            {config.symbols.slice(0, 8).map((symbol) => (
+              <button
+                key={symbol}
+                className={`text-2xl h-10 rounded-md ${symbol === luckySymbol ? 'bg-blue-700 ring-2 ring-blue-400' : 'bg-slate-700 hover:bg-slate-600'}`}
+                onClick={() => handleLuckySymbolChange(symbol)}
+                disabled={gameState === 'spinning'}
+              >
+                {symbol}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Spin controls */}
+      <div className="mt-4 grid grid-cols-2 gap-4">
+        <Button
+          ref={spinButtonRef}
+          variant="default"
+          size="lg"
+          className={`font-bold h-14 bg-blue-600 hover:bg-blue-700 ${gameState === 'spinning' ? 'opacity-50' : ''}`}
+          onClick={handleSpin}
+          disabled={gameState === 'spinning' || isAutoPlaying}
+        >
+          {gameState === 'spinning' ? (
+            <>
+              <Loader2 size={20} className="animate-spin mr-2" />
+              Spinning...
+            </>
+          ) : (
+            <>
+              <Dices size={20} className="mr-2" />
+              Spin
+            </>
+          )}
+        </Button>
+        
+        <Button
+          variant={isAutoPlaying ? "destructive" : "outline"}
+          size="lg"
+          className="font-bold h-14"
+          onClick={isAutoPlaying ? stopAutoPlay : startAutoPlay}
+          disabled={gameState === 'spinning' && !isAutoPlaying}
+        >
+          {isAutoPlaying ? (
+            <>
+              <AlertCircle size={20} className="mr-2" />
+              Stop Auto ({autoPlaySettings.remainingSpins})
+            </>
+          ) : (
+            <>
+              <Settings size={20} className="mr-2" />
+              Auto Play
+            </>
+          )}
+        </Button>
+      </div>
+      
+      {/* Pay table modal */}
+      <AnimatePresence>
+        {showPayTable && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={togglePayTable}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-slate-900 rounded-lg p-6 max-w-3xl max-h-[80vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-bold mb-4 text-center">{config.name} - Pay Table</h2>
+              
+              <div className="grid gap-6">
+                {/* Payouts */}
+                <div>
+                  <h3 className="text-xl font-medium mb-3 border-b border-slate-700 pb-2">Winning Combinations</h3>
+                  <div className="grid gap-3">
+                    {config.payouts.map((payout, index) => (
+                      <div key={index} className="flex justify-between items-center bg-slate-800 rounded-lg p-3">
+                        <div className="flex gap-1">
+                          {payout.combination.map((symbol, i) => (
+                            <span key={i} className="text-2xl">{symbol}</span>
+                          ))}
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-lg font-medium text-yellow-400">{payout.multiplier}x</span>
+                          <span className="text-sm text-slate-400">{payout.description}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Special symbols */}
+                <div>
+                  <h3 className="text-xl font-medium mb-3 border-b border-slate-700 pb-2">Special Symbols</h3>
+                  <div className="grid gap-3">
+                    {config.specialSymbols.map((special, index) => (
+                      <div key={index} className="flex justify-between items-center bg-slate-800 rounded-lg p-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">{special.symbol}</span>
+                          <div>
+                            <h4 className="font-medium">{special.name}</h4>
+                            <p className="text-sm text-slate-400">{special.description}</p>
+                          </div>
+                        </div>
+                        <span className="text-lg font-medium text-yellow-400">{special.multiplier}x</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Game rules */}
+                <div>
+                  <h3 className="text-xl font-medium mb-3 border-b border-slate-700 pb-2">Game Rules</h3>
+                  <ul className="list-disc list-inside space-y-2 text-slate-300">
+                    <li>Match 3 symbols in the middle row to win the corresponding multiplier.</li>
+                    <li>Your Lucky Symbol gives you a bonus of {config.luckyMultiplier}x if it appears in a winning combination.</li>
+                    <li>Minimum bet is ₹100, maximum bet is ₹10,000.</li>
+                    <li>The maximum win is {config.maxMultiplier}x your bet amount.</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="mt-6 text-center">
+                <Button variant="default" onClick={togglePayTable}>Close</Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
