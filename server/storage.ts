@@ -56,6 +56,7 @@ export interface IStorage {
   updateBet(id: number, bet: Bet): Promise<Bet>;
   deleteBet(id: number): Promise<boolean>;
   getBetHistory(userId: number, gameId?: number): Promise<Bet[]>;
+  getBetsByGameId(gameId: number, status?: string): Promise<Bet[]>;
   
   // Transaction methods
   getTransaction(id: number): Promise<Transaction | undefined>;
