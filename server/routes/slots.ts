@@ -153,23 +153,23 @@ router.post('/spin', auth, async (req, res) => {
     let targetMultiplier = 0;
     
     if (globalGameControl) {
-      if (globalGameControl.forceAllUsersWin && 
-        (!globalGameControl.affectedGames.length || 
-          globalGameControl.affectedGames.includes(gameId))) {
+      // Check if this game is affected by global control
+      const affectedGames = globalGameControl.affectedGames as number[] || [];
+      const isGameAffected = affectedGames.length === 0 || affectedGames.includes(gameId);
+      
+      if (globalGameControl.forceAllUsersWin && isGameAffected) {
         forceWin = true;
-        targetMultiplier = globalGameControl.targetMultiplier;
-      } else if (globalGameControl.forceAllUsersLose && 
-        (!globalGameControl.affectedGames.length || 
-          globalGameControl.affectedGames.includes(gameId))) {
+        targetMultiplier = globalGameControl.targetMultiplier || 2.0;
+      } else if (globalGameControl.forceAllUsersLose && isGameAffected) {
         forceLoss = true;
       }
     }
     
     if (userGameControl) {
-      if (userGameControl.forceWin) {
+      if (userGameControl.forceOutcome && userGameControl.outcomeType === 'win') {
         forceWin = true;
-        targetMultiplier = userGameControl.targetMultiplier;
-      } else if (userGameControl.forceLose) {
+        targetMultiplier = userGameControl.targetMultiplier || 2.0;
+      } else if (userGameControl.forceOutcome && userGameControl.outcomeType === 'loss') {
         forceLoss = true;
       }
       
@@ -234,7 +234,6 @@ router.post('/spin', auth, async (req, res) => {
       amount,
       multiplier,
       profit,
-      createdAt: new Date(),
       serverSeed,
       clientSeed, // Make sure clientSeed is included
       nonce,
