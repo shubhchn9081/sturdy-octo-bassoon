@@ -20,7 +20,7 @@ interface CupAndBallGameProps {
 // Ball component that shows in reveal phase
 const Ball: React.FC<{ visible: boolean }> = ({ visible }) => (
   <motion.div
-    className="w-12 h-12 md:w-16 md:h-16 relative"
+    className="w-14 h-14 md:w-20 md:h-20 relative z-5"
     initial={{ opacity: 0, scale: 0 }}
     animate={{ opacity: visible ? 1 : 0, scale: visible ? 1 : 0 }}
     transition={{ duration: 0.3, ease: "easeOut" }}
@@ -28,7 +28,7 @@ const Ball: React.FC<{ visible: boolean }> = ({ visible }) => (
     <img 
       src={ballImagePath} 
       alt="Ball" 
-      className="w-full h-full object-contain"
+      className="w-full h-full object-contain filter drop-shadow-md"
     />
   </motion.div>
 );
@@ -196,11 +196,11 @@ const EnhancedCupGameWithImages: React.FC<CupAndBallGameProps> = ({
           whileTap={canSelect ? { scale: 0.98 } : {}}
         >
           {/* Cup */}
-          <div className="w-24 h-36 md:w-28 md:h-40 relative flex items-center justify-center">
+          <div className="w-24 h-36 md:w-32 md:h-44 relative flex items-center justify-center z-10">
             <img 
               src={cupImagePath} 
               alt="Cup" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain filter drop-shadow-lg"
             />
             
             {/* Cup number indicator */}
