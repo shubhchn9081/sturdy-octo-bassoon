@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 
+// Define the image paths for the custom cup and ball
+const cupImagePath = '/images/cup-game/red-cup.png';
+const ballImagePath = '/images/cup-game/ball.png';
+
 // Define the cup pulse animation keyframes
 const cupPulseKeyframes = `
 @keyframes cupPulse {
@@ -517,49 +521,12 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     startGame
   }), [startGame]);
 
-  // Add CSS for the TIME! title
-  const timeTitleStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '10px',
-    left: '0',
-    width: '100%',
-    textAlign: 'center',
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-    color: 'white',
-    textShadow: '0 0 15px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 0, 0, 0.8)',
-    fontFamily: 'Arial, sans-serif',
-    letterSpacing: '3px',
-    zIndex: 10,
-    pointerEvents: 'none',
-    opacity: gamePhase === 'guessing' ? 1 : 0,
-    transition: 'opacity 0.5s ease'
-  };
-
-  // Add CSS for the red X
-  const redXStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '4%',
-    right: '27%',
-    transform: 'translateY(-50%)',
-    color: '#ff2222',
-    fontSize: '5rem',
-    fontWeight: 'bold',
-    textShadow: '0 0 10px rgba(255, 0, 0, 0.8)',
-    opacity: gamePhase === 'guessing' ? 1 : 0,
-    transition: 'opacity 0.5s ease',
-    pointerEvents: 'none'
-  };
+  // Game phase style is intentionally empty as per requirements
+  // No TIME title or X mark as per the specification
 
   return (
     <div style={gameStyles.container}>
       <div style={gameStyles.gameArea}>
-        {gamePhase === 'guessing' && (
-          <>
-            <div style={timeTitleStyle}>TIME!</div>
-            <div style={redXStyle}>✕</div>
-          </>
-        )}
         <div style={gameStyles.cupsContainer}>
           {[0, 1, 2].map((index) => (
             <div 
@@ -570,16 +537,16 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
               }}
               onClick={() => gamePhase === 'guessing' ? handleCupClick(index) : undefined}
             >
-              {/* Cup Top */}
-              <div style={gameStyles.cupTop}></div>
-              
-              {/* Cup Body */}
-              <div style={gameStyles.cupBody}>
-                <div style={gameStyles.cupShine}></div>
-              </div>
-              
-              {/* Cup Shadow */}
-              <div style={gameStyles.cupShadow}></div>
+              {/* Cup Image */}
+              <img 
+                src={cupImagePath} 
+                alt={`Cup ${index + 1}`} 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain'
+                }}
+              />
             </div>
           ))}
           
@@ -592,9 +559,15 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
               transform: 'translateX(-50%)'
             }}
           >
-            <div style={gameStyles.ballSphere}></div>
-            <div style={gameStyles.ballHighlight}></div>
-            <div style={gameStyles.ballShadow}></div>
+            <img 
+              src={ballImagePath} 
+              alt="Ball" 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
+              }}
+            />
           </div>
         </div>
         
