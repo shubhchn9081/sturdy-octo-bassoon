@@ -786,135 +786,263 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
         </AnimatePresence>
       </div>
       
-      {/* Game controls */}
+      {/* Game controls with enhanced styling */}
       <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr] gap-4">
-        {/* Bet controls */}
-        <div className="bg-slate-800 rounded-lg p-3">
-          <div className="mb-3">
-            <label className="text-sm text-slate-400 mb-1 block">Bet Amount</label>
+        {/* Bet controls with casino-style design */}
+        <div 
+          className="rounded-lg p-4 relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9))',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+            border: '1px solid rgba(51, 65, 85, 0.5)'
+          }}
+        >
+          {/* Subtle glow effect */}
+          <div 
+            className="absolute inset-0 opacity-10"
+            style={{
+              background: 'radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.5), transparent 70%)',
+              filter: 'blur(20px)'
+            }}
+          />
+          
+          <div className="mb-3 relative z-10">
+            <label className="text-sm text-blue-200 mb-2 block font-medium">
+              Bet Amount
+            </label>
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => handleBetAmountChange(Math.max(100, betAmount - 100))}
                 disabled={gameState === 'spinning' || betAmount <= 100}
+                className="bg-slate-800 border-blue-500/50 hover:bg-blue-900/30 hover:border-blue-400 transition-all"
               >
-                -
+                <span className="text-lg font-bold">-</span>
               </Button>
-              <Input
-                type="number"
-                value={betAmount}
-                onChange={(e) => handleBetAmountChange(Number(e.target.value))}
-                className="text-center"
-                disabled={gameState === 'spinning'}
-              />
+              <div className="relative flex-1">
+                <Input
+                  type="number"
+                  value={betAmount}
+                  onChange={(e) => handleBetAmountChange(Number(e.target.value))}
+                  className="text-center bg-slate-800 border-blue-500/30 text-lg font-semibold"
+                  disabled={gameState === 'spinning'}
+                  style={{
+                    textShadow: '0 0 5px rgba(59, 130, 246, 0.5)'
+                  }}
+                />
+                {/* Digital-style appearance */}
+                <div 
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to bottom, rgba(255,255,255,0.1), transparent 10%, transparent 90%, rgba(255,255,255,0.05))',
+                    borderRadius: '0.375rem'
+                  }}
+                />
+              </div>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => handleBetAmountChange(Math.min(10000, betAmount + 100))}
                 disabled={gameState === 'spinning' || betAmount >= 10000}
+                className="bg-slate-800 border-blue-500/50 hover:bg-blue-900/30 hover:border-blue-400 transition-all"
               >
-                +
+                <span className="text-lg font-bold">+</span>
               </Button>
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleBetAmountChange(100)}
-              disabled={gameState === 'spinning'}
-            >
-              ₹100
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleBetAmountChange(500)}
-              disabled={gameState === 'spinning'}
-            >
-              ₹500
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleBetAmountChange(1000)}
-              disabled={gameState === 'spinning'}
-            >
-              ₹1,000
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleBetAmountChange(5000)}
-              disabled={gameState === 'spinning'}
-            >
-              ₹5,000
-            </Button>
+          <div className="flex flex-wrap gap-2 relative z-10">
+            {[100, 500, 1000, 5000].map((amount) => (
+              <Button 
+                key={amount}
+                variant="outline" 
+                size="sm"
+                onClick={() => handleBetAmountChange(amount)}
+                disabled={gameState === 'spinning'}
+                className={`
+                  relative overflow-hidden transition-all duration-300 
+                  ${betAmount === amount ? 'bg-blue-800 border-blue-400 ring-1 ring-blue-400' : 'bg-slate-800 border-slate-600 hover:bg-blue-900/30 hover:border-blue-500/50'}
+                `}
+              >
+                {/* Shine effect */}
+                <div 
+                  className={`absolute inset-0 opacity-20 ${betAmount === amount ? 'opacity-40' : ''}`}
+                  style={{
+                    background: 'linear-gradient(130deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%)',
+                    transition: 'opacity 0.3s ease'
+                  }}
+                />
+                <span className={`${betAmount === amount ? 'text-blue-200' : 'text-slate-300'}`}>
+                  ₹{amount.toLocaleString()}
+                </span>
+              </Button>
+            ))}
           </div>
         </div>
         
-        {/* Lucky symbol selector */}
-        <div className="bg-slate-800 rounded-lg p-3">
-          <label className="text-sm text-slate-400 mb-2 block">Lucky Symbol</label>
-          <div className="grid grid-cols-4 gap-2">
+        {/* Lucky symbol selector with enhanced styling */}
+        <div 
+          className="rounded-lg p-4 relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9))',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+            border: '1px solid rgba(51, 65, 85, 0.5)'
+          }}
+        >
+          <label className="text-sm text-blue-200 mb-2 block font-medium relative z-10">Lucky Symbol</label>
+          <div className="grid grid-cols-4 gap-2 relative z-10">
             {config.symbols.slice(0, 8).map((symbol) => (
               <button
                 key={symbol}
-                className={`text-2xl h-10 rounded-md ${symbol === luckySymbol ? 'bg-blue-700 ring-2 ring-blue-400' : 'bg-slate-700 hover:bg-slate-600'}`}
+                className={`
+                  text-2xl h-12 rounded-md relative overflow-hidden transition-all duration-300
+                  ${symbol === luckySymbol 
+                    ? 'bg-gradient-to-b from-blue-700 to-blue-800 ring-2 ring-blue-400 shadow-lg shadow-blue-900/50' 
+                    : 'bg-slate-800 hover:bg-slate-700'}
+                `}
                 onClick={() => handleLuckySymbolChange(symbol)}
                 disabled={gameState === 'spinning'}
+                style={{
+                  textShadow: symbol === luckySymbol ? '0 0 10px rgba(59, 130, 246, 0.8)' : 'none'
+                }}
               >
+                {/* Light reflection effect */}
+                <div 
+                  className={`absolute inset-0 ${symbol === luckySymbol ? 'opacity-50' : 'opacity-20'}`}
+                  style={{
+                    background: 'linear-gradient(130deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%)',
+                    transition: 'opacity 0.3s ease'
+                  }}
+                />
+                {symbol === luckySymbol && (
+                  <div className="absolute inset-0 bg-blue-500/10 animate-pulse" style={{animationDuration: '2s'}} />
+                )}
                 {symbol}
               </button>
             ))}
           </div>
+          
+          {/* Background glow effect */}
+          <div 
+            className="absolute inset-0 opacity-10"
+            style={{
+              background: 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.5), transparent 70%)',
+              filter: 'blur(20px)'
+            }}
+          />
         </div>
       </div>
       
-      {/* Spin controls */}
-      <div className="mt-4 grid grid-cols-2 gap-4">
-        <Button
-          ref={spinButtonRef}
-          variant="default"
-          size="lg"
-          className={`font-bold h-14 bg-blue-600 hover:bg-blue-700 ${gameState === 'spinning' ? 'opacity-50' : ''}`}
-          onClick={handleSpin}
-          disabled={gameState === 'spinning' || isAutoPlaying}
-        >
-          {gameState === 'spinning' ? (
-            <>
-              <Loader2 size={20} className="animate-spin mr-2" />
-              Spinning...
-            </>
-          ) : (
-            <>
-              <Dices size={20} className="mr-2" />
-              Spin
-            </>
-          )}
-        </Button>
+      {/* Enhanced spin controls with realistic buttons */}
+      <div className="mt-6 grid grid-cols-2 gap-6">
+        {/* Primary spin button with enhanced styling */}
+        <div className="relative group">
+          {/* Button shadow/glow effect */}
+          <div 
+            className={`absolute inset-0 rounded-xl blur-md transition-all duration-500 ${gameState === 'spinning' ? 'opacity-30' : 'opacity-70 group-hover:opacity-100'}`}
+            style={{
+              background: gameState === 'spinning' 
+                ? 'rgba(37, 99, 235, 0.3)' 
+                : 'linear-gradient(to bottom, rgba(37, 99, 235, 0.7), rgba(29, 78, 216, 0.7))',
+              transform: 'translateY(4px)'
+            }}
+          />
+          
+          <Button
+            ref={spinButtonRef}
+            variant="default"
+            size="lg"
+            className={`
+              relative w-full font-bold py-6 overflow-hidden
+              ${gameState === 'spinning' 
+                ? 'bg-blue-700/50 cursor-not-allowed'
+                : 'bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-700 active:from-blue-700 active:to-blue-800'
+              }
+              transition-all duration-300 border-0 shadow-none
+            `}
+            style={{
+              boxShadow: gameState === 'spinning' 
+                ? 'inset 0 1px 1px rgba(255, 255, 255, 0.1)' 
+                : 'inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -2px 1px rgba(0, 0, 0, 0.2)'
+            }}
+            onClick={handleSpin}
+            disabled={gameState === 'spinning' || isAutoPlaying}
+          >
+            {/* Shine overlay */}
+            <div 
+              className={`absolute inset-0 opacity-30 transition-opacity ${gameState === 'spinning' ? 'opacity-10' : 'group-hover:opacity-40'}`}
+              style={{
+                background: 'linear-gradient(120deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0) 50%)',
+              }}
+            />
+            
+            {gameState === 'spinning' ? (
+              <div className="flex items-center justify-center space-x-2">
+                <Loader2 size={24} className="animate-spin" />
+                <span className="text-xl">Spinning...</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <Dices size={24} className="animate-pulse" style={{animationDuration: '3s'}}/>
+                <span className="text-xl">SPIN</span>
+              </div>
+            )}
+          </Button>
+        </div>
         
-        <Button
-          variant={isAutoPlaying ? "destructive" : "outline"}
-          size="lg"
-          className="font-bold h-14"
-          onClick={isAutoPlaying ? stopAutoPlay : startAutoPlay}
-          disabled={gameState === 'spinning' && !isAutoPlaying}
-        >
-          {isAutoPlaying ? (
-            <>
-              <AlertCircle size={20} className="mr-2" />
-              Stop Auto ({autoPlaySettings.remainingSpins})
-            </>
-          ) : (
-            <>
-              <Settings size={20} className="mr-2" />
-              Auto Play
-            </>
-          )}
-        </Button>
+        {/* Auto-play button with enhanced styling */}
+        <div className="relative group">
+          {/* Button shadow/glow effect */}
+          <div 
+            className={`absolute inset-0 rounded-xl blur-md transition-all duration-500 ${gameState === 'spinning' && !isAutoPlaying ? 'opacity-30' : 'opacity-70 group-hover:opacity-100'}`}
+            style={{
+              background: isAutoPlaying 
+                ? 'rgba(220, 38, 38, 0.5)' 
+                : 'rgba(30, 41, 59, 0.7)',
+              transform: 'translateY(4px)'
+            }}
+          />
+          
+          <Button
+            variant={isAutoPlaying ? "destructive" : "outline"}
+            size="lg"
+            className={`
+              relative w-full font-bold py-6 overflow-hidden
+              ${isAutoPlaying
+                ? 'bg-gradient-to-b from-red-600 to-red-700 hover:from-red-500 hover:to-red-700'
+                : 'bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-800 text-blue-100'
+              }
+              ${gameState === 'spinning' && !isAutoPlaying ? 'opacity-70 cursor-not-allowed' : ''}
+              transition-all duration-300 border-0 shadow-none
+            `}
+            style={{
+              boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 -2px 1px rgba(0, 0, 0, 0.2)'
+            }}
+            onClick={isAutoPlaying ? stopAutoPlay : startAutoPlay}
+            disabled={gameState === 'spinning' && !isAutoPlaying}
+          >
+            {/* Shine overlay */}
+            <div 
+              className={`absolute inset-0 opacity-30 transition-opacity ${gameState === 'spinning' && !isAutoPlaying ? 'opacity-10' : 'group-hover:opacity-40'}`}
+              style={{
+                background: 'linear-gradient(120deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0) 50%)',
+              }}
+            />
+            
+            {isAutoPlaying ? (
+              <div className="flex items-center justify-center space-x-2">
+                <AlertCircle size={24} className="animate-pulse" style={{animationDuration: '1s'}} />
+                <span className="text-xl">STOP ({autoPlaySettings.remainingSpins})</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <Settings size={24} />
+                <span className="text-xl">AUTO PLAY</span>
+              </div>
+            )}
+          </Button>
+        </div>
       </div>
       
       {/* Pay table modal */}
