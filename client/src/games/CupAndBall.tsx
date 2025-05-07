@@ -20,8 +20,8 @@ import GameLayout from '@/components/games/GameLayout';
 import type { GameLayoutProps } from '@/components/games/GameLayout';
 // Import cup game components directly
 import CupControls from '@/games/cup-and-ball/CupControls';
-// Import the enhanced version with improved animations
-import EnhancedCupAndBallGame from '@/games/cup-and-ball/EnhancedCupAndBallGame';
+// Import the new enhanced version with improved animations
+import NewCupAndBallGame from '@/games/cup-and-ball/NewCupAndBallGame';
 
 const GAME_ID = 15; // Assigned ID for the Cup and Ball game
 
@@ -173,8 +173,8 @@ const CupAndBall = () => {
       // Generate temporary shuffling for the animation
       // The actual shuffling will come from the server
       const tempShuffles = [];
-      // Number of moves based on difficulty
-      const numMoves = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15;
+      // Number of moves based on difficulty - match numbers in NewCupAndBallGame
+      const numMoves = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 8 : 12;
       
       for (let i = 0; i < numMoves; i++) {
         tempShuffles.push(Math.floor(Math.random() * 3));
@@ -182,14 +182,11 @@ const CupAndBall = () => {
       setShuffleMoves(tempShuffles);
       
       // After shuffling animation completes, let the player select a cup
-      // Timing adjusted for enhanced animation sequence:
-      // - Pre-shuffle anticipation: ~500ms
-      // - Each swap: 350-550ms based on difficulty
-      // - Post-shuffle settlement: ~500ms
+      // Timing adjusted for the new animation implementation:
       const shuffleDuration = 
-        difficulty === 'easy' ? 5500 : // 5 swaps + pauses + pre/post phases
-        difficulty === 'medium' ? 9000 : // 10 swaps + pauses + pre/post phases
-        13000; // 15 swaps + pauses + pre/post phases for hard
+        difficulty === 'easy' ? 4000 : // Faster animations for mobile-friendly gameplay
+        difficulty === 'medium' ? 6000 : 
+        8000; // Hard difficulty - more shuffles but still engaging
         
       setTimeout(() => {
         setGamePhase('selecting');
@@ -225,7 +222,7 @@ const CupAndBall = () => {
       setGamePhase('revealing');
       
       // Sequential cup reveal timing (3000ms total)
-      // The actual animation timings are handled in the EnhancedCupAndBallGame component
+      // The actual animation timings are handled in the NewCupAndBallGame component
       setTimeout(() => {
         // Transition to complete phase
         setGamePhase('complete');
@@ -267,7 +264,7 @@ const CupAndBall = () => {
   );
   
   const gamePanel = (
-    <EnhancedCupAndBallGame
+    <NewCupAndBallGame
       gamePhase={gamePhase}
       ballPosition={ballPosition}
       selectedCup={selectedCup}
