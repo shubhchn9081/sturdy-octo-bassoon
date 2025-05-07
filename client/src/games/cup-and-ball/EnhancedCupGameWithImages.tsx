@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, VolumeX, Volume2 } from 'lucide-react';
 
-// Import the images using relative paths
-const cupImage = '/images/cup-game/red-cup.png';
-const ballImage = '/images/cup-game/ball.png';
+// These paths will be relative to the public directory
+const cupImagePath = '/images/cup-game/red-cup.png';
+const ballImagePath = '/images/cup-game/ball.png';
 
 // Types for our game
 interface CupAndBallGameProps {
@@ -26,7 +26,7 @@ const Ball: React.FC<{ visible: boolean }> = ({ visible }) => (
     transition={{ duration: 0.3, ease: "easeOut" }}
   >
     <img 
-      src={ballImage} 
+      src={ballImagePath} 
       alt="Ball" 
       className="w-full h-full object-contain"
     />
@@ -198,7 +198,7 @@ const EnhancedCupGameWithImages: React.FC<CupAndBallGameProps> = ({
           {/* Cup */}
           <div className="w-24 h-36 md:w-28 md:h-40 relative flex items-center justify-center">
             <img 
-              src={cupImage} 
+              src={cupImagePath} 
               alt="Cup" 
               className="w-full h-full object-contain"
             />
