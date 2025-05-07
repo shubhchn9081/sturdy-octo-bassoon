@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest } from '../lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import CupGame from './cup-and-ball/CupAndBallGame';
-import GameLayout from '../components/games/GameLayout';
-import CupGameControls from '../components/games/cup-and-ball/CupGameControls';
+import GameLayout from '@/components/games/GameLayout';
+import CupGameControls from '@/components/games/cup-and-ball/CupGameControls';
 
 // Game configuration settings
 const GAME_SETTINGS = {
