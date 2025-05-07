@@ -145,6 +145,9 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     }, 100);
     
     try {
+      // Generate a random client seed
+      const clientSeed = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
       // Call API to get the spin result
       const response = await fetch('/api/slots/spin', {
         method: 'POST',
@@ -152,7 +155,8 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
         body: JSON.stringify({
           gameId,
           amount: betAmount,
-          luckySymbol
+          luckySymbol,
+          clientSeed
         }),
         credentials: 'include'
       });
@@ -169,7 +173,8 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       // Update balance after spin
       await fetchBalance();
       
-      if (data.outcome) {
+      if (data && data.outcome) {
+        console.log('Slot spin response:', data);
         // Set final reels and results after a delay for animation
         setTimeout(() => {
           setReels(data.outcome.reels);

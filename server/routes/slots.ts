@@ -234,24 +234,20 @@ router.post('/spin', auth, async (req, res) => {
       amount,
       multiplier,
       profit,
-      provablyFair: {
-        serverSeed,
-        clientSeed,
-        nonce
-      },
-      metadata: {
-        reels,
-        winningLines,
-        hasLuckySymbol
-      },
       createdAt: new Date(),
       serverSeed,
+      clientSeed, // Make sure clientSeed is included
       nonce,
       outcome: {
         reels,
         multiplier,
         winningLines,
-        hasLuckySymbol
+        hasLuckySymbol,
+        provablyFair: {
+          serverSeed,
+          clientSeed,
+          nonce
+        }
       },
       completed: true
     });
