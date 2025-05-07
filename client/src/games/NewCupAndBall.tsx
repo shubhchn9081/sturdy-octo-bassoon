@@ -1,179 +1,464 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest } from '../lib/queryClient';
-import CupGame from './cup-and-ball/CupAndBallGame';
-import GameLayout from '../components/games/GameLayout';
-import CupGameControls from '../components/games/cup-and-ball/CupGameControls';
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useWallet } from '@/context/WalletContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import GameLayout from '@/components/games/GameLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-// Game configuration settings
-const GAME_SETTINGS = {
-  easy: {
-    shuffles: 3,
-    speed: 'slow',
-    multiplier: 1.5
-  },
-  medium: {
-    shuffles: 5,
-    speed: 'medium',
-    multiplier: 2.0
-  },
-  hard: {
-    shuffles: 7,
-    speed: 'fast',
-    multiplier: 3.0
-  }
+// Import the custom images cup game component
+import CupGame from './EnhancedCupGameWithCustomImages';
+
+// Constants
+const GAME_ID = 16; // New ID for the Cup Game
+
+// Controls for the game
+const CupGameControls = ({
+  difficulty,
+  onDifficultyChange,
+  betAmount,
+  onBetAmountChange,
+  onBetAmountSlider,
+  potentialProfit,
+  onStart,
+  onReset,
+  isPlaying,
+  gamePhase,
+  gameResult,
+  payoutMultiplier
+}) => {
+  // Determine if it's mobile view
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const difficultyDetails = {
+    easy: {
+      shuffles: 5,
+      speed: 'Slow',
+      multiplier: 1.5
+    },
+    medium: {
+      shuffles: 8,
+      speed: 'Medium',
+      multiplier: 2.0
+    },
+    hard: {
+      shuffles: 12,
+      speed: 'Fast',
+      multiplier: 3.0
+    }
+  };
+
+  const selectedDifficulty = difficultyDetails[difficulty];
+
+  return (
+    <div className="px-1 py-1">
+      {/* For mobile view, create a more compact layout */}
+      {isMobile ? (
+        <div className="space-y-1 h-full flex flex-col justify-between">
+          {/* Status indicator for the game */}
+          {isPlaying && (
+            <div className={`text-center mb-1 py-1 text-sm font-medium rounded-md 
+              ${gamePhase === 'complete' 
+                ? (gameResult && gameResult.win ? 'bg-green-600' : 'bg-red-700')
+                : 'bg-slate-700'}`}
+            >
+              {gamePhase === 'ready' && 'Pick a cup to reveal the ball'}
+              {gamePhase === 'playing' && 'Shuffling cups...'}
+              {gamePhase === 'guessing' && 'Choose the cup with the ball'}
+              {gamePhase === 'revealing' && 'Revealing result...'}
+              {gamePhase === 'complete' && (gameResult && gameResult.win ? 'You won!' : 'Better luck next time')}
+            </div>
+          )}
+          
+          {/* Fixed button controls at the bottom */}
+          <div className="space-y-1 flex-grow">
+            {/* Quick bet buttons in a row */}
+            <div className="grid grid-cols-4 gap-1 mt-1">
+              {[100, 500, 1000, 5000].map(amount => (
+                <button
+                  key={amount}
+                  className={`text-sm py-1 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
+                  onClick={() => onBetAmountSlider([amount])}
+                  disabled={isPlaying}
+                >
+                  {amount}
+                </button>
+              ))}
+            </div>
+            
+            {/* Compact details grid */}
+            <div className="flex items-center gap-1 mt-1">
+              <select 
+                value={difficulty}
+                onChange={(e) => onDifficultyChange(e.target.value)}
+                disabled={isPlaying}
+                className="bg-slate-800 rounded-md py-1 px-1 text-xs flex-grow-0 w-[85px]"
+              >
+                <option value="easy">Easy (1.5x)</option>
+                <option value="medium">Medium (2x)</option>
+                <option value="hard">Hard (3x)</option>
+              </select>
+              
+              <div className="bg-slate-800 rounded-md py-1 px-1 text-center flex-1">
+                <span className="text-green-400 text-xs font-medium">Win: {potentialProfit.toFixed(0)}</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Large start button at the BOTTOM for easy thumb access */}
+          <div className="mt-1">
+            {!isPlaying ? (
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 h-12 w-full text-lg font-bold rounded-lg"
+                onClick={onStart}
+              >
+                START ▶
+              </Button>
+            ) : (
+              <Button 
+                className={`h-12 w-full text-lg font-bold rounded-lg ${gamePhase === 'complete' ? 'bg-red-600 hover:bg-red-700' : 'bg-yellow-600'}`} 
+                onClick={onReset}
+                disabled={gamePhase !== 'complete'}
+              >
+                {gamePhase === 'complete' 
+                  ? 'PLAY AGAIN ▶' 
+                  : gamePhase === 'ready' 
+                    ? 'PICK A CUP' 
+                    : 'IN PROGRESS...'}
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Original desktop layout */
+        <div className="space-y-3">
+          <h2 className="text-lg md:text-xl font-bold">Game Controls</h2>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs md:text-sm font-medium mb-1">Difficulty</label>
+              <Select 
+                value={difficulty} 
+                onValueChange={(value) => onDifficultyChange(value)}
+                disabled={isPlaying}
+              >
+                <SelectTrigger className="w-full h-8 md:h-10 text-xs md:text-sm">
+                  <SelectValue placeholder="Select Difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Game details - grid layout */}
+            <div className="grid grid-cols-3 gap-1 mt-1">
+              <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span className="text-xs md:text-sm">Shuffles</span>
+                </div>
+                <span className="font-medium text-xs md:text-sm">{selectedDifficulty.shuffles}</span>
+              </div>
+              
+              <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span className="text-xs md:text-sm">Speed</span>
+                </div>
+                <span className="font-medium text-xs md:text-sm">{selectedDifficulty.speed}</span>
+              </div>
+              
+              <div className="bg-slate-800 rounded-md p-2 flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span className="text-xs md:text-sm">Payout</span>
+                </div>
+                <span className="font-medium text-xs md:text-sm">{selectedDifficulty.multiplier}x</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs md:text-sm font-medium mb-1">Bet Amount</label>
+              <div className="flex space-x-2 mb-1">
+                <Input
+                  type="number"
+                  value={betAmount}
+                  onChange={onBetAmountChange}
+                  disabled={isPlaying}
+                  className="flex-1 h-8 md:h-10 text-xs md:text-sm"
+                />
+              </div>
+              <Slider
+                value={[betAmount]}
+                min={100}
+                max={5000}
+                step={100}
+                onValueChange={onBetAmountSlider}
+                disabled={isPlaying}
+                className="my-2"
+              />
+              
+              {/* Bet amount quick selectors */}
+              <div className="grid grid-cols-4 gap-1 mt-1">
+                {[100, 500, 1000, 5000].map(amount => (
+                  <button
+                    key={amount}
+                    className={`text-xs md:text-sm py-1 px-2 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
+                    onClick={() => onBetAmountSlider([amount])}
+                    disabled={isPlaying}
+                  >
+                    {amount}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-2">
+              <label className="block text-xs md:text-sm font-medium mb-1">Payout Information</label>
+              <div className="bg-slate-800 p-2 rounded-md">
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs md:text-sm">Bet Amount:</span>
+                  <span className="font-medium text-xs md:text-sm">{betAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs md:text-sm">Multiplier:</span>
+                  <span className="font-medium text-xs md:text-sm">{payoutMultiplier}x</span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span className="text-xs md:text-sm">Potential Profit:</span>
+                  <span className="text-green-400 text-xs md:text-sm">{potentialProfit.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {gameResult && gamePhase === 'complete' && (
+              <div className={`mt-2 p-2 rounded-md ${gameResult.win ? 'bg-green-800' : 'bg-red-800'}`}>
+                <h3 className="text-xs md:text-sm font-bold mb-1">{gameResult.win ? 'You Won!' : 'You Lost'}</h3>
+                {gameResult.win && (
+                  <div className="flex justify-between">
+                    <span className="text-xs md:text-sm">Profit:</span>
+                    <span className="font-medium text-xs md:text-sm">{gameResult.profit.toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-between space-x-2 mt-3">
+              {!isPlaying ? (
+                <Button 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 h-8 md:h-10 text-xs md:text-sm"
+                  onClick={onStart}
+                >
+                  Start Game
+                </Button>
+              ) : (
+                <Button 
+                  className="flex-1 bg-red-600 hover:bg-red-700 h-8 md:h-10 text-xs md:text-sm" 
+                  onClick={onReset}
+                  disabled={gamePhase !== 'complete'}
+                >
+                  {gamePhase === 'complete' ? 'Play Again' : 'In Progress...'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
-// Payout multipliers for each difficulty level
-const PAYOUT_MULTIPLIERS = {
-  easy: 1.5,
-  medium: 2.0,
-  hard: 3.0
-};
-
-// Define types for cup game controls
-interface CupGameControlsProps {
-  difficulty: string;
-  onDifficultyChange: (difficulty: string) => void;
-  betAmount: number;
-  onBetAmountChange: (amount: number) => void;
-  onBetAmountSlider: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  potentialProfit: number;
-  onStart: () => void;
-  onReset: () => void;
-  isPlaying: boolean;
-  gamePhase: string;
-  gameResult: { win: boolean; profit: number } | null;
-  payoutMultiplier: number;
-}
-
-// Cup and Ball Game Component
-const NewCupAndBall: React.FC = () => {
+// Main game component that manages game state and betting
+const NewCupAndBall = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const isAuthenticated = !!user;
+  
   // Game state
+  const [difficulty, setDifficulty] = useState('easy');
+  const [betAmount, setBetAmount] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [difficulty, setDifficulty] = useState('medium');
-  const [betAmount, setBetAmount] = useState(10);
-  const [gamePhase, setGamePhase] = useState<'ready' | 'starting' | 'playing' | 'guessing' | 'revealing' | 'complete'>('ready');
-  const [ballPosition, setBallPosition] = useState<number | null>(null);
-  const [selectedCup, setSelectedCup] = useState<number | null>(null);
-  const [gameResult, setGameResult] = useState<{ win: boolean; profit: number } | null>(null);
-
-  // Reference to the cup game component
-  const cupGameRef = useRef<any>(null);
+  const [gamePhase, setGamePhase] = useState('initial');
+  const [selectedCup, setSelectedCup] = useState(null);
+  const [ballPosition, setBallPosition] = useState(null);
+  const [clientSeed, setClientSeed] = useState(() => Math.random().toString(36).substring(2, 15));
+  const [gameResult, setGameResult] = useState(null);
   
-  // Bet mutation hook
-  const betMutation = useMutation({
-    mutationFn: () => {
-      const win = selectedCup === ballPosition;
-      const profit = win ? betAmount * PAYOUT_MULTIPLIERS[difficulty as keyof typeof PAYOUT_MULTIPLIERS] : 0;
-      
-      return apiRequest('/api/games/cup-and-ball/bet', {
-        method: 'POST',
-        body: {
-          amount: betAmount,
-          difficulty,
-          cupSelected: selectedCup,
-          ballPosition,
-          win,
-          profit
-        }
-      });
-    },
-    onSuccess: (data) => {
-      // Determine win state based on the ball position and selected cup
-      const didWin = selectedCup === ballPosition;
-      const profit = didWin ? betAmount * PAYOUT_MULTIPLIERS[difficulty as keyof typeof PAYOUT_MULTIPLIERS] : 0;
-      
-      // Update game result
-      setGameResult({ 
-        win: didWin,
-        profit: profit 
-      });
-      
-      // Update game phase to complete
-      setGamePhase('complete');
-    },
-    onError: (error) => {
-      console.error('Error placing bet:', error);
-      // Reset to ready state
-      setGamePhase('ready');
-      resetGame();
-    }
-  });
+  // Create a ref to the cup game component
+  const cupGameRef = React.useRef<{ startGame: () => void }>(null);
   
-  // Helper function to generate random ball position (0, 1, or 2)
-  const getRandomBallPosition = () => {
-    return Math.floor(Math.random() * 3);
+  // Set up payouts based on difficulty
+  const payoutMultipliers = {
+    easy: 1.5,
+    medium: 2.0,
+    hard: 3.0
   };
   
-  // Function to start the game
-  const startGame = () => {
-    // Reset previous game state
-    setSelectedCup(null);
-    setGameResult(null);
-    setIsPlaying(true);
-    setGamePhase('starting');
-    
-    // Generate random ball position
-    const newBallPosition = getRandomBallPosition();
-    setBallPosition(newBallPosition);
-    
-    // Show the ball briefly, then start the game
-    setTimeout(() => {
-      setGamePhase('playing');
-      
-      // Shuffle cups according to difficulty
-      if (cupGameRef.current && typeof cupGameRef.current.startGame === 'function') {
-        cupGameRef.current.startGame();
-      }
-      
-      // After shuffling, set the game to guessing phase
-      setTimeout(() => {
-        setGamePhase('guessing');
-      }, GAME_SETTINGS[difficulty as keyof typeof GAME_SETTINGS].shuffles * 1000);
-    }, 1500);
-  };
-  
-  // Function to reset the game
-  const resetGame = () => {
-    setIsPlaying(false);
-    setGamePhase('ready');
-    setBallPosition(null);
-    setSelectedCup(null);
-    setGameResult(null);
-    
-    if (cupGameRef.current && typeof cupGameRef.current.resetGame === 'function') {
-      cupGameRef.current.resetGame();
-    }
-  };
-  
-  // Function to calculate potential profit
+  // Calculate potential profit
   const calculateProfit = () => {
-    return betAmount * PAYOUT_MULTIPLIERS[difficulty as keyof typeof PAYOUT_MULTIPLIERS];
+    return betAmount * payoutMultipliers[difficulty] - betAmount;
   };
   
   // Handle difficulty change
-  const handleDifficultyChange = (newDifficulty: string) => {
-    if (!isPlaying) {
-      setDifficulty(newDifficulty);
-    }
+  const handleDifficultyChange = (value) => {
+    setDifficulty(value);
   };
   
-  // Handle bet amount change
-  const handleBetAmountChange = (value: number) => {
-    if (!isPlaying) {
+  // Handle bet amount change from slider
+  const handleBetAmountSlider = (value) => {
+    setBetAmount(value[0]);
+  };
+  
+  // Handle bet amount change from input
+  const handleBetAmountChange = (e) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 100) {
       setBetAmount(value);
     }
   };
   
-  // Handle bet amount slider change
-  const handleBetAmountSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isPlaying) {
-      setBetAmount(Number(e.target.value));
+  // Bet mutation
+  const betMutation = useMutation({
+    mutationFn: async () => {
+      // Create a new client seed for each game
+      const newClientSeed = Math.random().toString(36).substring(2, 15);
+      setClientSeed(newClientSeed);
+      
+      console.log(`Placing bet with selectedCup: ${selectedCup}, difficulty: ${difficulty}`);
+      
+      const response = await apiRequest('POST', '/api/cup-and-ball/place-bet', {
+        gameId: GAME_ID,
+        amount: betAmount,
+        clientSeed: newClientSeed,
+        difficulty,
+        selectedCup: selectedCup
+      });
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Get the outcome from the response
+      const outcome = data.bet.outcome;
+      
+      console.log('Server response:', outcome);
+      console.log(`Ball position: ${outcome.ballPosition}, Selected cup: ${outcome.selectedCup}, Win: ${outcome.win}`);
+      
+      // Store the ball position
+      setBallPosition(outcome.ballPosition);
+      
+      // Set the game result
+      setGameResult({
+        win: outcome.win,
+        profit: data.bet.profit
+      });
+      
+      // Transition to complete phase
+      setGamePhase('complete');
+      
+      // Show toast for win/loss
+      if (outcome.win) {
+        toast({
+          title: "You Won!",
+          description: `You won ${data.bet.profit.toFixed(2)}!`,
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "You Lost",
+          description: "Better luck next time!",
+          variant: "destructive"
+        });
+      }
+      
+      // Invalidate wallet balance queries to reflect new balance
+      queryClient.invalidateQueries({ queryKey: ['/api/user/balance'] });
+    },
+    onError: (error) => {
+      setGamePhase('ready');
+      setIsPlaying(false);
+      console.error("Error placing bet:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to place bet",
+        variant: "destructive"
+      });
     }
+  });
+  
+  // Reset game
+  const resetGame = () => {
+    setIsPlaying(false);
+    setGamePhase('ready');
+    setSelectedCup(null);
+    setBallPosition(null);
+    setGameResult(null);
   };
   
-  // Handle correct guess (when user selects the cup with the ball)
+  // Start the game
+  const startGame = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to play",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (betAmount < 100) {
+      toast({
+        title: "Invalid Bet",
+        description: "Minimum bet amount is 100",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // First reset any existing game state to ensure clean start
+    setIsPlaying(false);
+    setGamePhase('initial');
+    setSelectedCup(null);
+    setBallPosition(null);
+    setGameResult(null);
+    
+    // Short delay to ensure state is reset before starting
+    setTimeout(() => {
+      setIsPlaying(true);
+      setGamePhase('ready');
+      
+      // Generate a random position for the ball (0, 1, or 2)
+      const initialBallPosition = Math.floor(Math.random() * 3);
+      setBallPosition(initialBallPosition);
+      console.log("Setting initial ball position:", initialBallPosition);
+      
+      // Use the ref to start the game
+      if (cupGameRef.current) {
+        cupGameRef.current.startGame();
+      } else {
+        console.error("Cup game ref is not available!");
+        // Fallback in case ref is not available (this might happen in some mobile scenarios)
+        toast({
+          title: "Game Error",
+          description: "Please try again",
+          variant: "destructive"
+        });
+        setIsPlaying(false);
+        setGamePhase('initial');
+      }
+    }, 100);
+  };
+  
+  // Handle game events
   const handleCorrectGuess = () => {
     setSelectedCup(ballPosition);
     setGamePhase('revealing');
@@ -186,33 +471,11 @@ const NewCupAndBall: React.FC = () => {
     // We need to determine which cup the player selected
     // In this case, we'll use the first cup that's not the ball position
     const wrongCup = [0, 1, 2].find(cup => cup !== ballPosition);
-    setSelectedCup(wrongCup || 0);
+    setSelectedCup(wrongCup);
     setGamePhase('revealing');
     
     // Place bet after selection
     betMutation.mutate();
-  };
-  
-  // Function to handle cup selection in mobile view
-  const handleCupSelect = (cupIndex: number) => {
-    console.log(`Cup selected: ${cupIndex}, current phase: ${gamePhase}`);
-    
-    // Only allow selection if the game is in the guessing phase
-    if (gamePhase !== 'guessing') return;
-    
-    // Update selected cup and transition to revealing phase
-    setSelectedCup(cupIndex);
-    setGamePhase('revealing');
-    
-    // Delay to show the animation of lifting the cup
-    setTimeout(() => {
-      // Here we need to check if the selected cup matches the ball position
-      const isCorrect = cupIndex === ballPosition;
-      console.log(`User selected cup ${cupIndex}, ball was at ${ballPosition}, correct: ${isCorrect}`);
-      
-      // Place the bet with the API
-      betMutation.mutate();
-    }, 1000);
   };
   
   // Create the game panels for the layout
@@ -229,163 +492,77 @@ const NewCupAndBall: React.FC = () => {
       isPlaying={isPlaying}
       gamePhase={gamePhase}
       gameResult={gameResult}
-      payoutMultiplier={PAYOUT_MULTIPLIERS[difficulty as keyof typeof PAYOUT_MULTIPLIERS]}
+      payoutMultiplier={payoutMultipliers[difficulty]}
     />
   );
   
-  // Determine mobile view with responsive state
-  const [isMobileView, setIsMobileView] = useState(false);
+  // Determine if it's mobile view
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
-  // Handle window resize to update mobile detection - with detailed checks
+  // Use state to handle window resize and update mobile detection
+  const [isMobileView, setIsMobileView] = useState(isMobile);
+  
+  // Handle window resize to update mobile detection
   React.useEffect(() => {
-    const checkMobile = () => {
-      const smallScreen = window.innerWidth < 768;
-      const narrowScreen = window.innerWidth < 500;
-      const lowHeight = window.innerHeight < 600;
-      // Log dimensions for debugging
-      console.log(`Current screen dimensions: ${window.innerWidth}x${window.innerHeight}`);
-      
-      setIsMobileView(smallScreen || narrowScreen || lowHeight);
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
     };
     
     // Set initial value
-    checkMobile();
+    handleResize();
     
-    // Add event listeners with throttling for better performance
-    let resizeTimeout: any = null;
-    const throttledResize = () => {
-      if (resizeTimeout === null) {
-        resizeTimeout = setTimeout(() => {
-          resizeTimeout = null;
-          checkMobile();
-        }, 200);
-      }
-    };
-    
-    window.addEventListener('resize', throttledResize);
-    window.addEventListener('orientationchange', checkMobile); // Critical for mobile
+    // Add event listener
+    window.addEventListener('resize', handleResize);
     
     // Clean up
     return () => {
-      window.removeEventListener('resize', throttledResize);
-      window.removeEventListener('orientationchange', checkMobile);
-      if (resizeTimeout) clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
   
-  // Render different game implementation for mobile vs desktop
   const gamePanel = (
     <div className="h-full w-full flex items-center justify-center">
-      {isMobileView ? (
-        // Simple mobile fallback version that's guaranteed to work
-        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800 rounded-lg p-4">
-          <div className="text-center text-white mb-4">
-            <h3 className="text-lg font-bold">Cup and Ball Game</h3>
-            <p className="text-sm opacity-80 mt-1">Follow the ball under the cups!</p>
-          </div>
-          
-          <div className="relative w-full h-64 bg-slate-900 rounded-lg flex items-center justify-center">
-            {/* Basic flat mobile implementation - guaranteed to work */}
-            <div className="flex justify-around items-end w-full px-4">
-              {[0, 1, 2].map((index) => (
-                <div 
-                  key={index}
-                  className={`relative flex flex-col items-center ${gamePhase === 'guessing' ? 'cursor-pointer active:opacity-80' : ''}`}
-                  onClick={() => {
-                    if (gamePhase === 'guessing') {
-                      handleCupSelect(index);
-                    }
-                  }}
-                >
-                  {/* Cup */}
-                  <div 
-                    className={`w-20 h-28 bg-gradient-to-b from-red-600 to-red-800 rounded-t-2xl rounded-b-lg
-                      ${gamePhase === 'guessing' ? 'animate-pulse' : ''}
-                      ${(gamePhase === 'revealing' || gamePhase === 'complete') && ballPosition === index ? 'translate-y-[-40px]' : ''}`}
-                    style={{
-                      transition: 'transform 0.3s ease',
-                      transformOrigin: 'bottom center',
-                    }}
-                  >
-                    {/* Cup number */}
-                    <div className="bg-slate-700 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center absolute bottom-2 left-1/2 transform -translate-x-1/2">
-                      {index + 1}
-                    </div>
-                  </div>
-                  
-                  {/* Ball - only show if it's the correct position and in reveal phase */}
-                  {(gamePhase === 'ready' || gamePhase === 'starting' || gamePhase === 'revealing' || gamePhase === 'complete') && 
-                   ballPosition === index && (
-                    <div className="absolute bottom-[-15px] w-8 h-8 bg-blue-500 rounded-full border-2 border-blue-600"></div>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            {/* Game state indication */}
-            {gamePhase === 'starting' && (
-              <div className="absolute top-2 left-0 w-full text-center text-sm text-white bg-blue-600 py-1 px-2 rounded">
-                Watch carefully...
-              </div>
-            )}
-            {gamePhase === 'playing' && (
-              <div className="absolute top-2 left-0 w-full text-center text-sm text-white bg-yellow-600 py-1 px-2 rounded">
-                Shuffling cups...
-              </div>
-            )}
-            {gamePhase === 'guessing' && (
-              <div className="absolute top-2 left-0 w-full text-center text-sm text-white bg-green-600 py-1 px-2 rounded">
-                Find the ball!
-              </div>
-            )}
-            {gamePhase === 'complete' && gameResult && (
-              <div className={`absolute top-2 left-0 w-full text-center text-sm text-white ${gameResult.win ? 'bg-green-600' : 'bg-red-600'} py-1 px-2 rounded`}>
-                {gameResult.win ? `You won ${gameResult.profit.toFixed(2)}!` : 'Better luck next time!'}
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        // Original desktop implementation
-        <CupGame
-          ref={cupGameRef}
-          onCorrectGuess={handleCorrectGuess}
-          onWrongGuess={handleWrongGuess}
-          difficulty={difficulty as 'easy' | 'medium' | 'hard'}
-          soundsEnabled={true}
-          customStyles={{
-            container: {
-              background: '#1a293a',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-              width: '100%',
-              minHeight: '350px',
-              maxWidth: '600px',
-              padding: '1.5rem',
-            },
-            gameArea: {
-              backgroundColor: '#0f1e2d',
-              height: '350px',
-              width: '100%'
-            },
-            cup: {
-              zIndex: 20,
-              width: '130px',
-              height: '180px' 
-            },
-            ball: {
-              zIndex: 10,
-              width: '70px',
-              height: '70px'
-            },
-            gameResult: {
-              color: '#ffffff'
-            },
-            instructions: {
-              color: '#adbbc8'
-            }
-          }}
-        />
-      )}
+      <CupGame
+        ref={cupGameRef}
+        onCorrectGuess={handleCorrectGuess}
+        onWrongGuess={handleWrongGuess}
+        difficulty={difficulty as 'easy' | 'medium' | 'hard'}
+        soundsEnabled={true}
+        customStyles={{
+          container: {
+            background: '#1a293a',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+            width: '100%',
+            height: isMobileView ? 'auto' : undefined,
+            minHeight: isMobileView ? '280px' : '350px',
+            maxWidth: isMobileView ? '100%' : '600px',
+            padding: isMobileView ? '0.5rem' : '1.5rem',
+            marginBottom: isMobileView ? '0.5rem' : undefined,
+            overflowX: 'hidden'
+          },
+          gameArea: {
+            backgroundColor: '#0f1e2d',
+            height: isMobileView ? '280px' : '350px',
+            width: '100%'
+          },
+          cup: {
+            zIndex: 20,
+            width: isMobileView ? '90px' : '130px',
+            height: isMobileView ? '140px' : '180px'
+          },
+          ball: {
+            zIndex: 10,
+            width: isMobileView ? '40px' : '70px',
+            height: isMobileView ? '40px' : '70px'
+          },
+          gameResult: {
+            color: '#ffffff'
+          },
+          instructions: {
+            color: '#adbbc8'
+          }
+        }}
+      />
     </div>
   );
   
