@@ -133,11 +133,13 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
             }
           }}
         >
-          {/* Cup */}
-          <div className="w-32 h-40 relative">
-            <div className="absolute bottom-0 w-full h-32 bg-gradient-to-b from-orange-700 to-orange-900 rounded-b-lg rounded-t-xl transform-gpu"></div>
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-orange-600 rounded-t-xl"></div>
-            <div className="absolute right-0 top-12 w-6 h-16 bg-orange-800 rounded-r-full"></div>
+          {/* Cup Image */}
+          <div className="w-32 h-40 relative flex items-center justify-center">
+            <img 
+              src="/images/cup-game/red-cup.png" 
+              alt="Red Cup" 
+              className="w-full h-full object-contain transform-gpu"
+            />
           </div>
           
           {/* Number indicator */}
@@ -149,11 +151,17 @@ const CupAndBallGame: React.FC<CupAndBallGameProps> = ({
         {/* Ball shown when needed */}
         {showBall && (
           <motion.div
-            className="w-16 h-16 bg-red-500 rounded-full shadow-lg mt-4"
+            className="w-16 h-16 mt-4 flex items-center justify-center"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-          />
+          >
+            <img 
+              src="/images/cup-game/ball.png" 
+              alt="Ball" 
+              className="w-full h-full object-contain"
+            />
+          </motion.div>
         )}
       </div>
     );
