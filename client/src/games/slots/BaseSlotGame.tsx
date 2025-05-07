@@ -119,6 +119,19 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
 
   // Animate reels with GSAP
   const animateReels = (finalOutcome: string[][], winDelay = 500): void => {
+    // Play slot machine sound
+    playSoundEffect('spin');
+    
+    // Create light flash effect
+    if (containerRef.current) {
+      gsap.to(containerRef.current, {
+        boxShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 215, 0, 0.4)',
+        duration: 0.5,
+        repeat: 2,
+        yoyo: true
+      });
+    }
+    
     // For each reel
     reelRefs.current.forEach((reelEl, reelIndex) => {
       if (!reelEl) return;
@@ -127,7 +140,7 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       const symbolsContainer = reelEl.querySelector('.reel-container');
       if (!symbolsContainer) return;
       
-      // Create a blank virtual reel (which will spin)
+      // Create a longer virtual reel (which will spin)
       const virtualSymbols = createVirtualReelStrip(reelIndex);
       
       // Add the final symbols at the end of the virtual reel
@@ -139,7 +152,7 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       symbolsContainer.innerHTML = '';
       virtualSymbols.forEach(symbol => {
         const symbolEl = document.createElement('div');
-        symbolEl.className = `flex items-center justify-center text-4xl p-2 my-1 h-20`;
+        symbolEl.className = `flex items-center justify-center text-4xl p-2 my-1 h-20 transition-all transform hover:scale-110`;
         symbolEl.textContent = symbol;
         symbolsContainer.appendChild(symbolEl);
       });
@@ -147,23 +160,66 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       // Calculate the final position (height of all symbols except the last visible ones)
       const finalPosition = -(virtualSymbols.length - 3) * 80; // 80px is the height of each symbol
       
-      // Animate the reel with GSAP
+      // Create blur effect during fast spinning
+      gsap.to(symbolsContainer.children, {
+        filter: 'blur(3px)',
+        duration: 0.5
+      });
+      
+      // Animate the reel with GSAP - more casino-like behavior
+      const reelDuration = 1.5 + reelIndex * 0.5; // Each reel spins longer than the previous
+      
       gsap.fromTo(
         symbolsContainer,
         { y: 0 },
         { 
           y: finalPosition, 
-          duration: 2 + reelIndex * 0.3, // Each reel stops after the previous one
+          duration: reelDuration,
           ease: "power1.out",
+          onUpdate: function() {
+            // Calculate how far through the animation we are (0-1)
+            const progress = this.progress();
+            
+            // Remove blur as reel slows down
+            if (progress > 0.7) {
+              gsap.to(symbolsContainer.children, {
+                filter: 'blur(0px)',
+                duration: 0.3
+              });
+            }
+          },
           onComplete: () => {
+            // Play reel stop sound with slight variance for each reel
+            playSoundEffect('reelStop', { pitch: 1 + (reelIndex * 0.1) });
+            
+            // Add a bouncing effect at the end
+            gsap.fromTo(
+              symbolsContainer,
+              { y: finalPosition - 10 },  // Bounce up a bit
+              { y: finalPosition, duration: 0.3, ease: "bounce.out" }
+            );
+            
             // If this is the last reel, check for win and update game state
             if (reelIndex === reelRefs.current.length - 1) {
               setTimeout(() => {
                 // Game state will be updated from the handleSpin function
                 // where we set the multiplier and profit values
                 if (profit > 0) {
+                  // Winning animation
                   setGameState('winning');
                   playWinSound(profit);
+                  
+                  // Flash the winning symbols
+                  const winningSymbols = document.querySelectorAll('.winning-symbol');
+                  winningSymbols.forEach(symbol => {
+                    gsap.to(symbol, {
+                      backgroundColor: 'rgba(255, 215, 0, 0.3)',
+                      boxShadow: '0 0 10px gold',
+                      repeat: -1,
+                      yoyo: true,
+                      duration: 0.5
+                    });
+                  });
                 } else {
                   setGameState('losing');
                   playLoseSound();
@@ -261,15 +317,55 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     }
   };
   
+  // Play sound effects
+  const playSoundEffect = (type: 'spin' | 'reelStop' | 'win' | 'jackpot' | 'lose', options?: { volume?: number, pitch?: number }) => {
+    const { volume = 1.0, pitch = 1.0 } = options || {};
+    
+    // In a real implementation, we would play actual sound files
+    // For now we'll just log the sound effect for demonstration
+    console.log(`Playing ${type} sound effect (volume: ${volume}, pitch: ${pitch})`);
+    
+    // Visual feedback when sounds would play
+    if (containerRef.current) {
+      // Flash the container briefly when sounds play
+      gsap.to(containerRef.current, {
+        backgroundColor: type === 'win' ? 'rgba(76, 175, 80, 0.3)' : 
+                         type === 'lose' ? 'rgba(244, 67, 54, 0.3)' : 
+                         'rgba(66, 165, 245, 0.3)',
+        duration: 0.2,
+        yoyo: true,
+        repeat: 1
+      });
+    }
+  };
+  
   // Play win sound with different sounds for different win amounts
   const playWinSound = (profit: number) => {
-    // This would be implemented with actual sound files
-    console.log(`Playing win sound for profit: ${profit}`);
+    if (profit >= betAmount * 10) {
+      // Jackpot win
+      playSoundEffect('jackpot', { volume: 1.0 });
+      console.log("Playing jackpot sound");
+      
+      // Extra visual effects for jackpot
+      if (containerRef.current) {
+        // Add particles or confetti effect
+        gsap.to(containerRef.current, {
+          boxShadow: '0 0 50px gold, 0 0 100px gold',
+          duration: 0.5,
+          repeat: 5,
+          yoyo: true
+        });
+      }
+    } else {
+      // Regular win
+      playSoundEffect('win', { volume: 0.8 + (profit / betAmount) * 0.2 });
+      console.log("Playing win sound");
+    }
   };
   
   // Play lose sound
   const playLoseSound = () => {
-    // This would be implemented with actual sound files
+    playSoundEffect('lose', { volume: 0.7 });
     console.log('Playing lose sound');
   };
   
@@ -384,116 +480,307 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     <div 
       key={reelIndex}
       ref={el => reelRefs.current[reelIndex] = el}
-      className="bg-slate-800 rounded-lg overflow-hidden relative"
+      className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-lg overflow-hidden relative"
       style={{
         flex: '1',
         margin: '0 4px',
         height: '240px',
         position: 'relative',
+        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
+        border: '2px solid rgba(30, 41, 59, 0.8)',
         ...customStyles.reel
       }}
     >
+      {/* Reel overlay to create light reflection effect */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-10" 
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.1) 100%)',
+          borderRadius: '0.5rem'
+        }}
+      />
+      
+      {/* Side light effect */}
+      <div className="absolute h-full w-2 left-0 top-0 z-10">
+        <div 
+          className="h-1/3 w-full animate-pulse" 
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,215,0,0.5), rgba(255,215,0,0))',
+            animationDuration: `${3 + reelIndex * 0.5}s`
+          }}
+        />
+      </div>
+      
+      {/* Reel container */}
       <div className="reel-container" style={{ position: 'absolute', width: '100%' }}>
         {reel.map((symbol, symbolIndex) => (
           <div 
             key={symbolIndex}
-            className={`flex items-center justify-center text-4xl p-2 my-1 h-20
-              ${winningLines.includes(symbolIndex) && gameState === 'winning' ? 'bg-yellow-500/20' : ''}
-              ${symbol === luckySymbol ? 'text-yellow-400' : ''}
+            className={`
+              flex items-center justify-center text-4xl p-2 my-1 h-20
+              transition-all duration-200
+              ${winningLines.includes(symbolIndex) && gameState === 'winning' ? 'bg-yellow-500/30 winning-symbol' : 'hover:bg-slate-700/30'}
+              ${symbol === luckySymbol ? 'text-yellow-400 text-shadow-glow' : ''}
             `}
+            style={{
+              textShadow: symbol === luckySymbol ? '0 0 10px rgba(255,215,0,0.8)' : 'none',
+              transform: gameState === 'spinning' ? 'scale(0.95)' : 'scale(1)',
+              borderRadius: '0.5rem',
+              backdropFilter: 'blur(1px)',
+            }}
           >
             {symbol}
+            
+            {/* Shine effect on symbols */}
+            <div 
+              className="absolute inset-0 opacity-25 pointer-events-none"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%)',
+                borderRadius: '0.5rem'
+              }}
+            />
             
             {/* Highlight effect for winning symbols */}
             {winningLines.includes(symbolIndex) && gameState === 'winning' && (
               <motion.div
-                className="absolute inset-0 rounded-lg"
+                className="absolute inset-0 rounded-lg z-0"
                 animate={{
-                  boxShadow: ['0 0 0 rgba(255,255,0,0)', '0 0 20px rgba(255,255,0,0.7)', '0 0 0 rgba(255,255,0,0)'],
+                  boxShadow: [
+                    '0 0 0 rgba(255,215,0,0)', 
+                    '0 0 20px rgba(255,215,0,0.7), inset 0 0 10px rgba(255,215,0,0.5)', 
+                    '0 0 0 rgba(255,215,0,0)'
+                  ],
+                  backgroundColor: [
+                    'rgba(255,215,0,0.1)',
+                    'rgba(255,215,0,0.3)',
+                    'rgba(255,215,0,0.1)'
+                  ]
                 }}
                 transition={{
                   duration: 1.5,
                   repeat: Infinity,
+                  ease: "easeInOut"
                 }}
               />
             )}
           </div>
         ))}
       </div>
+      
+      {/* Reel top and bottom shadows */}
+      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-slate-900 to-transparent pointer-events-none z-20"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none z-20"></div>
     </div>
   );
   
   return (
     <div 
       ref={containerRef}
-      className="relative bg-slate-900 rounded-lg p-4 text-white overflow-hidden"
+      className="relative rounded-lg p-6 text-white overflow-hidden"
       style={{
         minHeight: '400px',
+        background: 'linear-gradient(135deg, #1a202c, #0f172a)',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(30, 41, 59, 0.8)',
         ...customStyles.container
       }}
     >
-      {/* Game header */}
-      <div className="flex justify-between items-center mb-4">
+      {/* Light beams effect for casino ambience */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div 
+          className="absolute top-0 left-1/4 w-4 h-full rotate-12 animate-pulse opacity-30"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,215,0,0.2), rgba(255,215,0,0))',
+            filter: 'blur(8px)',
+            animationDuration: '3s'
+          }}
+        />
+        <div 
+          className="absolute top-0 right-1/4 w-4 h-full -rotate-12 animate-pulse opacity-30"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,191,255,0.2), rgba(0,191,255,0))',
+            filter: 'blur(8px)',
+            animationDuration: '4s'
+          }}
+        />
+      </div>
+      
+      {/* Game header with neon style */}
+      <div className="flex justify-between items-center mb-6 relative">
         <div>
-          <h2 className="text-xl font-bold">{config.name}</h2>
-          <p className="text-sm text-slate-400">{config.theme}</p>
+          <h2 
+            className="text-2xl font-bold mb-1"
+            style={{
+              textShadow: '0 0 5px rgba(66, 153, 225, 0.8), 0 0 10px rgba(66, 153, 225, 0.5)'
+            }}
+          >
+            {config.name}
+          </h2>
+          <p className="text-sm text-blue-200">{config.theme}</p>
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={togglePayTable}>
-            <Info size={16} className="mr-1" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={togglePayTable}
+            className="border-blue-500 hover:bg-blue-900/50 transition-all"
+          >
+            <Info size={16} className="mr-1 text-blue-300" />
             Pay Table
           </Button>
           
-          <Button variant="outline" size="sm" onClick={fetchBalance}>
-            <RefreshCw size={16} className="mr-1" />
-            Refresh Balance
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchBalance}
+            className="border-blue-500 hover:bg-blue-900/50 transition-all"
+          >
+            <RefreshCw size={16} className="mr-1 text-blue-300" />
+            Refresh
           </Button>
         </div>
       </div>
       
-      {/* Balance display */}
-      <div className="bg-slate-800 rounded-lg p-3 mb-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <Wallet size={18} className="mr-2 text-slate-400" />
-          <span className="text-slate-400">Balance:</span>
+      {/* Balance display with glow effect */}
+      <div 
+        className="mb-6 flex justify-between items-center rounded-lg p-4 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(to right, rgba(12, 24, 48, 0.8), rgba(30, 41, 59, 0.8))',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(30, 64, 175, 0.3)'
+        }}
+      >
+        {/* Animated glow behind balance */}
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            background: 'radial-gradient(circle at 30% 50%, rgba(56, 189, 248, 0.4), transparent 70%)',
+            filter: 'blur(20px)'
+          }}
+        />
+        
+        <div className="flex items-center relative z-10">
+          <Wallet size={20} className="mr-2 text-blue-300" />
+          <span className="text-blue-200">Balance:</span>
         </div>
-        <span className="text-xl font-bold">{formatCurrency(balance)}</span>
+        <span 
+          className="text-2xl font-bold relative z-10"
+          style={{
+            textShadow: '0 0 10px rgba(56, 189, 248, 0.5)'
+          }}
+        >
+          {formatCurrency(balance)}
+        </span>
       </div>
       
-      {/* Reels container */}
+      {/* Reels container with enhanced styling */}
       <div 
-        className="relative flex mb-4 bg-slate-800/50 rounded-xl p-3"
+        className="relative flex mb-6 rounded-xl p-4"
         style={{
           minHeight: '200px',
+          background: 'linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(12, 24, 48, 0.9))',
+          boxShadow: 'inset 0 0 30px rgba(0, 0, 0, 0.5), 0 5px 15px rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(51, 65, 85, 0.5)',
           ...customStyles.reelsContainer
         }}
       >
+        {/* Slot machine top light row */}
+        <div className="absolute top-0 left-0 right-0 h-1 flex justify-center space-x-12 transform -translate-y-1/2 z-10">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div 
+              key={i} 
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{
+                background: i % 2 === 0 ? 'radial-gradient(circle, rgba(252, 211, 77, 1), rgba(252, 211, 77, 0.3))' : 'radial-gradient(circle, rgba(239, 68, 68, 1), rgba(239, 68, 68, 0.3))',
+                boxShadow: i % 2 === 0 ? '0 0 5px rgba(252, 211, 77, 0.8)' : '0 0 5px rgba(239, 68, 68, 0.8)',
+                animationDuration: `${1 + i * 0.2}s`
+              }}
+            />
+          ))}
+        </div>
+        
         {/* Reels */}
         {reels.map((reel, index) => renderReel(reel, index))}
         
-        {/* Win overlay */}
+        {/* Win overlay with improved animation */}
         <AnimatePresence>
           {gameState === 'winning' && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center"
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 flex items-center justify-center z-30"
             >
-              <div className="text-center text-yellow-400 bg-black/60 py-3 px-8 rounded-xl backdrop-blur-sm">
-                <Sparkles size={48} className="mx-auto mb-2" />
+              <motion.div
+                initial={{ scale: 0.8, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 20 }}
+                className="text-center py-5 px-10 rounded-xl relative overflow-hidden"
+                style={{
+                  background: 'rgba(0, 0, 0, 0.7)',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 0 30px rgba(251, 191, 36, 0.5), inset 0 0 20px rgba(251, 191, 36, 0.3)',
+                  border: '1px solid rgba(251, 191, 36, 0.5)'
+                }}
+              >
+                {/* Animated confetti behind win message */}
+                <div className="absolute inset-0 overflow-hidden">
+                  {Array.from({ length: 20 }).map((_, i) => (
+                    <motion.div 
+                      key={i}
+                      className="absolute w-2 h-2 rounded-full"
+                      initial={{ 
+                        x: Math.random() * 100 - 50,
+                        y: Math.random() * 100 - 50,
+                        scale: 0
+                      }}
+                      animate={{ 
+                        x: Math.random() * 200 - 100,
+                        y: Math.random() * 200 - 100,
+                        scale: [0, 1, 0],
+                        opacity: [0, 1, 0]
+                      }}
+                      transition={{ 
+                        duration: 2 + Math.random() * 2,
+                        repeat: Infinity,
+                        delay: Math.random() * 2
+                      }}
+                      style={{
+                        background: ['#FFD700', '#FF6347', '#4169E1', '#32CD32', '#FF1493'][Math.floor(Math.random() * 5)]
+                      }}
+                    />
+                  ))}
+                </div>
+                
+                <Sparkles className="mx-auto mb-2 text-yellow-300" size={60} />
                 <motion.h2
                   initial={{ scale: 0.8 }}
-                  animate={{ scale: [0.8, 1.2, 1] }}
-                  transition={{ duration: 0.5 }}
-                  className="text-3xl font-bold mb-1"
+                  animate={{ scale: [0.8, 1.2, 1], y: [0, -10, 0] }}
+                  transition={{ duration: 0.7, ease: "easeOut" }}
+                  className="text-4xl font-bold mb-2 text-transparent bg-clip-text"
+                  style={{
+                    backgroundImage: 'linear-gradient(to bottom, #FFD700, #FFA500)',
+                    textShadow: '0 0 10px rgba(255, 215, 0, 0.7)'
+                  }}
                 >
                   YOU WON!
                 </motion.h2>
-                <p className="text-xl">{formatCurrency(profit)}</p>
-                <p className="text-sm">({multiplier}x)</p>
-              </div>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-2xl font-bold"
+                  style={{
+                    color: '#FFD700',
+                    textShadow: '0 0 10px rgba(255, 215, 0, 0.7)'
+                  }}
+                >
+                  {formatCurrency(profit)}
+                </motion.p>
+                <p className="text-yellow-300">({multiplier}x Multiplier)</p>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
