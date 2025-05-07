@@ -411,8 +411,12 @@ export class MemStorage implements IStorage {
       .filter(bet => bet.gameId === gameId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     
-    if (status) {
-      return gameBets.filter(bet => bet.status === status);
+    if (status === 'active') {
+      // Active bets are those that are not completed
+      return gameBets.filter(bet => bet.completed === false);
+    } else if (status === 'completed') {
+      // Completed bets
+      return gameBets.filter(bet => bet.completed === true);
     }
     
     return gameBets;
@@ -1332,17 +1336,30 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getBetsByGameId(gameId: number, status?: string): Promise<Bet[]> {
-    if (status) {
+    if (status === 'active') {
+      // Active bets are those that are not completed
       return await db.select()
         .from(bets)
         .where(
           and(
             eq(bets.gameId, gameId),
-            eq(bets.status, status)
+            eq(bets.completed, false)
+          )
+        )
+        .orderBy(desc(bets.createdAt));
+    } else if (status === 'completed') {
+      // Completed bets
+      return await db.select()
+        .from(bets)
+        .where(
+          and(
+            eq(bets.gameId, gameId),
+            eq(bets.completed, true)
           )
         )
         .orderBy(desc(bets.createdAt));
     } else {
+      // All bets for this game
       return await db.select()
         .from(bets)
         .where(eq(bets.gameId, gameId))
