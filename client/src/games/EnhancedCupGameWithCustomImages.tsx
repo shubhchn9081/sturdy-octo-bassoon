@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef, useLayoutEffect } from 'react';
 
 // Define the cup pulse animation keyframes
 const cupPulseKeyframes = `
@@ -282,8 +282,8 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     // Calculate percentage-based positions for better responsiveness
     const leftPositions = [25, 50, 75];
     
-    // Detect if we're running on mobile
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    // Use the state-based mobile detection
+    const isMobile = isMobileView;
     
     // Base styles - absolute positioning for each cup
     const style: React.CSSProperties = {
@@ -320,9 +320,32 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     return style;
   }, [cupPositions, gamePhase, ballPosition, speed, customStyles]);
   
+  // State to track if we're on mobile
+  const [isMobileView, setIsMobileView] = useState(
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
+  
+  // Handle window resize to update mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
   // CSS for the cup game
-  // Detect if we're running on mobile
-  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+  // Use state-based mobile detection that updates on resize
+  const isMobileDevice = isMobileView;
   
   const gameStyles = {
     container: {
