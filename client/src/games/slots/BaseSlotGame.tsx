@@ -1,512 +1,685 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useBalance } from '@/hooks/use-balance';
-import { useProvablyFair } from '@/hooks/use-provably-fair';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { gsap } from 'gsap';
+import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Toggle } from '@/components/ui/toggle';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { CircleDollarSign, Play, Pause, Settings, HelpCircle, Volume2, VolumeX, Loader2, CheckCircle, XCircle, RotateCcw, Lock, Info } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useWallet } from '@/context/WalletContext';
+import { apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
 
-// Type definitions
-export type SpinResult = {
-  reels: (number | string)[];
+// Define slot game symbol types
+export interface Payout {
+  combination: string[];
   multiplier: number;
-  win: boolean;
-  winAmount: number;
-  luckyNumberHit?: boolean;
-};
+  description: string;
+}
 
-export type SlotSymbol = string | number;
+export interface SpecialSymbol {
+  symbol: string;
+  name: string;
+  description: string;
+  multiplier: number;
+}
 
-export type SlotConfiguration = {
+export interface SlotConfiguration {
   name: string;
   theme: string;
   description: string;
-  symbols: SlotSymbol[];
-  payouts: {
-    combination: SlotSymbol[];
-    multiplier: number;
-    description: string;
-  }[];
-  specialSymbols?: {
-    symbol: SlotSymbol;
-    name: string;
-    description: string;
-    multiplier?: number;
-  }[];
+  symbols: string[];
+  payouts: Payout[];
+  specialSymbols: SpecialSymbol[];
   maxMultiplier: number;
-  luckySymbol?: SlotSymbol;
-  luckyMultiplier?: number;
+  luckySymbol: string;
+  luckyMultiplier: number;
   reelCount: number;
-};
+}
 
-export type BaseSlotGameProps = {
+// Interface for custom styles
+interface CustomStyles {
+  container?: React.CSSProperties;
+  reelsContainer?: React.CSSProperties;
+  reel?: React.CSSProperties;
+  button?: React.CSSProperties;
+}
+
+// Props for the base slot game component
+interface BaseSlotGameProps {
   config: SlotConfiguration;
   gameId: number;
-  customStyles?: {
-    container?: React.CSSProperties;
-    reelsContainer?: React.CSSProperties;
-    reel?: React.CSSProperties;
-    symbol?: React.CSSProperties;
-    controls?: React.CSSProperties;
-    button?: React.CSSProperties;
-  };
-};
+  customStyles?: CustomStyles;
+}
 
-// Base Slot Game component that specific slot implementations will extend
+// Game states
+type GameState = 'idle' | 'spinning' | 'winning' | 'losing';
+
+// AutoPlay settings interface
+interface AutoPlaySettings {
+  enabled: boolean;
+  spins: number;
+  stopOnWin: boolean;
+  stopOnLoss: boolean;
+  stopOnBigWin: boolean;
+  remainingSpins: number;
+}
+
 const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyles = {} }) => {
-  const provablyFair = useProvablyFair(`slots-${config.name.toLowerCase().replace(/\\s+/g, '-')}`);
-  const { balance, rawBalance, refetch: refreshBalance } = useBalance("INR");
-  const { toast } = useToast();
-  
   // Game state
-  const [betAmount, setBetAmount] = useState<number>(1); // Default bet amount to match our presets
-  const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  const [autoSpin, setAutoSpin] = useState<boolean>(false);
-  const [spinResults, setSpinResults] = useState<SpinResult | null>(null);
-  const [reelValues, setReelValues] = useState<SlotSymbol[]>(Array(config.reelCount).fill(0));
-  const [error, setError] = useState<string | null>(null);
-  const [gameHistory, setGameHistory] = useState<SpinResult[]>([]);
-  const [luckySymbol, setLuckySymbol] = useState<SlotSymbol>(config.luckySymbol || 7); // Default lucky symbol
+  const [gameState, setGameState] = useState<GameState>('idle');
+  const [reels, setReels] = useState<string[][]>([]);
+  const [selectedLuckySymbol, setSelectedLuckySymbol] = useState<string>(config.luckySymbol);
+  const [betAmount, setBetAmount] = useState<number>(100);
+  const [winAmount, setWinAmount] = useState<number>(0);
+  const [winningLines, setWinningLines] = useState<number[]>([]);
+  const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
+  const [autoPlaySettings, setAutoPlaySettings] = useState<AutoPlaySettings>({
+    enabled: false,
+    spins: 10,
+    stopOnWin: false,
+    stopOnLoss: false,
+    stopOnBigWin: false,
+    remainingSpins: 0
+  });
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [showPaytable, setShowPaytable] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [selectedTab, setSelectedTab] = useState<string>('play');
+  const [hasSpinStarted, setHasSpinStarted] = useState<boolean>(false);
+  
+  // References
+  const spinTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const spinAudioRef = useRef<HTMLAudioElement | null>(null);
+  const winAudioRef = useRef<HTMLAudioElement | null>(null);
+  const loseAudioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Hooks
+  const { toast } = useToast();
+  const { balance, refreshBalance } = useWallet();
+  
+  // Initialize game
+  useEffect(() => {
+    // Initialize audio elements
+    spinAudioRef.current = new Audio('/sounds/spin.mp3');
+    winAudioRef.current = new Audio('/sounds/win.mp3');
+    loseAudioRef.current = new Audio('/sounds/lose.mp3');
+    
+    // Create initial reels state
+    initializeReels();
+    
+    // Clean up on unmount
+    return () => {
+      if (spinTimeoutRef.current) {
+        clearTimeout(spinTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Initialize reels with random symbols
+  const initializeReels = () => {
+    const initialReels: string[][] = [];
+    
+    for (let i = 0; i < config.reelCount; i++) {
+      const reel: string[] = [];
+      for (let j = 0; j < 3; j++) {
+        const randomIndex = Math.floor(Math.random() * config.symbols.length);
+        reel.push(config.symbols[randomIndex]);
+      }
+      initialReels.push(reel);
+    }
+    
+    setReels(initialReels);
+  };
+  
+  // Handle bet amount change
+  const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 10 && value <= 10000) {
+      setBetAmount(value);
+    }
+  };
+  
+  // Increment/decrement bet amount
+  const adjustBetAmount = (adjustment: number) => {
+    const newAmount = Math.max(10, Math.min(10000, betAmount + adjustment));
+    setBetAmount(newAmount);
+  };
+  
+  // Play audio
+  const playAudio = (audioRef: React.RefObject<HTMLAudioElement>) => {
+    if (audioRef.current && !isMuted) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {
+        // Silent catch for browsers that block autoplay
+      });
+    }
+  };
   
   // Handle spin button click
   const handleSpin = async () => {
-    if (isSpinning) return;
-    
-    // Validate bet amount
-    if (betAmount <= 0) {
-      setError('Please enter a valid bet amount');
+    // Don't allow spinning if already spinning or if bet amount is greater than balance
+    if (gameState === 'spinning' || betAmount > (balance || 0)) {
+      if (betAmount > (balance || 0)) {
+        toast({
+          title: "Insufficient balance",
+          description: "Please lower your bet amount or add funds to your wallet.",
+          variant: "destructive"
+        });
+      }
       return;
     }
     
-    // Use rawBalance for the comparison since it's a number
-    if (betAmount > rawBalance) {
-      setError('Insufficient balance');
-      return;
-    }
-    
-    setError(null);
-    setIsSpinning(true);
-    setSpinResults(null);
+    setHasSpinStarted(true);
+    setGameState('spinning');
+    setWinAmount(0);
+    setWinningLines([]);
+    playAudio(spinAudioRef);
     
     try {
-      // Generate seeds for provably fair gameplay
-      const clientSeed = Math.random().toString(36).substring(2, 15);
-      
-      // Make bet API request to slots-specific endpoint
-      const response = await fetch('/api/slots/play', {
+      // Call the API to make a bet
+      const result = await apiRequest('/api/slots/spin', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          gameId: gameId, // Slot game ID
+        data: {
+          gameId,
           amount: betAmount,
-          clientSeed,
-          luckySymbol, // Include the player's lucky number
-          theme: config.theme
-        })
+          luckySymbol: selectedLuckySymbol
+        }
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to place bet');
+      if (result && result.outcome) {
+        // Schedule the spin result to show after animation
+        spinTimeoutRef.current = setTimeout(() => {
+          // Set the reels to show the outcome
+          setReels(result.outcome.reels);
+          
+          // Set winning information
+          const isWin = result.profit > 0;
+          setWinAmount(result.profit);
+          
+          if (isWin) {
+            setGameState('winning');
+            playAudio(winAudioRef);
+            setWinningLines(result.outcome.winningLines || []);
+          } else {
+            setGameState('losing');
+            playAudio(loseAudioRef);
+          }
+          
+          // Refresh balance
+          refreshBalance();
+          
+          // Handle autoplay logic
+          handleAutoPlayAfterSpin(isWin, result.profit);
+          
+        }, 2000); // Show result after 2 seconds of spinning animation
       }
-      
-      const result = await response.json();
-      
-      // Extract reel values from the result
-      const newReels: SlotSymbol[] = result.outcome.reels || Array(config.reelCount).fill(0);
-      
-      // Start spinning animation
-      await animateReels(newReels);
-      
-      // Set results after animation completes
-      const spinResult: SpinResult = {
-        reels: newReels,
-        multiplier: result.multiplier || 0,
-        win: result.profit > 0,
-        winAmount: result.profit > 0 ? result.profit : 0,
-        luckyNumberHit: result.luckyNumberHit || false
-      };
-      
-      setSpinResults(spinResult);
-      setGameHistory(prev => [spinResult, ...prev].slice(0, 10));
-      
-      // Refresh balance after spin
-      if (typeof refreshBalance === 'function') {
-        refreshBalance();
-      } else {
-        // Fallback: refresh the page to get updated balance
-        setTimeout(() => window.location.reload(), 2000);
-      }
-      
-      // Notify user of result
-      if (spinResult.win) {
-        if (spinResult.luckyNumberHit) {
-          toast({
-            title: `Jackpot! Lucky Symbol Hit!`,
-            description: `Your lucky symbol ${luckySymbol} appeared! You won ${spinResult.winAmount.toFixed(2)} INR with a ${spinResult.multiplier}x multiplier!`,
-            variant: "default"
-          });
-        } else {
-          toast({
-            title: "You won!",
-            description: `You won ${spinResult.winAmount.toFixed(2)} INR with a ${spinResult.multiplier}x multiplier!`,
-            variant: "default"
-          });
-        }
-      }
-      
-      // Continue auto spin if enabled after a delay
-      if (autoSpin && !error) {
-        setTimeout(() => {
-          setIsSpinning(false);
-          if (autoSpin) handleSpin();
-        }, 2000);
-      } else {
-        setIsSpinning(false);
-      }
-      
-    } catch (err: any) {
-      console.error('Error placing bet:', err);
-      setError(err.message || 'Failed to place bet');
-      setIsSpinning(false);
+    } catch (error) {
       toast({
-        title: "Error",
-        description: err.message || 'Failed to place bet',
+        title: "Error spinning",
+        description: "There was an error while spinning. Please try again.",
         variant: "destructive"
       });
+      setGameState('idle');
     }
   };
   
-  // Animate slot machine reels with staggered stopping and improved visual effects
-  const animateReels = async (finalValues: SlotSymbol[]) => {
-    return new Promise<void>((resolve) => {
-      // Create temporary values array for animation
-      let tempValues = [...reelValues];
-      
-      // Define animation durations for each reel - longer for more dramatic effect
-      const spinDurations = [1500, 2200, 2800]; // First reel stops first, last reel stops last
-      
-      // Create audio context for slot sound (if enabled in the browser)
-      let slotSound: HTMLAudioElement | null = null;
-      try {
-        slotSound = new Audio();
-        slotSound.volume = 0.3;
-        slotSound.loop = true;
-      } catch (e) {
-        console.warn("Audio not supported in this browser");
-      }
-      
-      // Start the slot machine sound
-      if (slotSound) {
-        slotSound.play().catch(err => console.warn("Could not play audio", err));
-      }
-      
-      // Animation speed varies during the animation for more realistic effect
-      const animationIntervals = [
-        { duration: 60, count: 10 },  // Fast at start
-        { duration: 80, count: 15 },  // Slightly slower
-        { duration: 120, count: 10 }, // Even slower near the end
-      ];
-      
-      // Spin animation for each reel with staggered stopping and varying speeds
-      for (let i = 0; i < config.reelCount; i++) {
-        let intervalIndex = 0;
-        let currentInterval: NodeJS.Timeout | null = null;
-        let count = 0;
-        
-        // Function to create the next interval with different timing
-        const createNextInterval = () => {
-          const animConfig = animationIntervals[intervalIndex];
-          
-          // Clear any existing interval
-          if (currentInterval) clearInterval(currentInterval);
-          
-          // Create a new interval with the current speed
-          currentInterval = setInterval(() => {
-            // Update the values with a random symbol
-            tempValues = [...tempValues];
-            // Use the slot configuration from the component props
-            const randomSymbolIndex = Math.floor(Math.random() * config.symbols.length);
-            tempValues[i] = config.symbols[randomSymbolIndex];
-            setReelValues(tempValues);
-            
-            count++;
-            
-            // Move to next interval configuration after enough iterations
-            const currentIntervalConfig = animationIntervals[intervalIndex];
-            if (count >= currentIntervalConfig.count && intervalIndex < animationIntervals.length - 1) {
-              intervalIndex++;
-              count = 0;
-              createNextInterval();
-            }
-          }, animationIntervals[intervalIndex].duration);
-        };
-        
-        // Start the first interval for this reel
-        createNextInterval();
-        
-        // After the main spin duration, add a "slowing down" effect before stopping
-        setTimeout(() => {
-          // Clear the current interval
-          if (currentInterval) clearInterval(currentInterval);
-          
-          // Create a final slowing down effect
-          let slowDownInterval = 150;
-          let slowDownCount = 0;
-          const finalSlowDown = setInterval(() => {
-            tempValues = [...tempValues];
-            const randomSymbolIndex = Math.floor(Math.random() * config.symbols.length);
-            tempValues[i] = config.symbols[randomSymbolIndex];
-            setReelValues(tempValues);
-            
-            slowDownCount++;
-            // Gradually increase the interval to simulate slowing down
-            if (slowDownCount >= 3) {
-              clearInterval(finalSlowDown);
-              
-              // Set the final value with a visible "snap" effect using GSAP
-              tempValues = [...tempValues];
-              tempValues[i] = finalValues[i];
-              setReelValues(tempValues);
-              
-              // Apply a small bounce effect to the final value for a more satisfying stop
-              const reelElements = document.querySelectorAll(`.slot-reel-${i}`);
-              if (reelElements.length > 0) {
-                gsap.fromTo(
-                  reelElements[0], 
-                  { y: -10, opacity: 0.7 }, 
-                  { y: 0, opacity: 1, duration: 0.3, ease: "bounce.out" }
-                );
-              }
-              
-              // When the last reel stops, resolve the promise and stop the sound
-              if (i === config.reelCount - 1) {
-                if (slotSound) {
-                  // Fade out the sound
-                  const fadeOutInterval = setInterval(() => {
-                    if (slotSound && slotSound.volume > 0.05) {
-                      slotSound.volume -= 0.05;
-                    } else {
-                      clearInterval(fadeOutInterval);
-                      if (slotSound) slotSound.pause();
-                    }
-                  }, 50);
-                }
-                
-                // Delay the resolve to allow for the bounce effect to complete
-                setTimeout(resolve, 600);
-              }
-            }
-          }, slowDownInterval);
-          
-        }, spinDurations[Math.min(i, spinDurations.length - 1)] - 400); // Start slowing down a bit before the duration ends
-      }
-    });
-  };
-  
-  // Stop auto spin
-  const stopAutoSpin = () => {
-    setAutoSpin(false);
-  };
-  
-  // Clear error messages
-  const clearError = () => {
-    setError(null);
-  };
-
-  // Render themed slot symbols
-  const renderSymbol = (symbol: SlotSymbol) => {
-    const isSpecial = config.specialSymbols?.some(spec => spec.symbol === symbol);
-    const isLucky = symbol === luckySymbol;
+  // Handle autoplay after spin
+  const handleAutoPlayAfterSpin = (isWin: boolean, profit: number) => {
+    if (!isAutoPlaying) return;
     
-    return (
-      <div 
-        className={`
-          flex items-center justify-center text-4xl font-bold
-          ${isSpecial ? 'text-yellow-300' : ''}
-          ${isLucky ? 'text-amber-500' : ''}
-        `}
-        style={customStyles.symbol}
-      >
-        {symbol}
-      </div>
-    );
+    const settings = { ...autoPlaySettings };
+    settings.remainingSpins -= 1;
+    
+    // Check if we should stop autoplay
+    const shouldStop = 
+      settings.remainingSpins <= 0 ||
+      (settings.stopOnWin && isWin) ||
+      (settings.stopOnLoss && !isWin) ||
+      (settings.stopOnBigWin && isWin && profit >= betAmount * 5);
+    
+    if (shouldStop) {
+      setIsAutoPlaying(false);
+      setAutoPlaySettings({ ...settings, remainingSpins: 0 });
+      return;
+    }
+    
+    setAutoPlaySettings(settings);
+    
+    // Schedule next autoplay spin
+    spinTimeoutRef.current = setTimeout(() => {
+      setGameState('idle');
+      handleSpin();
+    }, 1500);
   };
-
+  
+  // Start autoplay
+  const startAutoPlay = () => {
+    if (gameState === 'spinning') return;
+    
+    setIsAutoPlaying(true);
+    setAutoPlaySettings({
+      ...autoPlaySettings,
+      remainingSpins: autoPlaySettings.spins
+    });
+    setGameState('idle');
+    handleSpin();
+  };
+  
+  // Stop autoplay
+  const stopAutoPlay = () => {
+    setIsAutoPlaying(false);
+    if (spinTimeoutRef.current) {
+      clearTimeout(spinTimeoutRef.current);
+    }
+  };
+  
+  // Toggle mute
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+  
+  // Get button text based on game state
+  const getButtonText = () => {
+    if (gameState === 'spinning') return 'Spinning...';
+    if (gameState === 'winning') return `Win ${winAmount}!`;
+    if (gameState === 'losing') return 'Spin Again';
+    return 'Spin';
+  };
+  
+  // Get button icon based on game state
+  const getButtonIcon = () => {
+    if (gameState === 'spinning') return <Loader2 className="mr-2 h-4 w-4 animate-spin" />;
+    if (gameState === 'winning') return <CheckCircle className="mr-2 h-4 w-4" />;
+    if (gameState === 'losing') return <XCircle className="mr-2 h-4 w-4" />;
+    return <Play className="mr-2 h-4 w-4" />;
+  };
+  
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  // Reset game
+  const resetGame = () => {
+    setGameState('idle');
+    setWinAmount(0);
+    setWinningLines([]);
+    initializeReels();
+  };
+  
   return (
-    <div className="flex flex-col h-full bg-[#0F212E] text-white" style={customStyles.container}>
-      {/* Game Content Area */}
-      <div className="mx-auto w-full max-w-md flex flex-col h-full overflow-auto pb-0">
-        {/* Slots title and description */}
-        <div className="text-center pt-6 pb-2">
-          <h2 className="text-3xl font-bold">{config.name}</h2>
-          <p className="text-sm text-blue-300">{config.description}</p>
+    <div 
+      className="h-full flex flex-col relative overflow-hidden p-4"
+      style={customStyles.container}
+    >
+      {/* Game header */}
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className="text-xl font-bold text-white">{config.name}</h2>
+          <p className="text-sm text-gray-300">{config.description}</p>
         </div>
-        
-        {/* Slot reels display */}
-        <div className="p-2 mb-2">
-          <div 
-            className="bg-[#0A1520] p-4 rounded-md border border-[#2A3F51] mb-4 relative overflow-hidden"
-            style={customStyles.reelsContainer}
+        <div className="flex space-x-2">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={toggleMute}
+            className="text-white hover:text-white hover:bg-white/10"
           >
-            <div className="flex justify-center items-center space-x-4">
-              {reelValues.map((value, index) => (
-                <div 
-                  key={index}
-                  className={`slot-reel-${index} w-24 h-24 flex items-center justify-center text-5xl font-bold rounded-md ${
-                    isSpinning ? 'bg-[#0E1C27]' : 'bg-[#162431] border border-[#2C3E4C]'
-                  }`}
-                  style={customStyles.reel}
-                >
-                  {renderSymbol(value)}
+            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setShowPaytable(true)}
+            className="text-white hover:text-white hover:bg-white/10"
+          >
+            <Info size={18} />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setShowSettings(true)}
+            className="text-white hover:text-white hover:bg-white/10"
+          >
+            <Settings size={18} />
+          </Button>
+        </div>
+      </div>
+      
+      <div className="flex-grow flex flex-col">
+        {/* Slot machine display */}
+        <div 
+          className="flex-grow flex flex-col justify-center items-center p-4 rounded-lg mb-4"
+          style={customStyles.reelsContainer}
+        >
+          {/* Win amount display */}
+          <AnimatePresence>
+            {winAmount > 0 && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="absolute top-16 left-0 right-0 flex justify-center items-center z-10"
+              >
+                <div className="bg-green-500/90 text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg">
+                  + {formatCurrency(winAmount)}
                 </div>
-              ))}
-            </div>
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           
-          {/* Multiplier display */}
-          <div className="grid grid-cols-3 gap-3 bg-transparent">
-            {config.payouts.slice(0, 3).map((payout, index) => (
-              <div key={index} className="text-center border border-[#2A3F51] rounded p-1 bg-[#162431]">
-                <div className="text-xs text-blue-300">{payout.description}</div>
-                <div className="font-bold">{payout.multiplier}×</div>
+          {/* Reels display */}
+          <div className="flex justify-center gap-2 w-full max-w-lg">
+            {reels.map((reel, reelIndex) => (
+              <div 
+                key={reelIndex} 
+                className="flex-1 rounded-lg overflow-hidden relative"
+                style={customStyles.reel}
+              >
+                <div className={`flex flex-col transition-transform duration-2000 ${gameState === 'spinning' ? 'animate-slot-spin' : ''}`}>
+                  {reel.map((symbol, symbolIndex) => (
+                    <div 
+                      key={symbolIndex}
+                      className={`
+                        h-24 flex justify-center items-center text-4xl sm:text-5xl md:text-6xl p-3
+                        ${winningLines.includes(symbolIndex) ? 'bg-yellow-400/30 animate-pulse' : ''}
+                        ${symbol === selectedLuckySymbol ? 'bg-blue-500/20' : ''}
+                      `}
+                    >
+                      {symbol}
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
           
-          {/* Lucky symbol reminder */}
-          <div className="text-center text-sm mt-4 mb-8">
-            Your lucky symbol is {luckySymbol} ({config.luckyMultiplier || 10}× win if it appears!)
+          {/* Lucky symbol indicator */}
+          <div className="mt-4 bg-slate-800/60 px-3 py-1 rounded-full text-sm text-center">
+            <span className="mr-2 text-gray-400">Lucky Symbol:</span>
+            <span className="text-xl">{selectedLuckySymbol}</span>
           </div>
+        </div>
+        
+        {/* Game controls */}
+        <div className="bg-slate-800/50 rounded-lg p-4">
+          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+            <TabsList className="mb-4 bg-slate-700/50">
+              <TabsTrigger value="play">Play</TabsTrigger>
+              <TabsTrigger value="autoplay">Auto Play</TabsTrigger>
+              <TabsTrigger value="symbol">Lucky Symbol</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="play" className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col flex-1">
+                  <div className="flex items-center mb-1">
+                    <CircleDollarSign size={16} className="text-gray-400 mr-1" />
+                    <span className="text-sm text-gray-400">Bet Amount</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => adjustBetAmount(-100)}
+                      disabled={betAmount <= 100}
+                      className="px-2"
+                    >
+                      -
+                    </Button>
+                    <Input
+                      type="number"
+                      value={betAmount}
+                      onChange={handleBetAmountChange}
+                      min={10}
+                      max={10000}
+                      className="mx-2 text-center bg-slate-800/50 border-slate-700"
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => adjustBetAmount(100)}
+                      disabled={betAmount >= 10000}
+                      className="px-2"
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={handleSpin} 
+                  disabled={gameState === 'spinning' || betAmount > (balance || 0)}
+                  className="h-14 w-28"
+                  style={customStyles.button}
+                >
+                  {getButtonIcon()}
+                  {getButtonText()}
+                </Button>
+              </div>
+              
+              <div className="flex justify-between text-sm">
+                <div>
+                  <span className="text-gray-400">Balance: </span>
+                  <span className="text-white font-medium">{formatCurrency(balance || 0)}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Potential Win: </span>
+                  <span className="text-green-400 font-medium">Up to {formatCurrency(betAmount * config.maxMultiplier)}</span>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="autoplay" className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-gray-400 mb-2 block">Number of Spins</label>
+                  <div className="flex items-center gap-2">
+                    <Slider 
+                      value={[autoPlaySettings.spins]} 
+                      onValueChange={(value) => setAutoPlaySettings({...autoPlaySettings, spins: value[0]})}
+                      min={5}
+                      max={100}
+                      step={5}
+                    />
+                    <span className="min-w-[40px] text-center">{autoPlaySettings.spins}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-400 mb-1">Stop Conditions</div>
+                  <div className="flex flex-wrap gap-2">
+                    <Toggle 
+                      pressed={autoPlaySettings.stopOnWin}
+                      onPressedChange={(pressed) => setAutoPlaySettings({...autoPlaySettings, stopOnWin: pressed})}
+                      className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
+                    >
+                      On Any Win
+                    </Toggle>
+                    <Toggle 
+                      pressed={autoPlaySettings.stopOnBigWin}
+                      onPressedChange={(pressed) => setAutoPlaySettings({...autoPlaySettings, stopOnBigWin: pressed})}
+                      className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
+                    >
+                      On Big Win
+                    </Toggle>
+                    <Toggle 
+                      pressed={autoPlaySettings.stopOnLoss}
+                      onPressedChange={(pressed) => setAutoPlaySettings({...autoPlaySettings, stopOnLoss: pressed})}
+                      className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
+                    >
+                      On Loss
+                    </Toggle>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  {!isAutoPlaying ? (
+                    <Button 
+                      onClick={startAutoPlay}
+                      disabled={gameState === 'spinning' || betAmount > (balance || 0)}
+                      className="w-full"
+                      style={customStyles.button}
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      Start Auto Play
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={stopAutoPlay}
+                      variant="destructive"
+                      className="w-full"
+                    >
+                      <Pause className="mr-2 h-4 w-4" />
+                      Stop ({autoPlaySettings.remainingSpins} Spins Left)
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="symbol" className="space-y-4">
+              <div className="space-y-3">
+                <div className="text-sm text-gray-400 mb-1">Choose Your Lucky Symbol</div>
+                <div className="grid grid-cols-5 gap-2">
+                  {config.symbols.map((symbol) => (
+                    <Button 
+                      key={symbol}
+                      variant={selectedLuckySymbol === symbol ? "default" : "outline"}
+                      className={`h-12 text-xl ${selectedLuckySymbol === symbol ? '' : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700/50'}`}
+                      onClick={() => setSelectedLuckySymbol(symbol)}
+                      disabled={gameState === 'spinning'}
+                    >
+                      {symbol}
+                    </Button>
+                  ))}
+                </div>
+                
+                <div className="p-3 rounded-lg bg-slate-800/50 text-sm">
+                  {config.specialSymbols.find(s => s.symbol === selectedLuckySymbol)?.description || 
+                  "Your lucky symbol provides additional win chances when it appears on the reels!"}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       
-      {/* Controls Section */}
-      <div className="bg-[#0E1C27] border-t border-[#1D2F3D] mt-auto" style={customStyles.controls}>
-        <div className="max-w-md mx-auto">
-          {/* Bet Amount Section */}
-          <div className="p-2">
-            <div className="flex justify-between items-center mb-2">
-              <span>Bet Amount</span>
-              <div className="flex items-center">
-                <span className="mr-2">Auto</span>
-                <Switch
-                  id="autoSpin"
-                  checked={autoSpin}
-                  onCheckedChange={(checked) => setAutoSpin(checked)}
-                  disabled={isSpinning}
-                />
-              </div>
-            </div>
+      {/* Paytable Dialog */}
+      <Dialog open={showPaytable} onOpenChange={setShowPaytable}>
+        <DialogContent className="max-w-xl bg-slate-900 text-white border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl mb-2">{config.name} Paytable</DialogTitle>
+            <DialogDescription className="text-center text-gray-400">
+              Match 3 symbols horizontally to win!
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-700">
+                  <TableHead className="text-gray-300">Symbol</TableHead>
+                  <TableHead className="text-gray-300">Combination</TableHead>
+                  <TableHead className="text-gray-300">Multiplier</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {config.payouts.map((payout, index) => (
+                  <TableRow key={index} className="border-slate-800">
+                    <TableCell className="text-3xl">{payout.combination[0]}</TableCell>
+                    <TableCell>{payout.description}</TableCell>
+                    <TableCell className="text-amber-400 font-medium">{payout.multiplier}x</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
             
-            <Input
-              id="betAmount"
-              type="number"
-              min="100"
-              step="100"
-              value={betAmount.toString()}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBetAmount(parseFloat(e.target.value) || 100)}
-              className="w-full mb-2"
-              disabled={isSpinning}
-            />
-            
-            {/* Preset amounts */}
-            <div className="grid grid-cols-4 gap-2 mb-4">
-              {[100, 500, 1000, 5000].map((amount) => (
-                <Button
-                  key={amount}
-                  variant="outline"
-                  size="sm"
-                  className="text-sm"
-                  onClick={() => setBetAmount(amount)}
-                  disabled={isSpinning}
-                >
-                  {amount}
-                </Button>
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold border-b border-slate-700 pb-2">Special Symbols</h3>
+              {config.specialSymbols.map((symbol, index) => (
+                <div key={index} className="flex items-start p-3 bg-slate-800/50 rounded-lg">
+                  <div className="text-3xl mr-3">{symbol.symbol}</div>
+                  <div>
+                    <div className="font-medium mb-1">{symbol.name}</div>
+                    <div className="text-sm text-gray-400">{symbol.description}</div>
+                  </div>
+                </div>
               ))}
             </div>
             
-            {/* Lucky Symbol Selection */}
-            <div className="mb-2">
-              <div className="mb-2">Lucky Symbol ({config.luckyMultiplier || 10}× Win!)</div>
-              <div className="grid grid-cols-5 gap-1">
-                {config.symbols.slice(0, 10).map((symbol, i) => (
-                  <Button
-                    key={i}
-                    variant={luckySymbol === symbol ? "secondary" : "outline"}
-                    className={`${
-                      luckySymbol === symbol 
-                        ? 'bg-amber-700 text-amber-200 hover:bg-amber-600' 
-                        : 'bg-[#162431]'
-                    }`}
-                    onClick={() => setLuckySymbol(symbol)}
-                    disabled={isSpinning}
-                  >
-                    {symbol}
-                  </Button>
-                ))}
-              </div>
+            <div className="p-4 bg-slate-800/50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Lucky Symbol Feature</h3>
+              <p className="text-sm text-gray-400">
+                Choose your lucky symbol before spinning. When your lucky symbol appears anywhere on the reels,
+                it provides additional winning opportunities! The lucky symbol gives an extra {config.luckyMultiplier}x multiplier.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Settings Dialog */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="bg-slate-900 text-white border-slate-700">
+          <DialogHeader>
+            <DialogTitle>Game Settings</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <label className="text-gray-300">Sound Effects</label>
+              <Toggle 
+                pressed={!isMuted}
+                onPressedChange={(pressed) => setIsMuted(!pressed)}
+                className="data-[state=on]:bg-green-700 data-[state=on]:text-white"
+              >
+                {isMuted ? 'Off' : 'On'}
+              </Toggle>
             </div>
             
-            {/* Spin Button */}
-            <Button
-              variant="default"
-              className={`
-                w-full h-14 text-xl font-bold 
-                bg-[#57fba2] text-black hover:bg-[#4ae090] 
-                rounded-lg mt-4
-                transition-all duration-200 ease-in-out
-                relative overflow-hidden
-                ${isSpinning ? 'shadow-[0_0_15px_rgba(87,251,162,0.7)]' : 'hover:shadow-[0_0_15px_rgba(87,251,162,0.8)]'}
-              `}
-              onClick={autoSpin ? stopAutoSpin : handleSpin}
-              disabled={isSpinning}
-              style={{
-                ...customStyles.button,
-                textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                boxShadow: isSpinning ? 
-                  '0 0 20px rgba(87,251,162,0.6), inset 0 0 10px rgba(255,255,255,0.3)' : 
-                  '0 6px 0 #3dd985, 0 8px 10px rgba(0,0,0,0.3)',
-                transform: isSpinning ? 'translateY(3px)' : 'none',
-                backgroundImage: !isSpinning && !autoSpin ? 
-                  'linear-gradient(45deg, #57fba2 0%, #6dffb8 40%, #57fba2 60%, #57fba2 100%)' : 
-                  'none',
-                backgroundSize: !isSpinning && !autoSpin ? '200% auto' : '100%'
-              }}
-            >
-              {isSpinning ? 
-                <div className="flex items-center justify-center">
-                  <RefreshCw className="animate-spin mr-2 h-5 w-5" />
-                  <span>Spinning...</span>
-                </div> : 
-                autoSpin ? 'Stop Auto' : 'Spin'
-              }
-            </Button>
+            <div className="flex justify-between items-center">
+              <label className="text-gray-300">Quick Spin</label>
+              <Toggle className="data-[state=on]:bg-green-700 data-[state=on]:text-white">
+                Off
+              </Toggle>
+            </div>
             
-            {/* Error display */}
-            {error && (
-              <div className="mt-4 bg-red-900/30 border border-red-800 rounded-md p-3 flex items-start">
-                <AlertTriangle className="text-red-500 mr-2 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-red-500 font-medium">Error</p>
-                  <p className="text-sm text-red-400">{error}</p>
-                  <Button 
-                    variant="link" 
-                    className="text-red-400 hover:text-red-300 p-0 h-auto text-xs mt-1"
-                    onClick={clearError}
-                  >
-                    Dismiss
-                  </Button>
-                </div>
-              </div>
-            )}
+            <div className="pt-4 border-t border-slate-700">
+              <Button variant="secondary" className="w-full" onClick={resetGame}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset Game
+              </Button>
+            </div>
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Intro overlay for first-time players */}
+      {!hasSpinStarted && (
+        <div className="absolute inset-0 bg-black/70 flex flex-col justify-center items-center text-center p-8 z-20">
+          <h2 className="text-2xl font-bold mb-4">{config.name}</h2>
+          <p className="text-lg mb-6">{config.description}</p>
+          <div className="text-7xl mb-6">{config.symbols.slice(0, 3).join(' ')}</div>
+          <p className="text-gray-300 mb-8">Match 3 symbols to win up to {config.maxMultiplier}x your bet!</p>
+          <Button 
+            size="lg"
+            onClick={() => setHasSpinStarted(true)}
+            style={customStyles.button}
+          >
+            <Play className="mr-2 h-5 w-5" />
+            Start Playing
+          </Button>
         </div>
-      </div>
+      )}
     </div>
   );
 };

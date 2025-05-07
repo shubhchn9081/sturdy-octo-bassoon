@@ -6,23 +6,18 @@ import { motion } from 'framer-motion';
 const footballFrenzyConfig: SlotConfiguration = {
   name: "Football Frenzy",
   theme: "sports",
-  description: "Score big wins with this soccer-themed slot!",
-  symbols: ["⚽", "🥅", "👟", "🏆", "🏟️", "🧤", "🥇", "🎯", "🎪", "🎲"],
+  description: "Score big wins with this football-themed slot game!",
+  symbols: ["⚽", "🏆", "👟", "🥅", "🧤", "🏟️", "🎽", "🚩", "🎖️", "🎯"],
   payouts: [
     {
       combination: ["⚽", "⚽", "⚽"],
       multiplier: 10,
-      description: "Three Balls"
+      description: "Three Footballs"
     },
     {
       combination: ["🏆", "🏆", "🏆"],
       multiplier: 8,
-      description: "Three Cups"
-    },
-    {
-      combination: ["🥅", "🥅", "🥅"],
-      multiplier: 7,
-      description: "Three Goals"
+      description: "Three Trophies"
     },
     {
       combination: ["👟", "👟", "👟"],
@@ -30,9 +25,9 @@ const footballFrenzyConfig: SlotConfiguration = {
       description: "Three Boots"
     },
     {
-      combination: ["🏟️", "🏟️", "🏟️"],
+      combination: ["🥅", "🥅", "🥅"],
       multiplier: 5,
-      description: "Three Stadiums"
+      description: "Three Goals"
     },
     {
       combination: ["🧤", "🧤", "🧤"],
@@ -40,37 +35,42 @@ const footballFrenzyConfig: SlotConfiguration = {
       description: "Three Gloves"
     },
     {
-      combination: ["🥇", "🥇", "🥇"],
+      combination: ["🏟️", "🏟️", "🏟️"],
       multiplier: 4,
+      description: "Three Stadiums"
+    },
+    {
+      combination: ["🎽", "🎽", "🎽"],
+      multiplier: 3,
+      description: "Three Jerseys"
+    },
+    {
+      combination: ["🚩", "🚩", "🚩"],
+      multiplier: 3,
+      description: "Three Flags"
+    },
+    {
+      combination: ["🎖️", "🎖️", "🎖️"],
+      multiplier: 2,
       description: "Three Medals"
     },
     {
       combination: ["🎯", "🎯", "🎯"],
-      multiplier: 3,
-      description: "Three Targets"
-    },
-    {
-      combination: ["🎪", "🎪", "🎪"],
-      multiplier: 3,
-      description: "Three Tents"
-    },
-    {
-      combination: ["🎲", "🎲", "🎲"],
       multiplier: 2,
-      description: "Three Dice"
+      description: "Three Targets"
     }
   ],
   specialSymbols: [
     {
       symbol: "⚽",
       name: "Football",
-      description: "The highest paying symbol! Land 3 for a 10x payout.",
+      description: "Score a goal with this top-paying symbol! Land 3 for a 10x payout.",
       multiplier: 10
     },
     {
       symbol: "🏆",
       name: "Trophy",
-      description: "The trophy symbol can trigger bonus free spins!",
+      description: "The champion's prize! Brings bonus winnings to your bet.",
       multiplier: 8
     }
   ],
@@ -81,69 +81,129 @@ const footballFrenzyConfig: SlotConfiguration = {
 };
 
 // Create a sports-themed background animation component
-const FootballBackground: React.FC = () => {
+const SportsBackground: React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Stadium light effects */}
-      <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-green-900/30 to-transparent"></div>
+      {/* Football pitch background */}
+      <div className="absolute inset-0 bg-green-800/90"></div>
       
-      {/* Animated crowd cheering effect */}
-      <div className="absolute inset-x-0 top-0 h-16 overflow-hidden">
-        <motion.div 
-          className="w-full h-32 opacity-10"
+      {/* Field lines */}
+      <div className="absolute inset-0">
+        {/* Center circle */}
+        <div className="absolute top-1/2 left-1/2 w-48 h-48 border-4 border-white/20 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        
+        {/* Center line */}
+        <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-white/20 -translate-x-1/2"></div>
+        
+        {/* Center spot */}
+        <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-white/20 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        
+        {/* Penalty boxes */}
+        <div className="absolute top-1/2 left-0 w-32 h-80 border-r-4 border-white/20 -translate-y-1/2"></div>
+        <div className="absolute top-1/2 right-0 w-32 h-80 border-l-4 border-white/20 -translate-y-1/2"></div>
+        
+        {/* Goal boxes */}
+        <div className="absolute top-1/2 left-0 w-12 h-40 border-r-4 border-white/20 -translate-y-1/2"></div>
+        <div className="absolute top-1/2 right-0 w-12 h-40 border-l-4 border-white/20 -translate-y-1/2"></div>
+        
+        {/* Penalty spots */}
+        <div className="absolute top-1/2 left-24 w-3 h-3 bg-white/20 rounded-full -translate-y-1/2"></div>
+        <div className="absolute top-1/2 right-24 w-3 h-3 bg-white/20 rounded-full -translate-y-1/2"></div>
+        
+        {/* Corner arcs */}
+        <div className="absolute top-0 left-0 w-8 h-8 border-r-4 border-white/20 rounded-br-full"></div>
+        <div className="absolute top-0 right-0 w-8 h-8 border-l-4 border-white/20 rounded-bl-full"></div>
+        <div className="absolute bottom-0 left-0 w-8 h-8 border-r-4 border-white/20 rounded-tr-full"></div>
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-l-4 border-white/20 rounded-tl-full"></div>
+      </div>
+      
+      {/* Field texture */}
+      <div className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: 'linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.1) 50%, transparent 51%), linear-gradient(transparent 49%, rgba(255,255,255,0.1) 50%, transparent 51%)',
+          backgroundSize: '60px 60px'
+        }}
+      />
+      
+      {/* Moving crowd shadow */}
+      <div className="absolute -top-16 left-0 right-0 h-20 opacity-10">
+        <motion.div
+          className="w-full h-full"
           style={{
-            backgroundImage: 'url(/assets/crowd-pattern.png)',
-            backgroundSize: '100px',
+            backgroundImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, transparent 70%)',
+            backgroundSize: '100% 100%',
+            backgroundPosition: 'center'
           }}
           animate={{
-            y: [-10, 0, -10]
+            scale: [1, 1.05, 1]
           }}
           transition={{
-            duration: 0.5,
+            duration: 2,
             repeat: Infinity,
             repeatType: 'reverse'
           }}
         />
       </div>
       
-      {/* Stadium light flashes */}
-      {Array.from({ length: 4 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '120px',
-            height: '120px',
-            left: (25 * (i + 1)) + '%',
-            top: '5%',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            transform: 'translateX(-50%)'
-          }}
-          animate={{
-            opacity: [0.05, 0.2, 0.05]
-          }}
-          transition={{
-            duration: 2 + Math.random() * 3,
-            repeat: Infinity,
-            repeatType: 'reverse',
-            delay: Math.random() * 2
-          }}
-        />
-      ))}
-      
-      {/* Football field lines */}
-      <div className="absolute inset-0 opacity-10" 
+      {/* Animated football */}
+      <motion.div
+        className="absolute w-6 h-6 rounded-full bg-white/30"
         style={{
-          backgroundImage: 'linear-gradient(to right, transparent, transparent 48%, rgba(255,255,255,0.3) 48%, rgba(255,255,255,0.3) 52%, transparent 52%, transparent 100%), linear-gradient(to bottom, transparent, transparent 48%, rgba(255,255,255,0.3) 48%, rgba(255,255,255,0.3) 52%, transparent 52%, transparent 100%)',
-          backgroundSize: '100px 100px'
+          boxShadow: '0 0 10px rgba(255,255,255,0.3)'
+        }}
+        initial={{ x: -50, y: 100 }}
+        animate={{
+          x: [0, 100, 250, 350, 450, 550, 650],
+          y: [0, -100, -50, -150, -50, -100, 0],
+          scale: [0.7, 1, 1, 1, 1, 1, 0.7],
+          opacity: [0, 0.7, 0.7, 0.7, 0.7, 0.7, 0]
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          repeatDelay: 5
         }}
       />
       
-      {/* Center circle */}
-      <div className="absolute left-1/2 top-1/2 w-32 h-32 rounded-full border-2 border-white/10 transform -translate-x-1/2 -translate-y-1/2"></div>
+      {/* Animated crowd cheering effect */}
+      <div className="absolute -top-5 inset-x-0 h-10 flex justify-center overflow-hidden">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="w-2 h-4 mx-1 bg-white/10 rounded-full"
+            animate={{
+              height: [4, 12, 4]
+            }}
+            transition={{
+              duration: 0.5 + Math.random() * 0.5,
+              repeat: Infinity,
+              repeatType: 'reverse',
+              delay: Math.random() * 0.5
+            }}
+          />
+        ))}
+      </div>
       
-      {/* Goal box shadows */}
-      <div className="absolute bottom-0 left-1/2 w-64 h-32 border-2 border-white/5 transform -translate-x-1/2"></div>
+      {/* Stadium lights effect */}
+      {Array.from({ length: 4 }).map((_, i) => (
+        <motion.div
+          key={i + 'light'}
+          className="absolute w-20 h-20 rounded-full blur-2xl"
+          style={{
+            top: '-10%',
+            left: (i * 25 + 10) + '%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)'
+          }}
+          animate={{
+            opacity: [0.1, 0.15, 0.1]
+          }}
+          transition={{
+            duration: 2 + Math.random(),
+            repeat: Infinity,
+            repeatType: 'reverse'
+          }}
+        />
+      ))}
     </div>
   );
 };
@@ -153,28 +213,28 @@ const FootballFrenzy: React.FC = () => {
   const customStyles = {
     container: {
       position: 'relative' as const,
-      backgroundImage: 'linear-gradient(to bottom, #1e392a 0%, #0d1a13 100%)'
+      backgroundColor: '#166534'
     },
     reelsContainer: {
-      background: 'rgba(20, 40, 20, 0.8)',
-      boxShadow: '0 0 15px rgba(0, 255, 0, 0.05), inset 0 0 5px rgba(0, 255, 0, 0.05)',
-      backdropFilter: 'blur(3px)',
-      border: '1px solid rgba(50, 130, 50, 0.3)'
+      background: 'rgba(22, 101, 52, 0.8)',
+      boxShadow: '0 0 15px rgba(134, 239, 172, 0.1), inset 0 0 5px rgba(134, 239, 172, 0.1)',
+      border: '1px solid rgba(134, 239, 172, 0.2)',
+      backdropFilter: 'blur(3px)'
     },
     reel: {
-      background: 'linear-gradient(145deg, rgba(20, 40, 20, 0.8), rgba(10, 30, 10, 0.9))',
-      boxShadow: '0 0 10px rgba(0, 255, 0, 0.05)',
-      border: '1px solid rgba(70, 130, 70, 0.2)'
+      background: 'linear-gradient(145deg, rgba(30, 130, 76, 0.8), rgba(22, 101, 52, 0.9))',
+      boxShadow: '0 0 10px rgba(134, 239, 172, 0.1)',
+      border: '1px solid rgba(134, 239, 172, 0.2)'
     },
     button: {
-      background: 'linear-gradient(45deg, #15803d 0%, #22c55e 50%, #15803d 100%)',
+      background: 'linear-gradient(45deg, #166534 0%, #22c55e 50%, #166534 100%)',
       color: 'white'
     }
   };
 
   return (
     <div className="relative h-full">
-      <FootballBackground />
+      <SportsBackground />
       <BaseSlotGame
         config={footballFrenzyConfig}
         gameId={105}

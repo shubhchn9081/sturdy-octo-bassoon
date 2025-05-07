@@ -6,28 +6,33 @@ import { motion } from 'framer-motion';
 const luckySevenConfig: SlotConfiguration = {
   name: "Lucky Sevens",
   theme: "classic",
-  description: "A classic slot experience with a modern twist!",
-  symbols: ["7", "BAR", "🍒", "🍋", "🍊", "🍇", "🔔", "💎", "⭐", "WILD"],
+  description: "A classic fruit machine with lucky sevens!",
+  symbols: ["7️⃣", "🍒", "🍋", "🍊", "🍇", "🔔", "⭐", "💎", "🍀", "🎰"],
   payouts: [
     {
-      combination: ["7", "7", "7"],
+      combination: ["7️⃣", "7️⃣", "7️⃣"],
       multiplier: 10,
-      description: "Three 7s"
+      description: "Three Sevens"
     },
     {
-      combination: ["WILD", "WILD", "WILD"],
-      multiplier: 8,
-      description: "Three WILDs"
+      combination: ["🍒", "🍒", "🍒"],
+      multiplier: 5,
+      description: "Three Cherries"
     },
     {
-      combination: ["BAR", "BAR", "BAR"],
-      multiplier: 7,
-      description: "Three BARs"
+      combination: ["🍋", "🍋", "🍋"],
+      multiplier: 4,
+      description: "Three Lemons"
     },
     {
-      combination: ["💎", "💎", "💎"],
-      multiplier: 6,
-      description: "Three Diamonds"
+      combination: ["🍊", "🍊", "🍊"],
+      multiplier: 4,
+      description: "Three Oranges"
+    },
+    {
+      combination: ["🍇", "🍇", "🍇"],
+      multiplier: 3,
+      description: "Three Grapes"
     },
     {
       combination: ["🔔", "🔔", "🔔"],
@@ -36,127 +41,138 @@ const luckySevenConfig: SlotConfiguration = {
     },
     {
       combination: ["⭐", "⭐", "⭐"],
-      multiplier: 4,
+      multiplier: 5,
       description: "Three Stars"
     },
     {
-      combination: ["🍇", "🍇", "🍇"],
-      multiplier: 3,
-      description: "Three Grapes"
+      combination: ["💎", "💎", "💎"],
+      multiplier: 8,
+      description: "Three Diamonds"
     },
     {
-      combination: ["🍊", "🍊", "🍊"],
-      multiplier: 3,
-      description: "Three Oranges"
+      combination: ["🍀", "🍀", "🍀"],
+      multiplier: 7,
+      description: "Three Clovers"
     },
     {
-      combination: ["🍋", "🍋", "🍋"],
-      multiplier: 2,
-      description: "Three Lemons"
-    },
-    {
-      combination: ["🍒", "🍒", "🍒"],
-      multiplier: 2,
-      description: "Three Cherries"
+      combination: ["🎰", "🎰", "🎰"],
+      multiplier: 6,
+      description: "Three Slots"
     }
   ],
   specialSymbols: [
     {
-      symbol: "7",
+      symbol: "7️⃣",
       name: "Lucky Seven",
-      description: "The most valuable symbol! Land 3 for a 10x payout.",
+      description: "The highest paying symbol! Land 3 for a 10x payout.",
       multiplier: 10
     },
     {
-      symbol: "WILD",
-      name: "Wild Symbol",
-      description: "Substitutes for any other symbol to create winning combinations.",
-      multiplier: 8
+      symbol: "🍀",
+      name: "Lucky Clover",
+      description: "Brings luck to your spins!",
+      multiplier: 7
     }
   ],
-  maxMultiplier: 77,
-  luckySymbol: "7",
+  maxMultiplier: 50,
+  luckySymbol: "7️⃣",
   luckyMultiplier: 15,
   reelCount: 3
 };
 
-// Create a classic Vegas-themed background animation component
+// Create a classic slot machine background component
 const ClassicBackground: React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Background lighting effects */}
-      {Array.from({ length: 5 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full blur-3xl opacity-10"
-          style={{
-            width: 100 + Math.random() * 150 + 'px',
-            height: 100 + Math.random() * 150 + 'px',
-            left: Math.random() * 100 + '%',
-            top: Math.random() * 100 + '%',
-            backgroundColor: ['#ff0000', '#ffff00', '#ff00ff', '#00ffff', '#0000ff'][i],
-            transform: 'translate(-50%, -50%)'
-          }}
-          animate={{
-            opacity: [0.05, 0.15, 0.05]
-          }}
-          transition={{
-            duration: 2 + Math.random() * 3,
-            repeat: Infinity,
-            repeatType: 'reverse',
-            delay: Math.random() * 2
-          }}
-        />
+      {/* Classic slot machine background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-red-900/80 via-red-800/80 to-red-950/90"></div>
+      
+      {/* Decorative patterns for the slot machine */}
+      <div className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,215,0,0.5) 2px, transparent 2px)',
+          backgroundSize: '20px 20px'
+        }}
+      />
+      
+      {/* Machine edge design */}
+      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 opacity-60"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 opacity-60"></div>
+      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-b from-yellow-600 via-yellow-500 to-yellow-600 opacity-60"></div>
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-b from-yellow-600 via-yellow-500 to-yellow-600 opacity-60"></div>
+      
+      {/* Corner decorations */}
+      {[
+        { top: '0', left: '0' },
+        { top: '0', right: '0' },
+        { bottom: '0', left: '0' },
+        { bottom: '0', right: '0' }
+      ].map((pos, i) => (
+        <div 
+          key={i} 
+          className="absolute w-16 h-16 bg-yellow-600 opacity-60"
+          style={pos as React.CSSProperties}
+        ></div>
       ))}
       
-      {/* Vegas-style light border effect */}
-      <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 opacity-60"></div>
-      <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-purple-500 via-pink-500 to-purple-500 opacity-60"></div>
-      <div className="absolute inset-x-0 bottom-0 h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 opacity-60"></div>
-      <div className="absolute inset-y-0 right-0 w-2 bg-gradient-to-b from-purple-500 via-pink-500 to-purple-500 opacity-60"></div>
+      {/* Animated light bulbs around the machine */}
+      {Array.from({ length: 20 }).map((_, i) => {
+        const isTop = i < 5;
+        const isBottom = i >= 15;
+        const isLeft = i >= 5 && i < 10;
+        const isRight = i >= 10 && i < 15;
+        
+        let positionStyle: React.CSSProperties = {};
+        
+        if (isTop) {
+          positionStyle = {
+            top: '12px',
+            left: `${(i + 1) * 20 - 10}%`
+          };
+        } else if (isBottom) {
+          positionStyle = {
+            bottom: '12px',
+            left: `${(i - 14) * 20 - 10}%`
+          };
+        } else if (isLeft) {
+          positionStyle = {
+            left: '12px',
+            top: `${(i - 4) * 20 - 5}%`
+          };
+        } else if (isRight) {
+          positionStyle = {
+            right: '12px',
+            top: `${(i - 9) * 20 - 5}%`
+          };
+        }
+        
+        return (
+          <motion.div
+            key={i + 'light'}
+            className="absolute w-6 h-6 rounded-full bg-yellow-300 opacity-50"
+            style={positionStyle}
+            animate={{
+              opacity: [0.3, 0.7, 0.3]
+            }}
+            transition={{
+              duration: 0.8 + Math.random() * 0.4,
+              repeat: Infinity,
+              repeatType: 'reverse',
+              delay: Math.random() * 0.5
+            }}
+          />
+        );
+      })}
       
-      {/* Spotlight effect */}
-      <motion.div
-        className="absolute inset-0 bg-radial-gradient opacity-20"
+      {/* Machine texture overlay */}
+      <div className="absolute inset-0 opacity-20"
         style={{
-          background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%)'
-        }}
-        animate={{
-          opacity: [0.1, 0.2, 0.1]
-        }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          repeatType: 'reverse'
+          backgroundImage: 'linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent)',
+          backgroundSize: '10px 10px'
         }}
       />
     </div>
   );
-};
-
-// Custom component to render classic symbols
-const renderClassicSymbol = (symbol: string | number) => {
-  // Special styles for the classic symbols
-  if (symbol === "7") {
-    return (
-      <div className="text-red-500 font-bold text-3xl">7</div>
-    );
-  }
-  
-  if (symbol === "BAR") {
-    return (
-      <div className="bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent font-extrabold text-xl">BAR</div>
-    );
-  }
-  
-  if (symbol === "WILD") {
-    return (
-      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent font-extrabold text-lg">WILD</div>
-    );
-  }
-  
-  // Default for other symbols
-  return symbol;
 };
 
 // Lucky Sevens game component
@@ -164,35 +180,26 @@ const LuckySevens: React.FC = () => {
   const customStyles = {
     container: {
       position: 'relative' as const,
-      backgroundImage: 'linear-gradient(to bottom, #1a1a2e 0%, #0f0f1a 100%)'
+      backgroundColor: '#7f1d1d',
     },
     reelsContainer: {
-      background: 'rgba(15, 15, 30, 0.9)',
-      boxShadow: '0 0 15px rgba(255, 0, 0, 0.1), inset 0 0 5px rgba(255, 255, 0, 0.1)',
-      border: '2px solid #333'
+      background: 'rgba(127, 29, 29, 0.8)',
+      boxShadow: '0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 5px rgba(255, 215, 0, 0.2)',
+      border: '2px solid rgba(255, 215, 0, 0.3)',
+      borderRadius: '8px'
     },
     reel: {
-      background: 'linear-gradient(145deg, #222, #111)',
-      boxShadow: '0 0 10px rgba(255, 0, 0, 0.1)',
-      border: '1px solid #444'
+      background: 'linear-gradient(145deg, rgba(140, 30, 30, 0.9), rgba(120, 25, 25, 1))',
+      boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)',
+      border: '1px solid rgba(255, 215, 0, 0.3)',
+      borderRadius: '6px'
     },
     button: {
-      background: 'linear-gradient(45deg, #cc0000 0%, #ff0000 50%, #cc0000 100%)',
-      color: 'white'
-    },
-    symbol: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-      height: '100%'
+      background: 'linear-gradient(45deg, #b91c1c 0%, #ef4444 50%, #b91c1c 100%)',
+      color: 'white',
+      border: '1px solid rgba(255, 215, 0, 0.5)',
+      fontWeight: 'bold'
     }
-  };
-
-  // Override the renderSymbol function to use our custom one
-  const extendedConfig = {
-    ...luckySevenConfig,
-    renderSymbol: renderClassicSymbol
   };
 
   return (
@@ -200,7 +207,7 @@ const LuckySevens: React.FC = () => {
       <ClassicBackground />
       <BaseSlotGame
         config={luckySevenConfig}
-        gameId={104}
+        gameId={103}
         customStyles={customStyles}
       />
     </div>

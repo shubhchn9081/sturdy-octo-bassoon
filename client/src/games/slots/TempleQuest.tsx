@@ -6,72 +6,72 @@ import { motion } from 'framer-motion';
 const templeQuestConfig: SlotConfiguration = {
   name: "Temple Quest",
   theme: "adventure",
-  description: "Navigate ancient ruins and discover hidden treasures!",
+  description: "Embark on an ancient temple adventure for treasures!",
   symbols: ["💎", "🏺", "🗿", "🔱", "👑", "🐍", "🗡️", "🧭", "🔥", "🪙"],
   payouts: [
     {
       combination: ["💎", "💎", "💎"],
       multiplier: 10,
-      description: "3 Diamonds"
+      description: "Three Diamonds"
     },
     {
       combination: ["🏺", "🏺", "🏺"],
       multiplier: 8,
-      description: "3 Artifacts"
+      description: "Three Artifacts"
     },
     {
       combination: ["🗿", "🗿", "🗿"],
       multiplier: 7,
-      description: "3 Statues"
+      description: "Three Statues"
     },
     {
       combination: ["🔱", "🔱", "🔱"],
       multiplier: 6,
-      description: "3 Tridents"
+      description: "Three Tridents"
     },
     {
       combination: ["👑", "👑", "👑"],
       multiplier: 5,
-      description: "3 Crowns"
+      description: "Three Crowns"
     },
     {
       combination: ["🐍", "🐍", "🐍"],
-      multiplier: 5,
-      description: "3 Snakes"
+      multiplier: 4,
+      description: "Three Snakes"
     },
     {
       combination: ["🗡️", "🗡️", "🗡️"],
-      multiplier: 4,
-      description: "3 Swords"
+      multiplier: 3,
+      description: "Three Daggers"
     },
     {
       combination: ["🧭", "🧭", "🧭"],
       multiplier: 3,
-      description: "3 Compasses"
+      description: "Three Compasses"
     },
     {
       combination: ["🔥", "🔥", "🔥"],
-      multiplier: 3,
-      description: "3 Fires"
+      multiplier: 2,
+      description: "Three Fires"
     },
     {
       combination: ["🪙", "🪙", "🪙"],
       multiplier: 2,
-      description: "3 Coins"
+      description: "Three Coins"
     }
   ],
   specialSymbols: [
     {
       symbol: "💎",
       name: "Diamond",
-      description: "The highest paying symbol. Land 3 to win 10x!",
+      description: "The highest paying symbol! Land 3 for a 10x payout.",
       multiplier: 10
     },
     {
-      symbol: "🐍",
-      name: "Snake",
-      description: "Beware the snake! It can multiply your winnings or steal them.",
-      multiplier: 5
+      symbol: "🏺",
+      name: "Ancient Artifact",
+      description: "This ancient artifact holds mysterious powers!",
+      multiplier: 8
     }
   ],
   maxMultiplier: 50,
@@ -80,68 +80,86 @@ const templeQuestConfig: SlotConfiguration = {
   reelCount: 3
 };
 
-// Create a temple-themed background animation component
+// Create an adventure-themed background animation component
 const TempleBackground: React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Fireflies/dust particles */}
-      {Array.from({ length: 30 }).map((_, i) => (
+      {/* Temple background with ancient walls */}
+      <div className="absolute inset-0 bg-gradient-to-b from-amber-900/40 via-orange-800/40 to-amber-950/80"></div>
+      
+      {/* Animated torch light effects */}
+      {Array.from({ length: 4 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 rounded-full bg-amber-300"
-          initial={{
-            x: Math.random() * 100 + '%',
-            y: Math.random() * 100 + '%',
-            opacity: Math.random() * 0.5 + 0.1,
-            scale: Math.random() * 0.5 + 0.2
+          className="absolute rounded-full blur-2xl opacity-20"
+          style={{
+            width: '120px',
+            height: '120px',
+            left: (25 * (i + 1)) + '%',
+            bottom: '30%',
+            backgroundColor: 'rgba(255, 150, 50, 0.3)',
+            transform: 'translateX(-50%)'
           }}
           animate={{
-            y: [null, '-15%'],
-            opacity: [null, 0],
-            scale: [null, 0]
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.2, 0.1]
           }}
           transition={{
-            duration: 4 + Math.random() * 5,
+            duration: 2 + Math.random() * 1,
             repeat: Infinity,
-            repeatType: 'loop',
-            ease: 'easeOut',
+            repeatType: 'reverse'
+          }}
+        />
+      ))}
+      
+      {/* Temple wall pattern */}
+      <div className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: 'linear-gradient(to right, transparent 47%, rgba(255,255,255,0.3) 48%, rgba(255,255,255,0.3) 52%, transparent 53%), linear-gradient(to bottom, transparent 47%, rgba(255,255,255,0.3) 48%, rgba(255,255,255,0.3) 52%, transparent 53%)',
+          backgroundSize: '40px 40px'
+        }}
+      />
+      
+      {/* Temple hieroglyphics */}
+      <div className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.4) 2px, transparent 2px)',
+          backgroundSize: '20px 20px'
+        }}
+      />
+      
+      {/* Dust particles */}
+      {Array.from({ length: 20 }).map((_, i) => (
+        <motion.div
+          key={i + 'dust'}
+          className="absolute rounded-full bg-amber-100/30"
+          style={{
+            width: Math.random() * 4 + 1 + 'px',
+            height: Math.random() * 4 + 1 + 'px',
+            left: Math.random() * 100 + '%',
+            top: Math.random() * 100 + '%',
+          }}
+          animate={{
+            y: [0, 50],
+            x: [0, Math.random() * 20 - 10],
+            opacity: [0, 0.3, 0]
+          }}
+          transition={{
+            duration: 5 + Math.random() * 5,
+            repeat: Infinity,
             delay: Math.random() * 10
           }}
         />
       ))}
       
-      {/* Light rays */}
-      <div className="absolute top-0 left-1/4 right-1/4 h-64 bg-gradient-to-b from-amber-500/10 to-transparent transform -skew-x-12 opacity-30" />
-      
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-amber-900/30 to-transparent opacity-30" />
-      
-      {/* Torch light effects */}
-      <motion.div
-        className="absolute right-10 top-20 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.1, 0.2, 0.1]
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          repeatType: 'reverse'
-        }}
-      />
-      
-      <motion.div
-        className="absolute left-10 top-40 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.1, 0.2, 0.1]
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          delay: 1
-        }}
-      />
+      {/* Temple cracks */}
+      <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+        <filter id="noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" />
+          <feDisplacementMap in="SourceGraphic" scale="10" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noise)" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5" />
+      </svg>
     </div>
   );
 };
@@ -151,21 +169,21 @@ const TempleQuest: React.FC = () => {
   const customStyles = {
     container: {
       position: 'relative' as const,
-      backgroundImage: 'linear-gradient(to bottom, #2c1b0f 0%, #1a130d 100%)'
+      backgroundImage: 'linear-gradient(to bottom, #693c16 0%, #4d2e10 100%)'
     },
     reelsContainer: {
-      background: 'rgba(30, 20, 10, 0.8)',
-      boxShadow: '0 0 15px rgba(255, 180, 0, 0.1), inset 0 0 5px rgba(255, 200, 0, 0.1)',
-      backdropFilter: 'blur(3px)',
-      border: '1px solid rgba(150, 100, 50, 0.5)'
+      background: 'rgba(65, 40, 15, 0.8)',
+      boxShadow: '0 0 15px rgba(255, 180, 0, 0.1), inset 0 0 5px rgba(255, 180, 0, 0.1)',
+      border: '1px solid rgba(200, 150, 50, 0.3)',
+      backdropFilter: 'blur(3px)'
     },
     reel: {
-      background: 'linear-gradient(145deg, rgba(50, 30, 20, 0.8), rgba(30, 20, 10, 0.9))',
-      boxShadow: '0 0 10px rgba(255, 200, 0, 0.1)',
-      border: '1px solid rgba(180, 120, 40, 0.3)'
+      background: 'linear-gradient(145deg, rgba(85, 50, 20, 0.8), rgba(65, 40, 15, 0.9))',
+      boxShadow: '0 0 10px rgba(255, 180, 0, 0.1)',
+      border: '1px solid rgba(200, 150, 50, 0.3)'
     },
     button: {
-      background: 'linear-gradient(45deg, #b45309 0%, #f59e0b 50%, #b45309 100%)',
+      background: 'linear-gradient(45deg, #b45309 0%, #d97706 50%, #b45309 100%)',
       color: 'white'
     }
   };
