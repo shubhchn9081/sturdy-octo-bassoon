@@ -55,6 +55,8 @@ const GameCard = ({
         return { background: '#ff5722' }; // Deep Orange
       case 'BLUE SAMURAI':
         return { background: '#3949ab' }; // Indigo
+      case 'NEW CUP GAME':
+        return { background: '#e65100' }; // Deep Orange for Cup Game
       default:
         return { background: '#1e88e5' }; // Default Blue
     }
@@ -100,6 +102,9 @@ const GameCard = ({
       case 'SLOTS':
         // Using provided image for the slots game
         return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746291163/ChatGPT_Image_May_3_2025_10_22_30_PM_ct9mag.png';
+      case 'NEW CUP GAME':
+        // Using provided cup game image
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746632950/SHELL_GAME_with_Coins_and_Cups_diaryi.png';
       default:
         break;
     }
@@ -152,6 +157,9 @@ const GameCard = ({
       case 'SLOTS':
         // Using provided image for the slots game
         return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746291163/ChatGPT_Image_May_3_2025_10_22_30_PM_ct9mag.png';
+      case 'NEW CUP GAME':
+        // Using provided cup game image
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746632950/SHELL_GAME_with_Coins_and_Cups_diaryi.png';
       default:
         return null;
     }
