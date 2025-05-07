@@ -496,6 +496,30 @@ const NewCupAndBall = () => {
     />
   );
   
+  // Determine if it's mobile view
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
+  // Use state to handle window resize and update mobile detection
+  const [isMobileView, setIsMobileView] = useState(isMobile);
+  
+  // Handle window resize to update mobile detection
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
   const gamePanel = (
     <div className="h-full w-full flex items-center justify-center">
       <CupGame
@@ -508,21 +532,28 @@ const NewCupAndBall = () => {
           container: {
             background: '#1a293a',
             boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-            width: '100%'
+            width: '100%',
+            height: isMobileView ? 'auto' : undefined,
+            minHeight: isMobileView ? '280px' : '350px',
+            maxWidth: isMobileView ? '100%' : '600px',
+            padding: isMobileView ? '0.5rem' : '1.5rem',
+            marginBottom: isMobileView ? '0.5rem' : undefined,
+            overflowX: 'hidden'
           },
           gameArea: {
             backgroundColor: '#0f1e2d',
+            height: isMobileView ? '280px' : '350px',
             width: '100%'
           },
           cup: {
             zIndex: 20,
-            width: '130px',
-            height: '180px'
+            width: isMobileView ? '90px' : '130px',
+            height: isMobileView ? '140px' : '180px'
           },
           ball: {
             zIndex: 10,
-            width: '70px',
-            height: '70px'
+            width: isMobileView ? '40px' : '70px',
+            height: isMobileView ? '40px' : '70px'
           },
           gameResult: {
             color: '#ffffff'
