@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 
 // Define the cup pulse animation keyframes
 const cupPulseKeyframes = `
@@ -70,6 +70,12 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
   const [message, setMessage] = useState<string>('');
   const [isMuted, setIsMuted] = useState<boolean>(!soundsEnabled);
   
+  // State to track if images are loaded
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  
+  // State to track if we're on mobile
+  const [isMobileView, setIsMobileView] = useState(false);
+  
   // Audio elements
   const [successSound, setSuccessSound] = useState<HTMLAudioElement | null>(null);
   const [hitSound, setHitSound] = useState<HTMLAudioElement | null>(null);
@@ -83,7 +89,25 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
   
   const { shuffleCount, speed } = difficultySettings[difficulty as keyof typeof difficultySettings] || difficultySettings.medium;
   
-  // Initialize audio elements
+  // Handle window resize to update mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
+  // Initialize audio elements and preload images
   useEffect(() => {
     // Insert cup animation
     insertCupGameStyles();
@@ -96,6 +120,28 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     const hit = new Audio();
     hit.src = 'https://assets.codepen.io/21542/click.mp3';
     setHitSound(hit);
+    
+    // Preload images to avoid mobile rendering issues
+    const cupImg = new Image();
+    const ballImg = new Image();
+    
+    let loadedCount = 0;
+    const totalImages = 2;
+    
+    // Mark images as loaded when both are ready
+    const markAsLoaded = () => {
+      loadedCount++;
+      if (loadedCount === totalImages) {
+        setImagesLoaded(true);
+      }
+    };
+    
+    cupImg.onload = markAsLoaded;
+    ballImg.onload = markAsLoaded;
+    
+    // Set sources to trigger loading
+    cupImg.src = cupImagePath;
+    ballImg.src = ballImagePath;
     
     return () => {
       // Clean up audio elements
@@ -282,9 +328,6 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     // Calculate percentage-based positions for better responsiveness
     const leftPositions = [25, 50, 75];
     
-    // Use the state-based mobile detection
-    const isMobile = isMobileView;
-    
     // Base styles - absolute positioning for each cup
     const style: React.CSSProperties = {
       position: 'absolute',
@@ -299,7 +342,7 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     };
     
     // Adjust size for mobile
-    if (isMobile) {
+    if (isMobileView) {
       style.width = '100px';
       style.height = '140px';
     }
@@ -318,30 +361,7 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     }
     
     return style;
-  }, [cupPositions, gamePhase, ballPosition, speed, customStyles]);
-  
-  // State to track if we're on mobile
-  const [isMobileView, setIsMobileView] = useState(
-    typeof window !== 'undefined' && window.innerWidth < 768
-  );
-  
-  // Handle window resize to update mobile detection
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileView(window.innerWidth < 768);
-    };
-    
-    // Set initial value
-    handleResize();
-    
-    // Add event listener
-    window.addEventListener('resize', handleResize);
-    
-    // Clean up
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+  }, [cupPositions, gamePhase, ballPosition, speed, customStyles, isMobileView]);
   
   // CSS for the cup game
   // Use state-based mobile detection that updates on resize
@@ -478,6 +498,26 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
       return "Hard mode: Find the ball after 12 shuffles";
     }
   };
+
+  // Show loading state if images aren't loaded yet
+  if (!imagesLoaded) {
+    return (
+      <div style={gameStyles.container}>
+        <div style={gameStyles.gameArea}>
+          <div style={{ 
+            display: 'flex', 
+            height: '100%', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            color: '#fff',
+            fontSize: '1.2rem'
+          }}>
+            Loading game assets...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={gameStyles.container}>
