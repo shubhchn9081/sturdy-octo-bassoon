@@ -64,6 +64,21 @@ const CupGameControls = ({
       {/* For mobile view, create a more compact layout */}
       {isMobile ? (
         <div className="space-y-1 h-full flex flex-col justify-between">
+          {/* Status indicator for the game */}
+          {isPlaying && (
+            <div className={`text-center mb-1 py-1 text-sm font-medium rounded-md 
+              ${gamePhase === 'complete' 
+                ? (gameResult && gameResult.win ? 'bg-green-600' : 'bg-red-700')
+                : 'bg-slate-700'}`}
+            >
+              {gamePhase === 'ready' && 'Pick a cup to reveal the ball'}
+              {gamePhase === 'playing' && 'Shuffling cups...'}
+              {gamePhase === 'guessing' && 'Choose the cup with the ball'}
+              {gamePhase === 'revealing' && 'Revealing result...'}
+              {gamePhase === 'complete' && (gameResult && gameResult.win ? 'You won!' : 'Better luck next time')}
+            </div>
+          )}
+          
           {/* Fixed button controls at the bottom */}
           <div className="space-y-1 flex-grow">
             {/* Quick bet buttons in a row */}
@@ -110,11 +125,15 @@ const CupGameControls = ({
               </Button>
             ) : (
               <Button 
-                className="bg-red-600 hover:bg-red-700 h-12 w-full text-lg font-bold rounded-lg" 
+                className={`h-12 w-full text-lg font-bold rounded-lg ${gamePhase === 'complete' ? 'bg-red-600 hover:bg-red-700' : 'bg-yellow-600'}`} 
                 onClick={onReset}
                 disabled={gamePhase !== 'complete'}
               >
-                {gamePhase === 'complete' ? 'PLAY AGAIN ▶' : 'IN PROGRESS...'}
+                {gamePhase === 'complete' 
+                  ? 'PLAY AGAIN ▶' 
+                  : gamePhase === 'ready' 
+                    ? 'PICK A CUP' 
+                    : 'IN PROGRESS...'}
               </Button>
             )}
           </div>
@@ -405,13 +424,38 @@ const NewCupAndBall = () => {
       return;
     }
     
-    setIsPlaying(true);
-    setGamePhase('ready');
+    // First reset any existing game state to ensure clean start
+    setIsPlaying(false);
+    setGamePhase('initial');
+    setSelectedCup(null);
+    setBallPosition(null);
+    setGameResult(null);
     
-    // Use the ref to start the game
-    if (cupGameRef.current) {
-      cupGameRef.current.startGame();
-    }
+    // Short delay to ensure state is reset before starting
+    setTimeout(() => {
+      setIsPlaying(true);
+      setGamePhase('ready');
+      
+      // Generate a random position for the ball (0, 1, or 2)
+      const initialBallPosition = Math.floor(Math.random() * 3);
+      setBallPosition(initialBallPosition);
+      console.log("Setting initial ball position:", initialBallPosition);
+      
+      // Use the ref to start the game
+      if (cupGameRef.current) {
+        cupGameRef.current.startGame();
+      } else {
+        console.error("Cup game ref is not available!");
+        // Fallback in case ref is not available (this might happen in some mobile scenarios)
+        toast({
+          title: "Game Error",
+          description: "Please try again",
+          variant: "destructive"
+        });
+        setIsPlaying(false);
+        setGamePhase('initial');
+      }
+    }, 100);
   };
   
   // Handle game events
