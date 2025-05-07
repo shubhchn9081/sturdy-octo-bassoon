@@ -63,58 +63,60 @@ const CupGameControls = ({
     <div className="px-1 py-1">
       {/* For mobile view, create a more compact layout */}
       {isMobile ? (
-        <div className="space-y-1">
-          {/* Combine difficulty and bet amount in one row */}
-          <div className="flex items-center gap-2">
-            {/* Large start button at the top for easy thumb access */}
+        <div className="space-y-1 h-full flex flex-col justify-between">
+          {/* Fixed button controls at the bottom */}
+          <div className="space-y-1 flex-grow">
+            {/* Quick bet buttons in a row */}
+            <div className="grid grid-cols-4 gap-1 mt-1">
+              {[100, 500, 1000, 5000].map(amount => (
+                <button
+                  key={amount}
+                  className={`text-sm py-1 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
+                  onClick={() => onBetAmountSlider([amount])}
+                  disabled={isPlaying}
+                >
+                  {amount}
+                </button>
+              ))}
+            </div>
+            
+            {/* Compact details grid */}
+            <div className="flex items-center gap-1 mt-1">
+              <select 
+                value={difficulty}
+                onChange={(e) => onDifficultyChange(e.target.value)}
+                disabled={isPlaying}
+                className="bg-slate-800 rounded-md py-1 px-1 text-xs flex-grow-0 w-[85px]"
+              >
+                <option value="easy">Easy (1.5x)</option>
+                <option value="medium">Medium (2x)</option>
+                <option value="hard">Hard (3x)</option>
+              </select>
+              
+              <div className="bg-slate-800 rounded-md py-1 px-1 text-center flex-1">
+                <span className="text-green-400 text-xs font-medium">Win: {potentialProfit.toFixed(0)}</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Large start button at the BOTTOM for easy thumb access */}
+          <div className="mt-1">
             {!isPlaying ? (
               <Button 
-                className="bg-blue-600 hover:bg-blue-700 h-14 w-full text-lg font-bold rounded-lg"
+                className="bg-blue-600 hover:bg-blue-700 h-12 w-full text-lg font-bold rounded-lg"
                 onClick={onStart}
               >
                 START ▶
               </Button>
             ) : (
               <Button 
-                className="bg-red-600 hover:bg-red-700 h-14 w-full text-lg font-bold rounded-lg" 
+                className="bg-red-600 hover:bg-red-700 h-12 w-full text-lg font-bold rounded-lg" 
                 onClick={onReset}
                 disabled={gamePhase !== 'complete'}
               >
                 {gamePhase === 'complete' ? 'PLAY AGAIN ▶' : 'IN PROGRESS...'}
               </Button>
             )}
-          </div>
-          
-          {/* Quick bet buttons in a row */}
-          <div className="grid grid-cols-4 gap-1">
-            {[100, 500, 1000, 5000].map(amount => (
-              <button
-                key={amount}
-                className={`text-sm py-2 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
-                onClick={() => onBetAmountSlider([amount])}
-                disabled={isPlaying}
-              >
-                {amount}
-              </button>
-            ))}
-          </div>
-          
-          {/* Compact details grid */}
-          <div className="flex justify-between">
-            <select 
-              value={difficulty}
-              onChange={(e) => onDifficultyChange(e.target.value)}
-              disabled={isPlaying}
-              className="bg-slate-800 rounded-md py-1 px-2 text-sm w-1/3"
-            >
-              <option value="easy">Easy (1.5x)</option>
-              <option value="medium">Medium (2x)</option>
-              <option value="hard">Hard (3x)</option>
-            </select>
-            
-            <div className="bg-slate-800 rounded-md py-1 px-2 text-center flex-1 ml-1">
-              <span className="text-green-400 text-sm font-medium">Win: {potentialProfit.toFixed(0)}</span>
-            </div>
           </div>
         </div>
       ) : (
