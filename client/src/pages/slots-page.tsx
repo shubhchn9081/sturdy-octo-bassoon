@@ -1,390 +1,378 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'wouter';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, Star, Trophy } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { SearchIcon, FilterIcon, StarIcon, HistoryIcon, TrendingUpIcon, Gamepad2Icon as SlotMachineIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
-// Slot game type from schema
+// Define slot game types
 interface SlotGame {
   id: number;
   name: string;
   slug: string;
-  description: string;
-  imageUrl: string;
-  category: string;
-  featured: boolean;
-  newRelease: boolean;
+  type: string;
+  theme?: string;
+  imageUrl?: string | null;
   rtp: number;
-  maxMultiplier: number;
+  activePlayers: number;
   minBet: number;
   maxBet: number;
-  activePlayers: number;
+  maxMultiplier: number;
 }
 
-// Default categories for filtering
-const CATEGORIES = [
-  'All',
-  'Featured',
-  'New Releases',
-  'Space & Sci-Fi',
-  'Adventure',
-  'Fantasy',
-  'Classic',
-  'Seasonal',
-  'Sports',
-  'Luxury'
+// Slot game categories
+const categories = [
+  { id: 'all', name: 'All Slots' },
+  { id: 'space', name: 'Space & Sci-Fi' },
+  { id: 'adventure', name: 'Adventure' },
+  { id: 'fantasy', name: 'Fantasy' },
+  { id: 'classic', name: 'Classic' },
+  { id: 'sports', name: 'Sports' },
+  { id: 'seasonal', name: 'Seasonal' },
+  { id: 'luxury', name: 'Luxury' },
 ];
 
-// SlotGameCard component for displaying each slot game
-const SlotGameCard: React.FC<{ game: SlotGame }> = ({ game }) => {
+// SlotCard component for individual slot game display
+const SlotCard: React.FC<{ game: SlotGame }> = ({ game }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [location, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  // Function to determine theme-based gradient background
+  const getThemeGradient = (theme?: string): string => {
+    switch (theme?.toLowerCase()) {
+      case 'space':
+        return 'from-blue-900 via-indigo-800 to-purple-900';
+      case 'adventure':
+        return 'from-amber-700 via-orange-600 to-yellow-700';
+      case 'fantasy':
+        return 'from-emerald-800 via-teal-700 to-cyan-800';
+      case 'classic':
+        return 'from-red-800 via-rose-700 to-pink-800';
+      case 'sports':
+        return 'from-green-800 via-emerald-700 to-teal-800';
+      case 'seasonal':
+        return 'from-blue-700 via-cyan-600 to-sky-700';
+      case 'luxury':
+        return 'from-amber-900 via-yellow-800 to-orange-900';
+      default:
+        return 'from-gray-800 via-slate-700 to-gray-900';
+    }
+  };
+
+  // Determine if the game is played frequently
+  const isPopular = game.activePlayers > 5000;
+  // Determine if the game has a high RTP (Return to Player)
+  const isHighRTP = game.rtp > 97;
+
+  const handlePlayNow = () => {
+    // Navigate to the specific slot game page
+    setLocation(`/slots/${game.slug}`);
+  };
+
+  const handleAddToFavorites = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toast({
+      title: "Added to favorites",
+      description: `${game.name} has been added to your favorites.`,
+      duration: 3000,
+    });
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+      whileHover={{ y: -5, scale: 1.02 }}
+      transition={{ duration: 0.2 }}
       className="h-full"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
     >
-      <Card className="bg-[#0F212E] border-[#243442] text-white overflow-hidden hover:border-[#1375e1] transition-all h-full">
-        <div className="h-36 relative overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-center bg-cover transition-transform hover:scale-110 duration-500"
-            style={{ 
-              backgroundImage: `url(${game.imageUrl || 'https://via.placeholder.com/300x200?text=Slot+Game'})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-          
-          {game.featured && (
-            <div className="absolute top-2 right-2 bg-amber-500 text-black text-xs font-bold px-2 py-1 rounded-full flex items-center">
-              <Star className="w-3 h-3 mr-1" /> Featured
+      <Card className="h-full flex flex-col overflow-hidden border border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 bg-slate-900">
+        <div 
+          className={`relative h-40 overflow-hidden ${game.imageUrl ? '' : 'bg-gradient-to-br ' + getThemeGradient(game.theme)}`}
+        >
+          {game.imageUrl ? (
+            <img 
+              src={game.imageUrl} 
+              alt={game.name} 
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <SlotMachineIcon size={64} className="text-white/70" />
             </div>
           )}
-          
-          {game.newRelease && (
-            <div className="absolute top-2 left-2 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-              New
-            </div>
-          )}
+          <div className="absolute top-2 right-2 flex flex-col gap-1">
+            {isPopular && (
+              <Badge className="bg-amber-600 hover:bg-amber-700">
+                <TrendingUpIcon size={14} className="mr-1" /> Popular
+              </Badge>
+            )}
+            {isHighRTP && (
+              <Badge className="bg-green-600 hover:bg-green-700">
+                High RTP
+              </Badge>
+            )}
+          </div>
         </div>
         
-        <CardContent className="p-3">
-          <h3 className="text-lg font-bold mb-1 truncate">{game.name}</h3>
-          <p className="text-xs text-gray-400 mb-3 line-clamp-2 h-8">{game.description}</p>
-          
-          <div className="flex justify-between text-xs text-gray-400 mb-3">
-            <span>RTP: {game.rtp}%</span>
-            <span>Max: {game.maxMultiplier}x</span>
-          </div>
-          
-          <Link href={`/games/${game.slug}`}>
-            <Button className="w-full bg-[#1375e1] hover:bg-[#1060c0] text-sm">
-              Play Now
+        <CardHeader className="py-3 px-4">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-lg font-bold text-white">{game.name}</CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 rounded-full text-amber-400 hover:text-amber-300 hover:bg-slate-800"
+              onClick={handleAddToFavorites}
+            >
+              <StarIcon size={16} />
             </Button>
-          </Link>
-          
-          <div className="mt-2 text-center text-xs text-gray-500">
-            {game.activePlayers} players
+          </div>
+          <CardDescription className="text-xs text-slate-400">
+            {game.type} • RTP {game.rtp}% • Max {game.maxMultiplier}x
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="py-2 px-4 text-sm text-slate-300 flex-grow">
+          <div className="flex items-center justify-between mb-1">
+            <span>Min bet:</span>
+            <span className="font-semibold">₹{game.minBet}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Max bet:</span>
+            <span className="font-semibold">₹{game.maxBet}</span>
           </div>
         </CardContent>
+        
+        <CardFooter className="p-3">
+          <Button 
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            onClick={handlePlayNow}
+          >
+            Play Now
+          </Button>
+        </CardFooter>
       </Card>
     </motion.div>
   );
 };
 
 // Main SlotsPage component
-const SlotsPage = () => {
-  const { toast } = useToast();
+const SlotsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  
-  // Fetch slot games
-  const { data: slotGames, isLoading, error } = useQuery<SlotGame[]>({
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortOption, setSortOption] = useState('popular');
+  const { toast } = useToast();
+
+  // Fetch all slot games
+  const { data: allGames = [], isLoading, error } = useQuery({
     queryKey: ['/api/slots/games'],
-    queryFn: async () => {
-      // For now, we'll use a placeholder while we build the API
-      // This will be replaced with actual API fetching
-      // Simulate loading delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Placeholder data for first 5 slot games
-      return [
-        {
-          id: 101,
-          name: "Cosmic Spins",
-          slug: "cosmic-spins",
-          description: "Explore the cosmos and match planets to win stellar prizes in this space-themed adventure",
-          imageUrl: "/assets/slots/cosmic-spins.jpg",
-          category: "Space & Sci-Fi",
-          featured: true,
-          newRelease: true,
-          rtp: 96.5,
-          maxMultiplier: 1000,
-          minBet: 0.1,
-          maxBet: 100,
-          activePlayers: 142
-        },
-        {
-          id: 102,
-          name: "Temple Quest",
-          slug: "temple-quest",
-          description: "Navigate ancient ruins and discover hidden treasures while avoiding deadly traps",
-          imageUrl: "/assets/slots/temple-quest.jpg",
-          category: "Adventure",
-          featured: true,
-          newRelease: false,
-          rtp: 95.8,
-          maxMultiplier: 750,
-          minBet: 0.1,
-          maxBet: 100,
-          activePlayers: 98
-        },
-        {
-          id: 103,
-          name: "Dragon's Gold",
-          slug: "dragons-gold",
-          description: "Face fierce dragons and win their treasured hoards in this fantasy adventure",
-          imageUrl: "/assets/slots/dragons-gold.jpg",
-          category: "Fantasy",
-          featured: false,
-          newRelease: true,
-          rtp: 97.2,
-          maxMultiplier: 888,
-          minBet: 0.1,
-          maxBet: 100,
-          activePlayers: 117
-        },
-        {
-          id: 104,
-          name: "Lucky Sevens",
-          slug: "lucky-sevens",
-          description: "A classic slot experience with a modern twist. Match 7s for incredible multipliers!",
-          imageUrl: "/assets/slots/lucky-sevens.jpg",
-          category: "Classic",
-          featured: false,
-          newRelease: false,
-          rtp: 94.5,
-          maxMultiplier: 777,
-          minBet: 0.1,
-          maxBet: 100,
-          activePlayers: 205
-        },
-        {
-          id: 105,
-          name: "Football Frenzy",
-          slug: "football-frenzy",
-          description: "Score big wins with this soccer-themed slot featuring exciting penalty shootout bonus rounds",
-          imageUrl: "/assets/slots/football-frenzy.jpg",
-          category: "Sports",
-          featured: false,
-          newRelease: true,
-          rtp: 96.1,
-          maxMultiplier: 500,
-          minBet: 0.1,
-          maxBet: 100,
-          activePlayers: 86
-        }
-      ];
+    retry: 1,
+  });
+
+  // Filter the games based on search, category, and sort options
+  const filteredGames = React.useMemo(() => {
+    if (!Array.isArray(allGames)) return [];
+
+    let filtered = [...allGames] as SlotGame[];
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(game => 
+        game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        game.slug.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-  });
-  
-  // Filter games based on search query and category
-  const filteredGames = slotGames?.filter(game => {
-    const matchesSearch = game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          game.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = selectedCategory === 'All' ||
-                            (selectedCategory === 'Featured' && game.featured) ||
-                            (selectedCategory === 'New Releases' && game.newRelease) ||
-                            game.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
-  
-  // Handle errors
-  if (error) {
-    toast({
-      title: "Error loading slot games",
-      description: "Could not load slot games. Please try again later.",
-      variant: "destructive"
-    });
+
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(game => game.theme?.toLowerCase() === selectedCategory);
+    }
+
+    // Apply sorting
+    switch (sortOption) {
+      case 'popular':
+        filtered.sort((a, b) => b.activePlayers - a.activePlayers);
+        break;
+      case 'newest':
+        // For now, sort by ID (assuming higher ID = newer)
+        filtered.sort((a, b) => b.id - a.id);
+        break;
+      case 'a-z':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'z-a':
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'highest-rtp':
+        filtered.sort((a, b) => b.rtp - a.rtp);
+        break;
+      default:
+        // No sorting
+        break;
+    }
+
+    return filtered;
+  }, [allGames, searchQuery, selectedCategory, sortOption]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleSortChange = (option: string) => {
+    setSortOption(option);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-6 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
-  
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-6 flex flex-col justify-center items-center">
+        <h2 className="text-xl text-red-500 mb-4">Error loading slot games</h2>
+        <p className="text-slate-400">{(error as Error).message}</p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#0A1821] text-white pb-12">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#0F212E] to-[#1E3A5F] py-12 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold mb-4">Slot Games Collection</h1>
-          <p className="text-blue-300 text-xl">Explore our diverse range of exciting slot games</p>
+    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Slot Games</h1>
+            <p className="text-slate-400 mt-1">Explore our collection of immersive slot games</p>
+          </div>
           
-          {/* Search and Filter Bar */}
-          <div className="mt-8 flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-              <Input
-                placeholder="Search for slot games..."
-                className="pl-10 bg-[#0A1821] border-[#243442] text-white w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <Button
-              variant="outline"
-              className="bg-[#1375e1] hover:bg-[#1060c0] text-white border-[#1375e1]"
-              onClick={() => {
-                const featuredSection = document.getElementById('featured-slots');
-                if (featuredSection) {
-                  window.scrollTo({ top: featuredSection.offsetTop - 100, behavior: 'smooth' });
-                }
-              }}
-            >
-              <Trophy className="w-4 h-4 mr-2" /> 
-              Featured Slots
+          {/* Quick Action Buttons */}
+          <div className="flex gap-2">
+            <Button variant="outline" className="bg-slate-900 border-slate-700 hover:bg-slate-800">
+              <StarIcon size={16} className="mr-2" />
+              Favorites
+            </Button>
+            <Button variant="outline" className="bg-slate-900 border-slate-700 hover:bg-slate-800">
+              <HistoryIcon size={16} className="mr-2" />
+              Recently Played
             </Button>
           </div>
         </div>
-      </div>
-      
-      {/* Main Content Area */}
-      <div className="max-w-6xl mx-auto px-4 mt-8">
+        
+        {/* Search and Filter Bar */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4">
+          <div className="relative flex-grow">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+            <Input
+              placeholder="Search slot games..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="pl-10 bg-slate-900 border-slate-700 focus:border-blue-500"
+            />
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="bg-slate-900 border-slate-700 hover:bg-slate-800">
+                <FilterIcon size={16} className="mr-2" />
+                Sort By
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-slate-900 border-slate-700 text-white">
+              <DropdownMenuItem onClick={() => handleSortChange('popular')} className={sortOption === 'popular' ? 'bg-slate-800' : ''}>
+                Most Popular
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('newest')} className={sortOption === 'newest' ? 'bg-slate-800' : ''}>
+                Newest
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('highest-rtp')} className={sortOption === 'highest-rtp' ? 'bg-slate-800' : ''}>
+                Highest RTP
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('a-z')} className={sortOption === 'a-z' ? 'bg-slate-800' : ''}>
+                A-Z
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('z-a')} className={sortOption === 'z-a' ? 'bg-slate-800' : ''}>
+                Z-A
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
         {/* Category Tabs */}
-        <Tabs defaultValue="All" className="mb-8">
-          <TabsList className="bg-[#0F212E] border border-[#243442] p-1 overflow-x-auto flex flex-nowrap whitespace-nowrap max-w-full scrollbar-hide">
-            {CATEGORIES.map((category) => (
-              <TabsTrigger
-                key={category}
-                value={category}
-                onClick={() => setSelectedCategory(category)}
-                className="data-[state=active]:bg-[#1375e1] data-[state=active]:text-white"
+        <Tabs defaultValue="all" className="mb-8" onValueChange={handleCategoryChange}>
+          <TabsList className="bg-slate-900 p-1 overflow-x-auto flex flex-nowrap overflow-y-hidden custom-scrollbar" style={{ maxWidth: '100%' }}>
+            {categories.map(category => (
+              <TabsTrigger 
+                key={category.id} 
+                value={category.id} 
+                className="whitespace-nowrap min-w-fit px-4 py-2"
               >
-                {category}
+                {category.name}
               </TabsTrigger>
             ))}
           </TabsList>
           
+          {/* Tab content - we'll handle this with a single content block for all categories */}
           <TabsContent value={selectedCategory} className="mt-6">
-            {isLoading ? (
+            {filteredGames.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-12 w-12 animate-spin text-[#1375e1]" />
-                <p className="mt-4 text-lg text-gray-300">Loading slot games...</p>
-              </div>
-            ) : filteredGames?.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-lg text-gray-300">No slot games found matching your criteria.</p>
-                <Button 
-                  variant="link" 
-                  className="text-[#1375e1] mt-2"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('All');
-                  }}
-                >
-                  Clear filters
-                </Button>
+                <div className="bg-slate-900 p-4 rounded-full mb-4">
+                  <SlotMachineIcon size={48} className="text-slate-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">No Slots Found</h3>
+                <p className="text-slate-400 text-center max-w-md">
+                  {searchQuery 
+                    ? `No results matching "${searchQuery}". Try a different search term.` 
+                    : `No slot games found in the "${categories.find(c => c.id === selectedCategory)?.name}" category.`}
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredGames?.map((game) => (
-                  <SlotGameCard key={game.id} game={game} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {filteredGames.map(game => (
+                  <SlotCard key={game.id} game={game} />
                 ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
-        
-        {/* Featured Slots Section */}
-        <section id="featured-slots" className="mb-12">
-          <div className="flex items-center mb-4">
-            <Trophy className="text-[#1375e1] mr-2" />
-            <h2 className="text-2xl font-bold">Featured Slots</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <Card key={index} className="bg-[#0F212E] border-[#243442] animate-pulse h-64">
-                  <div className="h-36 bg-[#162431]"></div>
-                  <CardContent className="p-3">
-                    <div className="h-5 bg-[#162431] rounded mb-3"></div>
-                    <div className="h-8 bg-[#162431] rounded mb-3"></div>
-                    <div className="h-8 bg-[#162431] rounded"></div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              slotGames?.filter(game => game.featured).map(game => (
-                <SlotGameCard key={game.id} game={game} />
-              ))
-            )}
-          </div>
-        </section>
-        
-        {/* New Releases Section */}
-        <section className="mb-12">
-          <div className="flex items-center mb-4">
-            <div className="bg-emerald-500 h-3 w-3 rounded-full mr-2"></div>
-            <h2 className="text-2xl font-bold">New Releases</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {isLoading ? (
-              Array.from({ length: 3 }).map((_, index) => (
-                <Card key={index} className="bg-[#0F212E] border-[#243442] animate-pulse h-64">
-                  <div className="h-36 bg-[#162431]"></div>
-                  <CardContent className="p-3">
-                    <div className="h-5 bg-[#162431] rounded mb-3"></div>
-                    <div className="h-8 bg-[#162431] rounded mb-3"></div>
-                    <div className="h-8 bg-[#162431] rounded"></div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              slotGames?.filter(game => game.newRelease).map(game => (
-                <SlotGameCard key={game.id} game={game} />
-              ))
-            )}
-          </div>
-        </section>
-        
-        {/* All Categories Section */}
-        <section>
-          <div className="flex items-center mb-4">
-            <div className="bg-[#1375e1] h-3 w-3 rounded-full mr-2"></div>
-            <h2 className="text-2xl font-bold">All Categories</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {CATEGORIES.slice(2).map((category) => (
-              <Card 
-                key={category} 
-                className="bg-[#0F212E] border-[#243442] hover:border-[#1375e1] cursor-pointer transition-all"
-                onClick={() => {
-                  setSelectedCategory(category);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              >
-                <CardContent className="p-4 flex justify-between items-center">
-                  <h3 className="font-bold text-lg">{category}</h3>
-                  <div className="bg-[#1375e1] h-8 w-8 rounded-full flex items-center justify-center">
-                    {(slotGames ? slotGames.filter(game => 
-                      category === 'Featured' ? game.featured : 
-                      category === 'New Releases' ? game.newRelease : 
-                      game.category === category
-                    ).length : 0)}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
       </div>
     </div>
   );

@@ -6,71 +6,71 @@ import { motion } from 'framer-motion';
 const cosmicSpinsConfig: SlotConfiguration = {
   name: "Cosmic Spins",
   theme: "space",
-  description: "Explore the cosmos and match planets to win stellar prizes!",
+  description: "Spin through the cosmos and win stellar prizes!",
   symbols: ["🚀", "🪐", "🌎", "🌙", "☄️", "🛸", "👽", "⭐", "🌌", "🔭"],
   payouts: [
     {
       combination: ["🚀", "🚀", "🚀"],
       multiplier: 10,
-      description: "3 Rockets"
+      description: "Three Rockets"
     },
     {
       combination: ["🪐", "🪐", "🪐"],
       multiplier: 8,
-      description: "3 Saturns"
+      description: "Three Planets"
     },
     {
       combination: ["🌎", "🌎", "🌎"],
       multiplier: 7,
-      description: "3 Earths"
+      description: "Three Earths"
     },
     {
       combination: ["🌙", "🌙", "🌙"],
       multiplier: 6,
-      description: "3 Moons"
+      description: "Three Moons"
     },
     {
       combination: ["☄️", "☄️", "☄️"],
       multiplier: 5,
-      description: "3 Comets"
+      description: "Three Comets"
     },
     {
       combination: ["🛸", "🛸", "🛸"],
-      multiplier: 5,
-      description: "3 UFOs"
+      multiplier: 4,
+      description: "Three UFOs"
     },
     {
       combination: ["👽", "👽", "👽"],
       multiplier: 4,
-      description: "3 Aliens"
+      description: "Three Aliens"
     },
     {
       combination: ["⭐", "⭐", "⭐"],
       multiplier: 3,
-      description: "3 Stars"
+      description: "Three Stars"
     },
     {
       combination: ["🌌", "🌌", "🌌"],
       multiplier: 3,
-      description: "3 Galaxies"
+      description: "Three Galaxies"
     },
     {
       combination: ["🔭", "🔭", "🔭"],
       multiplier: 2,
-      description: "3 Telescopes"
+      description: "Three Telescopes"
     }
   ],
   specialSymbols: [
     {
       symbol: "🚀",
       name: "Rocket",
-      description: "The highest paying symbol in the game. Land 3 to win 10x!",
+      description: "The highest paying symbol! Land 3 for a 10x payout.",
       multiplier: 10
     },
     {
-      symbol: "👽",
-      name: "Alien",
-      description: "Alien symbols expand to adjacent positions for more wins!",
+      symbol: "🛸",
+      name: "UFO",
+      description: "The UFO may abduct your symbols for special prizes!",
       multiplier: 4
     }
   ],
@@ -81,56 +81,89 @@ const cosmicSpinsConfig: SlotConfiguration = {
 };
 
 // Create a space-themed background animation component
-const SpaceBackground: React.FC = () => {
+const CosmicBackground: React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Stars */}
-      {Array.from({ length: 50 }).map((_, i) => (
+      {/* Space background with stars */}
+      <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/40 via-purple-900/40 to-black/80"></div>
+      
+      {/* Animated stars */}
+      {Array.from({ length: 100 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 rounded-full bg-white"
-          initial={{
-            x: Math.random() * 100 + '%',
-            y: Math.random() * 100 + '%',
-            opacity: Math.random() * 0.7 + 0.3,
-            scale: Math.random() * 0.5 + 0.5
+          className="absolute rounded-full bg-white"
+          style={{
+            width: Math.random() * 3 + 1 + 'px',
+            height: Math.random() * 3 + 1 + 'px',
+            top: Math.random() * 100 + '%',
+            left: Math.random() * 100 + '%',
+            opacity: Math.random() * 0.7 + 0.3
           }}
           animate={{
-            opacity: [0.3, 0.8, 0.3],
-            scale: [1, 1.2, 1]
+            opacity: [0.3, 0.7, 0.3]
           }}
           transition={{
             duration: 2 + Math.random() * 3,
+            repeat: Infinity,
+            repeatType: 'reverse',
+            delay: Math.random() * 2
+          }}
+        />
+      ))}
+      
+      {/* Animated nebulas */}
+      {Array.from({ length: 3 }).map((_, i) => (
+        <motion.div
+          key={i + 'nebula'}
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: 150 + Math.random() * 100 + 'px',
+            height: 150 + Math.random() * 100 + 'px',
+            top: Math.random() * 100 + '%',
+            left: Math.random() * 100 + '%',
+            backgroundColor: `rgba(${Math.floor(Math.random() * 100 + 100)}, ${Math.floor(Math.random() * 50)}, ${Math.floor(Math.random() * 200 + 50)}, 0.1)`,
+            transform: 'translate(-50%, -50%)'
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.05, 0.15, 0.05]
+          }}
+          transition={{
+            duration: 10 + Math.random() * 10,
             repeat: Infinity,
             repeatType: 'reverse'
           }}
         />
       ))}
       
-      {/* Nebula effects */}
+      {/* Shooting stars */}
       <motion.div
-        className="absolute -right-20 -bottom-20 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"
+        className="absolute w-0.5 h-0.5 bg-white shadow-[0_0_2px_1px_rgba(255,255,255,0.5)]"
+        style={{ top: '10%', left: '80%' }}
         animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.2, 0.3, 0.2]
+          x: [-10, -200],
+          y: [0, 170],
+          opacity: [0, 1, 0]
         }}
         transition={{
-          duration: 15,
+          duration: 1.5,
           repeat: Infinity,
-          repeatType: 'reverse'
+          repeatDelay: 5
         }}
       />
       
       <motion.div
-        className="absolute -left-10 -top-20 w-60 h-60 bg-blue-500/10 rounded-full blur-3xl"
+        className="absolute w-0.5 h-0.5 bg-white shadow-[0_0_2px_1px_rgba(255,255,255,0.5)]"
+        style={{ top: '40%', left: '20%' }}
         animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.1, 0.2, 0.1]
+          x: [0, 200],
+          y: [0, 120],
+          opacity: [0, 1, 0]
         }}
         transition={{
-          duration: 20,
+          duration: 1.2,
           repeat: Infinity,
-          repeatType: 'reverse'
+          repeatDelay: 7
         }}
       />
     </div>
@@ -142,28 +175,28 @@ const CosmicSpins: React.FC = () => {
   const customStyles = {
     container: {
       position: 'relative' as const,
-      backgroundImage: 'radial-gradient(circle at center, #0f2447 0%, #0A1520 100%)'
+      backgroundImage: 'linear-gradient(to bottom, #0e0a2a 0%, #090218 100%)'
     },
     reelsContainer: {
-      background: 'rgba(13, 25, 42, 0.8)',
-      boxShadow: '0 0 15px rgba(0, 100, 255, 0.2), inset 0 0 5px rgba(0, 150, 255, 0.1)',
-      backdropFilter: 'blur(5px)',
-      border: '1px solid rgba(30, 64, 175, 0.4)'
+      background: 'rgba(13, 10, 38, 0.8)',
+      boxShadow: '0 0 15px rgba(138, 43, 226, 0.1), inset 0 0 5px rgba(138, 43, 226, 0.1)',
+      border: '1px solid rgba(138, 43, 226, 0.2)',
+      backdropFilter: 'blur(3px)'
     },
     reel: {
-      background: 'linear-gradient(145deg, rgba(20, 30, 50, 0.8), rgba(10, 20, 35, 0.9))',
-      boxShadow: '0 0 10px rgba(0, 100, 255, 0.15)',
-      border: '1px solid rgba(59, 130, 246, 0.3)'
+      background: 'linear-gradient(145deg, rgba(20, 15, 50, 0.8), rgba(13, 10, 38, 0.9))',
+      boxShadow: '0 0 10px rgba(138, 43, 226, 0.1)',
+      border: '1px solid rgba(138, 43, 226, 0.2)'
     },
     button: {
-      background: 'linear-gradient(45deg, #3b82f6 0%, #60a5fa 50%, #3b82f6 100%)',
+      background: 'linear-gradient(45deg, #6d28d9 0%, #8b5cf6 50%, #6d28d9 100%)',
       color: 'white'
     }
   };
 
   return (
     <div className="relative h-full">
-      <SpaceBackground />
+      <CosmicBackground />
       <BaseSlotGame
         config={cosmicSpinsConfig}
         gameId={101}
