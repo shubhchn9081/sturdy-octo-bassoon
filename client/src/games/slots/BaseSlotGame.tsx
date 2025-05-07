@@ -146,24 +146,22 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
     
     try {
       // Call API to get the spin result
-      const response = await apiRequest<{
-        outcome: {
-          reels: string[][];
-          multiplier: number;
-          winningLines: number[];
-          hasLuckySymbol: boolean;
-        };
-        profit: number;
-        multiplier: number;
-      }>({
+      const response = await fetch('/api/slots/spin', {
         method: 'POST',
-        url: '/api/slots/spin',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           gameId,
           amount: betAmount,
           luckySymbol
-        }
+        }),
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+      
+      const data = await response.json();
       
       // Stop spinning animation
       clearInterval(spinInterval);
@@ -171,25 +169,25 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       // Update balance after spin
       await fetchBalance();
       
-      if (response.outcome) {
+      if (data.outcome) {
         // Set final reels and results after a delay for animation
         setTimeout(() => {
-          setReels(response.outcome.reels);
-          setWinningLines(response.outcome.winningLines || []);
-          setMultiplier(response.multiplier);
-          setProfit(response.profit);
+          setReels(data.outcome.reels);
+          setWinningLines(data.outcome.winningLines || []);
+          setMultiplier(data.multiplier);
+          setProfit(data.profit);
           
           // Update game state
-          if (response.profit > 0) {
+          if (data.profit > 0) {
             setGameState('winning');
-            playWinSound(response.profit);
+            playWinSound(data.profit);
           } else {
             setGameState('losing');
             playLoseSound();
           }
           
           // Check autoplay conditions
-          handleAutoPlayConditions(response.profit);
+          handleAutoPlayConditions(data.profit);
         }, 500);
       }
     } catch (error) {
