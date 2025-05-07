@@ -113,11 +113,11 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     if (gamePhase !== 'guessing') return;
     
     if (cupPositions.indexOf(ballPosition) === cupIndex) {
-      setMessage('Ball found! You win!');
+      setMessage('💰 JACKPOT! YOU WIN! 💰');
       playSound(successSound);
       if (onCorrectGuess) onCorrectGuess();
     } else {
-      setMessage('Wrong cup! Try again.');
+      setMessage('❌ BETTER LUCK NEXT TIME! ❌');
       playSound(hitSound);
       if (onWrongGuess) onWrongGuess();
     }
@@ -125,25 +125,27 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     setGamePhase('ended');
   }, [gamePhase, ballPosition, cupPositions, playSound, successSound, hitSound, onCorrectGuess, onWrongGuess]);
   
-  // Perform multiple shuffles
+  // Perform multiple shuffles with enhanced confusion and speed
   const performShuffles = useCallback(() => {
     let count = 0;
     
-    // Create shuffling patterns to make it more deceptive
+    // Create more complex and confusing shuffling patterns
     const shufflePatterns = [
-      // Quick back and forth between adjacent cups
-      [[0, 1], [1, 2], [0, 1], [1, 2], [0, 2]],
-      // Circle pattern
-      [[0, 1], [1, 2], [2, 0], [0, 1], [1, 2]],
-      // Confusing zigzag
-      [[0, 2], [1, 0], [2, 1], [0, 2], [1, 0]],
-      // Fast adjacent swaps
-      [[0, 1], [1, 2], [0, 1], [1, 2]],
-      // Random pattern
-      [[Math.floor(Math.random() * 3), (Math.floor(Math.random() * 3) + 1) % 3]]
+      // Quick triple swaps with focus on center
+      [[0, 1], [1, 2], [0, 2], [1, 0], [2, 1], [0, 1], [2, 0]],
+      // Zigzag with misdirection
+      [[0, 2], [1, 0], [2, 1], [0, 2], [1, 0], [1, 2], [0, 1], [2, 0]],
+      // Circle with double back
+      [[0, 1], [1, 2], [2, 0], [1, 0], [2, 1], [0, 2], [1, 0]],
+      // Alternating focus pattern
+      [[0, 1], [1, 2], [0, 2], [1, 0], [2, 1], [0, 1], [2, 0], [1, 2]],
+      // Professional magician pattern - focus on one then switch
+      [[0, 1], [0, 1], [1, 2], [1, 2], [0, 2], [0, 2]],
+      // "Shell game" classic pattern
+      [[0, 2], [1, 0], [2, 1], [0, 1], [2, 0], [1, 2], [0, 2]]
     ];
     
-    // Select a random shuffle pattern for this game
+    // Select a random shuffle pattern as base, then add randomness
     const selectedPattern = shufflePatterns[Math.floor(Math.random() * shufflePatterns.length)];
     let patternIndex = 0;
     
@@ -153,25 +155,38 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
         setTimeout(() => {
           setGamePhase('guessing');
           playSound(hitSound);
-        }, 300 / speed);
+        }, 250 / speed); // Reduced delay before guessing phase
         return;
       }
       
       // Play shuffle sound
       playSound(hitSound);
       
-      // Get positions to swap - alternate between pattern and random swaps
+      // Get positions to swap with increased randomness
       const newPositions = [...cupPositions];
       let pos1: number, pos2: number;
       
-      if (count % 2 === 0 && patternIndex < selectedPattern.length) {
-        // Use the predefined pattern
+      // Increase randomness by sometimes doing completely random moves
+      if ((count % 2 === 0 || Math.random() > 0.25) && patternIndex < selectedPattern.length) {
+        // Use the predefined pattern but with some chaos
         [pos1, pos2] = selectedPattern[patternIndex];
+        
+        // Occasionally reverse the swap direction for more confusion
+        if (Math.random() > 0.7) {
+          [pos1, pos2] = [pos2, pos1];
+        }
+        
         patternIndex = (patternIndex + 1) % selectedPattern.length;
       } else {
-        // Use random swaps for unpredictability
+        // Use completely random swaps for unpredictability
         pos1 = Math.floor(Math.random() * 3);
-        pos2 = (pos1 + 1 + Math.floor(Math.random() * 2)) % 3; // Ensure different cups
+        
+        // Sometimes do adjacent swaps, sometimes do opposite swaps
+        if (Math.random() > 0.5) {
+          pos2 = (pos1 + 1) % 3; // Adjacent cup
+        } else {
+          pos2 = (pos1 + 2) % 3; // Opposite cup
+        }
       }
       
       // Swap cup positions
@@ -180,17 +195,17 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       
       count++;
       
-      // Faster animation with shorter, variable delays based on difficulty
-      const randomDelay = (Math.random() < 0.7 
-        ? 300 + Math.random() * 150  // 70% chance of fast shuffle
-        : 450 + Math.random() * 100) // 30% chance of slightly longer pause
-        / speed; // Adjust by speed factor
+      // Faster animation with shorter delays based on difficulty
+      const randomDelay = (Math.random() < 0.8 
+        ? 220 + Math.random() * 80  // 80% chance of very fast shuffle
+        : 300 + Math.random() * 100) // 20% chance of slightly longer pause
+        / (speed * 1.2); // Increase overall speed by 20%
         
       setTimeout(doShuffle, randomDelay);
     };
     
-    // Start shuffling after a short delay
-    setTimeout(doShuffle, 400 / speed);
+    // Start shuffling after a shorter delay
+    setTimeout(doShuffle, 300 / speed);
   }, [shuffleCount, speed, cupPositions, playSound, hitSound]);
   
   // Start the game
@@ -292,13 +307,16 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       ...(customStyles.cupsContainer || {})
     } as React.CSSProperties,
     cup: {
-      width: '80px',
-      height: '100px',
-      backgroundColor: '#d32f2f',
-      borderRadius: '5px 5px 40px 40px',
+      width: '90px',
+      height: '120px',
       position: 'absolute',
       transformOrigin: 'bottom center',
       boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
+      backgroundImage: 'url(https://res.cloudinary.com/dbbig5cq5/image/upload/v1746582213/Inverted_Red_Plastic_Cup_zdvtjf.png)',
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      // Remove background color as we're using an image
       ...(customStyles.cupBase || {})
     } as React.CSSProperties,
     cupOverlay: {
@@ -307,43 +325,51 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       left: 0,
       width: '100%',
       height: '100%',
-      background: 'linear-gradient(130deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%)',
-      borderRadius: '5px 5px 40px 40px',
       pointerEvents: 'none',
+      // Remove background for overlay as it's part of the image now
       ...(customStyles.cupOverlay || {})
     } as React.CSSProperties,
     ball: {
-      width: '30px',
-      height: '30px',
-      backgroundColor: '#4CAF50',
-      borderRadius: '50%',
+      width: '40px',
+      height: '40px',
       position: 'absolute',
       bottom: '80px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
       zIndex: 1,
       transition: 'all 0.5s ease-in-out',
+      backgroundImage: 'url(https://res.cloudinary.com/dbbig5cq5/image/upload/v1746582623/ChatGPT_Image_May_7_2025_07_20_04_AM_j7yscy.png)',
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.7))', // Golden glow effect
       ...(customStyles.ball || {})
     } as React.CSSProperties,
     ballHighlight: {
       position: 'absolute',
-      top: '5px',
-      left: '7px',
-      width: '10px',
-      height: '5px',
-      backgroundColor: 'rgba(255,255,255,0.6)',
-      borderRadius: '50%',
-      transform: 'rotate(30deg)',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      // Remove background color for highlight as we're using an image with built-in highlights
+      animation: 'pulse 2s infinite ease-in-out',
+      filter: 'brightness(1.2)',
       ...(customStyles.ballHighlight || {})
     } as React.CSSProperties,
     gameResult: {
       position: 'absolute',
-      top: '5px',
+      top: '10px',
       left: 0,
       width: '100%',
       textAlign: 'center',
-      fontWeight: 'bold',
-      fontSize: '1.5rem',
-      color: '#333',
+      fontWeight: '800',
+      fontSize: '1.8rem',
+      color: '#fff',
+      textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.5), 0 2px 2px rgba(0, 0, 0, 0.7)',
+      letterSpacing: '1px',
+      padding: '10px',
+      background: 'rgba(0, 0, 0, 0.5)',
+      backdropFilter: 'blur(3px)',
+      borderRadius: '5px',
+      animation: 'fadeIn 0.5s ease-out',
       ...(customStyles.gameResult || {})
     } as React.CSSProperties,
     controls: {
@@ -382,7 +408,14 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       textAlign: 'center',
       marginTop: '20px',
       lineHeight: '1.5',
-      color: '#666',
+      padding: '10px',
+      fontSize: '1.1rem',
+      fontWeight: 'bold',
+      color: '#eee',
+      background: 'rgba(0,0,0,0.6)',
+      borderRadius: '8px',
+      boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+      border: '1px solid rgba(255,215,0,0.3)',
       ...(customStyles.instructions || {})
     } as React.CSSProperties
   };
@@ -452,13 +485,19 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       </div>
       
       <div style={gameStyles.instructions}>
-        <p>Watch carefully as the cups shuffle. Can you follow the ball?</p>
+        <p>🎲 CASINO CHALLENGE: FOLLOW THE GOLDEN BALL 🎲</p>
         <p>
           {gamePhase === 'guessing' ? (
-            <strong>Click on the cup where you think the ball is!</strong>
+            <strong>🔍 MAKE YOUR CHOICE NOW! TAP TO WIN! 🔍</strong>
           ) : gamePhase === 'playing' ? (
-            <strong>Keep your eye on the cups...</strong>
-          ) : null}
+            <strong>👁️ WATCH CAREFULLY... KEEP TRACKING! 👁️</strong>
+          ) : gamePhase === 'ready' ? (
+            <strong>💰 PLACE YOUR BET TO START THE GAME! 💰</strong>
+          ) : gamePhase === 'starting' ? (
+            <strong>✨ REMEMBER WHERE THE BALL IS! ✨</strong>
+          ) : (
+            <strong>🎮 BET AGAIN TO DOUBLE YOUR LUCK! 🎮</strong>
+          )}
         </p>
       </div>
     </div>
