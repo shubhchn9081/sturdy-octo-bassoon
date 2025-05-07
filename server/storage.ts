@@ -406,6 +406,18 @@ export class MemStorage implements IStorage {
     return userBets;
   }
   
+  async getBetsByGameId(gameId: number, status?: string): Promise<Bet[]> {
+    const gameBets = Array.from(this.bets.values())
+      .filter(bet => bet.gameId === gameId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    
+    if (status) {
+      return gameBets.filter(bet => bet.status === status);
+    }
+    
+    return gameBets;
+  }
+  
   // Transaction methods
   async getTransaction(id: number): Promise<Transaction | undefined> {
     return this.transactions.get(id);
@@ -1315,6 +1327,25 @@ export class DatabaseStorage implements IStorage {
       return await db.select()
         .from(bets)
         .where(eq(bets.userId, userId))
+        .orderBy(desc(bets.createdAt));
+    }
+  }
+  
+  async getBetsByGameId(gameId: number, status?: string): Promise<Bet[]> {
+    if (status) {
+      return await db.select()
+        .from(bets)
+        .where(
+          and(
+            eq(bets.gameId, gameId),
+            eq(bets.status, status)
+          )
+        )
+        .orderBy(desc(bets.createdAt));
+    } else {
+      return await db.select()
+        .from(bets)
+        .where(eq(bets.gameId, gameId))
         .orderBy(desc(bets.createdAt));
     }
   }
