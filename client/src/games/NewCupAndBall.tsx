@@ -63,79 +63,46 @@ const CupGameControls = ({
     <div className="px-1 py-1">
       {/* For mobile view, create a more compact layout */}
       {isMobile ? (
-        <div className="space-y-1 h-full flex flex-col justify-between">
-          {/* Status indicator for the game */}
-          {isPlaying && (
-            <div className={`text-center mb-1 py-1 text-sm font-medium rounded-md 
-              ${gamePhase === 'complete' 
-                ? (gameResult && gameResult.win ? 'bg-green-600' : 'bg-red-700')
-                : 'bg-slate-700'}`}
-            >
-              {gamePhase === 'ready' && 'Pick a cup to reveal the ball'}
-              {gamePhase === 'playing' && 'Shuffling cups...'}
-              {gamePhase === 'guessing' && 'Choose the cup with the ball'}
-              {gamePhase === 'revealing' && 'Revealing result...'}
-              {gamePhase === 'complete' && (gameResult && gameResult.win ? 'You won!' : 'Better luck next time')}
-            </div>
-          )}
-          
-          {/* Fixed button controls at the bottom */}
-          <div className="space-y-1 flex-grow">
-            {/* Quick bet buttons in a row */}
-            <div className="grid grid-cols-4 gap-1 mt-1">
-              {[100, 500, 1000, 5000].map(amount => (
-                <button
-                  key={amount}
-                  className={`text-sm py-1 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
-                  onClick={() => onBetAmountSlider([amount])}
-                  disabled={isPlaying}
-                >
-                  {amount}
-                </button>
-              ))}
+        <div className="space-y-2 h-full flex flex-col justify-between">
+          <div className="p-3 bg-gradient-to-r from-slate-800 to-slate-900 rounded-lg text-center">
+            <h3 className="text-lg font-semibold mb-2 bg-gradient-to-r from-amber-500 to-amber-300 text-transparent bg-clip-text">
+              Desktop Experience Only
+            </h3>
+            
+            <p className="text-slate-300 text-sm mb-3">
+              This game is optimized for desktop browsers.
+            </p>
+            
+            <div className="w-full py-2 px-3 bg-blue-800/30 rounded-md text-blue-300 text-sm flex items-center justify-center gap-2 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Mobile version coming soon</span>
             </div>
             
-            {/* Compact details grid */}
-            <div className="flex items-center gap-1 mt-1">
-              <select 
-                value={difficulty}
-                onChange={(e) => onDifficultyChange(e.target.value)}
-                disabled={isPlaying}
-                className="bg-slate-800 rounded-md py-1 px-1 text-xs flex-grow-0 w-[85px]"
-              >
-                <option value="easy">Easy (1.5x)</option>
-                <option value="medium">Medium (2x)</option>
-                <option value="hard">Hard (3x)</option>
-              </select>
-              
-              <div className="bg-slate-800 rounded-md py-1 px-1 text-center flex-1">
-                <span className="text-green-400 text-xs font-medium">Win: {potentialProfit.toFixed(0)}</span>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-slate-800/70 rounded px-2 py-3 text-center">
+                <div className="text-xs text-slate-400 mb-1">Difficulty</div>
+                <div className="text-sm font-medium text-white">
+                  {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                </div>
+              </div>
+              <div className="bg-slate-800/70 rounded px-2 py-3 text-center">
+                <div className="text-xs text-slate-400 mb-1">Payout</div>
+                <div className="text-sm font-medium text-white">
+                  {payoutMultiplier}x
+                </div>
               </div>
             </div>
           </div>
           
-          {/* Large start button at the BOTTOM for easy thumb access */}
-          <div className="mt-1">
-            {!isPlaying ? (
-              <Button 
-                className="bg-blue-600 hover:bg-blue-700 h-12 w-full text-lg font-bold rounded-lg"
-                onClick={onStart}
-              >
-                START ▶
-              </Button>
-            ) : (
-              <Button 
-                className={`h-12 w-full text-lg font-bold rounded-lg ${gamePhase === 'complete' ? 'bg-red-600 hover:bg-red-700' : 'bg-yellow-600'}`} 
-                onClick={onReset}
-                disabled={gamePhase !== 'complete'}
-              >
-                {gamePhase === 'complete' 
-                  ? 'PLAY AGAIN ▶' 
-                  : gamePhase === 'ready' 
-                    ? 'PICK A CUP' 
-                    : 'IN PROGRESS...'}
-              </Button>
-            )}
+          <div className="flex justify-center">
+            <Button 
+              className="bg-blue-700 hover:bg-blue-800 h-12 w-full max-w-xs text-base font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={true}
+            >
+              Play on Desktop
+            </Button>
           </div>
         </div>
       ) : (
@@ -520,49 +487,82 @@ const NewCupAndBall = () => {
     };
   }, []);
   
+  // Mobile notice component with premium styling
+  const MobileNotice = () => (
+    <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 rounded-lg p-6 text-center">
+      <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-transparent bg-clip-text mb-4">
+        <h2 className="text-2xl font-bold">Desktop Experience Only</h2>
+      </div>
+      
+      <div className="w-16 h-16 mb-4 relative">
+        <div className="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping"></div>
+        <div className="relative flex items-center justify-center w-full h-full bg-slate-700 rounded-full border border-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+      </div>
+      
+      <p className="text-slate-300 mb-3">
+        This game is optimized for desktop browsers.
+      </p>
+      <p className="text-slate-400 text-sm mb-6">
+        Please switch to a desktop device for the best experience.
+      </p>
+      
+      <div className="relative inline-flex items-center px-6 py-2 overflow-hidden rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-lg">
+        <span className="relative z-10">Mobile Version Coming Soon</span>
+        <span className="absolute inset-0 bg-white opacity-10 animate-pulse"></span>
+      </div>
+    </div>
+  );
+  
   const gamePanel = (
     <div className="h-full w-full flex items-center justify-center">
-      <CupGame
-        ref={cupGameRef}
-        onCorrectGuess={handleCorrectGuess}
-        onWrongGuess={handleWrongGuess}
-        difficulty={difficulty as 'easy' | 'medium' | 'hard'}
-        soundsEnabled={true}
-        customStyles={{
-          container: {
-            background: '#1a293a',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-            width: '100%',
-            height: isMobileView ? 'auto' : undefined,
-            minHeight: isMobileView ? '280px' : '350px',
-            maxWidth: isMobileView ? '100%' : '600px',
-            padding: isMobileView ? '0.5rem' : '1.5rem',
-            marginBottom: isMobileView ? '0.5rem' : undefined,
-            overflowX: 'hidden'
-          },
-          gameArea: {
-            backgroundColor: '#0f1e2d',
-            height: isMobileView ? '280px' : '350px',
-            width: '100%'
-          },
-          cup: {
-            zIndex: 20,
-            width: isMobileView ? '90px' : '130px',
-            height: isMobileView ? '140px' : '180px'
-          },
-          ball: {
-            zIndex: 10,
-            width: isMobileView ? '40px' : '70px',
-            height: isMobileView ? '40px' : '70px'
-          },
-          gameResult: {
-            color: '#ffffff'
-          },
-          instructions: {
-            color: '#adbbc8'
-          }
-        }}
-      />
+      {isMobileView ? (
+        <MobileNotice />
+      ) : (
+        <CupGame
+          ref={cupGameRef}
+          onCorrectGuess={handleCorrectGuess}
+          onWrongGuess={handleWrongGuess}
+          difficulty={difficulty as 'easy' | 'medium' | 'hard'}
+          soundsEnabled={true}
+          customStyles={{
+            container: {
+              background: '#1a293a',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+              width: '100%',
+              height: undefined,
+              minHeight: '350px',
+              maxWidth: '600px',
+              padding: '1.5rem',
+              overflowX: 'hidden'
+            },
+            gameArea: {
+              backgroundColor: '#0f1e2d',
+              height: '350px',
+              width: '100%'
+            },
+            cup: {
+              zIndex: 20,
+              width: isMobileView ? '90px' : '130px',
+              height: isMobileView ? '140px' : '180px'
+            },
+            ball: {
+              zIndex: 10,
+              width: isMobileView ? '40px' : '70px',
+              height: isMobileView ? '40px' : '70px'
+            },
+            gameResult: {
+              color: '#ffffff'
+            },
+            instructions: {
+              color: '#adbbc8'
+            }
+          }}
+        />
+      )}
     </div>
   );
   
