@@ -37,6 +37,8 @@ const CupGameControls = ({
   gameResult,
   payoutMultiplier
 }) => {
+  // Determine if it's mobile view
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const difficultyDetails = {
     easy: {
       shuffles: 5,
@@ -117,9 +119,9 @@ const CupGameControls = ({
           </div>
           <Slider
             value={[betAmount]}
-            min={1}
-            max={100}
-            step={1}
+            min={100}
+            max={5000}
+            step={100}
             onValueChange={onBetAmountSlider}
             disabled={isPlaying}
             className="my-2"
@@ -127,7 +129,7 @@ const CupGameControls = ({
           
           {/* Bet amount quick selectors */}
           <div className="grid grid-cols-4 gap-1 mt-1">
-            {[5, 10, 25, 50].map(amount => (
+            {[100, 500, 1000, 5000].map(amount => (
               <button
                 key={amount}
                 className={`text-xs md:text-sm py-1 px-2 rounded-md ${betAmount === amount ? 'bg-blue-600' : 'bg-slate-700'}`}
@@ -173,18 +175,18 @@ const CupGameControls = ({
         <div className="flex justify-between space-x-2 mt-3">
           {!isPlaying ? (
             <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 h-8 md:h-10 text-xs md:text-sm" 
+              className={`flex-1 bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : 'h-8 md:h-10 text-xs md:text-sm'}`}
               onClick={onStart}
             >
-              Start Game
+              {isMobile ? 'START ▶' : 'Start Game'}
             </Button>
           ) : (
             <Button 
-              className="flex-1 bg-red-600 hover:bg-red-700 h-8 md:h-10 text-xs md:text-sm" 
+              className={`flex-1 bg-red-600 hover:bg-red-700 ${isMobile ? 'h-14 text-lg' : 'h-8 md:h-10 text-xs md:text-sm'}`} 
               onClick={onReset}
               disabled={gamePhase !== 'complete'}
             >
-              {gamePhase === 'complete' ? 'Play Again' : 'In Progress...'}
+              {gamePhase === 'complete' ? (isMobile ? 'PLAY AGAIN ▶' : 'Play Again') : 'In Progress...'}
             </Button>
           )}
         </div>
@@ -202,7 +204,7 @@ const NewCupAndBall = () => {
   
   // Game state
   const [difficulty, setDifficulty] = useState('easy');
-  const [betAmount, setBetAmount] = useState(1);
+  const [betAmount, setBetAmount] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gamePhase, setGamePhase] = useState('initial');
   const [selectedCup, setSelectedCup] = useState(null);
@@ -238,7 +240,7 @@ const NewCupAndBall = () => {
   // Handle bet amount change from input
   const handleBetAmountChange = (e) => {
     const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0) {
+    if (!isNaN(value) && value >= 100) {
       setBetAmount(value);
     }
   };
@@ -331,10 +333,10 @@ const NewCupAndBall = () => {
       return;
     }
     
-    if (betAmount <= 0) {
+    if (betAmount < 100) {
       toast({
         title: "Invalid Bet",
-        description: "Please enter a valid bet amount",
+        description: "Minimum bet amount is 100",
         variant: "destructive"
       });
       return;
