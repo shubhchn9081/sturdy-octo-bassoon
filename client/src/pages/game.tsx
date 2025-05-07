@@ -11,7 +11,7 @@ import LimboFinal from '@/games/LimboFinal';
 import Keno from '@/games/Keno';
 import Wheel from '@/games/Wheel';
 import Slots from '@/games/Slots';
-import CupAndBall from '@/games/CupAndBall';
+// CupAndBall has been removed in favor of NewCupAndBall
 import NewCupAndBall from '@/games/NewCupAndBall';
 import TowerClimb from '@/games/TowerClimb';
 import RocketLaunchRevised from '@/games/RocketLaunchRevised';
@@ -29,7 +29,7 @@ const GameComponents: Record<string, React.ComponentType> = {
   keno: Keno,
   wheel: Wheel,
   slots: Slots,
-  'cup-and-ball': CupAndBall,
+  'cup-and-ball': NewCupAndBall, // Now using the new implementation for both routes
   'new-cup-game': NewCupAndBall,
   'tower-climb': TowerClimb,
   'rocket-launch': RocketLaunchRevised

@@ -12,7 +12,7 @@ import Keno from './Keno';
 import Wheel from './Wheel';
 import CoinFlip from './CoinFlip';
 import Slots from './Slots';
-import CupAndBall from './CupAndBall';
+// CupAndBall component has been removed in favor of NewCupAndBall
 import NewCupAndBall from './NewCupAndBall';
 import TowerClimb from './TowerClimb';
 import RocketLaunchRevised from './RocketLaunchRevised';
@@ -222,7 +222,6 @@ export default {
   Keno,
   Wheel,
   Slots,
-  CupAndBall,
   NewCupAndBall,
   TowerClimb,
   RocketLaunch: RocketLaunchRevised
