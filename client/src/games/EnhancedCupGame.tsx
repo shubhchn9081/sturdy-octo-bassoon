@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 
 // Type definitions
 interface CupGameProps {
@@ -37,13 +37,15 @@ type GamePhase = 'ready' | 'starting' | 'playing' | 'guessing' | 'ended';
  * 
  * @returns {JSX.Element} The cup game component
  */
-const CupGame: React.FC<CupGameProps> = ({ 
-  onCorrectGuess, 
-  onWrongGuess, 
-  difficulty = 'medium', 
-  soundsEnabled = true,
-  customStyles = {}
-}) => {
+const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref) => {
+  const { 
+    onCorrectGuess, 
+    onWrongGuess, 
+    difficulty = 'medium', 
+    soundsEnabled = true,
+    customStyles = {}
+  } = props;
+  
   // Game state
   const [gamePhase, setGamePhase] = useState<GamePhase>('ready');
   const [ballPosition, setBallPosition] = useState<number>(0);
@@ -62,7 +64,7 @@ const CupGame: React.FC<CupGameProps> = ({
     hard: { shuffleCount: 12, speed: 1.3 }
   };
   
-  const { shuffleCount, speed } = difficultySettings[difficulty] || difficultySettings.medium;
+  const { shuffleCount, speed } = difficultySettings[difficulty as keyof typeof difficultySettings] || difficultySettings.medium;
   
   // Initialize audio elements
   useEffect(() => {
@@ -385,6 +387,11 @@ const CupGame: React.FC<CupGameProps> = ({
     } as React.CSSProperties
   };
   
+  // Expose startGame function to parent component via ref
+  useImperativeHandle(ref, () => ({
+    startGame
+  }), [startGame]);
+
   return (
     <div style={gameStyles.container}>
       <div style={gameStyles.gameArea}>
@@ -423,7 +430,8 @@ const CupGame: React.FC<CupGameProps> = ({
         )}
       </div>
 
-      <div style={gameStyles.controls}>
+      {/* Hide controls by default, since we'll control it from the betting panel */}
+      <div style={{...gameStyles.controls, display: 'none'}}>
         <button 
           style={{
             ...gameStyles.playButton,
@@ -455,6 +463,6 @@ const CupGame: React.FC<CupGameProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default CupGame;

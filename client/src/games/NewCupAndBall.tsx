@@ -210,6 +210,9 @@ const NewCupAndBall = () => {
   const [clientSeed, setClientSeed] = useState(() => Math.random().toString(36).substring(2, 15));
   const [gameResult, setGameResult] = useState(null);
   
+  // Create a ref to the cup game component
+  const cupGameRef = React.useRef<{ startGame: () => void }>(null);
+  
   // Set up payouts based on difficulty
   const payoutMultipliers = {
     easy: 1.5,
@@ -339,6 +342,11 @@ const NewCupAndBall = () => {
     
     setIsPlaying(true);
     setGamePhase('ready');
+    
+    // Use the ref to start the game
+    if (cupGameRef.current) {
+      cupGameRef.current.startGame();
+    }
   };
   
   // Handle game events
@@ -382,9 +390,10 @@ const NewCupAndBall = () => {
   const gamePanel = (
     <div className="h-full flex items-center justify-center">
       <CupGame
+        ref={cupGameRef}
         onCorrectGuess={handleCorrectGuess}
         onWrongGuess={handleWrongGuess}
-        difficulty={difficulty}
+        difficulty={difficulty as 'easy' | 'medium' | 'hard'}
         soundsEnabled={true}
         customStyles={{
           container: {
