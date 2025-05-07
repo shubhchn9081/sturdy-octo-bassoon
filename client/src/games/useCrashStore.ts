@@ -59,29 +59,48 @@ const TIME_SCALE = 2000; // Even more extreme horizontal stretching for flatter 
 const HEIGHT_SCALE = 50; // Reduced vertical scaling for ultra-flat trajectory
 
 // Helper functions
-function generateCrashPoint(): number {
-  // Generate crash points with distribution matching reference
-  const r = Math.random();
+function generateCrashPoint(activeBets: Bet[] = []): number {
+  // Check if there are any player bets active
+  const hasPlayerBets = activeBets.some(bet => bet.isPlayer && bet.status === 'active');
   
-  // Distribution of crash points similar to real Stake.com crash games
-  if (r < 0.20) {
-    // Very early crash (1.00x to 1.50x) - 20% chance
-    return 1.00 + (Math.random() * 0.5);
-  } else if (r < 0.40) {
-    // Early crash (1.50x to 2.00x) - 20% chance
-    return 1.50 + (Math.random() * 0.5);
-  } else if (r < 0.70) {
-    // Medium crash (2.00x to 4.00x) - 30% chance 
-    return 2.00 + (Math.random() * 2);
-  } else if (r < 0.90) {
-    // Higher crash (4.00x to 10.00x) - 20% chance
-    return 4.00 + (Math.random() * 6);
-  } else if (r < 0.98) {
-    // Very high crash (10.00x to 50.00x) - 8% chance
-    return 10.00 + (Math.random() * 40);
+  // Different distribution based on whether players have bets
+  if (!hasPlayerBets) {
+    // No player bets - generate high multipliers to entice players
+    const r = Math.random();
+    
+    if (r < 0.10) {
+      // Medium crash (2.00x to 5.00x) - 10% chance
+      return 2.00 + (Math.random() * 3);
+    } else if (r < 0.40) {
+      // Higher crash (5.00x to 15.00x) - 30% chance
+      return 5.00 + (Math.random() * 10);
+    } else if (r < 0.70) {
+      // Very high crash (15.00x to 50.00x) - 30% chance
+      return 15.00 + (Math.random() * 35);
+    } else if (r < 0.90) {
+      // Extreme crash (50.00x to 100.00x) - 20% chance
+      return 50.00 + (Math.random() * 50);
+    } else {
+      // Ultra rare crash (100.00x to 300.00x) - 10% chance
+      return 100.00 + (Math.random() * 200);
+    }
   } else {
-    // Extreme rare crash (50.00x to 250.00x) - 2% chance
-    return 50.00 + (Math.random() * 200);
+    // Player bets active - crash relatively soon to limit payouts
+    const r = Math.random();
+    
+    if (r < 0.50) {
+      // Very early crash (1.00x to 1.30x) - 50% chance
+      return 1.00 + (Math.random() * 0.3);
+    } else if (r < 0.80) {
+      // Early crash (1.30x to 1.80x) - 30% chance
+      return 1.30 + (Math.random() * 0.5);
+    } else if (r < 0.95) {
+      // Medium crash (1.80x to 2.50x) - 15% chance 
+      return 1.80 + (Math.random() * 0.7);
+    } else {
+      // Rare higher crash (2.50x to 5.00x) - 5% chance
+      return 2.50 + (Math.random() * 2.5);
+    }
   }
 }
 
