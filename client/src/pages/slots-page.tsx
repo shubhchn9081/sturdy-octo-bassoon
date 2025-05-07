@@ -233,6 +233,9 @@ const SlotsPage: React.FC = () => {
     staleTime: 60000, // 1 minute
   });
   
+  // Log received games data for debugging
+  console.log('Received slot games data:', allGames);
+  
   // Filter and sort games
   const filteredGames = allGames.filter((game: SlotGame) => {
     // Theme filter

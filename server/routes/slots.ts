@@ -82,6 +82,7 @@ const slotGames = [
 
 // Get all slot games
 router.get('/games', (req, res) => {
+  console.log('Returning slot games:', slotGames.length);
   res.json(slotGames);
 });
 
