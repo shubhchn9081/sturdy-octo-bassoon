@@ -152,11 +152,11 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
     if (gamePhase !== 'guessing') return;
     
     if (cupPositions.indexOf(ballPosition) === cupIndex) {
-      setMessage('✅ JACKPOT! YOU WIN! ✅');
+      setMessage('');
       playSound(successSound);
       if (onCorrectGuess) onCorrectGuess();
     } else {
-      setMessage('❌ TIME! YOU LOSE! ❌');
+      setMessage('');
       playSound(hitSound);
       if (onWrongGuess) onWrongGuess();
     }
@@ -360,7 +360,7 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
       position: 'absolute',
       transformOrigin: 'bottom center',
       backgroundColor: 'transparent',
-      ...(customStyles.cupBase || {})
+      ...(customStyles.cup || {})
     } as React.CSSProperties,
     // The cup consists of multiple parts for a 3D effect
     cupTop: {
@@ -571,12 +571,7 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
           </div>
         </div>
         
-        {/* Game message */}
-        {message && (
-          <div style={gameStyles.gameResult}>
-            {message}
-          </div>
-        )}
+        {/* Game message removed as per requirements */}
       </div>
 
       {/* Hide controls by default, since we'll control it from the betting panel */}
@@ -600,22 +595,7 @@ const CupGame = forwardRef<{ startGame: () => void }, CupGameProps>((props, ref)
         </button>
       </div>
       
-      <div style={gameStyles.instructions}>
-        <p>🎲 CASINO CHALLENGE: FOLLOW THE GOLDEN BALL 🎲</p>
-        <p>
-          {gamePhase === 'guessing' ? (
-            <strong>🔍 MAKE YOUR CHOICE NOW! TAP TO WIN! 🔍</strong>
-          ) : gamePhase === 'playing' ? (
-            <strong>👁️ WATCH CAREFULLY... KEEP TRACKING! 👁️</strong>
-          ) : gamePhase === 'ready' ? (
-            <strong>💰 PLACE YOUR BET TO START THE GAME! 💰</strong>
-          ) : gamePhase === 'starting' ? (
-            <strong>✨ REMEMBER WHERE THE BALL IS! ✨</strong>
-          ) : (
-            <strong>🎮 BET AGAIN TO DOUBLE YOUR LUCK! 🎮</strong>
-          )}
-        </p>
-      </div>
+      {/* Game instructions removed as per requirements */}
     </div>
   );
 });
