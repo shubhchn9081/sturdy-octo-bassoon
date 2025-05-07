@@ -135,11 +135,18 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     return newPositions;
   }, []);
   
-  // Handle cup click during guessing phase
+  // Handle cup click or touch during guessing phase - with safeguards for mobile
   const handleCupClick = useCallback((cupIndex: number) => {
+    // Only allow clicks in guessing phase and prevent double-clicks with a guard
     if (gamePhase !== 'guessing') return;
     
-    if (cupPositions.indexOf(ballPosition) === cupIndex) {
+    // Immediately set to ended phase to prevent multiple selections
+    setGamePhase('ended');
+    
+    // Check if player selected the correct cup and trigger appropriate callbacks
+    const isCorrect = cupPositions.indexOf(ballPosition) === cupIndex;
+    
+    if (isCorrect) {
       setMessage('');
       playSound(successSound);
       if (onCorrectGuess) onCorrectGuess();
@@ -149,7 +156,9 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
       if (onWrongGuess) onWrongGuess();
     }
     
-    setGamePhase('ended');
+    // Log for debugging on mobile
+    console.log(`Cup selection: Player chose ${cupIndex}, ball was at ${ballPosition}, correct: ${isCorrect}`);
+    
   }, [gamePhase, ballPosition, cupPositions, playSound, successSound, hitSound, onCorrectGuess, onWrongGuess]);
   
   // Perform multiple shuffles with enhanced confusion and speed
@@ -273,17 +282,27 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
     // Calculate percentage-based positions for better responsiveness
     const leftPositions = [25, 50, 75];
     
+    // Detect if we're running on mobile
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    
     // Base styles - absolute positioning for each cup
     const style: React.CSSProperties = {
       position: 'absolute',
       left: `${leftPositions[position]}%`,
       transform: 'translateX(-50%)',
       transition: gamePhase === 'playing' 
-        ? `all ${0.25 / speed}s cubic-bezier(0.4, 0, 0.2, 1)` 
+        ? `all ${0.3 / speed}s ease-out` // Simpler transition function for mobile
         : 'all 0.5s ease-in-out',
       zIndex: 5,
+      touchAction: 'manipulation', // Improves touch behavior
       ...(customStyles.cup || {})
     };
+    
+    // Adjust size for mobile
+    if (isMobile) {
+      style.width = '100px';
+      style.height = '140px';
+    }
     
     // When in starting phase and this is the cup over the ball, show it lifted
     if (gamePhase === 'starting' && index === ballPosition) {
@@ -302,6 +321,9 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
   }, [cupPositions, gamePhase, ballPosition, speed, customStyles]);
   
   // CSS for the cup game
+  // Detect if we're running on mobile
+  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+  
   const gameStyles = {
     container: {
       display: 'flex',
@@ -311,22 +333,24 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
       backgroundImage: 'linear-gradient(to bottom, #1a2435, #0a111c)',
       borderRadius: '12px',
       boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-      padding: '2rem',
+      padding: isMobileDevice ? '1rem' : '2rem',
       maxWidth: '600px',
       border: '1px solid #2a3445',
+      touchAction: 'manipulation', // Optimize for touch
       ...(customStyles.container || {})
     } as React.CSSProperties,
     gameArea: {
-      height: '350px',
+      height: isMobileDevice ? '280px' : '350px', // Reduced height for mobile
       width: '100%',
       position: 'relative',
       backgroundColor: '#101a27',
       backgroundImage: 'linear-gradient(to bottom, #15222f, #0c1520)',
       borderRadius: '12px',
       overflow: 'hidden',
-      marginBottom: '20px',
+      marginBottom: isMobileDevice ? '10px' : '20px',
       boxShadow: 'inset 0 0 30px rgba(0,0,0,0.5)',
       border: '1px solid #2a3445',
+      touchAction: 'manipulation', // Optimize for touch
       ...(customStyles.gameArea || {})
     } as React.CSSProperties,
     cupsContainer: {
@@ -359,15 +383,16 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
       transform: 'scale(1.05)',
     } as React.CSSProperties,
     ball: {
-      width: '60px',
-      height: '60px',
+      width: isMobileDevice ? '50px' : '60px',
+      height: isMobileDevice ? '50px' : '60px',
       position: 'absolute',
-      bottom: '60px',
+      bottom: isMobileDevice ? '40px' : '60px',
       zIndex: 5,
       transition: 'all 0.5s ease-in-out',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
+      touchAction: 'none', // Prevent additional touch events
       ...(customStyles.ball || {})
     } as React.CSSProperties,
     ballImage: {
@@ -439,7 +464,7 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
         {/* Sound button removed as per requirements */}
         
         <div style={gameStyles.cupsContainer}>
-          {/* Cups */}
+          {/* Cups - with enhanced touch/click handlers */}
           {[0, 1, 2].map((index) => (
             <div 
               key={index}
@@ -448,11 +473,28 @@ const EnhancedCupGameWithCustomImages = forwardRef<{ startGame: () => void }, Cu
                 ...getCupStyle(index)
               }}
               onClick={() => gamePhase === 'guessing' ? handleCupClick(index) : undefined}
+              onTouchStart={(e) => {
+                // Prevent default behavior to avoid scrolling or zooming
+                if (gamePhase === 'guessing') {
+                  e.preventDefault();
+                }
+              }}
+              onTouchEnd={(e) => {
+                // Handle touch end to trigger the cup click
+                if (gamePhase === 'guessing') {
+                  e.preventDefault();
+                  handleCupClick(index);
+                }
+              }}
+              role="button"
+              aria-label={`Cup ${index + 1}`}
             >
               <img 
                 src={cupImagePath} 
                 alt={`Cup ${index + 1}`} 
                 style={gameStyles.cupImage}
+                // Prevent dragging of the image which can interfere with touch events
+                onDragStart={(e) => e.preventDefault()}
               />
             </div>
           ))}
