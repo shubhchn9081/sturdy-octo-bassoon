@@ -59,6 +59,9 @@ export const insertBetSchema = createInsertSchema(bets).pick({
   gameId: true,
   amount: true,
   clientSeed: true,
+  serverSeed: true,
+  nonce: true,
+  outcome: true,
   multiplier: true,
   profit: true,
   completed: true,
@@ -67,6 +70,9 @@ export const insertBetSchema = createInsertSchema(bets).pick({
 // Client-side bet schema (omits userId which is added server-side from session)
 export const clientBetSchema = insertBetSchema.omit({ 
   userId: true,
+  serverSeed: true, // These are generated server-side
+  nonce: true,
+  outcome: true,
   multiplier: true, // These are calculated server-side
   profit: true,
   completed: true
