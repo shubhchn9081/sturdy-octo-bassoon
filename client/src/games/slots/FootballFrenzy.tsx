@@ -1,6 +1,5 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
-import EnhancedSlotGame from './EnhancedSlotGame';
 
 // Football Frenzy configuration
 const footballFrenzyConfig: SlotConfiguration = {
@@ -59,11 +58,7 @@ const customStyles = {
 
 const FootballFrenzy: React.FC = () => {
   return (
-    <EnhancedSlotGame
-      config={footballFrenzyConfig}
-      gameId={105}
-      themeId="football-frenzy"
-    />
+    <BaseSlotGame config={footballFrenzyConfig} gameId={105} customStyles={customStyles} />
   );
 };
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
-import EnhancedSlotGame from './EnhancedSlotGame';
 
 // Cosmic Spins configuration
 const cosmicSpinsConfig: SlotConfiguration = {
@@ -59,11 +58,7 @@ const customStyles = {
 
 const CosmicSpins: React.FC = () => {
   return (
-    <EnhancedSlotGame 
-      config={cosmicSpinsConfig} 
-      gameId={101} 
-      themeId="cosmic-spins" 
-    />
+    <BaseSlotGame config={cosmicSpinsConfig} gameId={101} customStyles={customStyles} />
   );
 };
 
