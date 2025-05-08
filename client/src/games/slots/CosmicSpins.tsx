@@ -1,40 +1,54 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
 
+// Image paths for Cosmic Spins symbols
+const rocketSymbol = '/images/games/slots/space/cosmic_spins_logo.png';
+const planetSymbol = '/images/games/slots/space/planet_purple.png';
+const diamondSymbol = '/images/games/slots/space/diamond_blue.png';
+const letterKSymbol = '/images/games/slots/space/letter_k_green.png';
+const moonSymbol = '/images/games/slots/space/moon_gray.png';
+const alienSymbol = '/images/games/slots/space/alien_green.png';
+const crystalSymbol = '/images/games/slots/space/crystal_purple.png';
+
 // Cosmic Spins configuration
 const cosmicSpinsConfig: SlotConfiguration = {
   name: "Cosmic Spins",
   theme: "space",
   description: "Embark on an interstellar adventure with Cosmic Spins, where astronomical wins await among the stars, planets, and cosmic wonders of the universe.",
-  symbols: ["🚀", "🪐", "🌎", "🌙", "☄️", "🛸", "👽", "⭐", "🌌", "🔭"],
+  symbols: [
+    rocketSymbol, 
+    planetSymbol, 
+    diamondSymbol, 
+    moonSymbol, 
+    letterKSymbol, 
+    alienSymbol, 
+    crystalSymbol
+  ],
   payouts: [
-    { combination: ["🚀", "🚀", "🚀"], multiplier: 10, description: "Rocket Launch - Highest Payout" },
-    { combination: ["🪐", "🪐", "🪐"], multiplier: 8, description: "Planetary Alignment" },
-    { combination: ["🌎", "🌎", "🌎"], multiplier: 7, description: "Earth Orbit" },
-    { combination: ["🌙", "🌙", "🌙"], multiplier: 6, description: "Lunar Landing" },
-    { combination: ["☄️", "☄️", "☄️"], multiplier: 5, description: "Comet Shower" },
-    { combination: ["🛸", "🛸", "🛸"], multiplier: 4, description: "UFO Sighting" },
-    { combination: ["👽", "👽", "👽"], multiplier: 4, description: "Alien Contact" },
-    { combination: ["⭐", "⭐", "⭐"], multiplier: 3, description: "Star Cluster" },
-    { combination: ["🌌", "🌌", "🌌"], multiplier: 3, description: "Nebula Discovery" },
-    { combination: ["🔭", "🔭", "🔭"], multiplier: 2, description: "Telescope Observation" }
+    { combination: [rocketSymbol, rocketSymbol, rocketSymbol], multiplier: 10, description: "Cosmic Spins - Highest Payout" },
+    { combination: [planetSymbol, planetSymbol, planetSymbol], multiplier: 8, description: "Planetary Alignment" },
+    { combination: [diamondSymbol, diamondSymbol, diamondSymbol], multiplier: 7, description: "Diamond Collection" },
+    { combination: [moonSymbol, moonSymbol, moonSymbol], multiplier: 6, description: "Lunar Landing" },
+    { combination: [letterKSymbol, letterKSymbol, letterKSymbol], multiplier: 5, description: "Triple K" },
+    { combination: [alienSymbol, alienSymbol, alienSymbol], multiplier: 4, description: "Alien Contact" },
+    { combination: [crystalSymbol, crystalSymbol, crystalSymbol], multiplier: 3, description: "Crystal Power" }
   ],
   specialSymbols: [
     { 
-      symbol: "🚀", 
+      symbol: rocketSymbol, 
       name: "Rocket", 
       description: "The highest paying symbol. Three rockets guarantee a cosmic-sized win!", 
       multiplier: 10 
     },
     { 
-      symbol: "⭐", 
-      name: "Star", 
+      symbol: diamondSymbol, 
+      name: "Diamond", 
       description: "The special bonus symbol. When appearing with any winning combination, it adds an extra 0.5x to your multiplier.", 
       multiplier: 0.5 
     }
   ],
   maxMultiplier: 50,
-  luckySymbol: "⭐",
+  luckySymbol: diamondSymbol,
   luckyMultiplier: 0.5,
   reelCount: 3
 };

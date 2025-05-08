@@ -1,40 +1,60 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
 
+// Image paths for Lucky Sevens symbols
+const luckySevenLogo = '/images/games/slots/classic/lucky_sevens_logo.png';
+const sevenTriple = '/images/games/slots/classic/seven_red_triple.png';
+const sevenSingle = '/images/games/slots/classic/seven_red_single.png';
+const cherry = '/images/games/slots/classic/cherry_red.png';
+const barSymbol = '/images/games/slots/classic/bar_symbol.png';
+const lemon = '/images/games/slots/classic/lemon_yellow.png';
+const horseshoe = '/images/games/slots/classic/horseshoe_gold.png';
+const clover = '/images/games/slots/classic/clover_four_leaf.png';
+const goldBar = '/images/games/slots/classic/gold_bar.png';
+const coinStack = '/images/games/slots/classic/coins_stack.png';
+
 // Lucky Sevens configuration
 const luckySevenConfig: SlotConfiguration = {
   name: "Lucky Sevens",
   theme: "classic",
   description: "A classic slot machine experience with a modern twist. The lucky number 7 could be your ticket to massive wins in this timeless game.",
-  symbols: ["7️⃣", "🍒", "🔔", "💰", "⭐", "🍇", "🍊", "🍋", "🍉", "♦️"],
+  symbols: [
+    sevenTriple,
+    sevenSingle,
+    cherry,
+    barSymbol,
+    lemon,
+    horseshoe,
+    clover,
+    goldBar,
+    coinStack
+  ],
   payouts: [
-    { combination: ["7️⃣", "7️⃣", "7️⃣"], multiplier: 10, description: "Lucky Sevens - Jackpot" },
-    { combination: ["🍒", "🍒", "🍒"], multiplier: 7, description: "Cherry Combo" },
-    { combination: ["🔔", "🔔", "🔔"], multiplier: 6, description: "Bell Rings" },
-    { combination: ["💰", "💰", "💰"], multiplier: 5, description: "Money Bags" },
-    { combination: ["⭐", "⭐", "⭐"], multiplier: 4, description: "Star Power" },
-    { combination: ["🍇", "🍇", "🍇"], multiplier: 3, description: "Grape Bunch" },
-    { combination: ["🍊", "🍊", "🍊"], multiplier: 3, description: "Orange Trio" },
-    { combination: ["🍋", "🍋", "🍋"], multiplier: 2, description: "Lemon Zest" },
-    { combination: ["🍉", "🍉", "🍉"], multiplier: 2, description: "Watermelon Slice" },
-    { combination: ["♦️", "♦️", "♦️"], multiplier: 2, description: "Diamond Suit" }
+    { combination: [sevenTriple, sevenTriple, sevenTriple], multiplier: 10, description: "Lucky Sevens - Jackpot" },
+    { combination: [cherry, cherry, cherry], multiplier: 7, description: "Cherry Combo" },
+    { combination: [barSymbol, barSymbol, barSymbol], multiplier: 6, description: "BAR Combo" },
+    { combination: [coinStack, coinStack, coinStack], multiplier: 5, description: "Money Bags" },
+    { combination: [horseshoe, horseshoe, horseshoe], multiplier: 4, description: "Lucky Horseshoe" },
+    { combination: [clover, clover, clover], multiplier: 3, description: "Four-Leaf Clover" },
+    { combination: [lemon, lemon, lemon], multiplier: 3, description: "Lemon Zest" },
+    { combination: [goldBar, goldBar, goldBar], multiplier: 2, description: "Gold Bars" }
   ],
   specialSymbols: [
     { 
-      symbol: "7️⃣", 
+      symbol: sevenTriple, 
       name: "Lucky Seven", 
       description: "The highest paying symbol. Three 7's bring the ultimate luck!", 
       multiplier: 10 
     },
     { 
-      symbol: "🔔", 
-      name: "Bell", 
-      description: "The special bonus symbol. When appearing with any winning combination, it rings in extra luck with a 0.5x multiplier boost.", 
+      symbol: horseshoe, 
+      name: "Horseshoe", 
+      description: "The special bonus symbol. When appearing with any winning combination, it brings extra luck with a 0.5x multiplier boost.", 
       multiplier: 0.5 
     }
   ],
   maxMultiplier: 50,
-  luckySymbol: "🔔",
+  luckySymbol: horseshoe,
   luckyMultiplier: 0.5,
   reelCount: 3
 };
