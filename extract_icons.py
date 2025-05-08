@@ -63,7 +63,7 @@ def extract_icons():
     # Extract and save icons
     for (row, col), (filename, theme) in icons_info.items():
         # Add padding to ensure we don't get partial neighboring icons
-        padding = int(icon_width * 0.2)  # 20% padding for better isolation
+        padding = int(icon_width * 0.25)  # 25% padding for better isolation
         left = col * icon_width + padding
         upper = row * icon_height + padding
         right = (col + 1) * icon_width - padding
@@ -74,6 +74,28 @@ def extract_icons():
         # Create transparent background
         if icon.mode != 'RGBA':
             icon = icon.convert('RGBA')
+            
+        # Apply additional processing to remove any partial neighboring icons
+        # by adding an alpha threshold mask - make pixels near edges more likely to be transparent
+        data = icon.getdata()
+        new_data = []
+        width, height = icon.size
+        for y in range(height):
+            for x in range(width):
+                idx = y * width + x
+                r, g, b, a = data[idx]
+                
+                # Check if near edge and not very prominent (semi-transparent or grayish)
+                edge_threshold = min(width, height) // 10
+                is_near_edge = (x < edge_threshold or x >= width - edge_threshold or 
+                               y < edge_threshold or y >= height - edge_threshold)
+                
+                is_not_prominent = (r + g + b) / 3 < 100 or a < 200
+                
+                if is_near_edge and is_not_prominent:
+                    new_data.append((r, g, b, 0))  # Make transparent
+                else:
+                    new_data.append((r, g, b, a))
         
         # Create a white background image
         background = Image.new('RGBA', icon.size, (255, 255, 255, 0))
@@ -136,7 +158,7 @@ def extract_icons():
     # Extract and save icons from image 2
     for (row, col), (filename, theme) in icons_info_2.items():
         # Add padding to ensure we don't get partial neighboring icons
-        padding = int(icon_width * 0.2)  # 20% padding for better isolation
+        padding = int(icon_width * 0.25)  # 25% padding for better isolation
         left = col * icon_width + padding
         upper = row * icon_height + padding
         right = (col + 1) * icon_width - padding
@@ -147,6 +169,30 @@ def extract_icons():
         # Create transparent background
         if icon.mode != 'RGBA':
             icon = icon.convert('RGBA')
+            
+        # Apply additional processing to remove any partial neighboring icons
+        # by adding an alpha threshold mask - make pixels near edges more likely to be transparent
+        data = icon.getdata()
+        new_data = []
+        width, height = icon.size
+        for y in range(height):
+            for x in range(width):
+                idx = y * width + x
+                r, g, b, a = data[idx]
+                
+                # Check if near edge and not very prominent (semi-transparent or grayish)
+                edge_threshold = min(width, height) // 10
+                is_near_edge = (x < edge_threshold or x >= width - edge_threshold or 
+                               y < edge_threshold or y >= height - edge_threshold)
+                
+                is_not_prominent = (r + g + b) / 3 < 100 or a < 200
+                
+                if is_near_edge and is_not_prominent:
+                    new_data.append((r, g, b, 0))  # Make transparent
+                else:
+                    new_data.append((r, g, b, a))
+        
+        icon.putdata(new_data)
         
         # Create a white background image
         background = Image.new('RGBA', icon.size, (255, 255, 255, 0))
@@ -211,7 +257,7 @@ def extract_icons():
         # Extract and save icons from image 3
         for (row, col), (filename, theme) in icons_info_3.items():
             # Add padding to ensure we don't get partial neighboring icons
-            padding = int(icon_width * 0.2)  # 20% padding for better isolation
+            padding = int(icon_width * 0.25)  # 25% padding for better isolation
             left = col * icon_width + padding
             upper = row * icon_height + padding
             right = (col + 1) * icon_width - padding
@@ -223,7 +269,7 @@ def extract_icons():
             if icon.mode != 'RGBA':
                 icon = icon.convert('RGBA')
             
-            # Create a mask for transparency (assuming black background)
+            # First make black background transparent
             data = icon.getdata()
             new_data = []
             for item in data:
@@ -232,6 +278,29 @@ def extract_icons():
                     new_data.append((0, 0, 0, 0))
                 else:
                     new_data.append(item)
+            
+            icon.putdata(new_data)
+            
+            # Apply edge transparency to remove any artifacts at the edges
+            data = icon.getdata()
+            new_data = []
+            width, height = icon.size
+            for y in range(height):
+                for x in range(width):
+                    idx = y * width + x
+                    r, g, b, a = data[idx]
+                    
+                    # Check if near edge and not very prominent
+                    edge_threshold = min(width, height) // 10
+                    is_near_edge = (x < edge_threshold or x >= width - edge_threshold or 
+                                   y < edge_threshold or y >= height - edge_threshold)
+                    
+                    is_not_prominent = (r + g + b) / 3 < 100 or a < 200
+                    
+                    if is_near_edge and is_not_prominent:
+                        new_data.append((r, g, b, 0))  # Make transparent
+                    else:
+                        new_data.append((r, g, b, a))
             
             icon.putdata(new_data)
             
