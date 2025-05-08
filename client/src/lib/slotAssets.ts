@@ -301,56 +301,56 @@ const footballFrenzyAssets: SlotThemeAsset = {
     { 
       id: 'football', 
       emoji: '⚽',
-      imageUrl: 'https://img.icons8.com/fluency/96/football2.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/1165/1165187.png', 
       name: 'Football', 
       value: 20 
     },
     { 
       id: 'trophy', 
       emoji: '🏆',
-      imageUrl: 'https://img.icons8.com/fluency/96/trophy.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3112/3112946.png', 
       name: 'Trophy', 
       value: 25 
     },
     { 
       id: 'whistle', 
       emoji: '🔔',
-      imageUrl: 'https://img.icons8.com/fluency/96/whistle.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2548/2548368.png', 
       name: 'Whistle', 
       value: 15 
     },
     { 
       id: 'jersey', 
       emoji: '👕',
-      imageUrl: 'https://img.icons8.com/fluency/96/t-shirt.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/5051/5051423.png', 
       name: 'Jersey', 
       value: 10 
     },
     { 
       id: 'stadium', 
       emoji: '🏟️',
-      imageUrl: 'https://img.icons8.com/fluency/96/stadium.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3969/3969789.png', 
       name: 'Stadium', 
       value: 15 
     },
     { 
       id: 'boots', 
       emoji: '👟',
-      imageUrl: 'https://img.icons8.com/fluency/96/sneakers.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/4163/4163555.png', 
       name: 'Boots', 
       value: 8 
     },
     { 
       id: 'goal', 
       emoji: '🥅',
-      imageUrl: 'https://img.icons8.com/fluency/96/goal-net.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/1099/1099922.png', 
       name: 'Goal', 
       value: 10 
     },
     { 
       id: 'gloves', 
       emoji: '🧤',
-      imageUrl: 'https://img.icons8.com/fluency/96/gloves.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2454/2454267.png', 
       name: 'Gloves', 
       value: 7 
     }
