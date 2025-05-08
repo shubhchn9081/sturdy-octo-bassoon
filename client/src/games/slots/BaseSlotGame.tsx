@@ -530,7 +530,10 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
               backdropFilter: 'blur(1px)',
             }}
           >
-            {symbol}
+            {renderSymbol 
+              ? renderSymbol(symbol, winningLines.includes(symbolIndex) && gameState === 'winning', symbol === luckySymbol)
+              : symbol
+            }
             
             {/* Shine effect on symbols */}
             <div 
