@@ -25,31 +25,30 @@ const luckySevenConfig: SlotConfiguration = {
     goldBarSymbol
   ],
   payouts: [
-    { combination: [sevenTriple, sevenTriple, sevenTriple], multiplier: 10, description: "Lucky Sevens - Jackpot" },
-    { combination: [cherry, cherry, cherry], multiplier: 7, description: "Cherry Combo" },
-    { combination: [barSymbol, barSymbol, barSymbol], multiplier: 6, description: "BAR Combo" },
-    { combination: [coinStack, coinStack, coinStack], multiplier: 5, description: "Money Bags" },
-    { combination: [horseshoe, horseshoe, horseshoe], multiplier: 4, description: "Lucky Horseshoe" },
-    { combination: [clover, clover, clover], multiplier: 3, description: "Four-Leaf Clover" },
-    { combination: [lemon, lemon, lemon], multiplier: 3, description: "Lemon Zest" },
-    { combination: [goldBar, goldBar, goldBar], multiplier: 2, description: "Gold Bars" }
+    { combination: [sevenRedTripleSymbol, sevenRedTripleSymbol, sevenRedTripleSymbol], multiplier: 10, description: "Lucky Sevens - Jackpot" },
+    { combination: [cherriesRedSymbol, cherriesRedSymbol, cherriesRedSymbol], multiplier: 7, description: "Cherry Combo" },
+    { combination: [goldBarSymbol, goldBarSymbol, goldBarSymbol], multiplier: 6, description: "Gold Bar Combo" },
+    { combination: [coinsStackSymbol, coinsStackSymbol, coinsStackSymbol], multiplier: 5, description: "Money Bags" },
+    { combination: [horseshoeGoldSymbol, horseshoeGoldSymbol, horseshoeGoldSymbol], multiplier: 4, description: "Lucky Horseshoe" },
+    { combination: [sevenRedSymbol, sevenRedSymbol, sevenRedSymbol], multiplier: 3, description: "Triple Sevens" },
+    { combination: [luckySevenSymbol, luckySevenSymbol, luckySevenSymbol], multiplier: 2, description: "Lucky Sevens" }
   ],
   specialSymbols: [
     { 
-      symbol: sevenTriple, 
+      symbol: sevenRedTripleSymbol, 
       name: "Lucky Seven", 
       description: "The highest paying symbol. Three 7's bring the ultimate luck!", 
       multiplier: 10 
     },
     { 
-      symbol: horseshoe, 
+      symbol: horseshoeGoldSymbol, 
       name: "Horseshoe", 
       description: "The special bonus symbol. When appearing with any winning combination, it brings extra luck with a 0.5x multiplier boost.", 
       multiplier: 0.5 
     }
   ],
   maxMultiplier: 50,
-  luckySymbol: horseshoe,
+  luckySymbol: horseshoeGoldSymbol,
   luckyMultiplier: 0.5,
   reelCount: 3
 };

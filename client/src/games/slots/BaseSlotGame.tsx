@@ -543,7 +543,7 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
             }}
           >
             {/* Check if symbol is a URL or emoji */}
-            {symbol.startsWith('/') ? (
+            {typeof symbol === 'string' && symbol.startsWith('/') ? (
               <img 
                 src={symbol} 
                 alt="Slot symbol" 

@@ -207,6 +207,7 @@ router.post('/spin', auth, async (req, res) => {
     
     // Calculate outcome based on random chance or forced outcome
     const symbols = getSymbolsForGame(gameId);
+    console.log('Slot game symbols:', symbols); // Debug log
     let reels: string[][] = [];
     let multiplier = 0;
     let winningLines: number[] = [];
