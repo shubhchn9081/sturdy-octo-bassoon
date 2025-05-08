@@ -45,6 +45,7 @@ interface BaseSlotGameProps {
   config: SlotConfiguration;
   gameId: number;
   customStyles?: CustomStyles;
+  renderSymbol?: (symbol: string, isWinning?: boolean, isLucky?: boolean) => React.ReactNode;
 }
 
 type GameState = 'idle' | 'spinning' | 'winning' | 'losing';
@@ -58,7 +59,7 @@ interface AutoPlaySettings {
   remainingSpins: number;
 }
 
-const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyles = {} }) => {
+const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyles = {}, renderSymbol }) => {
   const { toast } = useToast();
   const [betAmount, setBetAmount] = useState<number>(100);
   const [gameState, setGameState] = useState<GameState>('idle');
