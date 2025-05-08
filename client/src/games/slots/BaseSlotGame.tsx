@@ -547,9 +547,10 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
               <img 
                 src={symbol} 
                 alt="Slot symbol" 
-                className="h-full w-auto object-contain"
+                className="h-full w-auto object-contain max-h-[80%] mx-auto"
                 style={{
                   filter: symbol === luckySymbol ? 'drop-shadow(0 0 4px gold)' : 'none',
+                  padding: '6px'
                 }}
               />
             ) : (
@@ -1106,7 +1107,7 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
                           {payout.combination.map((symbol, i) => (
                             <span key={i} className="text-2xl">
                               {symbol.toString().startsWith('/') ? (
-                                <img src={symbol.toString()} alt="Slot symbol" className="h-8 w-auto object-contain" />
+                                <img src={symbol.toString()} alt="Slot symbol" className="h-10 w-auto object-contain mx-1 inline-block" style={{ padding: '2px' }} />
                               ) : (
                                 symbol
                               )}
@@ -1131,7 +1132,7 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
                         <div className="flex items-center gap-3">
                           <span className="text-3xl">
                             {special.symbol.toString().startsWith('/') ? (
-                              <img src={special.symbol.toString()} alt={special.name} className="h-10 w-auto object-contain" />
+                              <img src={special.symbol.toString()} alt={special.name} className="h-12 w-auto object-contain" style={{ padding: '3px' }} />
                             ) : (
                               special.symbol
                             )}

@@ -63,7 +63,7 @@ def extract_icons():
     # Extract and save icons
     for (row, col), (filename, theme) in icons_info.items():
         # Add padding to ensure we don't get partial neighboring icons
-        padding = int(icon_width * 0.1)  # 10% padding
+        padding = int(icon_width * 0.2)  # 20% padding for better isolation
         left = col * icon_width + padding
         upper = row * icon_height + padding
         right = (col + 1) * icon_width - padding
@@ -136,7 +136,7 @@ def extract_icons():
     # Extract and save icons from image 2
     for (row, col), (filename, theme) in icons_info_2.items():
         # Add padding to ensure we don't get partial neighboring icons
-        padding = int(icon_width * 0.1)  # 10% padding
+        padding = int(icon_width * 0.2)  # 20% padding for better isolation
         left = col * icon_width + padding
         upper = row * icon_height + padding
         right = (col + 1) * icon_width - padding
@@ -211,7 +211,7 @@ def extract_icons():
         # Extract and save icons from image 3
         for (row, col), (filename, theme) in icons_info_3.items():
             # Add padding to ensure we don't get partial neighboring icons
-            padding = int(icon_width * 0.1)  # 10% padding
+            padding = int(icon_width * 0.2)  # 20% padding for better isolation
             left = col * icon_width + padding
             upper = row * icon_height + padding
             right = (col + 1) * icon_width - padding
