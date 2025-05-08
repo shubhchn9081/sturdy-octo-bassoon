@@ -368,73 +368,73 @@ function getSymbolsForGame(gameId: number): string[] {
       ];
     case 102: // Temple Quest
       return [
-        '/images/games/slots/adventure/gem_red.png',
-        '/images/games/slots/adventure/ancient_jar.png',
-        '/images/games/slots/adventure/statue.png',
-        '/images/games/slots/adventure/trident.png',
-        '/images/games/slots/adventure/crown_gold.png',
-        '/images/games/slots/adventure/snake.png',
-        '/images/games/slots/adventure/sword.png'
+        '/images/games/slots/adventure/temple_quest_logo.png',
+        '/images/games/slots/adventure/mask_gold.png',
+        '/images/games/slots/adventure/letter_q_red.png',
+        '/images/games/slots/adventure/letter_j_blue.png',
+        '/images/games/slots/adventure/pyramid_gold.png',
+        '/images/games/slots/adventure/moai_head.png',
+        '/images/games/slots/adventure/gem_green.png'
       ];
     case 103: // Lucky Sevens
       return [
         '/images/games/slots/classic/lucky_seven.png',
-        '/images/games/slots/classic/cherries.png',
-        '/images/games/slots/classic/bell_gold.png',
-        '/images/games/slots/classic/money_bag.png',
-        '/images/games/slots/classic/star_gold.png',
-        '/images/games/slots/classic/grapes.png',
-        '/images/games/slots/classic/orange.png'
+        '/images/games/slots/classic/cherries_red.png',
+        '/images/games/slots/classic/horseshoe_gold.png',
+        '/images/games/slots/classic/coins_stack.png',
+        '/images/games/slots/classic/seven_red.png',
+        '/images/games/slots/classic/seven_red_triple.png',
+        '/images/games/slots/classic/gold_bar.png'
       ];
     case 104: // Dragon's Gold
       return [
         '/images/games/slots/fantasy/dragon_red.png',
-        '/images/games/slots/fantasy/fire.png',
-        '/images/games/slots/fantasy/sword_silver.png',
-        '/images/games/slots/fantasy/shield.png',
-        '/images/games/slots/fantasy/crown_jeweled.png',
-        '/images/games/slots/fantasy/gem_blue.png',
-        '/images/games/slots/fantasy/scroll.png'
+        '/images/games/slots/fantasy/dragon_gold.png',
+        '/images/games/slots/fantasy/coin_dragon.png',
+        '/images/games/slots/fantasy/mushroom_red.png',
+        '/images/games/slots/fantasy/dragon_red_face.png',
+        '/images/games/slots/fantasy/crystals_colorful.png',
+        '/images/games/slots/fantasy/diamond_blue.png'
       ];
     case 105: // Football Frenzy
       return [
-        '/images/games/slots/sports/football.png',
+        '/images/games/slots/sports/football_frenzy_logo.png',
+        '/images/games/slots/sports/football_ball.png',
+        '/images/games/slots/sports/trophy_cup.png',
+        '/images/games/slots/sports/jersey_green.png',
         '/images/games/slots/sports/trophy_gold.png',
-        '/images/games/slots/sports/football_boot.png',
-        '/images/games/slots/sports/goal.png',
-        '/images/games/slots/sports/stadium.png',
-        '/images/games/slots/sports/goalkeeper_gloves.png',
-        '/images/games/slots/sports/medal_gold.png'
+        '/images/games/slots/sports/gloves_goalkeeper.png',
+        '/images/games/slots/sports/wild_football.png'
       ];
     case 106: // Aztec Treasures
       return [
         '/images/games/slots/aztec/stone_face.png',
-        '/images/games/slots/aztec/aztec_vase.png',
-        '/images/games/slots/aztec/golden_trident.png',
-        '/images/games/slots/aztec/emerald_gem.png',
-        '/images/games/slots/aztec/exotic_bird.png',
-        '/images/games/slots/aztec/jaguar.png',
-        '/images/games/slots/aztec/sun_symbol.png'
+        '/images/games/slots/aztec/aztec_face.png',
+        '/images/games/slots/aztec/aztec_chief.png',
+        '/images/games/slots/aztec/pyramid.png',
+        '/images/games/slots/generic/letter_q_gold.png',
+        '/images/games/slots/generic/letter_k_blue.png',
+        '/images/games/slots/generic/bonus_plate.png'
       ];
     case 107: // Celestial Fortunes
       return [
-        '/images/games/slots/celestial/sun.png',
-        '/images/games/slots/celestial/moon.png',
-        '/images/games/slots/celestial/star_gold.png',
-        '/images/games/slots/celestial/sparkle_star.png',
-        '/images/games/slots/celestial/ringed_planet.png',
-        '/images/games/slots/celestial/galaxy_swirl.png',
-        '/images/games/slots/celestial/comet.png'
+        '/images/games/slots/celestial/sun_face.png',
+        '/images/games/slots/celestial/crescent_moon.png',
+        '/images/games/slots/space/moon_crater.png',
+        '/images/games/slots/space/planet_orange.png',
+        '/images/games/slots/space/wild_planet.png',
+        '/images/games/slots/space/meteor.png',
+        '/images/games/slots/generic/bonus_star.png'
       ];
     default:
       return [
-        '/images/games/slots/generic/slot_machine.png',
-        '/images/games/slots/generic/money_bag.png',
-        '/images/games/slots/generic/dice.png',
-        '/images/games/slots/generic/target.png',
-        '/images/games/slots/generic/game_controller.png',
-        '/images/games/slots/generic/circus_tent.png',
-        '/images/games/slots/generic/palette.png'
+        '/images/games/slots/generic/wild_red.png',
+        '/images/games/slots/generic/bonus_purple.png',
+        '/images/games/slots/generic/bonus_star.png',
+        '/images/games/slots/generic/letter_q_green.png',
+        '/images/games/slots/generic/letter_q_gold.png',
+        '/images/games/slots/generic/letter_k_blue.png',
+        '/images/games/slots/generic/number_10_gold.png'
       ];
   }
 }

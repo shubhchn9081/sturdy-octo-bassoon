@@ -2,16 +2,13 @@ import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
 
 // Image paths for Lucky Sevens symbols
-const luckySevenLogo = '/images/games/slots/classic/lucky_sevens_logo.png';
-const sevenTriple = '/images/games/slots/classic/seven_red_triple.png';
-const sevenSingle = '/images/games/slots/classic/seven_red_single.png';
-const cherry = '/images/games/slots/classic/cherry_red.png';
-const barSymbol = '/images/games/slots/classic/bar_symbol.png';
-const lemon = '/images/games/slots/classic/lemon_yellow.png';
-const horseshoe = '/images/games/slots/classic/horseshoe_gold.png';
-const clover = '/images/games/slots/classic/clover_four_leaf.png';
-const goldBar = '/images/games/slots/classic/gold_bar.png';
-const coinStack = '/images/games/slots/classic/coins_stack.png';
+const luckySevenSymbol = '/images/games/slots/classic/lucky_seven.png';
+const cherriesRedSymbol = '/images/games/slots/classic/cherries_red.png';
+const horseshoeGoldSymbol = '/images/games/slots/classic/horseshoe_gold.png';
+const coinsStackSymbol = '/images/games/slots/classic/coins_stack.png';
+const sevenRedSymbol = '/images/games/slots/classic/seven_red.png';
+const sevenRedTripleSymbol = '/images/games/slots/classic/seven_red_triple.png';
+const goldBarSymbol = '/images/games/slots/classic/gold_bar.png';
 
 // Lucky Sevens configuration
 const luckySevenConfig: SlotConfiguration = {
@@ -19,15 +16,13 @@ const luckySevenConfig: SlotConfiguration = {
   theme: "classic",
   description: "A classic slot machine experience with a modern twist. The lucky number 7 could be your ticket to massive wins in this timeless game.",
   symbols: [
-    sevenTriple,
-    sevenSingle,
-    cherry,
-    barSymbol,
-    lemon,
-    horseshoe,
-    clover,
-    goldBar,
-    coinStack
+    luckySevenSymbol,
+    cherriesRedSymbol,
+    horseshoeGoldSymbol,
+    coinsStackSymbol,
+    sevenRedSymbol,
+    sevenRedTripleSymbol,
+    goldBarSymbol
   ],
   payouts: [
     { combination: [sevenTriple, sevenTriple, sevenTriple], multiplier: 10, description: "Lucky Sevens - Jackpot" },
