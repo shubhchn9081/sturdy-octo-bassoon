@@ -517,19 +517,32 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
           <div 
             key={symbolIndex}
             className={`
-              flex items-center justify-center text-4xl p-2 my-1 h-20
+              flex items-center justify-center p-2 my-1 h-20
               transition-all duration-200
               ${winningLines.includes(symbolIndex) && gameState === 'winning' ? 'bg-yellow-500/30 winning-symbol' : 'hover:bg-slate-700/30'}
-              ${symbol === luckySymbol ? 'text-yellow-400 text-shadow-glow' : ''}
+              ${symbol === luckySymbol ? 'shadow-glow' : ''}
             `}
             style={{
-              textShadow: symbol === luckySymbol ? '0 0 10px rgba(255,215,0,0.8)' : 'none',
               transform: gameState === 'spinning' ? 'scale(0.95)' : 'scale(1)',
               borderRadius: '0.5rem',
               backdropFilter: 'blur(1px)',
             }}
           >
-            {symbol}
+            {/* Check if symbol is a URL or emoji */}
+            {symbol.startsWith('/') ? (
+              <img 
+                src={symbol} 
+                alt="Slot symbol" 
+                className="h-full w-auto object-contain"
+                style={{
+                  filter: symbol === luckySymbol ? 'drop-shadow(0 0 4px gold)' : 'none',
+                }}
+              />
+            ) : (
+              <span className="text-4xl">
+                {symbol}
+              </span>
+            )}
             
             {/* Shine effect on symbols */}
             <div 

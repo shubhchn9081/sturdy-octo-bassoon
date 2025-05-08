@@ -1,40 +1,51 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
 
+// Image paths for Dragons Gold symbols
+const dragonsGoldLogo = '/images/games/slots/fantasy/dragons_gold_logo.png';
+const dragonRed = '/images/games/slots/fantasy/dragon_red.png';
+const dragonGold = '/images/games/slots/fantasy/dragon_gold.png';
+const dragonRedFace = '/images/games/slots/fantasy/dragon_red_face.png';
+const coinDragon = '/images/games/slots/fantasy/coin_dragon.png';
+const mushroomRed = '/images/games/slots/fantasy/mushroom_red.png';
+
 // Dragons Gold configuration
 const dragonsGoldConfig: SlotConfiguration = {
   name: "Dragon's Gold",
   theme: "fantasy",
   description: "Venture into the dragon's lair and spin to win the legendary treasure. Match mystical symbols and awaken the dragon for massive rewards.",
-  symbols: ["🐉", "🔥", "🗡️", "🛡️", "👑", "💎", "📜", "🧙", "🏰", "🧪"],
+  symbols: [
+    dragonsGoldLogo,
+    dragonRed,
+    dragonGold,
+    dragonRedFace,
+    coinDragon,
+    mushroomRed
+  ],
   payouts: [
-    { combination: ["🐉", "🐉", "🐉"], multiplier: 10, description: "Dragon's Wrath - Jackpot" },
-    { combination: ["🔥", "🔥", "🔥"], multiplier: 8, description: "Dragon Fire" },
-    { combination: ["🗡️", "🗡️", "🗡️"], multiplier: 7, description: "Hero's Blade" },
-    { combination: ["🛡️", "🛡️", "🛡️"], multiplier: 6, description: "Knight's Shield" },
-    { combination: ["👑", "👑", "👑"], multiplier: 5, description: "Royal Crown" },
-    { combination: ["💎", "💎", "💎"], multiplier: 4, description: "Precious Gems" },
-    { combination: ["📜", "📜", "📜"], multiplier: 3, description: "Ancient Scroll" },
-    { combination: ["🧙", "🧙", "🧙"], multiplier: 3, description: "Wizard's Magic" },
-    { combination: ["🏰", "🏰", "🏰"], multiplier: 2, description: "Mighty Castle" },
-    { combination: ["🧪", "🧪", "🧪"], multiplier: 2, description: "Magic Potion" }
+    { combination: [dragonsGoldLogo, dragonsGoldLogo, dragonsGoldLogo], multiplier: 10, description: "Dragon's Gold - Jackpot" },
+    { combination: [dragonRed, dragonRed, dragonRed], multiplier: 8, description: "Red Dragon" },
+    { combination: [dragonGold, dragonGold, dragonGold], multiplier: 7, description: "Gold Dragon" },
+    { combination: [dragonRedFace, dragonRedFace, dragonRedFace], multiplier: 6, description: "Dragon Face" },
+    { combination: [coinDragon, coinDragon, coinDragon], multiplier: 5, description: "Dragon Coin" },
+    { combination: [mushroomRed, mushroomRed, mushroomRed], multiplier: 4, description: "Magic Mushroom" }
   ],
   specialSymbols: [
     { 
-      symbol: "🐉", 
-      name: "Dragon", 
+      symbol: dragonRed, 
+      name: "Red Dragon", 
       description: "The highest paying symbol. Three dragons unleash the ultimate power!", 
       multiplier: 10 
     },
     { 
-      symbol: "💎", 
-      name: "Gem", 
+      symbol: coinDragon, 
+      name: "Dragon Coin", 
       description: "The special bonus symbol. When appearing with any winning combination, it adds an extra 0.5x to your multiplier.", 
       multiplier: 0.5 
     }
   ],
   maxMultiplier: 50,
-  luckySymbol: "💎",
+  luckySymbol: coinDragon,
   luckyMultiplier: 0.5,
   reelCount: 3
 };

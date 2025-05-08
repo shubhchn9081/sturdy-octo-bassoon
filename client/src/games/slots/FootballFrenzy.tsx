@@ -1,40 +1,62 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
 
+// Image paths for Football Frenzy symbols
+const footballFrenzyLogo = '/images/games/slots/sports/football_frenzy_logo.png';
+const footballBall = '/images/games/slots/sports/football_ball.png';
+const trophyGold = '/images/games/slots/sports/trophy_gold.png';
+const trophyCup = '/images/games/slots/sports/trophy_cup.png';
+const bootOrange = '/images/games/slots/sports/boot_orange.png';
+const jerseyGreen = '/images/games/slots/sports/jersey_green.png';
+const glovesGoalkeeper = '/images/games/slots/sports/gloves_goalkeeper.png';
+const wildFootball = '/images/games/slots/sports/wild_football.png';
+const letterARed = '/images/games/slots/sports/letter_a_red.png';
+const letterKBlueBoot = '/images/games/slots/sports/letter_k_blue_boot.png';
+
 // Football Frenzy configuration
 const footballFrenzyConfig: SlotConfiguration = {
   name: "Football Frenzy",
   theme: "sports",
   description: "Experience the thrill of the beautiful game with Football Frenzy slots. Match football symbols to score big wins and championship rewards!",
-  symbols: ["⚽", "🏆", "👟", "🥅", "🏟️", "🧤", "🥇", "🎽", "🚩", "📣"],
+  symbols: [
+    footballFrenzyLogo,
+    footballBall,
+    trophyGold,
+    trophyCup,
+    bootOrange,
+    jerseyGreen,
+    glovesGoalkeeper,
+    wildFootball,
+    letterARed,
+    letterKBlueBoot
+  ],
   payouts: [
-    { combination: ["⚽", "⚽", "⚽"], multiplier: 10, description: "Hat-Trick - Jackpot" },
-    { combination: ["🏆", "🏆", "🏆"], multiplier: 8, description: "Championship Trophy" },
-    { combination: ["👟", "👟", "👟"], multiplier: 7, description: "Golden Boots" },
-    { combination: ["🥅", "🥅", "🥅"], multiplier: 6, description: "Goal Post" },
-    { combination: ["🏟️", "🏟️", "🏟️"], multiplier: 5, description: "Stadium Roar" },
-    { combination: ["🧤", "🧤", "🧤"], multiplier: 4, description: "Goalkeeper Gloves" },
-    { combination: ["🥇", "🥇", "🥇"], multiplier: 3, description: "Gold Medal" },
-    { combination: ["🎽", "🎽", "🎽"], multiplier: 3, description: "Team Jersey" },
-    { combination: ["🚩", "🚩", "🚩"], multiplier: 2, description: "Corner Flag" },
-    { combination: ["📣", "📣", "📣"], multiplier: 2, description: "Fan Cheer" }
+    { combination: [footballBall, footballBall, footballBall], multiplier: 10, description: "Hat-Trick - Jackpot" },
+    { combination: [trophyGold, trophyGold, trophyGold], multiplier: 8, description: "Championship Trophy" },
+    { combination: [bootOrange, bootOrange, bootOrange], multiplier: 7, description: "Football Boots" },
+    { combination: [jerseyGreen, jerseyGreen, jerseyGreen], multiplier: 6, description: "Team Jersey" },
+    { combination: [glovesGoalkeeper, glovesGoalkeeper, glovesGoalkeeper], multiplier: 5, description: "Goalkeeper Gloves" },
+    { combination: [trophyCup, trophyCup, trophyCup], multiplier: 4, description: "Trophy Cup" },
+    { combination: [wildFootball, wildFootball, wildFootball], multiplier: 4, description: "Wild Football" },
+    { combination: [letterARed, letterARed, letterARed], multiplier: 3, description: "Red Letter A" },
+    { combination: [letterKBlueBoot, letterKBlueBoot, letterKBlueBoot], multiplier: 2, description: "Blue Letter K Boot" }
   ],
   specialSymbols: [
     { 
-      symbol: "⚽", 
+      symbol: footballBall, 
       name: "Football", 
       description: "The highest paying symbol. Three footballs score the ultimate goal!", 
       multiplier: 10 
     },
     { 
-      symbol: "🏆", 
+      symbol: trophyGold, 
       name: "Trophy", 
       description: "The special bonus symbol. When appearing with any winning combination, it adds an extra 0.5x to your multiplier.", 
       multiplier: 0.5 
     }
   ],
   maxMultiplier: 50,
-  luckySymbol: "🏆",
+  luckySymbol: trophyGold,
   luckyMultiplier: 0.5,
   reelCount: 3
 };
