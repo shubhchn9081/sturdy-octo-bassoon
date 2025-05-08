@@ -48,6 +48,8 @@ const themes = [
   { id: 'fantasy', name: 'Fantasy', icon: <Castle size={18} /> },
   { id: 'sports', name: 'Sports', icon: <Trophy size={18} /> },
   { id: 'classic', name: 'Classic', icon: <Crown size={18} /> },
+  { id: 'aztec', name: 'Aztec', icon: <Mountain size={18} /> },
+  { id: 'celestial', name: 'Celestial', icon: <Sparkles size={18} /> },
   { id: 'seasonal', name: 'Seasonal', icon: <Sparkles size={18} /> }
 ];
 
@@ -84,7 +86,9 @@ const SlotCard: React.FC<{ game: SlotGame }> = ({ game }) => {
                  game.theme === 'adventure' ? '🏺' : 
                  game.theme === 'fantasy' ? '🐉' : 
                  game.theme === 'classic' ? '7️⃣' : 
-                 game.theme === 'sports' ? '⚽' : '🎰'}
+                 game.theme === 'sports' ? '⚽' : 
+                 game.theme === 'aztec' ? '🗿' :
+                 game.theme === 'celestial' ? '☀️' : '🎰'}
               </div>
             </div>
           )}
@@ -164,7 +168,9 @@ const SlotListCard: React.FC<{ game: SlotGame }> = ({ game }) => {
              game.theme === 'adventure' ? '🏺' : 
              game.theme === 'fantasy' ? '🐉' : 
              game.theme === 'classic' ? '7️⃣' : 
-             game.theme === 'sports' ? '⚽' : '🎰'}
+             game.theme === 'sports' ? '⚽' :
+             game.theme === 'aztec' ? '🗿' :
+             game.theme === 'celestial' ? '☀️' : '🎰'}
           </div>
         </div>
         

@@ -77,6 +77,34 @@ const slotGames = [
     minBet: 100,
     maxBet: 10000,
     maxMultiplier: 50
+  },
+  {
+    id: 106,
+    name: "Aztec Treasures",
+    slug: "aztec-treasures",
+    type: "Slot Machine",
+    theme: "aztec",
+    description: "Uncover the lost treasures of an ancient Aztec civilization in this mystical slot adventure. Match sacred symbols to reveal fortunes beyond imagination!",
+    imageUrl: null,
+    rtp: 96.9,
+    activePlayers: 1823,
+    minBet: 100,
+    maxBet: 10000,
+    maxMultiplier: 60
+  },
+  {
+    id: 107,
+    name: "Celestial Fortunes",
+    slug: "celestial-fortunes",
+    type: "Slot Machine",
+    theme: "celestial",
+    description: "Journey through the cosmos in search of celestial treasures. Align the sun, moon, and stars to unlock astronomical payouts and stellar rewards!",
+    imageUrl: null,
+    rtp: 96.3,
+    activePlayers: 1942,
+    minBet: 100,
+    maxBet: 10000,
+    maxMultiplier: 50
   }
 ];
 
@@ -338,6 +366,10 @@ function getSymbolsForGame(gameId: number): string[] {
       return ["🐉", "🔥", "🗡️", "🛡️", "👑", "💎", "📜", "🧙", "🏰", "🧪"];
     case 105: // Football Frenzy
       return ["⚽", "🏆", "👟", "🥅", "🏟️", "🧤", "🥇", "🎽", "🚩", "📣"];
+    case 106: // Aztec Treasures
+      return ["🗿", "🏺", "🔱", "💎", "🦜", "🐆", "🌞", "🌵", "🏯", "🛕"];
+    case 107: // Celestial Fortunes
+      return ["☀️", "🌙", "⭐", "🌟", "🪐", "🌌", "✨", "☄️", "🌠", "🔮"];
     default:
       return ["🎰", "💰", "🎲", "🎯", "🎮", "🎪", "🎨", "🎭", "🎬", "🎼"];
   }

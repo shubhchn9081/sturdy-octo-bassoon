@@ -17,6 +17,8 @@ const TempleQuest = lazy(() => import('@/games/slots/TempleQuest'));
 const LuckySevens = lazy(() => import('@/games/slots/LuckySevens'));
 const DragonsGold = lazy(() => import('@/games/slots/DragonsGold'));
 const FootballFrenzy = lazy(() => import('@/games/slots/FootballFrenzy'));
+const AztecTreasures = lazy(() => import('@/games/slots/AztecTreasures'));
+const CelestialFortunes = lazy(() => import('@/games/slots/CelestialFortunes'));
 
 // Map of game slugs to components
 const gameComponentMap: Record<string, React.ComponentType<any>> = {
@@ -24,7 +26,9 @@ const gameComponentMap: Record<string, React.ComponentType<any>> = {
   'temple-quest': TempleQuest,
   'lucky-sevens': LuckySevens,
   'dragons-gold': DragonsGold,
-  'football-frenzy': FootballFrenzy
+  'football-frenzy': FootballFrenzy,
+  'aztec-treasures': AztecTreasures,
+  'celestial-fortunes': CelestialFortunes
 };
 
 // Map of slug to gameId to match API expectations
@@ -33,7 +37,9 @@ const gameIdMap: Record<string, number> = {
   'temple-quest': 102,
   'lucky-sevens': 103,
   'dragons-gold': 104,
-  'football-frenzy': 105
+  'football-frenzy': 105,
+  'aztec-treasures': 106,
+  'celestial-fortunes': 107
 };
 
 const SlotGamePage: React.FC = () => {
