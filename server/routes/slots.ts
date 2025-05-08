@@ -357,21 +357,85 @@ router.get('/history/:gameId', auth, async (req, res) => {
 function getSymbolsForGame(gameId: number): string[] {
   switch (gameId) {
     case 101: // Cosmic Spins
-      return ["🚀", "🪐", "🌎", "🌙", "☄️", "🛸", "👽", "⭐", "🌌", "🔭"];
+      return [
+        '/images/games/slots/space/cosmic_spins_logo.png',
+        '/images/games/slots/space/planet_purple.png',
+        '/images/games/slots/space/diamond_blue.png',
+        '/images/games/slots/space/moon_gray.png',
+        '/images/games/slots/space/letter_k_green.png',
+        '/images/games/slots/space/alien_green.png',
+        '/images/games/slots/space/crystal_purple.png'
+      ];
     case 102: // Temple Quest
-      return ["💎", "🏺", "🗿", "🔱", "👑", "🐍", "🗡️", "🧭", "🔥", "🪙"];
+      return [
+        '/images/games/slots/adventure/gem_red.png',
+        '/images/games/slots/adventure/ancient_jar.png',
+        '/images/games/slots/adventure/statue.png',
+        '/images/games/slots/adventure/trident.png',
+        '/images/games/slots/adventure/crown_gold.png',
+        '/images/games/slots/adventure/snake.png',
+        '/images/games/slots/adventure/sword.png'
+      ];
     case 103: // Lucky Sevens
-      return ["7️⃣", "🍒", "🔔", "💰", "⭐", "🍇", "🍊", "🍋", "🍉", "♦️"];
+      return [
+        '/images/games/slots/classic/lucky_seven.png',
+        '/images/games/slots/classic/cherries.png',
+        '/images/games/slots/classic/bell_gold.png',
+        '/images/games/slots/classic/money_bag.png',
+        '/images/games/slots/classic/star_gold.png',
+        '/images/games/slots/classic/grapes.png',
+        '/images/games/slots/classic/orange.png'
+      ];
     case 104: // Dragon's Gold
-      return ["🐉", "🔥", "🗡️", "🛡️", "👑", "💎", "📜", "🧙", "🏰", "🧪"];
+      return [
+        '/images/games/slots/fantasy/dragon_red.png',
+        '/images/games/slots/fantasy/fire.png',
+        '/images/games/slots/fantasy/sword_silver.png',
+        '/images/games/slots/fantasy/shield.png',
+        '/images/games/slots/fantasy/crown_jeweled.png',
+        '/images/games/slots/fantasy/gem_blue.png',
+        '/images/games/slots/fantasy/scroll.png'
+      ];
     case 105: // Football Frenzy
-      return ["⚽", "🏆", "👟", "🥅", "🏟️", "🧤", "🥇", "🎽", "🚩", "📣"];
+      return [
+        '/images/games/slots/sports/football.png',
+        '/images/games/slots/sports/trophy_gold.png',
+        '/images/games/slots/sports/football_boot.png',
+        '/images/games/slots/sports/goal.png',
+        '/images/games/slots/sports/stadium.png',
+        '/images/games/slots/sports/goalkeeper_gloves.png',
+        '/images/games/slots/sports/medal_gold.png'
+      ];
     case 106: // Aztec Treasures
-      return ["🗿", "🏺", "🔱", "💎", "🦜", "🐆", "🌞", "🌵", "🏯", "🛕"];
+      return [
+        '/images/games/slots/aztec/stone_face.png',
+        '/images/games/slots/aztec/aztec_vase.png',
+        '/images/games/slots/aztec/golden_trident.png',
+        '/images/games/slots/aztec/emerald_gem.png',
+        '/images/games/slots/aztec/exotic_bird.png',
+        '/images/games/slots/aztec/jaguar.png',
+        '/images/games/slots/aztec/sun_symbol.png'
+      ];
     case 107: // Celestial Fortunes
-      return ["☀️", "🌙", "⭐", "🌟", "🪐", "🌌", "✨", "☄️", "🌠", "🔮"];
+      return [
+        '/images/games/slots/celestial/sun.png',
+        '/images/games/slots/celestial/moon.png',
+        '/images/games/slots/celestial/star_gold.png',
+        '/images/games/slots/celestial/sparkle_star.png',
+        '/images/games/slots/celestial/ringed_planet.png',
+        '/images/games/slots/celestial/galaxy_swirl.png',
+        '/images/games/slots/celestial/comet.png'
+      ];
     default:
-      return ["🎰", "💰", "🎲", "🎯", "🎮", "🎪", "🎨", "🎭", "🎬", "🎼"];
+      return [
+        '/images/games/slots/generic/slot_machine.png',
+        '/images/games/slots/generic/money_bag.png',
+        '/images/games/slots/generic/dice.png',
+        '/images/games/slots/generic/target.png',
+        '/images/games/slots/generic/game_controller.png',
+        '/images/games/slots/generic/circus_tent.png',
+        '/images/games/slots/generic/palette.png'
+      ];
   }
 }
 

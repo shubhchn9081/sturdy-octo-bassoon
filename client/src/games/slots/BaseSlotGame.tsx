@@ -945,7 +945,11 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
                 {symbol === luckySymbol && (
                   <div className="absolute inset-0 bg-blue-500/10 animate-pulse" style={{animationDuration: '2s'}} />
                 )}
-                {symbol}
+                {symbol.startsWith('/') ? (
+                  <img src={symbol} alt="Slot symbol" className="h-10 w-auto object-contain" />
+                ) : (
+                  symbol
+                )}
               </button>
             ))}
           </div>
