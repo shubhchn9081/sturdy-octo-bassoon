@@ -9,6 +9,8 @@ def extract_icons():
     os.makedirs("client/public/images/games/slots/sports", exist_ok=True)
     os.makedirs("client/public/images/games/slots/adventure", exist_ok=True)
     os.makedirs("client/public/images/games/slots/generic", exist_ok=True)
+    os.makedirs("client/public/images/games/slots/aztec", exist_ok=True)
+    os.makedirs("client/public/images/games/slots/celestial", exist_ok=True)
     
     # Image 1 - Main slot icons
     img1_path = "attached_assets/ChatGPT Image May 8, 2025, 07_59_38 PM.png"
@@ -129,6 +131,89 @@ def extract_icons():
         output_path = f"client/public/images/games/slots/{theme}/{filename}"
         icon.save(output_path, format="PNG")
         print(f"Saved {output_path}")
+    
+    # Image 3 - Aztec and Celestial themed icons
+    img3_path = "attached_assets/ChatGPT Image May 8, 2025, 08_08_57 PM.png"
+    
+    if os.path.exists(img3_path):
+        img3 = Image.open(img3_path)
+        
+        # Image dimensions and grid info (same as previous images)
+        width, height = img3.size
+        rows, cols = 5, 5
+        icon_width = width // cols
+        icon_height = height // rows
+        
+        # Dictionary to store icon info for image 3
+        icons_info_3 = {
+            # Row 1
+            (0, 0): ("moon_crater.png", "space"),
+            (0, 1): ("planet_orange.png", "space"),
+            (0, 2): ("crystals_colorful.png", "fantasy"),
+            (0, 3): ("sun_face.png", "celestial"),
+            (0, 4): ("crescent_moon.png", "celestial"),
+            
+            # Row 2
+            (1, 0): ("wild_planet.png", "space"),
+            (1, 1): ("meteor.png", "space"),
+            (1, 2): ("emerald.png", "fantasy"),
+            (1, 3): ("aztec_face.png", "aztec"),
+            (1, 4): ("roman_helmet.png", "adventure"),
+            
+            # Row 3
+            (2, 0): ("aztec_chief.png", "aztec"),
+            (2, 1): ("bonus_plate.png", "generic"),
+            (2, 2): ("letter_q_green.png", "generic"),
+            (2, 3): ("letter_q_gold.png", "generic"),
+            (2, 4): ("letter_k_blue.png", "generic"),
+            
+            # Row 4
+            (3, 0): ("diamond_blue.png", "fantasy"),
+            (3, 1): ("pyramid.png", "aztec"),
+            (3, 2): ("stone_face.png", "aztec"),
+            (3, 3): ("coins_stack_gold.png", "classic"),
+            (3, 4): ("number_10_gold.png", "generic"),
+            
+            # Row 5
+            (4, 0): ("coins_small.png", "classic"),
+            (4, 1): ("number_5_gold.png", "generic"),
+            (4, 2): ("coins_medium.png", "classic"),
+            (4, 3): ("lucky_seven.png", "classic"),
+            (4, 4): ("seven_red.png", "classic"),
+        }
+        
+        # Extract and save icons from image 3
+        for (row, col), (filename, theme) in icons_info_3.items():
+            left = col * icon_width
+            upper = row * icon_height
+            right = left + icon_width
+            lower = upper + icon_height
+            
+            icon = img3.crop((left, upper, right, lower))
+            
+            # Create a transparent background by replacing black
+            if icon.mode != 'RGBA':
+                icon = icon.convert('RGBA')
+            
+            # Create a mask for transparency (assuming black background)
+            data = icon.getdata()
+            new_data = []
+            for item in data:
+                # If pixel is very dark (close to black), make it transparent
+                if item[0] < 20 and item[1] < 20 and item[2] < 20:
+                    new_data.append((0, 0, 0, 0))
+                else:
+                    new_data.append(item)
+            
+            icon.putdata(new_data)
+            
+            output_path = f"client/public/images/games/slots/{theme}/{filename}"
+            icon.save(output_path, format="PNG")
+            print(f"Saved {output_path}")
+        
+        print("Aztec and Celestial icons processed successfully!")
+    else:
+        print(f"Warning: Could not find {img3_path}")
     
     print("All icons extracted and saved successfully!")
 

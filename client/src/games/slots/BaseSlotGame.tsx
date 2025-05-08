@@ -152,8 +152,22 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
       symbolsContainer.innerHTML = '';
       virtualSymbols.forEach(symbol => {
         const symbolEl = document.createElement('div');
-        symbolEl.className = `flex items-center justify-center text-4xl p-2 my-1 h-20 transition-all transform hover:scale-110`;
-        symbolEl.textContent = symbol;
+        symbolEl.className = `flex items-center justify-center p-2 my-1 h-20 transition-all transform hover:scale-110`;
+        
+        // Check if the symbol is a path or emoji
+        if (symbol.startsWith('/')) {
+          // Create an image element for path-based symbols
+          const imgEl = document.createElement('img');
+          imgEl.src = symbol;
+          imgEl.alt = 'Slot symbol';
+          imgEl.className = 'h-full w-auto object-contain';
+          symbolEl.appendChild(imgEl);
+        } else {
+          // For text/emoji symbols
+          symbolEl.textContent = symbol;
+          symbolEl.style.fontSize = '2.25rem'; // text-4xl equivalent
+        }
+        
         symbolsContainer.appendChild(symbolEl);
       });
       
