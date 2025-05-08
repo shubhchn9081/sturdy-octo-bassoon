@@ -169,56 +169,56 @@ const luckySevenAssets: SlotThemeAsset = {
     { 
       id: 'seven', 
       emoji: '7️⃣',
-      imageUrl: 'https://img.icons8.com/fluency/96/7.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2451/2451754.png', 
       name: 'Seven', 
       value: 25 
     },
     { 
       id: 'cherry', 
       emoji: '🍒',
-      imageUrl: 'https://img.icons8.com/fluency/96/cherry.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/1141/1141061.png', 
       name: 'Cherry', 
       value: 10 
     },
     { 
       id: 'bell', 
       emoji: '🔔',
-      imageUrl: 'https://img.icons8.com/fluency/96/bell.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3984/3984550.png', 
       name: 'Bell', 
       value: 15 
     },
     { 
       id: 'bar', 
       emoji: '📊',
-      imageUrl: 'https://img.icons8.com/fluency/96/bar-chart.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/138/138528.png', 
       name: 'Bar', 
       value: 20 
     },
     { 
       id: 'diamond', 
       emoji: '💎',
-      imageUrl: 'https://img.icons8.com/fluency/96/diamond.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/1170/1170729.png', 
       name: 'Diamond', 
       value: 25 
     },
     { 
       id: 'horseshoe', 
       emoji: '🧲',
-      imageUrl: 'https://img.icons8.com/fluency/96/horseshoe.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/806/806651.png', 
       name: 'Horseshoe', 
       value: 15 
     },
     { 
       id: 'clover', 
       emoji: '🍀',
-      imageUrl: 'https://img.icons8.com/fluency/96/clover.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/362/362466.png', 
       name: 'Clover', 
       value: 10 
     },
     { 
       id: 'crown', 
       emoji: '👑',
-      imageUrl: 'https://img.icons8.com/fluency/96/crown.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/6941/6941697.png', 
       name: 'Crown', 
       value: 20 
     }
@@ -235,56 +235,56 @@ const dragonsGoldAssets: SlotThemeAsset = {
     { 
       id: 'dragon', 
       emoji: '🐉',
-      imageUrl: 'https://img.icons8.com/fluency/96/dragon.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2267/2267873.png', 
       name: 'Dragon', 
       value: 25 
     },
     { 
       id: 'gold', 
       emoji: '🏆',
-      imageUrl: 'https://img.icons8.com/fluency/96/treasure-chest.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3414/3414859.png', 
       name: 'Gold', 
       value: 20 
     },
     { 
       id: 'sword', 
       emoji: '🗡️',
-      imageUrl: 'https://img.icons8.com/fluency/96/sword.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2976/2976510.png', 
       name: 'Sword', 
       value: 15 
     },
     { 
       id: 'wizard', 
       emoji: '🧙‍♂️',
-      imageUrl: 'https://img.icons8.com/fluency/96/wizard.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/4370/4370072.png', 
       name: 'Wizard', 
       value: 15 
     },
     { 
       id: 'castle', 
       emoji: '🏰',
-      imageUrl: 'https://img.icons8.com/fluency/96/fantasy.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/5172/5172585.png', 
       name: 'Castle', 
       value: 10 
     },
     { 
       id: 'potion', 
       emoji: '🧪',
-      imageUrl: 'https://img.icons8.com/fluency/96/potion.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/5777/5777350.png', 
       name: 'Potion', 
       value: 8 
     },
     { 
       id: 'shield', 
       emoji: '🛡️',
-      imageUrl: 'https://img.icons8.com/fluency/96/shield.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2604/2604396.png', 
       name: 'Shield', 
       value: 7 
     },
     { 
       id: 'book', 
       emoji: '📕',
-      imageUrl: 'https://img.icons8.com/fluency/96/book.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3330/3330314.png', 
       name: 'Book', 
       value: 5 
     }

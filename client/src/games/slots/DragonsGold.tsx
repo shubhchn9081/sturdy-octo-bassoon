@@ -1,5 +1,6 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
+import EnhancedSlotGame from './EnhancedSlotGame';
 
 // Dragons Gold configuration
 const dragonsGoldConfig: SlotConfiguration = {
@@ -58,7 +59,11 @@ const customStyles = {
 
 const DragonsGold: React.FC = () => {
   return (
-    <BaseSlotGame config={dragonsGoldConfig} gameId={104} customStyles={customStyles} />
+    <EnhancedSlotGame
+      config={dragonsGoldConfig}
+      gameId={104}
+      themeId="dragons-gold"
+    />
   );
 };
 

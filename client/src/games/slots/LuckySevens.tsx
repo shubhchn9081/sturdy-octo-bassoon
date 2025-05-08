@@ -1,5 +1,6 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
+import EnhancedSlotGame from './EnhancedSlotGame';
 
 // Lucky Sevens configuration
 const luckySevenConfig: SlotConfiguration = {
@@ -58,7 +59,11 @@ const customStyles = {
 
 const LuckySevens: React.FC = () => {
   return (
-    <BaseSlotGame config={luckySevenConfig} gameId={103} customStyles={customStyles} />
+    <EnhancedSlotGame
+      config={luckySevenConfig}
+      gameId={103}
+      themeId="lucky-sevens"
+    />
   );
 };
 
