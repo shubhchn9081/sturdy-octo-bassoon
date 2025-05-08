@@ -1104,7 +1104,13 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
                       <div key={index} className="flex justify-between items-center bg-slate-800 rounded-lg p-3">
                         <div className="flex gap-1">
                           {payout.combination.map((symbol, i) => (
-                            <span key={i} className="text-2xl">{symbol}</span>
+                            <span key={i} className="text-2xl">
+                              {symbol.toString().startsWith('/') ? (
+                                <img src={symbol.toString()} alt="Slot symbol" className="h-8 w-auto object-contain" />
+                              ) : (
+                                symbol
+                              )}
+                            </span>
                           ))}
                         </div>
                         <div className="flex flex-col items-end">
@@ -1123,7 +1129,13 @@ const BaseSlotGame: React.FC<BaseSlotGameProps> = ({ config, gameId, customStyle
                     {config.specialSymbols.map((special, index) => (
                       <div key={index} className="flex justify-between items-center bg-slate-800 rounded-lg p-3">
                         <div className="flex items-center gap-3">
-                          <span className="text-3xl">{special.symbol}</span>
+                          <span className="text-3xl">
+                            {special.symbol.toString().startsWith('/') ? (
+                              <img src={special.symbol.toString()} alt={special.name} className="h-10 w-auto object-contain" />
+                            ) : (
+                              special.symbol
+                            )}
+                          </span>
                           <div>
                             <h4 className="font-medium">{special.name}</h4>
                             <p className="text-sm text-slate-400">{special.description}</p>

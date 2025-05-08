@@ -62,14 +62,27 @@ def extract_icons():
     
     # Extract and save icons
     for (row, col), (filename, theme) in icons_info.items():
-        left = col * icon_width
-        upper = row * icon_height
-        right = left + icon_width
-        lower = upper + icon_height
+        # Add padding to ensure we don't get partial neighboring icons
+        padding = int(icon_width * 0.1)  # 10% padding
+        left = col * icon_width + padding
+        upper = row * icon_height + padding
+        right = (col + 1) * icon_width - padding
+        lower = (row + 1) * icon_height - padding
         
         icon = img1.crop((left, upper, right, lower))
+        
+        # Create transparent background
+        if icon.mode != 'RGBA':
+            icon = icon.convert('RGBA')
+        
+        # Create a white background image
+        background = Image.new('RGBA', icon.size, (255, 255, 255, 0))
+        
+        # Composite the icon onto the transparent background
+        final_icon = Image.alpha_composite(background, icon)
+        
         output_path = f"client/public/images/games/slots/{theme}/{filename}"
-        icon.save(output_path, format="PNG")
+        final_icon.save(output_path, format="PNG")
         print(f"Saved {output_path}")
     
     # Image 2 - Themed slot game icons
@@ -122,14 +135,27 @@ def extract_icons():
     
     # Extract and save icons from image 2
     for (row, col), (filename, theme) in icons_info_2.items():
-        left = col * icon_width
-        upper = row * icon_height
-        right = left + icon_width
-        lower = upper + icon_height
+        # Add padding to ensure we don't get partial neighboring icons
+        padding = int(icon_width * 0.1)  # 10% padding
+        left = col * icon_width + padding
+        upper = row * icon_height + padding
+        right = (col + 1) * icon_width - padding
+        lower = (row + 1) * icon_height - padding
         
         icon = img2.crop((left, upper, right, lower))
+        
+        # Create transparent background
+        if icon.mode != 'RGBA':
+            icon = icon.convert('RGBA')
+        
+        # Create a white background image
+        background = Image.new('RGBA', icon.size, (255, 255, 255, 0))
+        
+        # Composite the icon onto the transparent background
+        final_icon = Image.alpha_composite(background, icon)
+        
         output_path = f"client/public/images/games/slots/{theme}/{filename}"
-        icon.save(output_path, format="PNG")
+        final_icon.save(output_path, format="PNG")
         print(f"Saved {output_path}")
     
     # Image 3 - Aztec and Celestial themed icons
@@ -184,10 +210,12 @@ def extract_icons():
         
         # Extract and save icons from image 3
         for (row, col), (filename, theme) in icons_info_3.items():
-            left = col * icon_width
-            upper = row * icon_height
-            right = left + icon_width
-            lower = upper + icon_height
+            # Add padding to ensure we don't get partial neighboring icons
+            padding = int(icon_width * 0.1)  # 10% padding
+            left = col * icon_width + padding
+            upper = row * icon_height + padding
+            right = (col + 1) * icon_width - padding
+            lower = (row + 1) * icon_height - padding
             
             icon = img3.crop((left, upper, right, lower))
             
@@ -207,8 +235,14 @@ def extract_icons():
             
             icon.putdata(new_data)
             
+            # Create a white background image
+            background = Image.new('RGBA', icon.size, (255, 255, 255, 0))
+            
+            # Composite the icon onto the transparent background
+            final_icon = Image.alpha_composite(background, icon)
+            
             output_path = f"client/public/images/games/slots/{theme}/{filename}"
-            icon.save(output_path, format="PNG")
+            final_icon.save(output_path, format="PNG")
             print(f"Saved {output_path}")
         
         print("Aztec and Celestial icons processed successfully!")
