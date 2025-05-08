@@ -1,5 +1,5 @@
 import React from 'react';
-import { SlotConfiguration } from './BaseSlotGame';
+import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
 import EnhancedSlotGame from './EnhancedSlotGame';
 
 // Cosmic Spins configuration

@@ -1,5 +1,6 @@
 import React from 'react';
 import BaseSlotGame, { SlotConfiguration } from './BaseSlotGame';
+import EnhancedSlotGame from './EnhancedSlotGame';
 
 // Temple Quest configuration
 const templeQuestConfig: SlotConfiguration = {
@@ -58,7 +59,11 @@ const customStyles = {
 
 const TempleQuest: React.FC = () => {
   return (
-    <BaseSlotGame config={templeQuestConfig} gameId={102} customStyles={customStyles} />
+    <EnhancedSlotGame
+      config={templeQuestConfig}
+      gameId={102}
+      themeId="temple-quest"
+    />
   );
 };
 

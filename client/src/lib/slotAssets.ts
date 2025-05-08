@@ -37,56 +37,56 @@ const cosmicSpinsAssets: SlotThemeAsset = {
     { 
       id: 'planet', 
       emoji: '🪐',
-      imageUrl: 'https://img.icons8.com/fluency/96/saturn-planet.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/5229/5229377.png', 
       name: 'Planet', 
       value: 5 
     },
     { 
       id: 'star', 
       emoji: '⭐',
-      imageUrl: 'https://img.icons8.com/fluency/96/star.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3110/3110061.png', 
       name: 'Star', 
       value: 4 
     },
     { 
       id: 'rocket', 
       emoji: '🚀',
-      imageUrl: 'https://img.icons8.com/fluency/96/rocket.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3212/3212567.png', 
       name: 'Rocket', 
       value: 8 
     },
     { 
       id: 'astronaut', 
       emoji: '👨‍🚀',
-      imageUrl: 'https://img.icons8.com/fluency/96/astronaut.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/4624/4624025.png', 
       name: 'Astronaut', 
       value: 10 
     },
     { 
       id: 'alien', 
       emoji: '👾',
-      imageUrl: 'https://img.icons8.com/fluency/96/pixel-cat.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/1047/1047711.png', 
       name: 'Alien', 
       value: 15 
     },
     { 
       id: 'ufo', 
       emoji: '🛸',
-      imageUrl: 'https://img.icons8.com/fluency/96/ufo.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/1055/1055318.png', 
       name: 'UFO', 
       value: 20 
     },
     { 
       id: 'meteor', 
       emoji: '☄️',
-      imageUrl: 'https://img.icons8.com/fluency/96/comet.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/7927/7927091.png', 
       name: 'Meteor', 
       value: 7 
     },
     { 
       id: 'galaxy', 
       emoji: '🌌',
-      imageUrl: 'https://img.icons8.com/fluency/96/galaxy.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3049/3049465.png', 
       name: 'Galaxy', 
       value: 25 
     }
@@ -103,56 +103,56 @@ const templeQuestAssets: SlotThemeAsset = {
     { 
       id: 'temple', 
       emoji: '🏰',
-      imageUrl: 'https://img.icons8.com/fluency/96/castle.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/9289/9289961.png', 
       name: 'Temple', 
       value: 20 
     },
     { 
       id: 'treasure', 
       emoji: '💰',
-      imageUrl: 'https://img.icons8.com/fluency/96/treasure-chest.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/6963/6963441.png', 
       name: 'Treasure', 
       value: 25 
     },
     { 
       id: 'map', 
       emoji: '🗺️',
-      imageUrl: 'https://img.icons8.com/fluency/96/treasure-map.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2426/2426643.png', 
       name: 'Map', 
       value: 15 
     },
     { 
       id: 'explorer', 
       emoji: '🧙',
-      imageUrl: 'https://img.icons8.com/fluency/96/adventurer.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/4350/4350938.png', 
       name: 'Explorer', 
       value: 10 
     },
     { 
       id: 'snake', 
       emoji: '🐍',
-      imageUrl: 'https://img.icons8.com/fluency/96/snake.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/4380/4380458.png', 
       name: 'Snake', 
       value: 7 
     },
     { 
       id: 'torch', 
       emoji: '🔥',
-      imageUrl: 'https://img.icons8.com/fluency/96/fireplace.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/5637/5637217.png', 
       name: 'Torch', 
       value: 5 
     },
     { 
       id: 'scroll', 
       emoji: '📜',
-      imageUrl: 'https://img.icons8.com/fluency/96/scroll.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/4668/4668479.png', 
       name: 'Scroll', 
       value: 4 
     },
     { 
       id: 'shield', 
       emoji: '🛡️',
-      imageUrl: 'https://img.icons8.com/fluency/96/shield.png', 
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2271/2271090.png', 
       name: 'Shield', 
       value: 3 
     }
@@ -446,6 +446,6 @@ export function convertEmojiConfigToAssetConfig(themeId: string, emojiSymbols: s
 }
 
 // Attribution notice - IMPORTANT
-// The icons used in this demo are provided by Icons8
+// The icons used in this demo are provided by Flaticon
 // This should be displayed in production applications:
-// export const attribution = "Icons provided by Icons8 (https://icons8.com)";
+export const attribution = "Icons provided by Flaticon (https://www.flaticon.com)";
