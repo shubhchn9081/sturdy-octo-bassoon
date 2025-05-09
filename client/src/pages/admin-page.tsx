@@ -767,12 +767,15 @@ export default function AdminPage() {
       </Card>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-5 mb-8">
+        <TabsList className="grid w-full grid-cols-6 mb-8">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" /> Users
           </TabsTrigger>
           <TabsTrigger value="games" className="flex items-center gap-2">
             <ChevronsUpDown className="h-4 w-4" /> Game Control
+          </TabsTrigger>
+          <TabsTrigger value="access" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" /> Game Access
           </TabsTrigger>
           <TabsTrigger value="withdrawals" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" /> Withdrawals
@@ -1391,6 +1394,119 @@ export default function AdminPage() {
                       <TableRow>
                         <TableCell colSpan={7} className="h-24 text-center">
                           No withdrawals found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Game Access Tab */}
+        <TabsContent value="access">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>User Game Access Control</CardTitle>
+                <CardDescription>
+                  Manage which games users can access on the platform
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="default"
+                  onClick={() => {
+                    setGameAccessUser(null);
+                    setGameAccessType("all_games");
+                    setAllowedGameIds([]);
+                    setGameAccessDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Add Game Access Rule
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {gameAccessLoading ? (
+                <div className="flex justify-center my-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User ID</TableHead>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Access Type</TableHead>
+                      <TableHead>Allowed Games</TableHead>
+                      <TableHead>Last Updated</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userGameAccessRecords && userGameAccessRecords.length > 0 ? (
+                      userGameAccessRecords.map((access) => {
+                        const user = users?.find(u => u.id === access.userId);
+                        return (
+                          <TableRow key={access.id}>
+                            <TableCell>{access.userId}</TableCell>
+                            <TableCell>{user?.username || "Unknown User"}</TableCell>
+                            <TableCell>
+                              {access.accessType === "all_games" ? (
+                                <Badge variant="default" className="bg-green-600">All Games</Badge>
+                              ) : (
+                                <Badge variant="outline">Limited Access</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {access.accessType === "all_games" ? (
+                                "All games allowed"
+                              ) : (
+                                <div className="flex flex-wrap gap-1">
+                                  {Array.isArray(access.allowedGameIds) && access.allowedGameIds.length > 0 ? (
+                                    access.allowedGameIds.map(gameId => {
+                                      const game = games?.find(g => g.id === gameId);
+                                      return (
+                                        <Badge key={gameId} variant="secondary" className="text-xs">
+                                          {game?.name || `Game #${gameId}`}
+                                        </Badge>
+                                      );
+                                    })
+                                  ) : (
+                                    <span className="text-red-500 text-sm">No games allowed</span>
+                                  )}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(access.updatedAt).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={async () => {
+                                    if (user) {
+                                      setGameAccessUser(user);
+                                      await getUserGameAccess(access.userId);
+                                      setGameAccessDialogOpen(true);
+                                    }
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-1" /> Edit
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          No game access rules found. All users have access to all games by default.
                         </TableCell>
                       </TableRow>
                     )}
