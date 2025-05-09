@@ -354,3 +354,22 @@ export type AdminDashboardStats = {
   houseProfit: number;
   gamesPlayed: {[key: string]: number};
 };
+
+// User Game Access Control table
+export const userGameAccess = pgTable("user_game_access", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  accessType: varchar("access_type", { length: 20 }).notNull(), // "all_games" or "specific_games"
+  allowedGameIds: jsonb("allowed_game_ids").default([]).notNull(), // List of game IDs that are allowed when accessType is "specific_games"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserGameAccessSchema = createInsertSchema(userGameAccess).pick({
+  userId: true,
+  accessType: true,
+  allowedGameIds: true,
+});
+
+export type UserGameAccess = typeof userGameAccess.$inferSelect;
+export type InsertUserGameAccess = z.infer<typeof insertUserGameAccessSchema>;

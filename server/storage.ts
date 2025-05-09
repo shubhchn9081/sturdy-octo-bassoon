@@ -19,7 +19,10 @@ import {
   type InsertUserGameControl,
   globalGameControl,
   type GlobalGameControl,
-  type InsertGlobalGameControl
+  type InsertGlobalGameControl,
+  userGameAccess,
+  type UserGameAccess,
+  type InsertUserGameAccess
 } from "@shared/schema";
 import { GAMES } from "../client/src/games";
 import { db } from "./db";
@@ -86,6 +89,13 @@ export interface IStorage {
   incrementUserGameControlCounter(id: number): Promise<UserGameControl | undefined>;
   resetAllUserGameControls(): Promise<boolean>;
   
+  // User game access methods
+  getUserGameAccess(userId: number): Promise<UserGameAccess | undefined>;
+  createUserGameAccess(access: InsertUserGameAccess): Promise<UserGameAccess>;
+  updateUserGameAccess(userId: number, access: Partial<InsertUserGameAccess>): Promise<UserGameAccess | undefined>;
+  getAllUserGameAccess(): Promise<UserGameAccess[]>;
+  checkUserGameAccess(userId: number, gameId: number): Promise<boolean>;
+  
   // Global game control methods (affects all users)
   getGlobalGameControl(): Promise<GlobalGameControl | undefined>;
   updateGlobalGameControl(settings: Partial<GlobalGameControl>): Promise<GlobalGameControl>;
@@ -112,12 +122,14 @@ export class MemStorage implements IStorage {
   private userGameControls: Map<number, UserGameControl>;
   private gameSettings: Map<number, GameSettings>;
   private globalControl: GlobalGameControl | null;
+  private userGameAccessRecords: Map<number, UserGameAccess>;
   
   private userIdCounter: number;
   private betIdCounter: number;
   private transactionIdCounter: number;
   private userGameControlIdCounter: number;
   private gameSettingsIdCounter: number;
+  private userGameAccessIdCounter: number;
   
   public sessionStore: session.Store;
 
@@ -129,12 +141,14 @@ export class MemStorage implements IStorage {
     this.userGameControls = new Map();
     this.gameSettings = new Map();
     this.globalControl = null;
+    this.userGameAccessRecords = new Map();
     
     this.userIdCounter = 1;
     this.betIdCounter = 1;
     this.transactionIdCounter = 1;
     this.userGameControlIdCounter = 1;
     this.gameSettingsIdCounter = 1;
+    this.userGameAccessIdCounter = 1;
     
     // Initialize session store
     const MemoryStore = createMemoryStore(session);
