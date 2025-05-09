@@ -1109,24 +1109,17 @@ export class DatabaseStorage implements IStorage {
     // Add extensive debug logging
     console.log(`Checking game access for userId=${userId}, gameId=${gameId}`);
     
-    // Admin users always have access to all games
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    if (user?.isAdmin) {
-      console.log(`User ${userId} is an admin, granting access automatically`);
-      // IMPORTANT CHANGE: For debug purposes, we're disabling auto-admin access
-      // return true;
-    }
-    
     // Get the user's game access record
     const access = await this.getUserGameAccess(userId);
     console.log(`Game access record for user ${userId}:`, JSON.stringify(access));
     
-    // If no access record exists, or the user is set to have access to all games, allow access
+    // If no access record exists, default to allow access
     if (!access) {
       console.log(`No access record found for user ${userId}, defaulting to allow access`);
       return true;
     }
     
+    // Check access type
     if (access.accessType === "all_games") {
       console.log(`User ${userId} has access to all games`);
       return true;
