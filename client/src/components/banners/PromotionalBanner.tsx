@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Import the images directly from the assets folder
-// Note: The path is relative to the source folder where Vite's asset handling works
-const crashGameBanner = new URL('/src/assets/ChatGPT Image May 9, 2025, 11_19_12 PM.png', import.meta.url).href;
-const minesGameBanner = new URL('/src/assets/ChatGPT Image May 9, 2025, 11_19_10 PM.png', import.meta.url).href;
-
 // Define banner item interface
 interface BannerItem {
   id: number;
@@ -17,13 +12,13 @@ interface BannerItem {
 const bannerItems: BannerItem[] = [
   {
     id: 1,
-    imageUrl: crashGameBanner,
+    imageUrl: '/banners/crash-game-banner.png', // Will be served from the public folder
     alt: 'Dodge the Crash. Get the Cash!',
     link: '/games/rocket-launch'
   },
   {
     id: 2,
-    imageUrl: minesGameBanner,
+    imageUrl: '/banners/mines-game-banner.png', // Will be served from the public folder
     alt: 'Skip the Mines. Get the Cash!',
     link: '/games/mines'
   }
