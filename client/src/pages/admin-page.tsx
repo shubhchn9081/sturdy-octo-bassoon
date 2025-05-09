@@ -1368,7 +1368,7 @@ export default function AdminPage() {
                             {new Date(transaction.createdAt).toLocaleString()}
                           </TableCell>
                           <TableCell className="flex gap-2">
-                            {transaction.status === "PENDING" && (
+                            {(transaction.status.toUpperCase() === "PENDING" || transaction.status.toLowerCase() === "pending") && (
                               <>
                                 <Button
                                   size="sm"
