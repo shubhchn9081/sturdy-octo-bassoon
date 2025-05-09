@@ -85,55 +85,42 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
     }, 300);
   };
 
-  // Custom styling for the banner container to maintain aspect ratio
-  const bannerContainerStyle = {
-    // Use a standard 16:5 aspect ratio for banners
-    paddingBottom: '31.25%',
-    position: 'relative' as 'relative',
-    width: '100%',
-    overflow: 'hidden',
-    borderRadius: '0.5rem'
-  };
-
-  // Custom styling for the banner images
-  const bannerImageStyle = {
-    position: 'absolute' as 'absolute',
-    top: '0',
-    left: '0',
-    right: '0',
-    bottom: '0',
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover' as 'cover',
-    objectPosition: 'center' as 'center'
-  };
-
   return (
     <div className={`w-full mb-6 ${className}`}>
-      {/* Banner Container with aspect ratio maintained */}
-      <div style={bannerContainerStyle} className="relative shadow-lg">
-        {bannerItems.map((banner, index) => (
-          <a 
-            key={banner.id}
-            href={banner.link}
-            className={`absolute inset-0 transition-opacity duration-300 ${
-              index === currentBannerIndex 
-                ? isTransitioning ? 'opacity-50' : 'opacity-100' 
-                : 'opacity-0 pointer-events-none'
-            }`}
-          >
-            <img 
-              src={banner.imageUrl} 
-              alt={banner.alt}
-              style={bannerImageStyle}
-              className="hover:opacity-95 transition-opacity"
-              onError={(e) => {
-                console.error('Failed to load banner image:', banner.imageUrl);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </a>
-        ))}
+      <div className="relative rounded-lg shadow-lg overflow-hidden bg-[#111]">
+        <div className="flex justify-center items-center">
+          {bannerItems.map((banner, index) => (
+            <div
+              key={banner.id}
+              className={`transition-opacity duration-300 ${
+                index === currentBannerIndex 
+                  ? isTransitioning ? 'opacity-50' : 'opacity-100 block' 
+                  : 'opacity-0 hidden'
+              }`}
+            >
+              <a href={banner.link} className="block">
+                <img 
+                  src={banner.imageUrl} 
+                  alt={banner.alt}
+                  className="rounded-lg hover:opacity-95 transition-opacity"
+                  style={{ 
+                    height: 'auto', 
+                    width: '100%', 
+                    maxWidth: '800px', 
+                    maxHeight: '200px', 
+                    objectFit: 'contain',
+                    margin: '0 auto',
+                    display: 'block'
+                  }}
+                  onError={(e) => {
+                    console.error('Failed to load banner image:', banner.imageUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </a>
+            </div>
+          ))}
+        </div>
 
         {/* Navigation Dots */}
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
