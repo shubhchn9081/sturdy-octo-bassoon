@@ -6,6 +6,9 @@ import crypto from 'crypto';
 
 const router = express.Router();
 
+// Added for debugging
+console.log('Initializing slots router with all endpoints');
+
 // List of available slot games
 const slotGames = [
   {
@@ -131,6 +134,188 @@ const spinRequestSchema = z.object({
   gameId: z.number().int().positive(),
   amount: z.number().min(100).max(10000),
   luckySymbol: z.string().optional()
+});
+
+// Alias 'play' to 'spin' for compatibility with frontend
+router.post('/play', auth, async (req, res) => {
+  console.log('Slots play endpoint called with:', req.body);
+  try {
+    // Validate request
+    const validation = spinRequestSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ 
+        message: "Invalid request", 
+        errors: validation.error.errors 
+      });
+    }
+    
+    // Get validated data
+    const { gameId, amount, luckySymbol } = validation.data;
+    
+    // Verify game exists
+    const game = slotGames.find(g => g.id === gameId);
+    if (!game) {
+      return res.status(404).json({ message: "Game not found" });
+    }
+    
+    // Get user
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Check user balance
+    const userBalance = typeof user.balance === 'number' 
+      ? user.balance 
+      : (user.balance as any)?.INR || 0;
+    
+    if (userBalance < amount) {
+      return res.status(400).json({ message: "Insufficient balance" });
+    }
+    
+    // Check for game control
+    const userGameControl = await storage.getUserGameControlByUserAndGame(userId, gameId);
+    const globalGameControl = await storage.getGlobalGameControl();
+    
+    // Generate outcome
+    const serverSeed = crypto.randomBytes(16).toString('hex');
+    const clientSeed = req.body.clientSeed || crypto.randomBytes(8).toString('hex');
+    const nonce = Math.floor(Math.random() * 100000);
+    
+    // Determine if this should be a forced win or loss
+    let forceWin = false;
+    let forceLoss = false;
+    let targetMultiplier = 0;
+    
+    if (globalGameControl) {
+      // Check if this game is affected by global control
+      const affectedGames = globalGameControl.affectedGames as number[] || [];
+      const isGameAffected = affectedGames.length === 0 || affectedGames.includes(gameId);
+      
+      if (globalGameControl.forceAllUsersWin && isGameAffected) {
+        forceWin = true;
+        targetMultiplier = globalGameControl.targetMultiplier || 2.0;
+      } else if (globalGameControl.forceAllUsersLose && isGameAffected) {
+        forceLoss = true;
+      }
+    }
+    
+    if (userGameControl) {
+      if (userGameControl.forceOutcome && userGameControl.outcomeType === 'win') {
+        forceWin = true;
+        targetMultiplier = userGameControl.targetMultiplier || 2.0;
+      } else if (userGameControl.forceOutcome && userGameControl.outcomeType === 'loss') {
+        forceLoss = true;
+      }
+      
+      // Increment counter for this game control
+      await storage.incrementUserGameControlCounter(userGameControl.id);
+    }
+    
+    // Calculate outcome based on random chance or forced outcome
+    const symbols = getSymbolsForGame(gameId);
+    console.log('Slot game symbols:', symbols); // Debug log
+    let reels: string[][] = [];
+    let multiplier = 0;
+    let winningLines: number[] = [];
+    let hasLuckySymbol = false;
+    
+    if (forceWin) {
+      // Generate a winning outcome
+      const winningSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+      reels = generateWinningReels(symbols, winningSymbol);
+      multiplier = targetMultiplier > 0 ? targetMultiplier : getRandomMultiplier(2, 10);
+      winningLines = [1]; // Middle row is the winning line
+      
+      // Check if lucky symbol matches winning symbol
+      if (luckySymbol && luckySymbol === winningSymbol) {
+        hasLuckySymbol = true;
+        multiplier += 0.5; // Add bonus for lucky symbol
+      }
+    } else if (forceLoss) {
+      // Generate a losing outcome
+      reels = generateLosingReels(symbols);
+      multiplier = 0;
+    } else {
+      // Random outcome with about 40% win chance
+      const isWin = Math.random() < 0.4;
+      
+      if (isWin) {
+        const winningSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+        reels = generateWinningReels(symbols, winningSymbol);
+        multiplier = getRandomMultiplier(2, 10);
+        winningLines = [1]; // Middle row is the winning line
+        
+        // Check if lucky symbol matches winning symbol
+        if (luckySymbol && luckySymbol === winningSymbol) {
+          hasLuckySymbol = true;
+          multiplier += 0.5; // Add bonus for lucky symbol
+        }
+      } else {
+        reels = generateLosingReels(symbols);
+        multiplier = 0;
+      }
+    }
+    
+    // Calculate profit
+    const profit = multiplier > 0 ? amount * multiplier - amount : -amount;
+    
+    // Update user balance
+    await storage.updateUserBalance(userId, profit);
+    
+    // Create bet record
+    const bet = await storage.createBet({
+      userId,
+      gameId,
+      amount,
+      multiplier,
+      profit,
+      serverSeed,
+      clientSeed, // Make sure clientSeed is included
+      nonce,
+      outcome: {
+        reels,
+        multiplier,
+        winningLines,
+        hasLuckySymbol,
+        provablyFair: {
+          serverSeed,
+          clientSeed,
+          nonce
+        }
+      },
+      completed: true
+    });
+    
+    // Current balance
+    const updatedUser = await storage.getUser(userId);
+    const finalBalance = typeof updatedUser?.balance === 'number' 
+      ? updatedUser.balance 
+      : (updatedUser?.balance as any)?.INR || 0;
+    
+    // Return result
+    res.json({
+      betId: bet.id,
+      outcome: {
+        reels,
+        multiplier,
+        winningLines,
+        hasLuckySymbol
+      },
+      profit,
+      balance: finalBalance,
+      multiplier
+    });
+    
+  } catch (error) {
+    console.error("Error during slot play:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // Spin the slot machine
