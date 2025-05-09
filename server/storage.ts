@@ -690,6 +690,75 @@ export class MemStorage implements IStorage {
     return true;
   }
   
+  // User game access methods
+  async getUserGameAccess(userId: number): Promise<UserGameAccess | undefined> {
+    return Array.from(this.userGameAccessRecords.values()).find(
+      access => access.userId === userId
+    );
+  }
+  
+  async createUserGameAccess(access: InsertUserGameAccess): Promise<UserGameAccess> {
+    const id = this.userGameAccessIdCounter++;
+    
+    const newAccess: UserGameAccess = {
+      ...access,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.userGameAccessRecords.set(id, newAccess);
+    return newAccess;
+  }
+  
+  async updateUserGameAccess(userId: number, access: Partial<InsertUserGameAccess>): Promise<UserGameAccess | undefined> {
+    const existingAccess = await this.getUserGameAccess(userId);
+    
+    if (!existingAccess) {
+      // If no access record exists, create a new one
+      if (access.accessType) {
+        return this.createUserGameAccess({
+          userId,
+          accessType: access.accessType,
+          allowedGameIds: access.allowedGameIds || []
+        });
+      }
+      return undefined;
+    }
+    
+    const updatedAccess: UserGameAccess = {
+      ...existingAccess,
+      ...access,
+      updatedAt: new Date()
+    };
+    
+    this.userGameAccessRecords.set(existingAccess.id, updatedAccess);
+    return updatedAccess;
+  }
+  
+  async getAllUserGameAccess(): Promise<UserGameAccess[]> {
+    return Array.from(this.userGameAccessRecords.values());
+  }
+  
+  async checkUserGameAccess(userId: number, gameId: number): Promise<boolean> {
+    // Admin users always have access to all games
+    const user = await this.getUser(userId);
+    if (user?.isAdmin) {
+      return true;
+    }
+    
+    // Get the user's game access record
+    const access = await this.getUserGameAccess(userId);
+    
+    // If no access record exists, or the user is set to have access to all games, allow access
+    if (!access || access.accessType === "all_games") {
+      return true;
+    }
+    
+    // Check if the game is in the allowed games list
+    return access.allowedGameIds.includes(gameId);
+  }
+  
   // Transaction management (admin)
   async getTransactionsByStatus(status: string): Promise<Transaction[]> {
     return Array.from(this.transactions.values())
@@ -982,6 +1051,77 @@ export class DatabaseStorage implements IStorage {
       .returning({ deleted: userGameControls.id });
       
     return result.length > 0;
+  }
+  
+  // User game access methods
+  async getUserGameAccess(userId: number): Promise<UserGameAccess | undefined> {
+    const [access] = await db.select()
+      .from(userGameAccess)
+      .where(eq(userGameAccess.userId, userId));
+    return access || undefined;
+  }
+  
+  async createUserGameAccess(access: InsertUserGameAccess): Promise<UserGameAccess> {
+    const [newAccess] = await db
+      .insert(userGameAccess)
+      .values({
+        ...access,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return newAccess;
+  }
+  
+  async updateUserGameAccess(userId: number, access: Partial<InsertUserGameAccess>): Promise<UserGameAccess | undefined> {
+    const existingAccess = await this.getUserGameAccess(userId);
+    
+    if (!existingAccess) {
+      // If no access record exists, create a new one
+      if (access.accessType) {
+        return this.createUserGameAccess({
+          userId,
+          accessType: access.accessType,
+          allowedGameIds: access.allowedGameIds || []
+        });
+      }
+      return undefined;
+    }
+    
+    const [updatedAccess] = await db
+      .update(userGameAccess)
+      .set({
+        ...access,
+        updatedAt: new Date()
+      })
+      .where(eq(userGameAccess.id, existingAccess.id))
+      .returning();
+    
+    return updatedAccess || undefined;
+  }
+  
+  async getAllUserGameAccess(): Promise<UserGameAccess[]> {
+    return await db.select().from(userGameAccess);
+  }
+  
+  async checkUserGameAccess(userId: number, gameId: number): Promise<boolean> {
+    // Admin users always have access to all games
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (user?.isAdmin) {
+      return true;
+    }
+    
+    // Get the user's game access record
+    const access = await this.getUserGameAccess(userId);
+    
+    // If no access record exists, or the user is set to have access to all games, allow access
+    if (!access || access.accessType === "all_games") {
+      return true;
+    }
+    
+    // Check if the game is in the allowed games list
+    return access.allowedGameIds.includes(gameId);
   }
   
   // Transaction admin methods
