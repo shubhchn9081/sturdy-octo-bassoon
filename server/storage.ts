@@ -1075,30 +1075,38 @@ export class DatabaseStorage implements IStorage {
   }
   
   async updateUserGameAccess(userId: number, access: Partial<InsertUserGameAccess>): Promise<UserGameAccess | undefined> {
-    const existingAccess = await this.getUserGameAccess(userId);
-    
-    if (!existingAccess) {
-      // If no access record exists, create a new one
-      if (access.accessType) {
-        return this.createUserGameAccess({
-          userId,
-          accessType: access.accessType,
-          allowedGameIds: access.allowedGameIds || []
-        });
+    try {
+      // Directly query for existing access instead of calling getUserGameAccess to avoid circular reference
+      const [existingAccess] = await db.select()
+        .from(userGameAccess)
+        .where(eq(userGameAccess.userId, userId));
+      
+      if (!existingAccess) {
+        // If no access record exists, create a new one
+        if (access.accessType) {
+          return this.createUserGameAccess({
+            userId,
+            accessType: access.accessType,
+            allowedGameIds: access.allowedGameIds || []
+          });
+        }
+        return undefined;
       }
+      
+      const [updatedAccess] = await db
+        .update(userGameAccess)
+        .set({
+          ...access,
+          updatedAt: new Date()
+        })
+        .where(eq(userGameAccess.id, existingAccess.id))
+        .returning();
+      
+      return updatedAccess || undefined;
+    } catch (error) {
+      console.error('Error in updateUserGameAccess:', error);
       return undefined;
     }
-    
-    const [updatedAccess] = await db
-      .update(userGameAccess)
-      .set({
-        ...access,
-        updatedAt: new Date()
-      })
-      .where(eq(userGameAccess.id, existingAccess.id))
-      .returning();
-    
-    return updatedAccess || undefined;
   }
   
   async getAllUserGameAccess(): Promise<UserGameAccess[]> {
@@ -1106,35 +1114,54 @@ export class DatabaseStorage implements IStorage {
   }
   
   async checkUserGameAccess(userId: number, gameId: number): Promise<boolean> {
-    // Add extensive debug logging
-    console.log(`Checking game access for userId=${userId}, gameId=${gameId}`);
-    
-    // Get the user's game access record
-    const access = await this.getUserGameAccess(userId);
-    console.log(`Game access record for user ${userId}:`, JSON.stringify(access));
-    
-    // If no access record exists, default to allow access
-    if (!access) {
-      console.log(`No access record found for user ${userId}, defaulting to allow access`);
+    try {
+      // First check if user is an admin - admins have access to all games
+      const [user] = await db.select()
+        .from(users)
+        .where(eq(users.id, userId));
+      
+      if (user?.isAdmin) {
+        console.log(`User ${userId} is admin, granting access to all games`);
+        return true;
+      }
+      
+      // Add extensive debug logging
+      console.log(`Checking game access for userId=${userId}, gameId=${gameId}`);
+      
+      // Get the user's game access record
+      const [access] = await db.select()
+        .from(userGameAccess)
+        .where(eq(userGameAccess.userId, userId));
+      
+      console.log(`Game access record for user ${userId}:`, JSON.stringify(access));
+      
+      // If no access record exists, default to allow access
+      if (!access) {
+        console.log(`No access record found for user ${userId}, defaulting to allow access`);
+        return true;
+      }
+      
+      // Check access type
+      if (access.accessType === "all_games") {
+        console.log(`User ${userId} has access to all games`);
+        return true;
+      }
+      
+      // Check if the game is in the allowed games list
+      if (access.allowedGameIds && Array.isArray(access.allowedGameIds)) {
+        const hasAccess = access.allowedGameIds.includes(gameId);
+        console.log(`User ${userId} ${hasAccess ? 'has' : 'does not have'} access to game ${gameId}`);
+        console.log(`Allowed games for user ${userId}:`, JSON.stringify(access.allowedGameIds));
+        return hasAccess;
+      }
+      
+      console.log('User game access check failed - allowedGameIds is not an array:', access.allowedGameIds);
+      return false;
+    } catch (error) {
+      console.error('Error in checkUserGameAccess:', error);
+      // Default to allowing access if there's an error
       return true;
     }
-    
-    // Check access type
-    if (access.accessType === "all_games") {
-      console.log(`User ${userId} has access to all games`);
-      return true;
-    }
-    
-    // Check if the game is in the allowed games list
-    if (access.allowedGameIds && Array.isArray(access.allowedGameIds)) {
-      const hasAccess = access.allowedGameIds.includes(gameId);
-      console.log(`User ${userId} ${hasAccess ? 'has' : 'does not have'} access to game ${gameId}`);
-      console.log(`Allowed games for user ${userId}:`, JSON.stringify(access.allowedGameIds));
-      return hasAccess;
-    }
-    
-    console.log('User game access check failed - allowedGameIds is not an array:', access.allowedGameIds);
-    return false;
   }
   
   // Transaction admin methods
