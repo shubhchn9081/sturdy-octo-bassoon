@@ -744,6 +744,7 @@ export class MemStorage implements IStorage {
     // Admin users always have access to all games
     const user = await this.getUser(userId);
     if (user?.isAdmin) {
+      console.log(`User ${userId} is admin, granting access to all games`);
       return true;
     }
     
@@ -752,11 +753,20 @@ export class MemStorage implements IStorage {
     
     // If no access record exists, or the user is set to have access to all games, allow access
     if (!access || access.accessType === "all_games") {
+      console.log(`User ${userId} has all_games access or no access record, granting default access`);
       return true;
     }
     
+    // Ensure allowedGameIds is an array before checking
+    if (!Array.isArray(access.allowedGameIds)) {
+      console.log(`User ${userId} has invalid allowedGameIds format, denying access`);
+      return false;
+    }
+    
     // Check if the game is in the allowed games list
-    return access.allowedGameIds.includes(gameId);
+    const hasAccess = access.allowedGameIds.includes(gameId);
+    console.log(`User ${userId} checking specific access to game ${gameId}, result: ${hasAccess}`);
+    return hasAccess;
   }
   
   // Transaction management (admin)
