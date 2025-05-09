@@ -78,11 +78,17 @@ const GamePage = () => {
       if (!currentGame) return { hasAccess: false };
       
       try {
+        console.log(`Checking access for game with ID: ${currentGame.id}`);
         const response = await fetch(`/api/games/${currentGame.id}/check-access`);
+        
         if (!response.ok) {
+          console.error(`Access check API returned status: ${response.status}`);
           throw new Error('Failed to check game access');
         }
+        
         const data = await response.json();
+        console.log(`Access check returned: ${JSON.stringify(data)}`);
+        
         setHasAccess(data.hasAccess);
         setAccessCheckComplete(true);
         return data;

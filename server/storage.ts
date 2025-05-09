@@ -1121,7 +1121,12 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Check if the game is in the allowed games list
-    return access.allowedGameIds.includes(gameId);
+    if (access.allowedGameIds && Array.isArray(access.allowedGameIds)) {
+      return access.allowedGameIds.includes(gameId);
+    }
+    
+    console.log('User game access check failed - allowedGameIds is not an array:', access.allowedGameIds);
+    return false;
   }
   
   // Transaction admin methods
