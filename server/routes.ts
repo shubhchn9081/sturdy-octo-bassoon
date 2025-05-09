@@ -10,7 +10,7 @@ import { insertBetSchema, insertUserSchema, clientBetSchema } from "@shared/sche
 import { calculateCrashPoint, calculateDiceRoll, calculateLimboResult, createServerSeed, verifyBet } from "./games/provably-fair";
 import { setupAuth } from "./auth";
 import { setupDevEndpoints } from "./adminSetup";
-import { isAdmin } from "./middleware/admin";
+// Import admin middleware (used later in the admin section)
 import gameControlRoutes from "./routes/gameControl";
 import apayRoutes from "./routes/apay";
 import slotsRoutes from "./routes/slots";
@@ -1053,6 +1053,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error getting user game controls:', error);
       res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Admin transaction endpoints
+  app.get('/api/admin/transactions', isAdmin, async (req, res) => {
+    try {
+      const type = req.query.type as string;
+      let transactions;
+      
+      if (type === 'WITHDRAWAL') {
+        transactions = await storage.getWithdrawalTransactions();
+      } else if (type) {
+        // If type is specified but not WITHDRAWAL, filter by that type
+        transactions = await storage.getAllTransactions();
+        transactions = transactions.filter(t => t.type.toUpperCase() === type.toUpperCase());
+      } else {
+        // If no type is specified, return all transactions
+        transactions = await storage.getAllTransactions();
+      }
+      
+      res.json(transactions);
+    } catch (error) {
+      console.error('Error fetching admin transactions:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+  
+  app.post('/api/admin/transactions/:id/approve', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const transaction = await storage.getTransaction(id);
+      
+      if (!transaction) {
+        return res.status(404).json({ message: 'Transaction not found' });
+      }
+      
+      if (transaction.type !== 'withdrawal') {
+        return res.status(400).json({ message: 'Only withdrawal transactions can be approved' });
+      }
+      
+      if (transaction.status !== 'pending') {
+        return res.status(400).json({ message: 'Only pending transactions can be approved' });
+      }
+      
+      // Update transaction status
+      const updatedTransaction = await storage.updateTransactionStatus(id, 'completed');
+      
+      res.json(updatedTransaction);
+    } catch (error) {
+      console.error('Error approving withdrawal:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+  
+  app.post('/api/admin/transactions/:id/reject', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const transaction = await storage.getTransaction(id);
+      
+      if (!transaction) {
+        return res.status(404).json({ message: 'Transaction not found' });
+      }
+      
+      if (transaction.type !== 'withdrawal') {
+        return res.status(400).json({ message: 'Only withdrawal transactions can be rejected' });
+      }
+      
+      if (transaction.status !== 'pending') {
+        return res.status(400).json({ message: 'Only pending transactions can be rejected' });
+      }
+      
+      // Update transaction status
+      const updatedTransaction = await storage.updateTransactionStatus(id, 'rejected');
+      
+      // Return the funds to the user's balance
+      if (transaction.userId) {
+        await storage.updateUserBalance(transaction.userId, transaction.amount, transaction.currency);
+      }
+      
+      res.json(updatedTransaction);
+    } catch (error) {
+      console.error('Error rejecting withdrawal:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
     }
   });
   
