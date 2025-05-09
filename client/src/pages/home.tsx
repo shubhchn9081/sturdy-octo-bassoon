@@ -3,6 +3,7 @@ import { GAMES } from '@/games';
 import GameCard from '@/components/games/GameCard';
 import PromotionCard from '@/components/games/PromotionCard';
 import CategoryButton from '@/components/games/CategoryButton';
+import PromotionalBanner from '@/components/banners/PromotionalBanner';
 import { 
   Search, 
   Home, 
@@ -77,6 +78,11 @@ const HomePage = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <Search className="h-4 w-4 md:h-5 md:w-5 text-gray-400 absolute left-4 top-3" />
+      </div>
+      
+      {/* Promotional Banner */}
+      <div className="px-2 mb-6">
+        <PromotionalBanner autoRotateInterval={3000} />
       </div>
 
       {/* Featured Section */}

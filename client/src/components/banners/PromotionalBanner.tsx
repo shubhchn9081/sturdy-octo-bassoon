@@ -1,0 +1,137 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+// Import the images directly from the assets folder
+// Note: The path is relative to the source folder where Vite's asset handling works
+const crashGameBanner = new URL('/src/assets/ChatGPT Image May 9, 2025, 11_19_12 PM.png', import.meta.url).href;
+const minesGameBanner = new URL('/src/assets/ChatGPT Image May 9, 2025, 11_19_10 PM.png', import.meta.url).href;
+
+// Define banner item interface
+interface BannerItem {
+  id: number;
+  imageUrl: string;
+  alt: string;
+  link: string;
+}
+
+// Banner images data
+const bannerItems: BannerItem[] = [
+  {
+    id: 1,
+    imageUrl: crashGameBanner,
+    alt: 'Dodge the Crash. Get the Cash!',
+    link: '/games/rocket-launch'
+  },
+  {
+    id: 2,
+    imageUrl: minesGameBanner,
+    alt: 'Skip the Mines. Get the Cash!',
+    link: '/games/mines'
+  }
+];
+
+interface PromotionalBannerProps {
+  autoRotateInterval?: number; // in milliseconds
+  className?: string;
+}
+
+const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
+  autoRotateInterval = 3000,
+  className = ''
+}) => {
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const totalBanners = bannerItems.length;
+
+  // Auto rotation effect
+  useEffect(() => {
+    const startAutoRotation = () => {
+      intervalRef.current = setInterval(() => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % totalBanners);
+          setIsTransitioning(false);
+        }, 300); // Duration of fade transition
+      }, autoRotateInterval);
+    };
+
+    startAutoRotation();
+
+    // Cleanup interval on component unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [autoRotateInterval, totalBanners]);
+
+  // Manual navigation
+  const goToBanner = (index: number) => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentBannerIndex(index);
+      setIsTransitioning(false);
+      
+      // Restart auto rotation after manual navigation
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      intervalRef.current = setInterval(() => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % totalBanners);
+          setIsTransitioning(false);
+        }, 300);
+      }, autoRotateInterval);
+    }, 300);
+  };
+
+  return (
+    <div className={`w-full relative overflow-hidden rounded-lg mb-4 ${className}`}>
+      {/* Banner Images */}
+      <div className="relative aspect-[16/4.5] sm:aspect-[16/5] md:aspect-[16/5.5] lg:aspect-[16/6]">
+        {bannerItems.map((banner, index) => (
+          <a 
+            key={banner.id}
+            href={banner.link}
+            className={`absolute inset-0 transition-opacity duration-300 ${
+              index === currentBannerIndex 
+                ? isTransitioning ? 'opacity-50' : 'opacity-100' 
+                : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            <img 
+              src={banner.imageUrl} 
+              alt={banner.alt}
+              className="w-full h-full object-cover rounded-lg"
+              onError={(e) => {
+                console.error('Failed to load banner image:', banner.imageUrl);
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </a>
+        ))}
+      </div>
+
+      {/* Navigation Dots */}
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        {bannerItems.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => goToBanner(index)}
+            className={`w-2 h-2 rounded-full transition-colors ${
+              index === currentBannerIndex ? 'bg-white' : 'bg-white/40'
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default PromotionalBanner;

@@ -1,0 +1,272 @@
+# Cup and Ball Game: Complete Animation Sequence
+
+## Initial Game Setup Phase
+
+### 1. Game Interface Initialization (0-500ms)
+- **Visual:** Game container fades in (opacity 0 → 1 over 300ms)
+- **Elements:** Three cups appear in starting positions using a subtle bounce effect
+  - Each cup scales from 0.9 → 1.0 with a spring easing function
+  - Cups are arranged horizontally with equal spacing (e.g., at positions 25%, 50%, and 75% of container width)
+- **Technical:** Position cup elements in the DOM with absolute positioning or CSS grid/flexbox
+- **State:** Game initializes in "waiting for bet" state
+
+### 2. Controls Animation (500-800ms)
+- **Visual:** Control panel slides up from bottom (transform: translateY(100%) → translateY(0))
+- **Elements:**
+  - Difficulty selector appears with radio buttons or segmented control
+  - Bet amount input field with increment/decrement buttons
+  - "Potential profit" display initially showing $0.00
+  - Start button (initially disabled)
+- **Technical:** Enable event listeners for control interactions
+- **State:** No bet placed yet, game awaiting player input
+
+### 3. Bet Placement Animation (User-dependent timing)
+- **Visual:** 
+  - Input fields highlight subtly on focus
+  - Numbers increment/decrement with subtle scaling animations
+- **Elements:**
+  - Bet amount updates with each input change
+  - Potential profit calculation updates in real-time
+  - Start button enables with a pulse animation when valid bet is placed
+- **Technical:** 
+  - Validate bet amount against player balance
+  - Calculate and display potential profit based on formula: `betAmount * difficultyMultiplier - betAmount`
+- **State:** Game ready to start once bet is confirmed
+
+## Game Initialization Animation
+
+### 4. Game Start Transition (0-800ms after Start button press)
+- **Visual:** 
+  - Controls panel slides down and minimizes (transform: translateY(0) → translateY(80%))
+  - "Get Ready" text briefly appears with fade-in/fade-out
+  - Camera perspective subtly shifts to focus on cups (if using 3D perspective)
+- **Elements:**
+  - Start button changes to "Playing..." state
+  - Controls become disabled with reduced opacity
+- **Technical:** Transition game state to "initializing" and lock controls
+- **State:** Game preparing to show ball placement
+
+### 5. Ball Introduction Animation (800-2000ms)
+- **Visual:** 
+  - Small white ball fades in (opacity 0 → 1 over 300ms)
+  - Ball performs a subtle bouncing animation
+- **Elements:**
+  - Ball appears above the play area
+  - Subtle spotlight effect focuses on the ball
+- **Technical:** Create ball element and position it using absolute positioning
+- **State:** Ball visible but not yet placed under cup
+
+### 6. Initial Ball Placement Animation (2000-3500ms)
+- **Visual:**
+  - Ball moves with a slight arc trajectory toward randomly selected cup
+  - Selected cup subtly raises (transform: translateY(0) → translateY(-20px) over 400ms)
+  - Ball slides under the raised cup
+  - Cup lowers back to original position (transform: translateY(-20px) → translateY(0) over 400ms)
+- **Elements:**
+  - Subtle directional light creates shadow under raised cup
+  - Ball disappears once under cup (opacity 1 → 0)
+- **Technical:**
+  - Use `requestAnimationFrame` or CSS animations for smooth movement
+  - Randomly select cup index (0, 1, or 2) for ball placement
+  - Store ball position in game state but hide from player
+- **State:** Ball now hidden under one cup, ready for shuffling
+
+## Shuffling Sequence Animation
+
+### 7. Pre-Shuffle Anticipation (3500-4000ms)
+- **Visual:**
+  - Brief pause (500ms) to build anticipation
+  - Subtle camera zoom effect (if using 3D perspective)
+  - "Shuffling begins..." text briefly appears
+- **Elements:**
+  - Cups subtly pulsate (scale 1.0 → 1.03 → 1.0)
+  - Background darkens slightly to focus attention on cups
+- **Technical:** Prepare shuffle sequence based on difficulty
+  - Easy: Generate 5 random cup swaps
+  - Medium: Generate 10 random cup swaps
+  - Hard: Generate 15 random cup swaps
+- **State:** Game ready to begin shuffling animation
+
+### 8. Cup Shuffling Animation (4000ms-Variable duration based on difficulty)
+- **Visual:** Cups swap positions in sequence with smooth animations
+  - **For each swap in sequence:**
+    1. Two cups simultaneously rise slightly (transform: translateY(0) → translateY(-15px) over 150ms)
+    2. Cups move horizontally to swap positions (transform: translateX() with cubic-bezier easing over 250-350ms)
+    3. Cups lower back to original vertical position (transform: translateY(-15px) → translateY(0) over 150ms)
+    4. Brief pause between swaps (50-200ms varying by difficulty)
+  
+- **Elements:**
+  - Subtle motion blur effect during fast movements
+  - Shadow follows each cup during movement
+  - Optional trace lines showing movement path
+
+- **Technical:**
+  - **Animation timing:**
+    - Easy: ~550ms per swap (5 swaps ≈ 2.75s total)
+    - Medium: ~450ms per swap (10 swaps ≈ 4.5s total)
+    - Hard: ~350ms per swap (15 swaps ≈ 5.25s total)
+  - Track updated position of the ball during each swap
+  - Use CSS transforms with hardware acceleration
+  - Apply z-index changes to maintain proper stacking order
+
+- **Ball tracking logic:**
+  - If cup with ball is involved in swap, update ball position in game state
+  - Example: If ball is under cup 0 and cups 0 and 2 swap, ball is now under cup 2
+
+- **State:** Cups continuously moving until shuffle sequence complete
+
+### 9. Shuffle Slowdown Animation (Variable end time)
+- **Visual:**
+  - Final 2-3 swaps gradually slow down (increasing duration by ~50ms each)
+  - Last swap has more pronounced movement
+- **Elements:**
+  - Motion blur effect reduces as speed decreases
+- **Technical:** Gradually increase the timing parameter for each animation
+- **State:** Shuffling completing, preparing for selection phase
+
+### 10. Post-Shuffle Settlement (End of shuffling + 500ms)
+- **Visual:**
+  - All cups perform a subtle "settling" animation (slight bounce)
+  - Cups spread out slightly for easier selection
+- **Elements:**
+  - "Select a cup" text appears with fade-in
+  - Cups gain a subtle highlight or glow effect to indicate they're selectable
+- **Technical:** Enable cup click/touch event listeners
+- **State:** Game awaiting player selection
+
+## Selection and Reveal Phase
+
+### 11. Cup Selection Animation (User-dependent timing)
+- **Visual:** 
+  - Cups highlight on hover/touch with a subtle glow effect
+  - Selected cup performs a slight "press" animation (scale 1.0 → 0.95 → 1.0 over 300ms)
+- **Elements:**
+  - Non-selected cups dim slightly
+  - "Selected" indicator appears above chosen cup
+- **Technical:**
+  - Register player's selection
+  - Disable further selections
+  - Send bet information to server
+- **State:** Game processing bet and preparing reveal
+
+### 12. Pre-Reveal Anticipation (0-1000ms after selection)
+- **Visual:**
+  - Brief pause (800ms) to build anticipation
+  - Subtle camera focus effect on selected cup
+- **Elements:**
+  - "Revealing..." text briefly appears
+  - Loading spinner or pulsing animation indicates processing
+- **Technical:** During this time, the server processes the bet and determines outcome
+- **State:** Game preparing for result reveal
+
+### 13. Sequential Cup Reveal Animation (1000-3000ms after selection)
+- **Visual:** Cups lift one by one to reveal contents
+  - **For each cup (in specific order):**
+    1. Cup rises with slight rotation (transform: translateY(0) → translateY(-60px) rotate(10deg) over 500ms)
+    2. Cup hovers in raised position briefly (300ms)
+    3. If last cup or contains ball, remains raised; otherwise slowly lowers back
+  
+- **Elements:**
+  - Ball becomes visible under the cup that contains it
+  - Ball performs subtle spinning animation when revealed
+  - If ball is under selected cup, ball glows or sparkles
+
+- **Technical:**
+  - **Reveal order:**
+    1. First reveal a non-selected cup without the ball
+    2. If another non-selected cup exists without the ball, reveal it next
+    3. Finally reveal either the selected cup or the last remaining cup
+  - This creates maximum anticipation regardless of outcome
+
+- **State:** Game revealing result to player
+
+### 14. Win/Loss Result Animation (3000-4500ms after selection)
+- **Visual:**
+  - **Win scenario:** 
+    - Ball under selected cup pulses with golden glow
+    - Particle effects emanate from the ball
+    - Numbers counting up to won amount
+  - **Loss scenario:**
+    - Ball under correct cup pulses briefly
+    - Selected cup performs subtle "disappointment" animation
+    - Brief red flash over the interface
+- **Elements:**
+  - Result text appears ("You Won!" or "Better luck next time!")
+  - Win/loss amount displayed prominently
+- **Technical:** Update player balance in UI and system
+- **State:** Result displayed, preparing for reset or next round
+
+### 15. Post-Game Reset Animation (4500-6000ms after selection)
+- **Visual:**
+  - Cups and ball fade out (opacity 1 → 0 over 500ms)
+  - Controls panel slides back up to full size
+  - "Play Again" button appears with pulse animation
+- **Elements:**
+  - Updated balance displayed
+  - Bet amount field reset to previous amount or minimum
+- **Technical:** Reset game state for new round
+- **State:** Game ready for new bet
+
+## Special Animation Effects
+
+### Difficulty-Specific Visual Effects
+- **Easy difficulty:**
+  - Slower, more deliberate cup movements
+  - More exaggerated arcs during swaps
+  - Longer pauses between swaps
+  - Cup paths more predictable
+
+- **Medium difficulty:**
+  - Moderate speed movements
+  - Standard arc heights
+  - Occasional changes in swap speed to create rhythm variation
+  - Some quick double-swaps (same cup moves twice in sequence)
+
+- **Hard difficulty:**
+  - Faster overall movements
+  - Lower, more subtle arcs that are harder to track
+  - Variable swap speeds (some very quick)
+  - Occasional "fake" moves (cup rises slightly but doesn't swap)
+  - More complex swap patterns (e.g., sequential swaps involving the same cup)
+
+### Mobile-Specific Adaptations
+- **Touch targets:** Cups spaced further apart on mobile screens
+- **Visual feedback:** More pronounced selection state for touch accuracy
+- **Layout:** Controls positioned for thumb accessibility
+- **Performance:** Simplified animations for lower-powered devices
+
+### Accessibility Considerations
+- **Reduced motion mode:** Option to simplify animations for users with motion sensitivity
+- **High contrast mode:** Enhanced visual differences between cups and ball
+- **Timing adjustments:** Option to slow down animations for better tracking
+- **Audio cues:** Sound effects synchronized with animations for audio feedback
+
+## Technical Animation Implementation Details
+
+### CSS Animation Properties
+- **Transform functions used:**
+  - `translateX/Y` for position changes (hardware accelerated)
+  - `scale` for size changes
+  - `rotate` for cup lifting effect
+  - `perspective` for 3D-like effects
+
+- **Timing functions:**
+  - `cubic-bezier(0.34, 1.56, 0.64, 1)` for natural bouncy effects
+  - `ease-out` for settling movements
+  - `linear` for consistent speed sections
+
+- **Animation optimizations:**
+  - `will-change` property for cups that will animate
+  - Composite properties (transform, opacity) for performance
+  - requestAnimationFrame for JS animations
+
+### State Transition Triggers
+- Each animation phase tied to specific game state changes
+- State machine pattern ensures animations occur in proper sequence
+- Animation promises allow for proper sequencing and timing
+
+### Performance Considerations
+- Batch DOM updates to prevent layout thrashing
+- Use opacity and transform for most animations (avoid animating layout properties)
+- Implement frame rate throttling for lower-end devices
+- Preload and cache animation assets

@@ -1,0 +1,148 @@
+To **link the wallet balance with all games in your Stake clone**, you'll need a **unified wallet system** that interacts consistently with every game. Here’s a **detailed logic structure** for implementing this integration:
+
+---
+
+## 🔐 CENTRAL WALLET SYSTEM – OVERVIEW
+
+* **Single Wallet, Multiple Games**: Each user has **one wallet**, shared across all games (e.g., Dice, Crash, Mines, Plinko, Quiz, etc.).
+* **Real-time Sync**: Any transaction (bet, win, loss, refund) should reflect immediately in the wallet.
+* **Atomic Transactions**: Use **transactions/locks** to prevent issues with simultaneous bets in different games.
+
+---
+
+## 🧱 DATABASE STRUCTURE
+
+### `users` Table
+
+```sql
+id | username | wallet_balance | ...
+```
+
+### `transactions` Table (for logging)
+
+```sql
+id | user_id | type        | amount | game      | status   | created_at
+---|---------|-------------|--------|-----------|----------|------------
+ 1 |    2    | 'bet'       |  10.00 | 'mines'   | 'success'| 2025-05-03
+ 2 |    2    | 'win'       |  50.00 | 'mines'   | 'success'| ...
+```
+
+---
+
+## ⚙️ CORE WALLET FUNCTIONS (Reusable APIs)
+
+### 1. `check_balance(user_id)`
+
+Returns current balance.
+
+### 2. `deduct_balance(user_id, amount, game)`
+
+* Check if balance ≥ amount
+* Deduct from `users.wallet_balance`
+* Create a `"bet"` record in `transactions`
+
+### 3. `add_balance(user_id, amount, game)`
+
+* Add amount to `users.wallet_balance`
+* Create a `"win"` or `"refund"` transaction
+
+### 4. `rollback_transaction(transaction_id)`
+
+* Use if a game crashes or refund is required
+
+---
+
+## 🧩 GAME-WALLET LINK LOGIC (Universal Flow for All Games)
+
+### ➤ WHEN PLAYER PLACES A BET
+
+1. Frontend sends `user_id`, `amount`, and `game_name` to your backend.
+2. Backend calls `deduct_balance()`:
+
+   * If insufficient balance → return error
+   * If success → allow the game to start
+
+---
+
+### ➤ WHEN GAME ENDS
+
+**Outcome 1 – Win:**
+
+* Backend calls `add_balance(user_id, win_amount, game_name)`
+
+**Outcome 2 – Loss:**
+
+* No action needed; bet already deducted
+
+**Outcome 3 – Tie/Refund:**
+
+* Call `add_balance()` with refund amount
+
+---
+
+## 🧠 IMPORTANT GAME-SIDE LOGIC
+
+### Game Engine Should Not Handle Wallet Directly
+
+* Games should communicate with a **wallet API layer**, not access DB directly
+* Ensures modularity and auditability
+
+---
+
+## 🔁 FLOW DIAGRAM FOR BETTING & RESULT
+
+1. 🔘 `Game UI` → Press Bet
+2. 📲 `API` → `POST /wallet/deduct`
+3. ✅ If success → Start game
+4. 🎲 Game finishes → Sends outcome to backend
+5. 📥 Backend calls:
+
+   * `/wallet/add` (on win)
+   * No call (on loss)
+   * `/wallet/add` (on refund)
+6. 💳 Updated balance is shown to user
+
+---
+
+## 🔒 ATOMICITY & SAFETY
+
+* Use DB **transactions** or Redis locks to prevent race conditions (e.g., placing bets on 2 games at once)
+* Example (pseudo-code in Node.js/Express):
+
+```javascript
+await db.transaction(async (trx) => {
+  const user = await trx('users').where({ id }).first();
+  if (user.wallet_balance >= betAmount) {
+    await trx('users').where({ id }).update({ 
+      wallet_balance: user.wallet_balance - betAmount 
+    });
+    await trx('transactions').insert({ ... });
+  } else {
+    throw new Error('Insufficient funds');
+  }
+});
+```
+
+---
+
+## 🛠 GAMES TO UPDATE
+
+Each game (e.g., Mines, Dice, Crash) should:
+
+* **Call wallet APIs** before and after games
+* Store game-specific transaction IDs to trace wins/losses
+* Be modular and stateless regarding wallet
+
+---
+
+## 🧪 TESTING CHECKLIST
+
+* [ ] Try placing bets with low and exact balances
+* [ ] Play multiple games in parallel
+* [ ] Simulate sudden disconnection/refund
+* [ ] Verify transaction logs
+* [ ] Confirm real-time UI wallet updates
+
+---
+
+Would you like me to help you create a **ready-to-use wallet API code** in Node.js, Python, or another backend language you're using?

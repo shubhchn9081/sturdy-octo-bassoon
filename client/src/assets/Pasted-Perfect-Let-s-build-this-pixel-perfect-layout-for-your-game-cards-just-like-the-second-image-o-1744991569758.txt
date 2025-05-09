@@ -1,0 +1,112 @@
+Perfect! Let’s build this **pixel-perfect layout** for your game cards—just like the second image (original Stake UI)—with **responsive, precise spacing**, and **scalable design** for Replit.
+
+---
+
+### 🔍 Breakdown of Stake Game Card (From 2nd Image)
+
+| Element               | Size & Style                                                |
+|-----------------------|-------------------------------------------------------------|
+| **Card Width**        | ~124px (desktop)                                            |
+| **Card Height**       | ~160px                                                      |
+| **Corner Radius**     | `16px` (`rounded-xl`)                                       |
+| **Shadow**            | Smooth outer shadow (`shadow-md`)                          |
+| **Background**        | Gradient (varies per game)                                  |
+| **Icon Size**         | ~50x50px centered                                           |
+| **Title Font**        | Bold, ~14px, white                                          |
+| **Subtext**           | Thin ~11px, white with opacity (`text-gray-300`)           |
+| **"Playing" Info**    | Small (~10px), bottom aligned, green dot + text            |
+
+---
+
+### ✅ FINAL HTML + TAILWIND CSS CARD COMPONENT
+
+Use this layout for each card in your React or HTML setup:
+
+```html
+<div class="w-[124px] h-[160px] bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-md flex flex-col justify-between items-center px-3 py-4 hover:scale-105 transition-transform cursor-pointer">
+  
+  <!-- Game Icon -->
+  <img src="/icons/mines.png" alt="Mines" class="w-12 h-12" />
+
+  <!-- Game Title -->
+  <div class="text-center mt-2">
+    <h3 class="text-white text-[14px] font-bold leading-none">MINES</h3>
+    <p class="text-gray-300 text-[11px] mt-1 tracking-wide">STAKE ORIGINALS</p>
+  </div>
+
+  <!-- Playing Count -->
+  <div class="flex items-center mt-2 text-green-400 text-[11px]">
+    <div class="w-2 h-2 rounded-full bg-green-400 mr-1"></div>
+    10,246 playing
+  </div>
+</div>
+```
+
+---
+
+### 🧠 Tips for Scaling
+
+- You can use `grid grid-cols-5 gap-4` for the card container to align all cards nicely.
+- For responsiveness:  
+  ```html
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <!-- Cards Here -->
+  </div>
+  ```
+
+---
+
+### 🎨 Color Suggestions
+
+Use different gradients for each card:
+
+| Game        | Gradient Class |
+|-------------|----------------|
+| Mines       | `from-blue-500 to-blue-800`  
+| Dice        | `from-pink-400 to-red-500`  
+| Plinko      | `from-purple-400 to-yellow-400`  
+| Limbo       | `from-yellow-400 to-orange-500`  
+| Pump        | `from-red-400 to-pink-500`  
+| Crash       | `from-blue-300 to-yellow-400`  
+
+---
+
+### 📦 Optional: JSON Format (Dynamic)
+
+To make cards dynamic:
+
+```js
+const games = [
+  {
+    name: "Mines",
+    icon: "/icons/mines.png",
+    gradient: "from-blue-500 to-blue-800",
+    players: "10,246"
+  },
+  ...
+]
+```
+
+Then in JSX/React:
+
+```jsx
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+  {games.map(game => (
+    <div className={`w-[124px] h-[160px] bg-gradient-to-br ${game.gradient} rounded-xl shadow-md flex flex-col justify-between items-center px-3 py-4`}>
+      <img src={game.icon} className="w-12 h-12" />
+      <div className="text-center mt-2">
+        <h3 className="text-white text-[14px] font-bold">{game.name}</h3>
+        <p className="text-gray-300 text-[11px] mt-1">STAKE ORIGINALS</p>
+      </div>
+      <div className="flex items-center text-green-400 text-[11px]">
+        <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+        {game.players} playing
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+---
+
+Would you like me to create a working HTML file or React component using this layout for your Replit?

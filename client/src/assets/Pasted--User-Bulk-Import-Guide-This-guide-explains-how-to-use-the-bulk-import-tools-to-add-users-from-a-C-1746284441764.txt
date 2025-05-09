@@ -1,0 +1,88 @@
+# User Bulk Import Guide
+
+This guide explains how to use the bulk import tools to add users from a CSV file into the system.
+
+## Features
+
+- ✅ Fast bulk importing of users from CSV
+- ✅ Users can log in with their phone number and any password
+- ✅ Automatic handling of duplicate users
+- ✅ Balance value validation to prevent database errors
+- ✅ Detailed progress and summary reports
+- ✅ Referral code generation for imported users
+
+## CSV File Requirements
+
+The CSV file should have the following columns:
+- `Username`: User's display name
+- `Phone`: User's phone number (must be 10 digits)
+- `Balance`: This field is read but ignored (all users start with 0 balance)
+- `Is Admin`: "Yes" or "No" to indicate admin status
+- `Is Banned`: "Yes" or "No" to indicate banned status
+
+The CSV file should be placed in the `attached_assets` folder with the name `users - Sheet1.csv`.
+
+## Running the Import Tool
+
+There are two ways to run the import tool:
+
+### Option 1: Using the Python Script (Recommended for large imports)
+
+```bash
+python3 import-script.py
+```
+
+Or run the Python script directly:
+
+```bash
+python3 fast-import.py
+```
+
+### Option 2: Using the Node.js Script
+
+```bash
+node import-script.js
+```
+
+Or run the Node.js script directly:
+
+```bash
+node direct-import.js
+```
+
+## Understanding the Import Process
+
+1. The tool connects to the database
+2. It reads the CSV file and processes user data
+3. Users are imported in batches for optimal performance
+4. Users with invalid or duplicate phone numbers are skipped
+5. All users are assigned a 0 balance regardless of the CSV values
+6. A summary is displayed showing the import results
+
+## Important Notes
+
+- All imported users can log in with their phone number and any password
+- Existing users (with the same phone number) are skipped to prevent duplicates
+- All imported users start with 0 balance regardless of values in the CSV
+- Admin status is preserved from the CSV data
+
+## Post-Import: Generating Referral Codes
+
+After importing users, you should generate referral codes for any users that don't have them:
+
+```bash
+node batch-update-referrals.mjs
+```
+
+This ensures all users have unique referral codes that can be used for the referral system. The script processes users in batches for optimal performance.
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure the CSV file is correctly formatted
+2. Check that the CSV file is placed in the correct location
+3. Verify the database connection is working
+4. Try running the alternate import tool (Python or Node.js)
+
+For technical support or questions, please contact the system administrator.

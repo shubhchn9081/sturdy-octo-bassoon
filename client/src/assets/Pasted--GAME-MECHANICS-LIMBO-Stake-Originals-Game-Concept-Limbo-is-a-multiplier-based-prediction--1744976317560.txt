@@ -1,0 +1,132 @@
+🎮 GAME MECHANICS – LIMBO (Stake Originals)
+🔁 Game Concept:
+Limbo is a multiplier-based prediction game.
+
+The player sets a target multiplier (e.g., 2.00x).
+
+The game then randomly generates a multiplier (e.g., 1.08x, 1.00x, 2.89x).
+
+If the generated multiplier is equal to or higher than the player’s target, the player wins.
+
+If it's less than the target, the player loses.
+
+💸 House Edge:
+Designed to have a house edge of around 1%.
+
+The lower your target multiplier, the higher your chance of winning, and vice versa.
+
+🎯 Game Result Logic:
+Uses a provably fair algorithm to generate multipliers.
+
+The outcomes are cryptographically hashed and verifiable under “Fairness” (bottom right button).
+
+🧠 UI FEATURES EXPLAINED
+🎯 Main Interface
+Large multiplier display in the center (e.g., 1.08x, 1.00x, 2.89x) shows the result of the latest round.
+
+Red = Loss
+
+Green = Win
+
+🔢 Multiplier History
+Above the result, recent multiplier outcomes are shown in horizontal capsules (e.g., 1.25x, 2.89x, etc.).
+
+Green: Winning rounds.
+
+Gray: Losing rounds.
+
+Helps players analyze patterns, though outcomes are independent.
+
+🧾 LEFT PANEL: Bet Controls
+📍 Mode Selector:
+Manual / Auto
+
+Manual: You click each bet manually.
+
+Auto: Autobet based on your custom rules.
+
+💰 Bet Amount
+Shows amount staked in Bitcoin.
+
+Shortcut buttons:
+
+½: Halves the current bet.
+
+2x: Doubles the current bet.
+
+🔄 Number of Bets (Auto Mode)
+Set how many rounds you want to run automatically.
+
+∞ = Infinite bets until manually stopped.
+
+🧠 On Win / On Loss
+Optional strategy configuration:
+
+Increase/decrease bet by % after a win or loss.
+
+Martingale strategy possible here.
+
+🟩 Stop on Profit / Stop on Loss
+Auto-betting safety net.
+
+You can choose to stop autobet when:
+
+A certain profit is reached.
+
+A certain loss is reached.
+
+✅ Stop Autobet Button
+Glows green when auto mode is running.
+
+Manually halts auto-betting.
+
+🔽 BOTTOM PANEL: Multiplier Target + Odds
+🎯 Target Multiplier
+The multiplier you want to hit to win.
+
+Editable input (e.g., 2.00)
+
+🎲 Win Chance
+Automatically calculated based on your target multiplier.
+
+Formula:
+
+cpp
+Copy
+Edit
+Win Chance (%) = (1 / Target Multiplier) * (100 - House Edge)
+🧾 TOP BAR
+Wallet Balance: Displays live balance in Bitcoin.
+
+Search Bar: To search for games.
+
+Profile & Notifications: Top right corner for account settings and alerts.
+
+🕹️ LEFT NAVIGATION MENU
+🎮 Categories:
+Stake Originals: Custom in-house games like Limbo, Crash, Dice, Plinko.
+
+Stake Exclusives: Unique games tied to promotions.
+
+Slots / Live Casino / Game Shows: Standard online casino offerings.
+
+Bonus Buy / Enhanced RTP / Blackjack / Baccarat / Poker: For more experienced gamblers.
+
+Challenges / My Bets / Favourites: Personal tracking and gamification.
+
+🧠 Advanced Game Strategy (Optional)
+Low Risk Strategy: Set low target (1.01x–1.05x), high win chance but low payout.
+
+High Risk Strategy: Set high target (10x–100x), huge payout but rare wins.
+
+Auto Strategy: Combine "On Win" and "On Loss" logic to apply Martingale or Anti-Martingale strategies.
+
+✅ Summary
+
+Feature	Description
+Game Type	Multiplier Prediction
+Target Input	Set multiplier you want to hit
+Outcome Display	Red/Green multiplier based on win/loss
+Auto Mode	Automated betting with strategies
+Multiplier History	Recent game outcomes
+Profit/Loss Stop	Risk management tools

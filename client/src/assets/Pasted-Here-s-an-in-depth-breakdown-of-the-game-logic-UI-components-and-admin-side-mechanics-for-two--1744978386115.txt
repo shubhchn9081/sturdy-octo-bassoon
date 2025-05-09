@@ -1,0 +1,182 @@
+Here’s an in-depth breakdown of the **game logic, UI components, and admin-side mechanics** for two major games: **Wheel** and **Keno** – as seen on Stake and similar platforms. These will help you fully replicate or customize them for your own platform.
+
+---
+
+## 🎡 WHEEL GAME – DETAILED GAME LOGIC
+
+### 🔍 Game Objective
+The player bets on a specific color or segment on a spinning wheel. If the pointer stops on their chosen segment, they win based on predefined multipliers.
+
+---
+
+### 🧠 GAME LOGIC
+
+#### 🎯 Wheel Design
+- The wheel is split into **N segments**, each with:
+  - A **color**
+  - A **multiplier** (e.g. 2x, 3x, 5x, 50x)
+- Example (typical Stake-style wheel):
+  - 49 Blue segments = 2x
+  - 49 Green segments = 3x
+  - 1 Red segment = 50x
+
+#### 🧮 Probability Logic
+```python
+wheel_segments = [
+    {"color": "blue", "multiplier": 2, "count": 49},
+    {"color": "green", "multiplier": 3, "count": 49},
+    {"color": "red", "multiplier": 50, "count": 1},
+]
+
+wheel = []
+for segment in wheel_segments:
+    wheel += [segment] * segment["count"]
+
+result = random.choice(wheel)
+```
+
+#### 💥 Payout Logic
+```python
+if user_selected_color == result["color"]:
+    winnings = bet_amount * result["multiplier"]
+else:
+    winnings = 0
+```
+
+#### ⚙️ Animation Mechanics
+- Spin animation uses easing functions (ease-in-out) and can include 2–4 full wheel rotations before slowing down.
+- Use a canvas or SVG for pointer and segment rotation.
+- Final resting angle should correspond to the winning segment index.
+
+---
+
+### 🧾 UI ELEMENTS
+
+| Component | Function |
+|----------|----------|
+| Wheel Canvas | Visually shows spinning wheel |
+| Segment Labels | Shows multiplier values (optional) |
+| Bet Controls | Select color + amount |
+| Previous Results | Shows last 10 winning segments |
+| Autobet Options | For continuous spinning |
+| Sound/Vibration | On win/loss trigger |
+| Multiplier Chart | Displays potential winnings |
+| Fairness Button | For provable fairness verification |
+
+---
+
+### 🔐 Admin Controls
+
+| Feature | Description |
+|--------|-------------|
+| Segment Distribution | Adjust ratio of multipliers |
+| RNG Seed | Provably fair seed for randomization |
+| RTP Control | Adjust return-to-player %
+| Bet Limit | Min/max bet allowed |
+| Bonus Rounds | Option to trigger jackpot spins |
+
+---
+
+## 🎲 KENO GAME – DETAILED GAME LOGIC
+
+### 🔍 Game Objective
+The player selects 1–10 (or more) numbers from a grid (typically 1–40 or 1–80). The system draws 10–20 numbers randomly. Winnings depend on how many of the player's numbers match the drawn ones.
+
+---
+
+### 🧠 GAME LOGIC
+
+#### ⚙️ Keno Rules
+
+- Grid: 1 to 40 (or 80)
+- Player picks: 1–10 numbers
+- System draws: 10–20 random numbers
+- Match = Win based on a **payout table**
+
+#### 🎰 Random Number Draw
+```python
+import random
+
+player_picks = [5, 12, 19, 27, 33, 38]
+drawn_numbers = random.sample(range(1, 41), 10)
+
+matches = set(player_picks) & set(drawn_numbers)
+number_of_hits = len(matches)
+```
+
+#### 💵 Payout Table Example (for 6 picks)
+
+| Matches | Payout (multiplier) |
+|---------|---------------------|
+| 0       | 0x |
+| 1       | 0x |
+| 2       | 0.5x |
+| 3       | 1.5x |
+| 4       | 3x |
+| 5       | 10x |
+| 6       | 100x |
+
+```python
+payout_multiplier = get_multiplier(len(player_picks), number_of_hits)
+winnings = bet_amount * payout_multiplier
+```
+
+#### 🔐 Provably Fair Logic
+- Hash-based RNG where client & server seed are used to generate drawn numbers.
+- Displayed under “Fairness” tab with ability to verify outcome.
+
+---
+
+### 🧾 UI ELEMENTS
+
+| Component | Function |
+|----------|----------|
+| Keno Grid | Number buttons 1–40 |
+| Selected Numbers | Highlights chosen picks |
+| Drawn Balls | Visual animation of result numbers |
+| Match Highlights | Shows correct picks with animation |
+| Bet Panel | Amount input and payout preview |
+| Auto Pick | Randomly pick numbers |
+| Autobet | Continuous play settings |
+| History | Displays previous games with result and profit/loss |
+
+---
+
+### 🔐 Admin Controls
+
+| Feature | Description |
+|--------|-------------|
+| Payout Table | Dynamic multiplier editing |
+| RNG Engine | Seed-based or server RNG switch |
+| Max Picks | Limit number of picks allowed |
+| Result Delay | Add animation time for better UX |
+| Return % Control | Adjust RTP by tuning multiplier values |
+
+---
+
+## ⚠️ BONUS: Visual & UX Tips
+
+- Add glow/highlight effects for selected and matched numbers.
+- Use bouncy animations on number reveal.
+- Include jackpot or bonus round probability.
+- Display RTP % in info modal.
+- Gamify with achievements (e.g., "Matched 10/10!" = badge)
+
+---
+
+## ✅ Summary Table
+
+| Game | Core Mechanic | RNG Elements | UI Focus | Admin Flexibility |
+|------|----------------|--------------|----------|-------------------|
+| Wheel | Predict color/multiplier | Spin result | Canvas wheel + bet panel | RTP control, segment edit |
+| Keno | Match drawn numbers | Number draw | Grid input + number animation | Payout table, pick range |
+
+---
+
+Let me know if you want:
+- React components for either game
+- Canvas animation logic
+- Ready-to-use JSON config for Replit
+- Or a backend logic file in Node.js / Python / Firebase functions
+
+I can generate it all.

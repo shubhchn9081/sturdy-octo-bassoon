@@ -1,0 +1,151 @@
+Here is a detailed breakdown and guide on how you can replicate the Stake Dice game UI shown in your second screenshot exactly within Replit using React and Tailwind CSS. This will allow you to clone the UI precisely, including colors, sizes, positions, and interactions:
+
+## 🎨 Exact Colors from Stake UI:
+
+- Background (`body`): `#0F212E`
+- Navbar/Header: `#172B3A`
+- Sidebar Background: `#172B3A`
+- Active Tab Button Background: `#1B3549`
+- Slider Track Background: `#293742`
+- Slider Red Section: `#D13B4A`
+- Slider Green Section: `#49B26C`
+- Slider Thumb (`handle`): `#4A7BC6`
+- Input Background: `#243442`
+- Bet Button: `#4ECD5D` (green)
+- Text Color (Primary): `#FFFFFF`
+- Text Color (Secondary): `#9CA3AF` (gray-400)
+
+---
+
+## 🚀 UI Components Breakdown:
+
+### 1. **Header Section**
+- Wallet button aligned to the right, blue (`#357CFF`)
+- Currency indicator box (`#243442` background, rounded corners)
+
+### 2. **Sidebar Section**
+- Tabs ("CASINO", "SPORTS") at the top with the active tab highlighted in green (`#4ECD5D`)
+- Vertical sidebar with items like "Favourites", "Recent", "Challenges", and various game categories
+
+### 3. **Main Content**
+- Tabs ("Manual", "Auto") at the top of the main betting area
+- Bet amount and profit fields with placeholder texts and Bitcoin currency indicators
+- Bet Button clearly highlighted in green (`#4ECD5D`)
+
+### 4. **Slider Section**
+- Horizontal slider bar with distinct red (`#D13B4A`) on the left, green (`#49B26C`) on the right
+- Blue slider thumb (`#4A7BC6`), draggable
+- Text beneath slider for:
+  - Multiplier (`2.0000x`)
+  - Roll Over (`50.50`)
+  - Win Chance (`49.5000%`)
+
+---
+
+## ⚙️ Exact Tailwind Classes for Styling:
+
+To achieve a perfect UI match, use these specific Tailwind CSS classes:
+
+```jsx
+<div className="bg-[#0F212E] h-screen text-white">
+  
+  {/* Header */}
+  <header className="bg-[#172B3A] flex justify-between items-center px-4 py-2">
+    <div className="text-xl font-bold">Stake</div>
+    <button className="bg-[#357CFF] px-3 py-1 rounded-lg">Wallet</button>
+  </header>
+
+  <div className="flex">
+    
+    {/* Sidebar */}
+    <aside className="bg-[#172B3A] w-64 p-4">
+      <div className="flex space-x-2 mb-6">
+        <button className="bg-[#4ECD5D] px-3 py-1 rounded">CASINO</button>
+        <button className="text-gray-400 px-3 py-1 rounded">SPORTS</button>
+      </div>
+      <ul className="space-y-3 text-gray-300">
+        <li>Favourites</li>
+        <li>Recent</li>
+        <li>Challenges</li>
+        <li>My Bets</li>
+        <hr className="border-[#293742] my-3"/>
+        <li>Stake Originals</li>
+        <li>Stake Exclusives</li>
+        <li>Slots</li>
+        <li>Live Casino</li>
+        <li>Game Shows</li>
+        {/* Add more sidebar items as necessary */}
+      </ul>
+    </aside>
+
+    {/* Main Content */}
+    <main className="flex-1 p-6">
+      <div className="bg-[#172B3A] p-4 rounded-lg">
+        
+        {/* Tabs */}
+        <div className="flex bg-[#1B3549] rounded-full mb-4">
+          <button className="flex-1 bg-[#243442] rounded-l-full py-2">Manual</button>
+          <button className="flex-1 text-gray-400 rounded-r-full py-2">Auto</button>
+        </div>
+        
+        {/* Inputs */}
+        <div className="space-y-3">
+          <div className="bg-[#243442] p-2 rounded">
+            <label className="text-xs text-gray-400">Bet Amount</label>
+            <input className="w-full bg-transparent outline-none" placeholder="0.00000000"/>
+          </div>
+          <div className="bg-[#243442] p-2 rounded">
+            <label className="text-xs text-gray-400">Profit on Win</label>
+            <input className="w-full bg-transparent outline-none" placeholder="0.00000000"/>
+          </div>
+          <button className="w-full bg-[#4ECD5D] py-2 rounded">Bet</button>
+        </div>
+
+        {/* Slider */}
+        <div className="mt-6">
+          <div className="w-full bg-[#293742] h-3 rounded-full relative overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 bg-[#D13B4A]" style={{width: "50%"}}></div>
+            <div className="absolute right-0 top-0 bottom-0 bg-[#49B26C]" style={{width: "50%"}}></div>
+            <div className="absolute left-[50%] -translate-x-1/2 top-0 bottom-0 w-5 bg-[#4A7BC6] rounded cursor-pointer"></div>
+          </div>
+          <div className="flex justify-between mt-2 text-xs text-gray-400">
+            <span>Multiplier</span>
+            <span>Roll Over</span>
+            <span>Win Chance</span>
+          </div>
+          <div className="flex justify-between mt-1">
+            <span>2.0000×</span>
+            <span>50.50</span>
+            <span>49.5000%</span>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+</div>
+```
+
+---
+
+## 🖥️ How to implement this in Replit?
+
+1. **Create a new React project in Replit.**
+2. **Set up Tailwind CSS** by adding the Tailwind CDN in your HTML file or via npm installation if you prefer advanced setup.
+   ```html
+   <script src="https://cdn.tailwindcss.com"></script>
+   ```
+   
+3. **Copy the provided JSX code above into your React component.**  
+4. **Run your project** in Replit to visualize and adjust details as needed.
+
+---
+
+## ✅ **Interaction logic** you’ll need later:
+
+- **State management** (bet amount, slider, profit calculations) handled via React's `useState`.
+- **Draggable slider thumb** can be implemented using libraries like `react-draggable` for a realistic feel.
+
+This comprehensive guide with exact colors, Tailwind classes, and component breakdown ensures you can precisely clone Stake’s dice game UI within Replit.
