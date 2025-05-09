@@ -132,10 +132,11 @@ const GamePage = () => {
     return (
       <div className="container mx-auto p-6">
         <div className="bg-secondary rounded-lg p-6 text-center">
-          <h1 className="text-2xl mb-4 text-red-500">Access Denied</h1>
-          <p>This game is not accessible to you. Please contact an administrator if you believe this is an error.</p>
+          <h1 className="text-2xl mb-4 text-primary">Locked Game</h1>
+          <p className="text-lg mb-3">Looks like you've been locked out of the fun zone 😅</p>
+          <p>Don't worry — the game will be available to you soon. Sit tight, champ! 🎮✨</p>
           <button 
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+            className="mt-6 px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-opacity-90 transition-all"
             onClick={() => setLocation('/')}
           >
             Back to Home
