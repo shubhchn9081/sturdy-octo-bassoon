@@ -85,10 +85,32 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
     }, 300);
   };
 
+  // Custom styling for the banner container to maintain aspect ratio
+  const bannerContainerStyle = {
+    // Use a standard 16:5 aspect ratio for banners
+    paddingBottom: '31.25%',
+    position: 'relative' as 'relative',
+    width: '100%',
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    borderRadius: '0.5rem'
+  };
+
+  // Custom styling for the banner images
+  const bannerImageStyle = {
+    position: 'absolute' as 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain' as 'contain',
+    backgroundColor: '#000'
+  };
+
   return (
-    <div className={`w-full relative overflow-hidden rounded-lg mb-4 ${className}`}>
-      {/* Banner Images */}
-      <div className="relative h-[170px] sm:h-[190px] md:h-[210px] lg:h-[230px]">
+    <div className={`w-full mb-6 ${className}`}>
+      {/* Banner Container with aspect ratio maintained */}
+      <div style={bannerContainerStyle} className="relative">
         {bannerItems.map((banner, index) => (
           <a 
             key={banner.id}
@@ -102,8 +124,7 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
             <img 
               src={banner.imageUrl} 
               alt={banner.alt}
-              className="w-full h-full object-cover object-center rounded-lg bg-black"
-              style={{ objectPosition: '50% 50%' }}
+              style={bannerImageStyle}
               onError={(e) => {
                 console.error('Failed to load banner image:', banner.imageUrl);
                 e.currentTarget.style.display = 'none';
@@ -111,20 +132,20 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
             />
           </a>
         ))}
-      </div>
 
-      {/* Navigation Dots */}
-      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {bannerItems.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToBanner(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentBannerIndex ? 'bg-white' : 'bg-white/40'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+        {/* Navigation Dots */}
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+          {bannerItems.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToBanner(index)}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                index === currentBannerIndex ? 'bg-white' : 'bg-white/40'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
