@@ -65,10 +65,10 @@ const Slots = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          gameId: 9, // Slots game ID
+          gameId: 101, // Use Cosmic Spins slot game which has ID 101
           amount: betAmount,
           clientSeed,
-          luckyNumber, // Include the player's lucky number
+          luckySymbol: String(luckyNumber), // Pass as luckySymbol which the server expects
         })
       });
       
