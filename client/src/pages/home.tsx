@@ -82,7 +82,7 @@ const HomePage = () => {
       
       {/* Promotional Banner */}
       <div className="px-2 mt-2">
-        <PromotionalBanner autoRotateInterval={3000} />
+        <PromotionalBanner />
       </div>
 
       {/* Featured Section */}
