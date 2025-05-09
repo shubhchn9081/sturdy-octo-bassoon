@@ -92,7 +92,6 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
     position: 'relative' as 'relative',
     width: '100%',
     overflow: 'hidden',
-    backgroundColor: '#000',
     borderRadius: '0.5rem'
   };
 
@@ -101,16 +100,18 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
     position: 'absolute' as 'absolute',
     top: '0',
     left: '0',
+    right: '0',
+    bottom: '0',
     width: '100%',
     height: '100%',
-    objectFit: 'contain' as 'contain',
-    backgroundColor: '#000'
+    objectFit: 'cover' as 'cover',
+    objectPosition: 'center' as 'center'
   };
 
   return (
     <div className={`w-full mb-6 ${className}`}>
       {/* Banner Container with aspect ratio maintained */}
-      <div style={bannerContainerStyle} className="relative">
+      <div style={bannerContainerStyle} className="relative shadow-lg">
         {bannerItems.map((banner, index) => (
           <a 
             key={banner.id}
@@ -125,6 +126,7 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
               src={banner.imageUrl} 
               alt={banner.alt}
               style={bannerImageStyle}
+              className="hover:opacity-95 transition-opacity"
               onError={(e) => {
                 console.error('Failed to load banner image:', banner.imageUrl);
                 e.currentTarget.style.display = 'none';
