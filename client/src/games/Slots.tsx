@@ -80,7 +80,35 @@ const Slots = () => {
       const result = await response.json();
       
       // Extract reel values from the result
-      const newReels: number[] = result.outcome.reels || [0, 0, 0];
+      console.log('Server response:', result);
+      
+      // The server returns reels as a 2D array of string image paths
+      // We need to convert them to numbers for our simple slot display
+      // Extract the middle row (index 1) from each reel for display
+      const newReels: number[] = (result.outcome.reels || []).map((reel: any) => {
+        if (Array.isArray(reel) && reel.length >= 3) {
+          // Convert image paths to numbers for our simplified display
+          // Extract digits from the path if possible or assign random number
+          const middleSymbol = reel[1]; // Get middle symbol (winning position)
+          if (typeof middleSymbol === 'string') {
+            // Try to extract a digit from the image path if it contains one
+            const match = /(\d+)/.exec(middleSymbol);
+            if (match) {
+              return parseInt(match[1]) % 10; // Return a single digit 0-9
+            }
+          }
+          // Fallback to a random number if no digit found
+          return Math.floor(Math.random() * 10);
+        }
+        return 0; // Default fallback
+      });
+      
+      // If less than 3 reels, pad with random values
+      while (newReels.length < 3) {
+        newReels.push(Math.floor(Math.random() * 10));
+      }
+      
+      console.log('Converted to number reels for display:', newReels);
       
       // Start spinning animation
       await animateReels(newReels);
@@ -91,7 +119,7 @@ const Slots = () => {
         multiplier: result.multiplier || 0,
         win: result.profit > 0,
         winAmount: result.profit > 0 ? result.profit : 0,
-        luckyNumberHit: result.luckyNumberHit || false
+        luckyNumberHit: result.outcome.hasLuckySymbol || false
       };
       
       setSpinResults(spinResult);
