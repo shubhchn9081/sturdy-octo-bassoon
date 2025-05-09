@@ -1996,6 +1996,115 @@ export default function AdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Game Access Dialog */}
+      <Dialog open={gameAccessDialogOpen} onOpenChange={setGameAccessDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {gameAccessUser 
+                ? `Edit Game Access for ${gameAccessUser.username}` 
+                : "Add Game Access Rule"}
+            </DialogTitle>
+            <DialogDescription>
+              Configure which games this user can access on the platform.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {!gameAccessUser && (
+              <div className="space-y-2">
+                <Label htmlFor="userId">Select User</Label>
+                <select
+                  id="userId"
+                  className="w-full p-2 border rounded-md bg-background"
+                  value={gameAccessUser?.id || ""}
+                  onChange={(e) => {
+                    const selectedUserId = parseInt(e.target.value);
+                    const selectedUser = users?.find(u => u.id === selectedUserId);
+                    if (selectedUser) {
+                      setGameAccessUser(selectedUser);
+                      getUserGameAccess(selectedUserId);
+                    }
+                  }}
+                >
+                  <option value="">Select a user</option>
+                  {users?.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.username} (ID: {user.id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="accessType">Access Type</Label>
+              <select
+                id="accessType"
+                className="w-full p-2 border rounded-md bg-background"
+                value={gameAccessType}
+                onChange={(e) => setGameAccessType(e.target.value as "all_games" | "specific_games")}
+              >
+                <option value="all_games">All Games (Full Access)</option>
+                <option value="specific_games">Specific Games Only</option>
+              </select>
+            </div>
+
+            {gameAccessType === "specific_games" && (
+              <div className="space-y-2">
+                <Label>Select Allowed Games</Label>
+                <div className="border p-3 rounded-md max-h-[200px] overflow-y-auto">
+                  {games?.map((game) => (
+                    <div key={game.id} className="flex items-center space-x-2 py-1">
+                      <Checkbox
+                        id={`game-${game.id}`}
+                        checked={allowedGameIds.includes(game.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setAllowedGameIds([...allowedGameIds, game.id]);
+                          } else {
+                            setAllowedGameIds(allowedGameIds.filter(id => id !== game.id));
+                          }
+                        }}
+                      />
+                      <Label
+                        htmlFor={`game-${game.id}`}
+                        className="cursor-pointer text-sm font-normal flex-grow"
+                      >
+                        {game.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setGameAccessDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={!gameAccessUser || (gameAccessType === "specific_games" && allowedGameIds.length === 0)}
+              onClick={() => {
+                if (gameAccessUser) {
+                  updateGameAccessMutation.mutate({
+                    userId: gameAccessUser.id,
+                    accessType: gameAccessType,
+                    allowedGameIds: gameAccessType === "specific_games" ? allowedGameIds : []
+                  });
+                }
+              }}
+            >
+              {gameAccessUser && userGameAccessRecords?.some(a => a.userId === gameAccessUser.id)
+                ? "Update Access"
+                : "Add Access Rule"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

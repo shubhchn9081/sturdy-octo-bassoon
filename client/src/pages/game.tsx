@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRoute, useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import { GAMES, getGameBySlug } from '@/games';
 import Layout from '@/components/layout/Layout';
 import Dice from '@/games/Dice';
@@ -15,6 +16,7 @@ import Slots from '@/games/Slots';
 import NewCupAndBall from '@/games/NewCupAndBall';
 import TowerClimb from '@/games/TowerClimb';
 import RocketLaunchRevised from '@/games/RocketLaunchRevised';
+import { useToast } from '@/hooks/use-toast';
 
 
 type Game = typeof GAMES[0];
@@ -43,6 +45,11 @@ const GamePage = () => {
   const params = normalMatch ? normalParams : casinoParams;
   const [_, setLocation] = useLocation();
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
+  const { toast } = useToast();
+  
+  // State for game access
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [accessCheckComplete, setAccessCheckComplete] = useState<boolean>(false);
   
   useEffect(() => {
     if (!match || !params) return;
@@ -64,6 +71,32 @@ const GamePage = () => {
     };
   }, [match, params, setLocation]);
   
+  // Check if the user has access to this game
+  const { isLoading: accessCheckLoading } = useQuery({
+    queryKey: ['/api/games/check-access', currentGame?.id],
+    queryFn: async () => {
+      if (!currentGame) return { hasAccess: false };
+      
+      try {
+        const response = await fetch(`/api/games/${currentGame.id}/check-access`);
+        if (!response.ok) {
+          throw new Error('Failed to check game access');
+        }
+        const data = await response.json();
+        setHasAccess(data.hasAccess);
+        setAccessCheckComplete(true);
+        return data;
+      } catch (error) {
+        console.error('Error checking game access:', error);
+        setHasAccess(false);
+        setAccessCheckComplete(true);
+        return { hasAccess: false };
+      }
+    },
+    enabled: !!currentGame,
+    retry: false
+  });
+  
   if (!match || !params) {
     return null;
   }
@@ -83,6 +116,36 @@ const GamePage = () => {
           >
             Back to Home
           </button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Display access denied message if the user doesn't have access
+  if (accessCheckComplete && hasAccess === false) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="bg-secondary rounded-lg p-6 text-center">
+          <h1 className="text-2xl mb-4 text-red-500">Access Denied</h1>
+          <p>This game is not accessible to you. Please contact an administrator if you believe this is an error.</p>
+          <button 
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+            onClick={() => setLocation('/')}
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show loading state while checking access
+  if (!accessCheckComplete && currentGame) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="bg-secondary rounded-lg p-6 text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Checking game access...</p>
         </div>
       </div>
     );
