@@ -88,7 +88,7 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
   return (
     <div className={`w-full relative overflow-hidden rounded-lg mb-4 ${className}`}>
       {/* Banner Images */}
-      <div className="relative aspect-[16/4.5] sm:aspect-[16/5] md:aspect-[16/5.5] lg:aspect-[16/6]">
+      <div className="relative h-[170px] sm:h-[190px] md:h-[210px] lg:h-[230px]">
         {bannerItems.map((banner, index) => (
           <a 
             key={banner.id}
@@ -102,7 +102,8 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
             <img 
               src={banner.imageUrl} 
               alt={banner.alt}
-              className="w-full h-full object-cover rounded-lg"
+              className="w-full h-full object-cover object-center rounded-lg bg-black"
+              style={{ objectPosition: '50% 50%' }}
               onError={(e) => {
                 console.error('Failed to load banner image:', banner.imageUrl);
                 e.currentTarget.style.display = 'none';
