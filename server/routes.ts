@@ -1179,6 +1179,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Game Access Routes
+  app.get('/api/admin/user-game-access', isAdmin, async (req, res) => {
+    try {
+      const accessRecords = await storage.getAllUserGameAccess();
+      res.json(accessRecords);
+    } catch (error) {
+      console.error('Error getting user game access records:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/user-game-access/:userId', isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const access = await storage.getUserGameAccess(userId);
+      
+      if (!access) {
+        return res.status(404).json({ message: 'User game access not found' });
+      }
+      
+      res.json(access);
+    } catch (error) {
+      console.error('Error getting user game access:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  app.post('/api/admin/user-game-access', isAdmin, async (req, res) => {
+    try {
+      const { userId, accessType, allowedGameIds } = req.body;
+      
+      if (!userId || !accessType) {
+        return res.status(400).json({ message: 'Missing required parameters' });
+      }
+      
+      // Check if user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // If accessType is 'specific_games', ensure allowedGameIds is provided
+      if (accessType === 'specific_games' && (!allowedGameIds || !Array.isArray(allowedGameIds))) {
+        return res.status(400).json({ message: 'allowedGameIds must be an array when accessType is specific_games' });
+      }
+      
+      // Create or update user game access
+      const access = await storage.updateUserGameAccess(userId, {
+        accessType,
+        allowedGameIds: accessType === 'specific_games' ? allowedGameIds : []
+      });
+      
+      res.json(access);
+    } catch (error) {
+      console.error('Error creating/updating user game access:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  // Add an endpoint to check if a user has access to a specific game
+  app.get('/api/games/:gameId/check-access', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const userId = req.user!.id;
+      const gameId = parseInt(req.params.gameId);
+      
+      const hasAccess = await storage.checkUserGameAccess(userId, gameId);
+      
+      res.json({ hasAccess });
+    } catch (error) {
+      console.error('Error checking game access:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server for real-time sports betting updates

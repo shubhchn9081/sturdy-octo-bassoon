@@ -76,6 +76,12 @@ export default function AdminPage() {
   const [activityGameId, setActivityGameId] = useState<number | null>(null);
   const [activityDateRange, setActivityDateRange] = useState<"all" | "today" | "week" | "month">("all");
   
+  // Game access state
+  const [gameAccessUser, setGameAccessUser] = useState<User | null>(null);
+  const [gameAccessType, setGameAccessType] = useState<"all_games" | "specific_games">("all_games");
+  const [allowedGameIds, setAllowedGameIds] = useState<number[]>([]);
+  const [gameAccessDialogOpen, setGameAccessDialogOpen] = useState(false);
+  
   // Redirect if not admin
   useEffect(() => {
     if (user && !user.isAdmin) {
@@ -184,6 +190,67 @@ export default function AdminPage() {
       return await response.json();
     },
     enabled: user?.isAdmin === true
+  });
+  
+  // Fetch user game access records
+  const { data: userGameAccessRecords, isLoading: gameAccessLoading } = useQuery({
+    queryKey: ['/api/admin/user-game-access'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/user-game-access");
+      return await response.json();
+    },
+    enabled: user?.isAdmin === true && selectedTab === "access"
+  });
+  
+  // Fetch user's game access
+  const getUserGameAccess = async (userId: number) => {
+    try {
+      const response = await apiRequest("GET", `/api/admin/user-game-access/${userId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setGameAccessType(data.accessType as "all_games" | "specific_games");
+        setAllowedGameIds(Array.isArray(data.allowedGameIds) ? data.allowedGameIds : []);
+      } else {
+        // If user has no access record, default to "all_games"
+        setGameAccessType("all_games");
+        setAllowedGameIds([]);
+      }
+    } catch (error) {
+      console.error("Error fetching user game access:", error);
+      // Default to "all_games" on error
+      setGameAccessType("all_games");
+      setAllowedGameIds([]);
+    }
+  };
+  
+  // Update user game access
+  const updateGameAccessMutation = useMutation({
+    mutationFn: async (data: { 
+      userId: number;
+      accessType: string;
+      allowedGameIds?: number[];
+    }) => {
+      const response = await apiRequest("POST", "/api/admin/user-game-access", data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/user-game-access'] });
+      setGameAccessDialogOpen(false);
+      setGameAccessUser(null);
+      setAllowedGameIds([]);
+      toast({
+        title: "Success",
+        description: "Game access updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update game access",
+        variant: "destructive",
+      });
+    }
   });
   
   // Create user game control
