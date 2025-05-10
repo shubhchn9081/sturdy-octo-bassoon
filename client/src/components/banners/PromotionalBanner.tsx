@@ -23,11 +23,11 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
 }) => {
   const [currentBanner, setCurrentBanner] = useState(0);
   
-  // Auto rotate banners every 6 seconds
+  // Auto rotate banners every 3 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 6000);
+    }, 3000);
     
     return () => clearInterval(timer);
   }, []);
@@ -40,7 +40,7 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.4 }}
         >
           {/* All banners now link to the casino page */}
           <a href="/casino" className="block">
