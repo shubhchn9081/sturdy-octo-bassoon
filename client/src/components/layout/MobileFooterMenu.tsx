@@ -1,7 +1,6 @@
 import React from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-import { saveIntendedRoute } from '@/lib/auth-redirect';
 
 // Custom navigation link component that handles auth checks
 const MobileNavLink = ({ 
@@ -32,7 +31,7 @@ const MobileNavLink = ({
     } else {
       // User is not authenticated and route is protected,
       // save intended destination and redirect to login
-      saveIntendedRoute(href);
+      localStorage.setItem('intended_route', href);
       setLocation('/auth');
     }
   };

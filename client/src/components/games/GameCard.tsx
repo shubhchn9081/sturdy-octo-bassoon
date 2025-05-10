@@ -2,7 +2,6 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
-import { saveIntendedRoute } from '@/lib/auth-redirect';
 
 type GameCardProps = {
   id: number;
@@ -321,7 +320,7 @@ const GameCard = ({
       setLocation(gameRoute);
     } else {
       // If not authenticated, save the intended destination and redirect to auth
-      saveIntendedRoute(gameRoute);
+      localStorage.setItem('intended_route', gameRoute);
       setLocation('/auth');
     }
   };

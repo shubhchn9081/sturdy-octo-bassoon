@@ -80,11 +80,10 @@ export default function AuthPage() {
 
   // Redirect to intended route or home if user is already logged in
   if (user) {
-    // Import the getAndClearIntendedRoute function for redirection
-    const { getAndClearIntendedRoute } = require('@/lib/auth-redirect');
-    
-    // Check if there's an intended route to redirect to
-    const intendedRoute = getAndClearIntendedRoute();
+    // Get the intended route from localStorage
+    const intendedRoute = localStorage.getItem('intended_route');
+    // Clear it after retrieval
+    localStorage.removeItem('intended_route');
     
     // Redirect to the intended route if it exists, otherwise to home
     return <Redirect to={intendedRoute || "/"} />;

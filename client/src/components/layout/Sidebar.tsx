@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { saveIntendedRoute } from '@/lib/auth-redirect';
 import {
   Home, 
   Clock, 
@@ -55,7 +54,7 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
       setLocation(href);
     } else {
       // Save intended destination and redirect to login
-      saveIntendedRoute(href);
+      localStorage.setItem('intended_route', href);
       setLocation('/auth');
     }
   };
