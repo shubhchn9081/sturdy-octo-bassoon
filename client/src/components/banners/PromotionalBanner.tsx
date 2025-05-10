@@ -13,8 +13,8 @@ const banners = [
   },
   {
     id: 2,
-    image: '/banners/crash-game-banner.png',
-    alt: 'Crash Game - Cash out before the rocket crashes!'
+    image: '/banners/crash-game-banner-new.png',
+    alt: 'Crash Game - Test your nerve, play crash!'
   },
   {
     id: 3,
