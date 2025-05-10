@@ -15,6 +15,11 @@ const banners = [
     id: 2,
     image: '/banners/crash-game-banner.png',
     alt: 'Crash Game - Cash out before the rocket crashes!'
+  },
+  {
+    id: 3,
+    image: '/banners/slots-banner.png',
+    alt: 'Slots Game - Try your luck and spin slots!'
   }
 ];
 
