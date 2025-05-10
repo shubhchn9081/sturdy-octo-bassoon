@@ -9,13 +9,11 @@ const banners = [
   {
     id: 1,
     image: '/banners/mines-matrix-banner.png',
-    href: '/games/mines',
     alt: 'Mines Game - Skip the mines, win the cash!'
   },
   {
     id: 2,
     image: '/banners/crash-game-banner.png',
-    href: '/games/crash',
     alt: 'Crash Game - Cash out before the rocket crashes!'
   }
 ];
@@ -44,7 +42,8 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7 }}
         >
-          <a href={banners[currentBanner].href} className="block">
+          {/* All banners now link to the casino page */}
+          <a href="/casino" className="block">
             <motion.div 
               className="relative rounded-lg shadow-lg overflow-hidden transition-transform duration-300"
               whileHover={{ scale: 1.01 }}
