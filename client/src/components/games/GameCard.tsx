@@ -1,5 +1,8 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
+import { useLocation } from 'wouter';
+import { saveIntendedRoute } from '@/lib/auth-redirect';
 
 type GameCardProps = {
   id: number;
@@ -304,6 +307,25 @@ const GameCard = ({
   const imageSource = getImageSource();
   const gradientStyle = getGradientStyle();
 
+  // Get authentication status and location functionality
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  
+  // Handle clicking on a game card
+  const handleGameClick = () => {
+    // The route we want to navigate to
+    const gameRoute = `/games/${slug}`;
+    
+    // If the user is authenticated, navigate directly to the game
+    if (user) {
+      setLocation(gameRoute);
+    } else {
+      // If not authenticated, save the intended destination and redirect to auth
+      saveIntendedRoute(gameRoute);
+      setLocation('/auth');
+    }
+  };
+
   return (
     <div 
       className={cn(
@@ -311,7 +333,7 @@ const GameCard = ({
         "w-full max-w-[146px] mx-auto", // Standard game card width, centered on mobile
         className
       )}
-      onClick={() => window.location.href = `/games/${slug}`}
+      onClick={handleGameClick}
     >
       {/* Main card content - responsive height */}
       <div className="relative w-full h-[176px]">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
+import { saveIntendedRoute } from '@/lib/auth-redirect';
 import {
   Home, 
   Clock, 
@@ -39,8 +40,25 @@ type SidebarLinkProps = {
 };
 
 const SidebarLink = ({ href, icon, children, className, active: forceActive }: SidebarLinkProps) => {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { user } = useAuth();
   const active = forceActive || location === href;
+  
+  // Handle navigation with authentication check
+  const handleNavigate = () => {
+    // Routes that don't require authentication - '/' is already publicly accessible via App.tsx
+    const publicRoutes = ['/auth', '/animation-examples', '/init-db'];
+    const isPublicRoute = publicRoutes.includes(href);
+    
+    if (user || isPublicRoute) {
+      // Authenticated users or public routes - direct navigation
+      setLocation(href);
+    } else {
+      // Save intended destination and redirect to login
+      saveIntendedRoute(href);
+      setLocation('/auth');
+    }
+  };
   
   return (
     <div 
@@ -49,7 +67,7 @@ const SidebarLink = ({ href, icon, children, className, active: forceActive }: S
         active ? "text-white border-l-2 border-[#57FBA2]" : "hover:text-white",
         className
       )}
-      onClick={() => window.location.href = href}
+      onClick={handleNavigate}
     >
       <span className={cn(
         "mr-1.5",
