@@ -78,9 +78,16 @@ export default function AuthPage() {
     registerMutation.mutate(registerData);
   };
 
-  // Redirect to home if user is already logged in
+  // Redirect to intended route or home if user is already logged in
   if (user) {
-    return <Redirect to="/" />;
+    // Import the getAndClearIntendedRoute function for redirection
+    const { getAndClearIntendedRoute } = require('@/lib/auth-redirect');
+    
+    // Check if there's an intended route to redirect to
+    const intendedRoute = getAndClearIntendedRoute();
+    
+    // Redirect to the intended route if it exists, otherwise to home
+    return <Redirect to={intendedRoute || "/"} />;
   }
 
   return (

@@ -43,6 +43,7 @@ import { CurrencyProvider } from "@/context/CurrencyContext";
 import { WalletProvider } from "@/context/WalletContext";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { PublicRoute } from "@/lib/public-route";
 import { AdminRoute } from "@/lib/admin-route";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -53,7 +54,7 @@ function Router() {
       <SidebarProvider>
         <Layout>
           <Switch>
-            <ProtectedRoute path="/" component={Home} />
+            <PublicRoute path="/" component={Home} />
             <ProtectedRoute path="/games/:gameSlug" component={Game} />
             <ProtectedRoute path="/casino/games/:gameSlug" component={Game} />
             <ProtectedRoute path="/casino" component={CasinoPage} />
