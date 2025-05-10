@@ -1,5 +1,4 @@
 import React from "react";
-import bonusImagePath from "@assets/ChatGPT Image May 10, 2025, 06_50_13 PM.png";
 
 export const LoginBanner: React.FC = () => {
   return (
@@ -12,7 +11,7 @@ export const LoginBanner: React.FC = () => {
       >
         <div className="max-w-[50%] flex-shrink-0">
           <img 
-            src={bonusImagePath} 
+            src="/assets/bonus_image.png" 
             alt="Claim your new user bonus" 
             className="h-auto max-w-full object-contain"
           />
