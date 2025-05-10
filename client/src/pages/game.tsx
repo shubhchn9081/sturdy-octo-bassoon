@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useRoute, useLocation } from 'wouter';
+import { useRoute, useLocation, Redirect } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { GAMES, getGameBySlug } from '@/games';
+import { useAuth } from '@/hooks/use-auth';
+import { saveIntendedRoute } from '@/lib/auth-redirect';
 import Layout from '@/components/layout/Layout';
 import Dice from '@/games/Dice';
 import Mines from '@/games/Mines';
@@ -43,9 +45,10 @@ const GamePage = () => {
   
   const match = normalMatch || casinoMatch;
   const params = normalMatch ? normalParams : casinoParams;
-  const [_, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   
   // State for game access
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
@@ -71,7 +74,17 @@ const GamePage = () => {
     };
   }, [match, params, setLocation]);
   
-  // Check if the user has access to this game
+  // First, check if user is authenticated
+  useEffect(() => {
+    if (!authLoading && !user && match && params) {
+      // Save intended destination and redirect to login
+      const gamePath = normalMatch ? `/games/${params.gameSlug}` : `/casino/games/${params.gameSlug}`;
+      saveIntendedRoute(gamePath);
+      setLocation('/auth');
+    }
+  }, [user, authLoading, match, params, normalMatch, setLocation]);
+  
+  // Only check for game access if the user is authenticated
   const { isLoading: accessCheckLoading } = useQuery({
     queryKey: ['/api/games/check-access', currentGame?.id],
     queryFn: async () => {
@@ -99,9 +112,14 @@ const GamePage = () => {
         return { hasAccess: false };
       }
     },
-    enabled: !!currentGame,
+    enabled: !!currentGame && !!user, // Only run this query if user is authenticated
     retry: false
   });
+  
+  // Redirect to login page if user is not authenticated
+  if (!authLoading && !user) {
+    return null; // Return null, the useEffect above will handle the redirect
+  }
   
   if (!match || !params) {
     return null;
@@ -146,8 +164,8 @@ const GamePage = () => {
     );
   }
   
-  // Show loading state while checking access
-  if (!accessCheckComplete && currentGame) {
+  // Show loading state while checking authentication or access
+  if (authLoading || (!accessCheckComplete && currentGame && user)) {
     return (
       <div className="container mx-auto p-6">
         <div className="bg-secondary rounded-lg p-6 text-center">
