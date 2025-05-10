@@ -45,82 +45,11 @@ const GamePage = () => {
   
   const match = normalMatch || casinoMatch;
   const params = normalMatch ? normalParams : casinoParams;
-  const [location, setLocation] = useLocation();
-  const [currentGame, setCurrentGame] = useState<Game | null>(null);
+  const [_, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
   
-  // State for game access
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [accessCheckComplete, setAccessCheckComplete] = useState<boolean>(false);
-  
-  useEffect(() => {
-    if (!match || !params) return;
-    
-    const game = getGameBySlug(params.gameSlug);
-    if (!game) {
-      setLocation('/');
-      return;
-    }
-    
-    // Set the selected game in the local state
-    setCurrentGame(game);
-    
-    // Update document title
-    document.title = `${game.name} - Novito`;
-    
-    return () => {
-      document.title = 'Novito Instant Casino';
-    };
-  }, [match, params, setLocation]);
-  
-  // First, check if user is authenticated
-  useEffect(() => {
-    if (!authLoading && !user && match && params) {
-      // Save intended destination and redirect to login
-      const gamePath = normalMatch ? `/games/${params.gameSlug}` : `/casino/games/${params.gameSlug}`;
-      saveIntendedRoute(gamePath);
-      setLocation('/auth');
-    }
-  }, [user, authLoading, match, params, normalMatch, setLocation]);
-  
-  // Only check for game access if the user is authenticated
-  const { isLoading: accessCheckLoading } = useQuery({
-    queryKey: ['/api/games/check-access', currentGame?.id],
-    queryFn: async () => {
-      if (!currentGame) return { hasAccess: false };
-      
-      try {
-        console.log(`Checking access for game with ID: ${currentGame.id}`);
-        const response = await fetch(`/api/games/${currentGame.id}/check-access`);
-        
-        if (!response.ok) {
-          console.error(`Access check API returned status: ${response.status}`);
-          throw new Error('Failed to check game access');
-        }
-        
-        const data = await response.json();
-        console.log(`Access check returned: ${JSON.stringify(data)}`);
-        
-        setHasAccess(data.hasAccess);
-        setAccessCheckComplete(true);
-        return data;
-      } catch (error) {
-        console.error('Error checking game access:', error);
-        setHasAccess(false);
-        setAccessCheckComplete(true);
-        return { hasAccess: false };
-      }
-    },
-    enabled: !!currentGame && !!user, // Only run this query if user is authenticated
-    retry: false
-  });
-  
-  // Redirect to login page if user is not authenticated
-  if (!authLoading && !user) {
-    return null; // Return null, the useEffect above will handle the redirect
-  }
-  
+  // If there's no match or params, return early
   if (!match || !params) {
     return null;
   }
@@ -128,6 +57,7 @@ const GamePage = () => {
   const { gameSlug } = params;
   const GameComponent = GameComponents[gameSlug];
   
+  // Handle game not found
   if (!GameComponent) {
     return (
       <div className="container mx-auto p-6">
@@ -145,8 +75,95 @@ const GamePage = () => {
     );
   }
   
-  // Display access denied message if the user doesn't have access
-  if (accessCheckComplete && hasAccess === false) {
+  // Get the game from the slug
+  const game = getGameBySlug(gameSlug);
+  
+  // Handle no matching game
+  if (!game) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="bg-secondary rounded-lg p-6 text-center">
+          <h1 className="text-2xl mb-4">Game Not Found</h1>
+          <p>The game you're looking for does not exist or is not available.</p>
+          <button 
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+            onClick={() => setLocation('/')}
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Update document title
+  // This effect runs once when the component mounts
+  React.useEffect(() => {
+    document.title = `${game.name} - Novito`;
+    return () => {
+      document.title = 'Novito Instant Casino';
+    };
+  }, [game]);
+  
+  // Handle authentication redirect
+  // This effect runs when auth state changes
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      // Save intended destination and redirect to login
+      const gamePath = normalMatch ? `/games/${gameSlug}` : `/casino/games/${gameSlug}`;
+      saveIntendedRoute(gamePath);
+      setLocation('/auth');
+    }
+  }, [user, authLoading, gameSlug, normalMatch, setLocation]);
+  
+  // If still loading auth or user is not authenticated, show nothing
+  // The redirect effect above will handle navigation
+  if (authLoading || !user) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="bg-secondary rounded-lg p-6 text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Once we know the user is authenticated, check game access
+  // Access check query
+  const { isLoading: accessCheckLoading, data: accessData } = useQuery({
+    queryKey: ['/api/games/check-access', game.id],
+    queryFn: async () => {
+      console.log(`Checking access for game with ID: ${game.id}`);
+      const response = await fetch(`/api/games/${game.id}/check-access`);
+      
+      if (!response.ok) {
+        console.error(`Access check API returned status: ${response.status}`);
+        throw new Error('Failed to check game access');
+      }
+      
+      const data = await response.json();
+      console.log(`Access check returned: ${JSON.stringify(data)}`);
+      return data;
+    },
+    retry: false,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+  
+  // Show loading while checking access
+  if (accessCheckLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="bg-secondary rounded-lg p-6 text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Checking game access...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // If access check is complete but access is denied
+  if (accessData && !accessData.hasAccess) {
     return (
       <div className="container mx-auto p-6">
         <div className="bg-secondary rounded-lg p-6 text-center">
@@ -164,21 +181,10 @@ const GamePage = () => {
     );
   }
   
-  // Show loading state while checking authentication or access
-  if (authLoading || (!accessCheckComplete && currentGame && user)) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="bg-secondary rounded-lg p-6 text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Checking game access...</p>
-        </div>
-      </div>
-    );
-  }
-  
+  // If we get here, the user is authenticated and has access to the game
   return (
     <div className="w-full h-full ml-0">
-      {currentGame && <GameComponent />}
+      <GameComponent />
     </div>
   );
 };
