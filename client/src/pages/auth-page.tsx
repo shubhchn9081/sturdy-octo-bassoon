@@ -18,7 +18,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import NovitoLogo from "@/components/NovitoLogo";
 import { Shield, Lock, CheckCircle, Award, Clock, Users, Globe, UserCheck } from "lucide-react";
 import { SiVisa, SiMastercard, SiPaypal, SiBitcoin, SiEthereum } from "react-icons/si";
-import LoginBanner from "@/components/auth/LoginBanner";
 
 const loginSchema = z.object({
   phone: z.string().min(6, "Phone number is required"),
@@ -112,9 +111,6 @@ export default function AuthPage() {
               </TabsList>
               
               <TabsContent value="login">
-                {/* New User Bonus Banner - Only visible on the login tab */}
-                <LoginBanner />
-                
                 <Card className="border border-primary/20 shadow-xl shadow-primary/5">
                   <CardHeader className="space-y-1 py-4">
                     <CardTitle className="text-xl font-bold flex items-center">
