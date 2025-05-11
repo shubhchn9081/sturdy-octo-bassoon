@@ -83,8 +83,8 @@ const CrashCarGame: React.FC = () => {
   const [autoCashoutInput, setAutoCashoutInput] = useState<string>('');
   const [showSmoke, setShowSmoke] = useState(false);
   
-  // State for car positioning - fixed at road level (240px)
-  const [carPositionY, setCarPositionY] = useState(240);
+  // State for car positioning - moved up by 200% as requested
+  const [carPositionY, setCarPositionY] = useState(80);
   
   // Fuel gauge animation
   useEffect(() => {
@@ -98,287 +98,84 @@ const CrashCarGame: React.FC = () => {
     }
   }, [fuelLevel, gameState]);
   
-  // Setup video playback based on game state
+  // Simple video playback logic without GSAP
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     
-    // Kill any existing animations
-    if (videoTimeline.current) videoTimeline.current.kill();
-    if (carTimeline.current) carTimeline.current.kill();
-    if (wheelsTimeline.current) wheelsTimeline.current.kill();
-    if (smokeTimeline.current) smokeTimeline.current.kill();
-    
-    // Set up new animations based on game state
-    if (gameState === 'waiting') {
-      // Hide smoke during waiting state
-      setShowSmoke(false);
+    // Set up basic video behavior based on game state
+    if (gameState === 'waiting' || gameState === 'crashed') {
+      // Hide smoke except during crashed state
+      setShowSmoke(gameState === 'crashed');
       
-      // Pause the video during refueling/waiting state
-      video.currentTime = 0;
+      // Pause the video during waiting/crashed state
       try {
         video.pause();
+        video.currentTime = 0;
       } catch (err) {
         console.log('Video pause error:', err);
-      }
-      
-      // Reset car position - no vertical movement
-      if (carContainerRef.current) {
-        gsap.to(carContainerRef.current, {
-          x: 0, // Only reset horizontal position
-          rotation: 0,
-          scale: 1,
-          duration: 0.3
-        });
-      }
-      
-      // Idle animation for the car - gentle bobbing during refueling
-      // Very minimal idle animation that doesn't move the car up/down
-      carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
-      carTimeline.current.to(carContainerRef.current, {
-        x: '-1px', // Extremely subtle horizontal movement only
-        duration: 1.5,
-        ease: 'sine.inOut'
-      });
-      
-      // Keep wheels stationary during idle/refueling
-      if (frontWheelEffectRef.current && backWheelEffectRef.current) {
-        // Reset wheel effects
-        gsap.set([frontWheelEffectRef.current, backWheelEffectRef.current], { 
-          opacity: 0,
-          rotation: 0,
-          transformOrigin: 'center center'
-        });
       }
       
     } else if (gameState === 'running') {
       // Hide smoke during running
       setShowSmoke(false);
       
-      // Play road video at speed based on multiplier
+      // Play road video at a fixed speed
       try {
-        video.playbackRate = 0.5; // 0.5 is within the valid range for most browsers
+        video.playbackRate = 0.5 + (currentMultiplier * 0.1); // Faster based on multiplier
         video.play().catch(err => console.log('Video play error:', err));
       } catch (err) {
-        console.log('Video playback rate error:', err);
-        // Try to play at default rate if setting fails
+        console.log('Video playback error:', err);
         video.play().catch(err => console.log('Video play error:', err));
-      }
-      
-      // Dynamic video speed based on multiplier
-      videoTimeline.current = gsap.timeline();
-      videoTimeline.current.to(video, {
-        // Use GSAP for animation, but we'll manually set playbackRate in onUpdate
-        // to ensure we have proper error handling and range checking
-        duration: 10,
-        ease: 'power1.in',
-        onUpdate: () => {
-          // Dynamically adjust playback rate based on multiplier
-          // HTML5 video playbackRate must be between 0.25 and 5.0 for most browsers
-          const newRate = Math.min(5, Math.max(0.25, 0.5 + (currentMultiplier - 1) * 1.5));
-          if (video) {
-            try {
-              video.playbackRate = newRate;
-            } catch (e) {
-              console.log("Video playback rate limitation", e);
-            }
-          }
-        }
-      });
-      
-      // Car animation - slight scaling and bobbing to simulate forward motion
-      if (carContainerRef.current) {
-        // No vertical movement at all, only subtle rotation/horizontal effects
-        carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
-        carTimeline.current.to(carContainerRef.current, {
-          x: '1px', // Very subtle horizontal movement
-          rotation: 0.1, // Very minimal rotation 
-          scale: 1.005, // Barely noticeable scale change
-          duration: 0.2, 
-          ease: 'sine.inOut'
-        }).to(carContainerRef.current, {
-          x: '-1px', // Very subtle horizontal movement in opposite direction
-          rotation: -0.1, // Very minimal rotation in opposite direction
-          scale: 1,
-          duration: 0.2,
-          ease: 'sine.inOut'
-        });
-        
-        // Make car animation speed match the multiplier
-        gsap.to(carTimeline.current, {
-          timeScale: () => Math.min(3, 1 + (currentMultiplier - 1) * 0.5),
-          duration: 0.5,
-          ease: 'power1.out'
-        });
-      }
-      
-      // Wheel effect animation - we don't need GSAP for this, as we're handling 
-      // wheel rotation with CSS animations and the spokes inside the wheels
-      if (frontWheelEffectRef.current && backWheelEffectRef.current) {
-        // Just ensure the elements are visible
-        gsap.set([frontWheelEffectRef.current, backWheelEffectRef.current], {
-          opacity: 1
-        });
-        
-        // Update wheel animation speed based on multiplier
-        const wheelSpeedUpdate = () => {
-          // Target all the spokes inside both wheels
-          const spokes = document.querySelectorAll('.wheel-effects .relative div[class*="absolute"]');
-          const rims = document.querySelectorAll('.wheel-effects .relative div[class*="inset-0"]');
-          
-          // Calculate animation duration - faster as multiplier increases
-          // Lower duration = faster animation
-          const duration = Math.max(0.05, 0.2 - ((currentMultiplier - 1) * 0.03));
-          
-          // Apply the new animation duration
-          spokes.forEach(spoke => {
-            if (spoke instanceof HTMLElement) {
-              spoke.style.animationDuration = `${duration}s`;
-            }
-          });
-          
-          // Also adjust blur animation
-          rims.forEach(rim => {
-            if (rim instanceof HTMLElement) {
-              rim.style.animationDuration = `${duration * 2}s`;
-            }
-          });
-        };
-        
-        // Initial update
-        wheelSpeedUpdate();
-        
-        // Update wheel speed as multiplier changes
-        gsap.ticker.add(wheelSpeedUpdate);
-        
-        // Return cleanup function
-        return () => {
-          gsap.ticker.remove(wheelSpeedUpdate);
-        };
-      }
-      
-      // Animate multiplier display
-      if (multiplierRef.current) {
-        gsap.to(multiplierRef.current, {
-          scale: 1.1,
-          duration: 0.2,
-          yoyo: true,
-          repeat: -1,
-          ease: 'sine.inOut'
-        });
-      }
-      
-    } else if (gameState === 'crashed') {
-      // Show smoke when crashed (out of fuel)
-      setShowSmoke(true);
-      
-      // Stop video completely when crashed
-      try {
-        // First slow down, then pause
-        gsap.to(video, {
-          duration: 0.5,
-          ease: 'power2.out',
-          onUpdate: function() {
-            try {
-              // Set min playback rate to 0.25 to avoid browser limitations
-              const rate = Math.max(0.25, 1 - this.progress());
-              video.playbackRate = rate;
-            } catch (e) {
-              console.log("Video playback rate limitation", e);
-            }
-          },
-          onComplete: function() {
-            // After slowdown animation completes, pause the video
-            video.pause();
-          }
-        });
-      } catch (e) {
-        console.log("Error stopping video:", e);
-        // Fallback - try to pause directly
-        video.pause();
-      }
-      
-      // Stop car animation
-      if (carTimeline.current) {
-        carTimeline.current.kill();
-      }
-      
-      // Create car stall/sputter animation
-      if (carContainerRef.current) {
-        gsap.to(carContainerRef.current, {
-          x: '-10px',
-          rotation: -1,
-          duration: 0.1,
-          ease: 'power2.out',
-          repeat: 5,
-          yoyo: true,
-          onComplete: () => {
-            gsap.to(carContainerRef.current, {
-              rotation: 0,
-              x: 0,
-              duration: 0.5
-            });
-          }
-        });
-      }
-      
-      // Gradually slow down and stop wheel effects
-      if (frontWheelEffectRef.current && backWheelEffectRef.current) {
-        // This is for a slow deceleration effect
-        const animatedObjects = document.querySelectorAll('.wheel-effects .relative div[class*="absolute"]');
-        const rims = document.querySelectorAll('.wheel-effects .relative div[class*="inset-0"]');
-        
-        // Create a slowdown effect
-        const slowdown = gsap.timeline();
-        
-        // Slow down the wheels first
-        slowdown.to(animatedObjects, {
-          animationDuration: '1s', // Slow rotation
-          duration: 1, 
-          ease: 'power2.out',
-          stagger: 0.05
-        });
-        
-        // Also slow down the blur effect
-        slowdown.to(rims, {
-          animationDuration: '2s',
-          duration: 1,
-          ease: 'power2.out'
-        }, 0);
-        
-        // Then fade out the wheel effects
-        slowdown.to([frontWheelEffectRef.current, backWheelEffectRef.current], {
-          opacity: 0,
-          duration: 0.5,
-          delay: 0.5
-        });
-      }
-      
-      // Animate smoke puffs
-      if (smokeRef.current) {
-        smokeTimeline.current = gsap.timeline({ repeat: 3 });
-        smokeTimeline.current
-          .to(smokeRef.current, {
-            opacity: 1,
-            scale: 1.2,
-            duration: 0.5,
-            ease: 'power1.out'
-          })
-          .to(smokeRef.current, {
-            opacity: 0.7,
-            scale: 1,
-            duration: 0.5,
-            ease: 'power1.in'
-          });
       }
     }
     
-    // Cleanup on component unmount
+    // Make wheels visible during running state
+    if (frontWheelEffectRef.current && backWheelEffectRef.current) {
+      if (gameState === 'running') {
+        frontWheelEffectRef.current.style.opacity = '1';
+        backWheelEffectRef.current.style.opacity = '1';
+      } else {
+        frontWheelEffectRef.current.style.opacity = '0';
+        backWheelEffectRef.current.style.opacity = '0';
+      }
+    }
+    
+    // Update wheel animation speed based on multiplier
+    const updateWheelSpeed = () => {
+      if (gameState !== 'running') return;
+      
+      // Target all the spokes inside both wheels
+      const spokes = document.querySelectorAll('.wheel-effects .relative div[class*="absolute"]');
+      const rims = document.querySelectorAll('.wheel-effects .relative div[class*="inset-0"]');
+      
+      // Lower duration = faster animation
+      const duration = Math.max(0.05, 0.2 - ((currentMultiplier - 1) * 0.03));
+      
+      // Apply the new animation duration
+      spokes.forEach(spoke => {
+        if (spoke instanceof HTMLElement) {
+          spoke.style.animationDuration = `${duration}s`;
+        }
+      });
+      
+      // Also adjust blur animation
+      rims.forEach(rim => {
+        if (rim instanceof HTMLElement) {
+          rim.style.animationDuration = `${duration * 2}s`;
+        }
+      });
+    };
+    
+    // Initial update
+    updateWheelSpeed();
+    
+    // Set up interval to update wheel speed
+    const wheelInterval = setInterval(updateWheelSpeed, 500);
+    
+    // Cleanup
     return () => {
-      if (videoTimeline.current) videoTimeline.current.kill();
-      if (carTimeline.current) carTimeline.current.kill();
-      if (wheelsTimeline.current) wheelsTimeline.current.kill();
-      if (smokeTimeline.current) smokeTimeline.current.kill();
+      clearInterval(wheelInterval);
       video.pause();
     };
   }, [gameState, currentMultiplier]);
@@ -456,21 +253,8 @@ const CrashCarGame: React.FC = () => {
     preloadImage(SMOKE_IMG_PATH);
   }, []);
   
-  // Add keyboard controls to adjust car position (for testing purposes)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowUp') {
-        setCarPositionY(prev => Math.max(0, prev - 5));
-        console.log('Car position Y:', carPositionY - 5);
-      } else if (e.key === 'ArrowDown') {
-        setCarPositionY(prev => prev + 5);
-        console.log('Car position Y:', carPositionY + 5);
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [carPositionY]);
+  // Car position is now fixed at a good height
+  // No need for keyboard controls anymore
   
   return (
     <div className="w-full h-full">
@@ -538,37 +322,7 @@ const CrashCarGame: React.FC = () => {
                          3. Motion effects visible only during running state
                     */}
                     
-                    {/* Position guide overlay - will remove after positioning */}
-                    <div 
-                      className="absolute top-0 left-0 w-full h-full" 
-                      style={{ zIndex: 10, pointerEvents: 'none' }}
-                    >
-                      {/* Horizontal lines every 20px */}
-                      {Array.from({ length: 20 }).map((_, i) => (
-                        <div key={`h-line-${i}`} className="absolute w-full h-[1px] bg-white/50"
-                             style={{ top: `${i * 20}px`, zIndex: 100 }}>
-                          <div className="absolute -top-2 -left-10 text-xs text-white bg-black/50 px-1">
-                            {i * 20}px
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {/* Vertical center line */}
-                      <div className="absolute h-full w-[1px] bg-red-500/70 left-1/2"></div>
-                      
-                      {/* Road position marker */}
-                      <div className="absolute h-[2px] w-full bg-green-500/70" style={{ top: '240px' }}>
-                        <div className="absolute -top-4 right-2 text-xs text-green-400 bg-black/50 px-1">
-                          Road level: 240px
-                        </div>
-                      </div>
-                      
-                      {/* Current position indicator */}
-                      <div className="absolute top-2 right-2 bg-black/70 text-white p-2 rounded text-xs">
-                        <div>Car Y Position: {carPositionY}px</div>
-                        <div className="text-gray-400 mt-1">Use arrow keys (↑/↓) to adjust</div>
-                      </div>
-                    </div>
+                    {/* Position guide overlay removed */}
                     
                     <div 
                       ref={carContainerRef}
@@ -578,9 +332,7 @@ const CrashCarGame: React.FC = () => {
                         height: '120px', 
                         position: 'relative',
                         transform: `translateX(-50%) translateY(${carPositionY}px)`,
-                        border: '1px dashed rgba(255, 255, 255, 0.3)' // Temporary border to see the container
                       }}
-                      data-position-y={carPositionY} // Adding data attribute for debugging
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
                       {/* Layer 1: Wheel motion effects positioned over the tires in the image */}
