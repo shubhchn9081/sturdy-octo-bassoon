@@ -52,6 +52,9 @@ interface CrashCarGameState {
   setBetAmount: (amount: number) => void;
   setAutoCashoutValue: (value: number | null) => void;
   clearError: () => void;
+  
+  // WebSocket connection management
+  resetConnection: () => void;
 }
 
 // Helper functions for the game
@@ -170,6 +173,14 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
     socket.onclose = () => {
       console.log('WebSocket disconnected');
       
+      // Handle disconnect - reset state to ensure UI doesn't get stuck
+      set({
+        gameState: 'waiting',
+        currentMultiplier: 1.0,
+        countdown: null,
+        isWaiting: true
+      });
+      
       // Attempt to reconnect every 3 seconds
       if (!reconnectInterval) {
         reconnectInterval = setInterval(() => {
@@ -190,9 +201,50 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
     return 4; // Placeholder for now
   };
   
-  // Initialize WebSocket connection only on the client side
+  // Connection status check function
+  const checkConnection = () => {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.log('WebSocket not connected, reconnecting...');
+      initializeWebSocket();
+      return false;
+    }
+    return true;
+  };
+
+  // Reset connection function - can be called manually from UI
+  const resetWebSocketConnection = () => {
+    console.log('Manually resetting WebSocket connection');
+    if (socket) {
+      socket.close();
+      socket = null;
+    }
+    
+    if (reconnectInterval) {
+      clearInterval(reconnectInterval);
+      reconnectInterval = null;
+    }
+    
+    // Reset state to ensure UI doesn't get stuck
+    set({
+      gameState: 'waiting',
+      currentMultiplier: 1.0,
+      countdown: null,
+      isWaiting: true
+    });
+    
+    // Re-initialize connection
+    initializeWebSocket();
+  };
+  
+  // Set up a periodic connection check
+  let connectionCheckInterval: NodeJS.Timeout | null = null;
   if (typeof window !== 'undefined') {
     initializeWebSocket();
+    
+    // Check connection status every 10 seconds
+    connectionCheckInterval = setInterval(() => {
+      checkConnection();
+    }, 10000);
   }
   
   return {
@@ -328,6 +380,9 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
     
     clearError: () => {
       set({ errorMessage: null });
-    }
+    },
+    
+    // WebSocket connection management
+    resetConnection: resetWebSocketConnection
   };
 });
