@@ -16,8 +16,24 @@ import Slots from './Slots';
 import NewCupAndBall from './NewCupAndBall';
 import TowerClimb from './TowerClimb';
 import RocketLaunchRevised from './RocketLaunchRevised';
+import CrashCar from './CrashCar';
 
 export const GAMES = [
+  {
+    id: 99,
+    name: 'CRASH CAR',
+    slug: 'crash-car',
+    type: 'NOVITO ORIGINALS',
+    description: 'Drive and cash out before you crash',
+    color: 'bg-red-500',
+    iconType: 'car',
+    component: CrashCar,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: 1000.00,
+    activePlayers: 7652
+  },
   {
     id: 1,
     name: 'CRASH',
@@ -224,5 +240,6 @@ export default {
   Slots,
   NewCupAndBall,
   TowerClimb,
-  RocketLaunch: RocketLaunchRevised
+  RocketLaunch: RocketLaunchRevised,
+  CrashCar
 };
