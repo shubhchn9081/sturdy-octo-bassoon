@@ -118,11 +118,14 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
           const payload = data.payload;
           
           // Update game state
-          set({
+          set(state => ({
             gameState: payload.gameState,
             countdown: payload.countdown,
             currentMultiplier: payload.currentMultiplier,
             gameId: payload.gameId, // Store the game ID
+            // Reset waiting state and error message when a new game starts
+            isWaiting: payload.gameState === 'waiting' ? false : state.isWaiting,
+            errorMessage: payload.gameState === 'waiting' ? null : state.errorMessage,
             activeBets: payload.activeBets.map((bet: any) => ({
               ...bet,
               isPlayer: bet.userId === getCurrentUserId(), // Mark player's bet
@@ -132,7 +135,7 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
               crashPoint: game.crashPoint,
               timestamp: game.timestamp
             }))
-          });
+          }));
           
           // Calculate fuel level and speed based on the current multiplier
           const fuelLevel = Math.max(0, 100 - (payload.currentMultiplier - 1) * 10);
