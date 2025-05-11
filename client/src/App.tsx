@@ -36,6 +36,7 @@ import PromotionsPage from "@/pages/promotions-page";
 import AccountPage from "@/pages/account-page";
 import SlotsPage from "@/pages/slots-page";
 import SlotGamePage from "@/pages/slot-game-page";
+import CrashCarGame from "@/pages/CrashCarGame";
 import Layout from "@/components/layout/Layout";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { UserProvider } from "@/context/UserContext";
@@ -93,6 +94,7 @@ function Router() {
             <ProtectedRoute path="/guides" component={GuidesPage} />
             <ProtectedRoute path="/promotions" component={PromotionsPage} />
             <ProtectedRoute path="/account" component={AccountPage} />
+            <ProtectedRoute path="/games/crash-car" component={CrashCarGame} />
             <Route path="/animation-examples" component={AnimationExamples} />
             {/* Fallback to 404 */}
             <Route component={NotFound} />

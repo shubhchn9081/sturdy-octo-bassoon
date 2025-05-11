@@ -23,7 +23,8 @@ import {
   Settings,
   AlignJustify,
   Bomb,
-  ShieldCheck
+  ShieldCheck,
+  Car
 } from 'lucide-react';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/use-auth';
@@ -146,6 +147,9 @@ const Sidebar = () => {
             </h3>
             <SidebarLink href="/originals" icon={<Zap className="h-5 w-5 text-[#57FBA2]" />} active={true}>
               Novito Originals
+            </SidebarLink>
+            <SidebarLink href="/games/crash-car" icon={<Car className="h-5 w-5 text-[#FF8C42]" />}>
+              Crash Car
             </SidebarLink>
             <SidebarLink href="/exclusives" icon={<FileEdit className="h-5 w-5" />}>
               Novito Exclusives

@@ -8,7 +8,7 @@ import { useCrashCarStore } from '../games/useCrashCarStore';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Gauge } from 'lucide-react';
+import { Gauge, Car } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/use-wallet';
 
@@ -338,7 +338,7 @@ const CrashCarGame: React.FC = () => {
                 <CardHeader>
                   <CardTitle>Your Bet</CardTitle>
                   <CardDescription>
-                    Current Balance: {formatCurrency(balance?.INR || 0)}
+                    Current Balance: {formatCurrency((balance as any)?.INR || 0)}
                   </CardDescription>
                 </CardHeader>
                 
