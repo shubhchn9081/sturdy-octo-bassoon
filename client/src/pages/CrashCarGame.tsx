@@ -132,7 +132,8 @@ const CrashCarGame: React.FC = () => {
       // Idle animation for the car - gentle bobbing during refueling
       carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
       carTimeline.current.to(carContainerRef.current, {
-        y: '-5px',
+        y: '0px', // Keep car on the road, no vertical movement
+        x: '-2px', // Slight horizontal movement instead
         duration: 1,
         ease: 'sine.inOut'
       });
@@ -186,16 +187,16 @@ const CrashCarGame: React.FC = () => {
       if (carContainerRef.current) {
         carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
         carTimeline.current.to(carContainerRef.current, {
-          y: '-3px',
-          rotation: 0.5,
-          scale: 1.02,
-          duration: 0.2,
+          y: '0px', // Keep car on the road, no upward movement
+          rotation: 0.2, // Less rotation for more stability
+          scale: 1.01, // Slightly reduce the scaling effect
+          duration: 0.3, 
           ease: 'sine.inOut'
         }).to(carContainerRef.current, {
-          y: '0px',
-          rotation: -0.5,
+          y: '1px', // Slight downward instead of upward movement
+          rotation: -0.2, // Less rotation
           scale: 1,
-          duration: 0.2,
+          duration: 0.3,
           ease: 'sine.inOut'
         });
         
@@ -523,7 +524,7 @@ const CrashCarGame: React.FC = () => {
                         width: '240px', 
                         height: '120px', 
                         position: 'relative',
-                        transform: 'translateX(-50%) translateY(150px)' // Center horizontally and move down by 150px
+                        transform: 'translateX(-50%) translateY(180px)' // Center horizontally and move down more to place car on the road
                       }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
