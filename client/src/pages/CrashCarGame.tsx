@@ -117,12 +117,12 @@ const CrashCarGame: React.FC = () => {
         ease: 'sine.inOut'
       });
       
-      // Slow wheel rotation during idle
+      // Moderate wheel rotation during idle - more visible
       if (leftWheelRef.current && rightWheelRef.current) {
         wheelsTimeline.current = gsap.timeline({ repeat: -1 });
         wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
           rotation: 360,
-          duration: 3,
+          duration: 1.5, // Faster rotation during waiting state
           ease: 'none',
           transformOrigin: 'center center'
         });
@@ -176,19 +176,19 @@ const CrashCarGame: React.FC = () => {
         });
       }
       
-      // Wheel rotation animation
+      // Wheel rotation animation - faster and more pronounced
       if (leftWheelRef.current && rightWheelRef.current) {
         wheelsTimeline.current = gsap.timeline({ repeat: -1 });
         wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
           rotation: 360,
-          duration: 0.5,
+          duration: 0.2, // Faster base rotation
           ease: 'none',
           transformOrigin: 'center center'
         });
         
-        // Make wheel rotation speed match the multiplier
+        // Make wheel rotation speed match the multiplier - higher max speed
         gsap.to(wheelsTimeline.current, {
-          timeScale: () => Math.min(8, 1 + (currentMultiplier - 1) * 1.8),
+          timeScale: () => Math.min(12, 2 + (currentMultiplier - 1) * 2.5),
           duration: 0.5,
           ease: 'power1.out'
         });
@@ -437,14 +437,14 @@ const CrashCarGame: React.FC = () => {
                         ref={leftWheelRef}
                         src={WHEEL_IMG_PATH} 
                         alt="Left Wheel" 
-                        className="absolute bottom-4 left-14 w-12 h-12"
+                        className="absolute bottom-2 left-24 w-20 h-20"
                         style={{ transformOrigin: 'center center' }}
                       />
                       <img 
                         ref={rightWheelRef}
                         src={WHEEL_IMG_PATH} 
                         alt="Right Wheel" 
-                        className="absolute bottom-4 right-14 w-12 h-12"
+                        className="absolute bottom-2 right-20 w-20 h-20"
                         style={{ transformOrigin: 'center center' }}
                       />
                       
