@@ -343,7 +343,7 @@ const cashoutSchema = z.object({
 });
 
 // Place a bet on the current game
-router.post('/place-bet', auth, async (req, res) => {
+router.post('/crash-car/place-bet', auth, async (req, res) => {
   try {
     // Validate input
     const { amount, autoCashout } = placeBetSchema.parse(req.body);
@@ -455,7 +455,7 @@ router.post('/place-bet', auth, async (req, res) => {
 });
 
 // Cash out from the current game
-router.post('/cashout', auth, async (req, res) => {
+router.post('/crash-car/cashout', auth, async (req, res) => {
   try {
     // Validate input
     const { gameId } = cashoutSchema.parse(req.body);

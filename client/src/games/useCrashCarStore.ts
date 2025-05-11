@@ -271,25 +271,20 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         
         // Validate game state
         if (gameState === 'running') {
-          // Show error message because we are using buttons now
           set({ errorMessage: 'Cannot place bets during active game' });
           return;
         }
         
-        // Log attempt to place bet for debugging
-        console.log('Attempting to place bet:', {
-          amount: betAmount,
-          autoCashout: get().autoCashoutValue,
-          gameState: gameState
-        });
-        
-        // Validate bet amount
-        if (betAmount < 100) {
-          set({ errorMessage: 'Minimum bet amount is ₹100' });
+        // Validate bet amount (we'll use 1.0 as min bet like in slots game)
+        if (betAmount < 1) {
+          set({ errorMessage: 'Minimum bet amount is ₹1' });
           return;
         }
         
-        // Send bet to server
+        // Set waiting state to disable UI during request
+        set({ isWaiting: true, errorMessage: null });
+        
+        // Send bet to server - use the correct endpoint from slots
         const response = await fetch('/api/crash-car/place-bet', {
           method: 'POST',
           headers: {
@@ -304,38 +299,33 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         const data = await response.json();
         
         if (!response.ok) {
-          // Show error in UI for better user feedback
-          const errorMsg = data.message || 'Failed to place bet';
-          console.error('Failed to place bet:', errorMsg);
-          set({ errorMessage: errorMsg });
+          set({
+            errorMessage: data.message || 'Failed to place bet',
+            isWaiting: false
+          });
           return;
         }
         
-        // Update game state with the new bet
-        console.log('Bet placed successfully:', data);
+        // Reset cashout triggered if we placed a new bet
+        set({ cashoutTriggered: null });
         
         // Force refresh wallet balance
         if (typeof window !== 'undefined' && (window as any).refreshBalance) {
           (window as any).refreshBalance();
         }
       } catch (error) {
-        // Provide user feedback
-        console.error('Error placing bet:', error);
         set({ 
-          errorMessage: error instanceof Error 
-            ? error.message 
-            : 'Error placing bet' 
+          errorMessage: error instanceof Error ? error.message : 'Error placing bet',
+          isWaiting: false
         });
       }
     },
     
     cashOut: async () => {
       try {
-        const { gameState, cashoutTriggered, currentMultiplier } = get();
+        const { gameState, cashoutTriggered, currentMultiplier, gameId } = get();
         
-        // Validate game state with detailed logging
-        console.log('Attempting to cash out:', { gameState, currentMultiplier });
-        
+        // Validate game state
         if (gameState !== 'running') {
           set({ errorMessage: 'Can only cash out during active game' });
           return;
@@ -343,17 +333,10 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         
         // Check if already cashed out
         if (cashoutTriggered !== null) {
-          console.log('Already cashed out at', cashoutTriggered);
           return;
         }
         
-        // Get the current game ID from the store state
-        const currentGameId = get().gameId || '';
-        
-        console.log('Making cashout request for game:', currentGameId);
-        
-        // Pre-emptively update UI to show cashout - this improves user experience
-        // even if the server request fails, showing that their action was registered
+        // Set cashout triggered UI state immediately
         set({ cashoutTriggered: currentMultiplier });
         
         // Send cashout request to server
@@ -363,27 +346,24 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            gameId: currentGameId
+            gameId: gameId || ''
           })
         });
         
         const data = await response.json();
         
         if (!response.ok) {
-          // Even with error, keep the UI showing the cashout attempt
+          // Handle common error cases without showing to user
           const errorMsg = data.message || 'Failed to cash out';
           console.error('Failed to cash out:', errorMsg);
           
-          // Don't show errors in UI for common cases like "already cashed out"
-          if (!errorMsg.includes('already cashed out')) {
+          // Only show certain errors to the user
+          if (!errorMsg.includes('already cashed out') && 
+              !errorMsg.includes('No active bet found')) {
             set({ errorMessage: errorMsg });
           }
-          
           return;
         }
-        
-        // Update game state with the successful cashout
-        console.log('Successfully cashed out:', data);
         
         // Force refresh wallet balance
         if (typeof window !== 'undefined' && (window as any).refreshBalance) {
