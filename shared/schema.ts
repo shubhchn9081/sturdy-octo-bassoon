@@ -148,6 +148,13 @@ export type PumpOutcome = {
   win: boolean;
 };
 
+export type CrashCarOutcome = {
+  crashPoint: number;
+  cashoutAt: number;
+  win: boolean;
+  fuelLevel?: number; // Remaining fuel level at cashout (for animation)
+};
+
 export type HiloOutcome = {
   initialCard: number;
   nextCard: number;
@@ -281,6 +288,12 @@ export type TowerClimbGameSettings = {
   forcedItemPositions: {level: number, position: number, type: string}[]; // Force specific item positions
   forceLose: boolean; // Force player to lose on next move
   maxSafeLevel: number; // Maximum level the player can safely reach
+};
+
+export type CrashCarGameSettings = {
+  crashPoint: number; // Force the game to crash at this point
+  maxCrashPoint: number; // Maximum possible crash point
+  fuelEfficiency: number; // Multiplier for fuel consumption rate (higher means slower fuel consumption)
 };
 
 // User specific game outcome control table
