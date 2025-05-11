@@ -505,7 +505,7 @@ const CrashCarGame: React.FC = () => {
                     */}
                     <div 
                       ref={carContainerRef}
-                      className="absolute left-1/2 bottom-5 transform -translate-x-1/2"
+                      className="absolute left-1/2 bottom-16 transform -translate-x-1/2"
                       style={{ width: '240px', height: '120px', position: 'relative' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
@@ -516,7 +516,7 @@ const CrashCarGame: React.FC = () => {
                           ref={backWheelEffectRef}
                           className="absolute"
                           style={{ 
-                            bottom: '7px',
+                            bottom: '5px',
                             left: '47px',
                             width: '48px', 
                             height: '48px',
@@ -556,7 +556,7 @@ const CrashCarGame: React.FC = () => {
                           ref={frontWheelEffectRef}
                           className="absolute"
                           style={{ 
-                            bottom: '7px',
+                            bottom: '5px',
                             right: '46px',
                             width: '48px', 
                             height: '48px',
@@ -595,12 +595,12 @@ const CrashCarGame: React.FC = () => {
                       {/* Layer 2: Motion effects - only shows during running state */}
                       {gameState === 'running' && (
                         <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 2 }}>
-                          {/* Ground dust effects */}
-                          <div className="absolute bottom-0 left-10 w-12 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          <div className="absolute bottom-0 left-14 w-8 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          {/* Ground dust effects - positioned to touch the road */}
+                          <div className="absolute bottom-[-5px] left-10 w-14 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-[-8px] left-14 w-10 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
                           
-                          <div className="absolute bottom-0 right-10 w-12 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          <div className="absolute bottom-0 right-14 w-8 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-[-5px] right-10 w-14 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-[-8px] right-14 w-10 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
                           
                           {/* Speed lines - appear when car is going faster (multiplier > 1.5) */}
                           {currentMultiplier > 1.5 && (
@@ -629,7 +629,7 @@ const CrashCarGame: React.FC = () => {
                             ref={smokeRef}
                             src={SMOKE_IMG_PATH} 
                             alt="Exhaust Smoke" 
-                            className="absolute -top-10 left-20 w-20 h-20 opacity-80"
+                            className="absolute -top-5 left-20 w-20 h-20 opacity-80"
                           />
                         </div>
                       )}
