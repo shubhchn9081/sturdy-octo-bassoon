@@ -295,7 +295,7 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         
         try {
           console.log('Sending bet request to server...');
-          // Send bet to server - use the correct endpoint (/api/crash-car/bet)
+          // Send bet to server with the corrected path
           const response = await fetch('/api/crash-car/bet', {
             method: 'POST',
             headers: {
