@@ -61,6 +61,10 @@ export default function AdminPage() {
   const [slotMultiplier, setSlotMultiplier] = useState<number>(0);
   const [showSlotControls, setShowSlotControls] = useState<boolean>(false);
   
+  // Crash Car game specific controls
+  const [crashCarMultiplier, setCrashCarMultiplier] = useState<number>(2.0);
+  const [showCrashCarControls, setShowCrashCarControls] = useState<boolean>(false);
+  
   // Global game control state
   const [globalControlAffectedGames, setGlobalControlAffectedGames] = useState<number[]>([]);
   const [globalTargetMultiplier, setGlobalTargetMultiplier] = useState<number>(2.0);
@@ -715,13 +719,23 @@ export default function AdminPage() {
       return;
     }
     
-    // Check if this is a slots game and set forcedOutcomeValue accordingly
+    // Check if this is a game that requires specific outcome values
     let forcedOutcomeValue = null;
     
     // Game ID 9 is the slots game
     if (selectedGame.id === 9 || selectedGame.slug === 'slots') {
       if (outcomeType === 'win' && slotMultiplier > 0) {
         forcedOutcomeValue = { multiplier: slotMultiplier };
+      }
+    }
+    
+    // Game ID 99 is the crash car game
+    if (selectedGame.id === 99 || selectedGame.slug === 'crash-car') {
+      if (outcomeType === 'win' && crashCarMultiplier > 1.0) {
+        forcedOutcomeValue = { crashPoint: crashCarMultiplier };
+      } else if (outcomeType === 'lose') {
+        // For lose outcomes, force crash before 1.1x
+        forcedOutcomeValue = { crashPoint: 1.01 };
       }
     }
     
@@ -1875,12 +1889,20 @@ export default function AdminPage() {
                   const gameObj = games?.find(g => g.id === gameId) || null;
                   setSelectedGame(gameObj);
                   
+                  // Reset all game-specific controls first
+                  setShowSlotControls(false);
+                  setSlotMultiplier(0);
+                  setShowCrashCarControls(false);
+                  setCrashCarMultiplier(2.0);
+                  
                   // Check if this is the slots game (ID 9 or slug 'slots')
                   if (gameObj && (gameObj.id === 9 || gameObj.slug === 'slots')) {
                     setShowSlotControls(true);
-                  } else {
-                    setShowSlotControls(false);
-                    setSlotMultiplier(0); // Reset slot multiplier when not slots game
+                  }
+                  
+                  // Check if this is the crash car game (ID 99 or slug 'crash-car')
+                  if (gameObj && (gameObj.id === 99 || gameObj.slug === 'crash-car')) {
+                    setShowCrashCarControls(true);
                   }
                 }}
               >
