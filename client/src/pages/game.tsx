@@ -18,6 +18,7 @@ import Slots from '@/games/Slots';
 import NewCupAndBall from '@/games/NewCupAndBall';
 import TowerClimb from '@/games/TowerClimb';
 import RocketLaunchRevised from '@/games/RocketLaunchRevised';
+import CrashCar from '@/games/CrashCar';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -36,7 +37,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   'cup-and-ball': NewCupAndBall, // Now using the new implementation for both routes
   'new-cup-game': NewCupAndBall,
   'tower-climb': TowerClimb,
-  'rocket-launch': RocketLaunchRevised
+  'rocket-launch': RocketLaunchRevised,
+  'crash-car': CrashCar
 };
 
 const GamePage = () => {

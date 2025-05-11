@@ -94,7 +94,9 @@ function Router() {
             <ProtectedRoute path="/guides" component={GuidesPage} />
             <ProtectedRoute path="/promotions" component={PromotionsPage} />
             <ProtectedRoute path="/account" component={AccountPage} />
-            <ProtectedRoute path="/games/crash-car" component={CrashCarGame} />
+            {/* Direct routes for Crash Car Game */}
+            <Route path="/games/crash-car" component={CrashCarGame} />
+            <Route path="/crash-car" component={CrashCarGame} />
             <Route path="/animation-examples" component={AnimationExamples} />
             {/* Fallback to 404 */}
             <Route component={NotFound} />
