@@ -63,8 +63,7 @@ function generateCrashPoint(activeBets: Bet[] = []): number {
   // Check if there are any player bets active
   const hasPlayerBets = activeBets.some(bet => bet.isPlayer && bet.status === 'active');
   
-  // For game ID 7, implement the specified behavior
-  // When no bets, go very high; when users have placed bets, crash soon
+  // For game ID 7, implement more balanced distribution regardless of bets
   
   // Different distribution based on whether players have bets
   if (!hasPlayerBets) {
@@ -89,22 +88,24 @@ function generateCrashPoint(activeBets: Bet[] = []): number {
       return 200.00 + (Math.random() * 300);
     }
   } else {
-    // Player bets active - crash VERY quickly to limit payouts
-    // For game ID 7, we're making these crash even faster than the default behavior
+    // Player bets exist - more balanced distribution with improved variety
     const r = Math.random();
     
-    if (r < 0.70) {
-      // Instant crash (1.00x to 1.10x) - 70% chance
-      return 1.00 + (Math.random() * 0.1);
-    } else if (r < 0.90) {
-      // Very early crash (1.10x to 1.30x) - 20% chance
-      return 1.10 + (Math.random() * 0.2);
-    } else if (r < 0.98) {
-      // Early crash (1.30x to 1.50x) - 8% chance 
-      return 1.30 + (Math.random() * 0.2);
+    if (r < 0.25) {
+      // Low multipliers (1.00x to 1.50x) - 25% chance
+      return 1.00 + (Math.random() * 0.5);
+    } else if (r < 0.50) {
+      // Medium-low multipliers (1.50x to 3.00x) - 25% chance
+      return 1.50 + (Math.random() * 1.5);
+    } else if (r < 0.75) {
+      // Medium multipliers (3.00x to 10.00x) - 25% chance
+      return 3.00 + (Math.random() * 7.0);
+    } else if (r < 0.95) {
+      // High multipliers (10.00x to 50.00x) - 20% chance
+      return 10.00 + (Math.random() * 40.0);
     } else {
-      // Rare not-so-high crash (1.50x to 2.00x) - 2% chance
-      return 1.50 + (Math.random() * 0.5);
+      // Extremely high multipliers (50.00x to 100.00x) - 5% chance
+      return 50.00 + (Math.random() * 50.0);
     }
   }
 }

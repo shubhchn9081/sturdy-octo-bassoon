@@ -21,10 +21,10 @@ export const gameOutcomeControl = {
     targetMultiplier?: number,
     useExactMultiplier?: boolean
   }> {
-    // Default result - CHANGED: Now default is to force a loss with 100% house edge
+    // Default result - Now default is to NOT force outcomes, letting the game use natural distribution
     const defaultResult = { 
-      shouldForce: true, // Changed to true - default is to force outcome
-      forcedOutcome: 'lose' as 'win' | 'lose' // Default to lose
+      shouldForce: false, // Changed to false - default is to NOT force outcome
+      forcedOutcome: 'lose' as 'win' | 'lose' // Only used when shouldForce is true
     };
 
     try {
@@ -83,8 +83,8 @@ export const gameOutcomeControl = {
         }
       }
       
-      // No specific controls apply, return default (which is now to force a loss)
-      console.log(`DEFAULT BEHAVIOR: Forcing user ${userId} to LOSE on game ${gameId} (100% house edge)`);
+      // No specific controls apply, return default (which is now to NOT force an outcome)
+      console.log(`DEFAULT BEHAVIOR: Natural distribution for user ${userId} on game ${gameId} (no forced outcome)`);
       return defaultResult;
     } catch (error) {
       console.error('Error checking game outcome controls:', error);
@@ -134,22 +134,25 @@ export const gameOutcomeControl = {
             return 200.00 + (Math.random() * 300);
           }
         } else {
-          // Player bets exist - very low multipliers
-          console.log(`Game ID 7: Player bets exist - generating low crash point`);
+          // Player bets exist - more balanced distribution with improved variety
+          console.log(`Game ID 7: Player bets exist - generating balanced crash point distribution`);
           const r = Math.random();
           
-          if (r < 0.70) {
-            // Instant crash (1.00x to 1.10x) - 70% chance
-            return 1.00 + (Math.random() * 0.1);
-          } else if (r < 0.90) {
-            // Very early crash (1.10x to 1.30x) - 20% chance
-            return 1.10 + (Math.random() * 0.2);
-          } else if (r < 0.98) {
-            // Early crash (1.30x to 1.50x) - 8% chance 
-            return 1.30 + (Math.random() * 0.2);
+          if (r < 0.25) {
+            // Low multipliers (1.00x to 1.50x) - 25% chance
+            return 1.00 + (Math.random() * 0.5);
+          } else if (r < 0.50) {
+            // Medium-low multipliers (1.50x to 3.00x) - 25% chance
+            return 1.50 + (Math.random() * 1.5);
+          } else if (r < 0.75) {
+            // Medium multipliers (3.00x to 10.00x) - 25% chance
+            return 3.00 + (Math.random() * 7.0);
+          } else if (r < 0.95) {
+            // High multipliers (10.00x to 50.00x) - 20% chance
+            return 10.00 + (Math.random() * 40.0);
           } else {
-            // Rare not-so-high crash (1.50x to 2.00x) - 2% chance
-            return 1.50 + (Math.random() * 0.5);
+            // Extremely high multipliers (50.00x to 100.00x) - 5% chance
+            return 50.00 + (Math.random() * 50.0);
           }
         }
       }
@@ -184,14 +187,17 @@ export const gameOutcomeControl = {
             return Math.min(forcedValue, 1.05); // Hard cap at 1.05x multiplier
           }
           
-          // Generate a very early crash point
-          // 95% of the time it crashes between 1.00x and 1.05x
-          // 5% of the time it crashes between 1.06x and 1.20x
+          // Generate a varied crash point distribution when forcing a loss
+          // This will create a more natural pattern of crash points
           const r = Math.random();
-          if (r < 0.95) {
-            return 1.00 + (Math.random() * 0.05); // 1.00-1.05x (early crash)
+          if (r < 0.30) {
+            return 1.00 + (Math.random() * 0.10); // 1.00-1.10x (30% chance)
+          } else if (r < 0.70) {
+            return 1.10 + (Math.random() * 0.20); // 1.10-1.30x (40% chance) 
+          } else if (r < 0.90) {
+            return 1.30 + (Math.random() * 0.30); // 1.30-1.60x (20% chance)
           } else {
-            return 1.06 + (Math.random() * 0.14); // 1.06-1.20x (slightly delayed crash)
+            return 1.60 + (Math.random() * 0.40); // 1.60-2.00x (10% chance)
           }
           
           // This ensures that almost all bets lose unless the player cashes out extremely early
@@ -200,10 +206,10 @@ export const gameOutcomeControl = {
         }
       }
       
-      // Even without forced outcome, ensure house edge (shouldn't happen with our new setup)
-      // Generate a very early crash point instead of using the original one
-      console.log(`Enforcing house edge for user ${userId} on game ${gameId} (backup method)`);
-      return 1.00 + (Math.random() * 0.10); // 1.00-1.10x (early crash)
+      // If no forced outcome, use a natural distribution (this will happen in our new setup)
+      // Use the original crash point that was passed in, providing a natural experience
+      console.log(`Using natural crash point ${originalCrashPoint.toFixed(2)}x for user ${userId} on game ${gameId}`);
+      return originalCrashPoint;
     } catch (error) {
       console.error('Error applying controlled crash point:', error);
       // In case of error, return original value
@@ -301,10 +307,10 @@ export const gameOutcomeControl = {
                 .filter(pos => !currentlyRevealed.includes(pos));
               
               // Create a weighted shuffle function for more varied patterns
-              const weightedShuffle = (positions) => {
+              const weightedShuffle = (positions: number[]) => {
                 // Create a biased distribution of positions based on grid pattern
                 // We'll add slight bias to positions near the edges or center
-                return positions.sort((a, b) => {
+                return positions.sort((a: number, b: number) => {
                   // Convert positions to 2D grid coordinates (assuming 5x5 grid)
                   const aX = a % 5, aY = Math.floor(a / 5);
                   const bX = b % 5, bY = Math.floor(b / 5);
