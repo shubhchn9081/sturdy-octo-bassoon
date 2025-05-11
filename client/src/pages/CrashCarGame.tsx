@@ -518,8 +518,13 @@ const CrashCarGame: React.FC = () => {
                     */}
                     <div 
                       ref={carContainerRef}
-                      className="absolute left-1/2 bottom-6 transform -translate-x-1/2"
-                      style={{ width: '240px', height: '120px', position: 'relative' }}
+                      className="absolute left-1/2 transform -translate-x-1/2"
+                      style={{ 
+                        width: '240px', 
+                        height: '120px', 
+                        position: 'relative',
+                        bottom: '-10px' // Position 10px below the bottom of the canvas
+                      }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
                       {/* Layer 1: Wheel motion effects positioned over the tires in the image */}
@@ -609,11 +614,11 @@ const CrashCarGame: React.FC = () => {
                       {gameState === 'running' && (
                         <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 2 }}>
                           {/* Ground dust effects - positioned to touch the road */}
-                          <div className="absolute bottom-0 left-10 w-14 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          <div className="absolute bottom-0 left-14 w-10 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-[-5px] left-10 w-14 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-[-8px] left-14 w-10 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
                           
-                          <div className="absolute bottom-0 right-10 w-14 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          <div className="absolute bottom-0 right-14 w-10 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-[-5px] right-10 w-14 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-[-8px] right-14 w-10 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
                           
                           {/* Speed lines - appear when car is going faster (multiplier > 1.5) */}
                           {currentMultiplier > 1.5 && (
