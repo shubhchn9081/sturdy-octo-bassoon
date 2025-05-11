@@ -313,7 +313,7 @@ const LimboFinal: React.FC = () => {
             // Complete the bet with our wallet system
             completeGameBet(currentBetIdRef.current, {
               win: outcome.win,
-              multiplier: outcome.win ? targetMultiplier : 0,
+              multiplier: outcome.win ? targetMultiplier : 1.0,
               payout: outcome.win ? betAmount * targetMultiplier : 0,
               result: limboResult
             });
@@ -463,7 +463,7 @@ const LimboFinal: React.FC = () => {
             // Complete the bet with our wallet system
             completeGameBet(currentBetIdRef.current, {
               win: outcome.win,
-              multiplier: outcome.win ? targetMultiplier : 0,
+              multiplier: outcome.win ? targetMultiplier : 1.0,
               payout: outcome.win ? betAmount * targetMultiplier : 0,
               result: limboResult
             });
