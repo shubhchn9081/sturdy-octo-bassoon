@@ -16,6 +16,7 @@ import apayRoutes from "./routes/apay";
 import slotsRoutes from "./routes/slots";
 import cupAndBallRoutes from "./routes/cup-and-ball";
 import towerClimbRoutes from "./routes/tower-climb";
+import crashCarRoutes, { setWebSocketServer } from "./routes/crashCar";
 
 // Function to generate username from full name
 function generateUsernameFromFullName(fullName: string): string {
@@ -83,6 +84,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup tower climb game routes
   app.use('/api', towerClimbRoutes);
+  
+  // Setup crash car game routes
+  app.use('/api/crash-car', crashCarRoutes);
   
   // prefix all routes with /api
 
@@ -1389,7 +1393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.send(JSON.stringify({
       type: 'connection',
       status: 'connected',
-      message: 'Successfully connected to the Stake sports betting WebSocket server'
+      message: 'Successfully connected to the WebSocket server'
     }));
   });
   
@@ -1405,6 +1409,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   };
+  
+  // Initialize the crash car game with the WebSocket server
+  setWebSocketServer(wss, broadcastToTopic);
   
   // Simulate live odds updates
   const simulateOddsChanges = () => {

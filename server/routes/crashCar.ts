@@ -355,7 +355,7 @@ router.post('/place-bet', auth, async (req, res) => {
     }
     
     // Check if user has enough balance
-    const userBalance = user.balance.INR || 0;
+    const userBalance = (user.balance as any)?.INR || 0;
     if (userBalance < amount) {
       return res.status(400).json({ 
         message: 'Insufficient balance',
@@ -495,7 +495,7 @@ router.post('/cashout', auth, async (req, res) => {
       message: 'Successfully cashed out', 
       cashoutMultiplier: currentMultiplier,
       profit: bet.profit,
-      newBalance: user?.balance.INR || 0
+      newBalance: user ? (user.balance as any)?.INR || 0 : 0
     });
   } catch (error) {
     console.error('Error cashing out:', error);

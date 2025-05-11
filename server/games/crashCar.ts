@@ -31,20 +31,23 @@ export async function generateCrashCarCrashPoint(
     const globalControl = await storage.getGlobalGameControl();
     if (globalControl) {
       // If global controls are active, and they affect this game (crash car), apply them
+      const affectedGames = globalControl.affectedGames as number[];
+      
       if (
         globalControl.forceAllUsersWin && 
-        (globalControl.affectedGames.length === 0 || 
-         globalControl.affectedGames.includes(101)) // Assuming 101 is crash car game ID
+        (affectedGames.length === 0 || 
+         affectedGames.includes(101)) // Assuming 101 is crash car game ID
       ) {
+        const targetMultiplier = globalControl.targetMultiplier || 2.0;
         return globalControl.useExactMultiplier 
-          ? globalControl.targetMultiplier 
-          : Math.random() * 3 + globalControl.targetMultiplier;
+          ? targetMultiplier 
+          : Math.random() * 3 + targetMultiplier;
       }
       
       if (
         globalControl.forceAllUsersLose && 
-        (globalControl.affectedGames.length === 0 || 
-         globalControl.affectedGames.includes(101))
+        (affectedGames.length === 0 || 
+         affectedGames.includes(101))
       ) {
         // Force a crash at 1.0x or slightly above
         return 1.0 + Math.random() * 0.2;
@@ -64,9 +67,10 @@ export async function generateCrashCarCrashPoint(
         // Increment the counter for this control
         await storage.incrementUserGameControlCounter(crashCarControl.id);
         
+        const targetMultiplier = crashCarControl.targetMultiplier || 2.0;
         return crashCarControl.useExactMultiplier 
-          ? crashCarControl.targetMultiplier 
-          : Math.random() * 3 + crashCarControl.targetMultiplier;
+          ? targetMultiplier 
+          : Math.random() * 3 + targetMultiplier;
       }
       
       if (crashCarControl.outcomeType === 'loss') {
