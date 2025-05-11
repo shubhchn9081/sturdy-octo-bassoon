@@ -609,4 +609,89 @@ export function setWebSocketServer(
   startNewGameRound();
 }
 
+// Add API endpoint aliases for backward compatibility
+router.post('/crash-car/bet', auth, async (req, res) => {
+  // Forward to the place-bet endpoint for compatibility
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const userId = req.session.userId;
+    
+    // Get user
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Validate request body
+    const { amount, autoCashout } = req.body;
+    const parsedAmount = parseFloat(amount);
+    
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ message: "Invalid bet amount" });
+    }
+    
+    if (parsedAmount > user.balance) {
+      return res.status(400).json({ message: "Insufficient balance" });
+    }
+    
+    // Allow bets during WAITING or CRASHED state (so users can place bets between rounds)
+    if (gameState.state !== GameState.WAITING && gameState.state !== GameState.CRASHED) {
+      return res.status(400).json({ 
+        message: 'Cannot place bet now, game is running',
+        gameState: gameState.state
+      });
+    }
+    
+    // Remove any existing bets for this user
+    gameState.activeBets = gameState.activeBets.filter(bet => bet.userId !== userId);
+    
+    // Deduct amount from user balance
+    await storage.updateUserBalance(userId, -parsedAmount, 'INR');
+    
+    // Add new bet to active bets
+    gameState.activeBets.push({
+      userId,
+      username: user.username,
+      amount: parsedAmount,
+      cashedOut: false,
+      cashoutMultiplier: null,
+      profit: null
+    });
+    
+    console.log(`Added bet for user ${userId} with amount ${parsedAmount}`);
+    console.log('Active bets count:', gameState.activeBets.length);
+    
+    // Broadcast updated game state
+    broadcastGameState();
+    
+    // Set auto cashout if provided
+    if (autoCashout && parseFloat(autoCashout) > 1) {
+      userAutoCashouts.set(userId, {
+        userId,
+        multiplier: parseFloat(autoCashout),
+        amount: parsedAmount
+      });
+      console.log(`Set auto cashout for user ${userId} at ${parseFloat(autoCashout)}x`);
+    } else {
+      // Remove any existing auto cashout
+      userAutoCashouts.delete(userId);
+    }
+    
+    // Return success
+    res.json({ 
+      success: true, 
+      message: 'Bet placed successfully', 
+      newBalance: user.balance - parsedAmount,
+      gameState: gameState.state,
+      countdown: gameState.countdown
+    });
+  } catch (error) {
+    console.error("Error placing bet:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export default router;
