@@ -16,6 +16,24 @@ import { gsap } from 'gsap';
 const CAR_IMG_PATH = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746998237/ChatGPT_Image_May_12_2025_02_46_05_AM_azrrku.png';
 const SMOKE_IMG_PATH = '/smoke.svg';
 
+// Add a CSS keyframe animation for the wheel rotation
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes wheel-blur {
+      0% { filter: blur(0px); opacity: 0.7; }
+      50% { filter: blur(1px); opacity: 0.9; }
+      100% { filter: blur(0px); opacity: 0.7; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 // Video URL
 const ROAD_VIDEO_URL = "https://res.cloudinary.com/dbbig5cq5/video/upload/v1746993328/Generated_File_May_12_2025_-_1_23AM_rwdmgz.mp4";
 
@@ -177,28 +195,49 @@ const CrashCarGame: React.FC = () => {
         });
       }
       
-      // Wheel effect animation - motion blur and spinning radial gradient
+      // Wheel effect animation - we don't need GSAP for this, as we're handling 
+      // wheel rotation with CSS animations and the spokes inside the wheels
       if (frontWheelEffectRef.current && backWheelEffectRef.current) {
-        // Show the wheel effects during running state
+        // Just ensure the elements are visible
         gsap.set([frontWheelEffectRef.current, backWheelEffectRef.current], {
-          opacity: 1,
-          transformOrigin: 'center center'
+          opacity: 1
         });
         
-        // Create rotation animation
-        wheelsTimeline.current = gsap.timeline({ repeat: -1 });
-        wheelsTimeline.current.to([frontWheelEffectRef.current, backWheelEffectRef.current], {
-          rotation: 360,
-          duration: 0.2, // Faster base rotation
-          ease: 'none'
-        });
+        // Update wheel animation speed based on multiplier
+        const wheelSpeedUpdate = () => {
+          // Target all the spokes inside both wheels
+          const spokes = document.querySelectorAll('.wheel-effects .relative div[class*="absolute"]');
+          const rims = document.querySelectorAll('.wheel-effects .relative div[class*="inset-0"]');
+          
+          // Calculate animation duration - faster as multiplier increases
+          // Lower duration = faster animation
+          const duration = Math.max(0.05, 0.2 - ((currentMultiplier - 1) * 0.03));
+          
+          // Apply the new animation duration
+          spokes.forEach(spoke => {
+            if (spoke instanceof HTMLElement) {
+              spoke.style.animationDuration = `${duration}s`;
+            }
+          });
+          
+          // Also adjust blur animation
+          rims.forEach(rim => {
+            if (rim instanceof HTMLElement) {
+              rim.style.animationDuration = `${duration * 2}s`;
+            }
+          });
+        };
         
-        // Make wheel rotation speed match the multiplier - higher max speed
-        gsap.to(wheelsTimeline.current, {
-          timeScale: () => Math.min(12, 2 + (currentMultiplier - 1) * 2.5),
-          duration: 0.5,
-          ease: 'power1.out'
-        });
+        // Initial update
+        wheelSpeedUpdate();
+        
+        // Update wheel speed as multiplier changes
+        gsap.ticker.add(wheelSpeedUpdate);
+        
+        // Return cleanup function
+        return () => {
+          gsap.ticker.remove(wheelSpeedUpdate);
+        };
       }
       
       // Animate multiplier display
@@ -265,24 +304,35 @@ const CrashCarGame: React.FC = () => {
         });
       }
       
-      // Slow down and stop wheel effects
-      if (wheelsTimeline.current) {
-        gsap.to(wheelsTimeline.current, {
-          timeScale: 0,
-          duration: 1,
+      // Gradually slow down and stop wheel effects
+      if (frontWheelEffectRef.current && backWheelEffectRef.current) {
+        // This is for a slow deceleration effect
+        const animatedObjects = document.querySelectorAll('.wheel-effects .relative div[class*="absolute"]');
+        const rims = document.querySelectorAll('.wheel-effects .relative div[class*="inset-0"]');
+        
+        // Create a slowdown effect
+        const slowdown = gsap.timeline();
+        
+        // Slow down the wheels first
+        slowdown.to(animatedObjects, {
+          animationDuration: '1s', // Slow rotation
+          duration: 1, 
           ease: 'power2.out',
-          onComplete: () => {
-            if (wheelsTimeline.current) {
-              wheelsTimeline.current.kill();
-            }
-            // Hide wheel effects when stopped
-            if (frontWheelEffectRef.current && backWheelEffectRef.current) {
-              gsap.to([frontWheelEffectRef.current, backWheelEffectRef.current], {
-                opacity: 0,
-                duration: 0.5
-              });
-            }
-          }
+          stagger: 0.05
+        });
+        
+        // Also slow down the blur effect
+        slowdown.to(rims, {
+          animationDuration: '2s',
+          duration: 1,
+          ease: 'power2.out'
+        }, 0);
+        
+        // Then fade out the wheel effects
+        slowdown.to([frontWheelEffectRef.current, backWheelEffectRef.current], {
+          opacity: 0,
+          duration: 0.5,
+          delay: 0.5
         });
       }
       
@@ -461,47 +511,105 @@ const CrashCarGame: React.FC = () => {
                     >
                       {/* Layer 1: Wheel motion effects positioned over the tires in the image */}
                       <div className="wheel-effects" style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 1 }}>
-                        {/* Back wheel motion effect */}
+                        {/* Back wheel motion effect - including spokes and a blur effect */}
                         <div 
                           ref={backWheelEffectRef}
                           className="absolute"
                           style={{ 
-                            bottom: '12px',
-                            left: '42px',
-                            width: '55px', 
-                            height: '55px',
+                            bottom: '7px',
+                            left: '47px',
+                            width: '48px', 
+                            height: '48px',
                             borderRadius: '50%',
-                            background: gameState === 'running' 
-                              ? 'radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(255,255,255,0.2) 40%, rgba(0,0,0,0) 70%)' 
-                              : 'none',
-                            animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            boxShadow: gameState === 'running' ? '0 0 4px rgba(255,255,255,0.3)' : 'none',
+                            overflow: 'hidden',
+                            opacity: gameState === 'running' ? 1 : 0
                           }}
-                        />
+                        >
+                          {/* Wheel spokes */}
+                          <div className="relative w-full h-full">
+                            {[...Array(8)].map((_, i) => (
+                              <div 
+                                key={`back-spoke-${i}`}
+                                className="absolute top-1/2 left-1/2 h-[24px] w-[2px]"
+                                style={{
+                                  transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
+                                  transformOrigin: 'center center',
+                                  backgroundColor: 'rgba(255,255,255,0.5)',
+                                  animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
+                                }}
+                              />
+                            ))}
+                            {/* Wheel rim */}
+                            <div 
+                              className="absolute inset-0 rounded-full border-2 border-white opacity-60"
+                              style={{
+                                animation: gameState === 'running' ? 'wheel-blur 0.2s linear infinite' : 'none'
+                              }}
+                            />
+                          </div>
+                        </div>
                         
-                        {/* Front wheel motion effect */}
+                        {/* Front wheel motion effect - matching the back wheel */}
                         <div 
                           ref={frontWheelEffectRef}
                           className="absolute"
                           style={{ 
-                            bottom: '12px',
-                            right: '45px',
-                            width: '55px', 
-                            height: '55px',
+                            bottom: '7px',
+                            right: '46px',
+                            width: '48px', 
+                            height: '48px',
                             borderRadius: '50%',
-                            background: gameState === 'running' 
-                              ? 'radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(255,255,255,0.2) 40%, rgba(0,0,0,0) 70%)' 
-                              : 'none',
-                            animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            boxShadow: gameState === 'running' ? '0 0 4px rgba(255,255,255,0.3)' : 'none',
+                            overflow: 'hidden',
+                            opacity: gameState === 'running' ? 1 : 0
                           }}
-                        />
+                        >
+                          {/* Wheel spokes */}
+                          <div className="relative w-full h-full">
+                            {[...Array(8)].map((_, i) => (
+                              <div 
+                                key={`front-spoke-${i}`}
+                                className="absolute top-1/2 left-1/2 h-[24px] w-[2px]"
+                                style={{
+                                  transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
+                                  transformOrigin: 'center center',
+                                  backgroundColor: 'rgba(255,255,255,0.5)',
+                                  animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
+                                }}
+                              />
+                            ))}
+                            {/* Wheel rim */}
+                            <div 
+                              className="absolute inset-0 rounded-full border-2 border-white opacity-60"
+                              style={{
+                                animation: gameState === 'running' ? 'wheel-blur 0.2s linear infinite' : 'none'
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
                       
                       {/* Layer 2: Motion effects - only shows during running state */}
                       {gameState === 'running' && (
                         <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 2 }}>
-                          {/* Ground dust effect */}
-                          <div className="absolute bottom-0 left-10 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          <div className="absolute bottom-0 right-10 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          {/* Ground dust effects */}
+                          <div className="absolute bottom-0 left-10 w-12 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-0 left-14 w-8 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          
+                          <div className="absolute bottom-0 right-10 w-12 h-3 bg-gray-300/40 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-0 right-14 w-8 h-2 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          
+                          {/* Speed lines - appear when car is going faster (multiplier > 1.5) */}
+                          {currentMultiplier > 1.5 && (
+                            <>
+                              <div className="absolute top-10 left-0 w-16 h-1 bg-white/20 -skew-y-12 rounded-sm blur-sm animate-pulse"></div>
+                              <div className="absolute top-14 left-0 w-12 h-1 bg-white/20 -skew-y-12 rounded-sm blur-sm animate-pulse"></div>
+                              <div className="absolute top-18 left-0 w-10 h-1 bg-white/20 -skew-y-12 rounded-sm blur-sm animate-pulse"></div>
+                            </>
+                          )}
                         </div>
                       )}
                       
