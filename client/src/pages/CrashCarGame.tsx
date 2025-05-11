@@ -484,12 +484,9 @@ const CrashCarGame: React.FC = () => {
                   </div>
                   
                   {gameState === 'running' && !hasCashedOut && hasActiveBet ? (
-                    <Button 
-                      onClick={cashOut} 
-                      className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 animate-pulse"
-                    >
-                      CASH OUT @ {formatMultiplier(currentMultiplier)}
-                    </Button>
+                    <div className="text-green-500 text-center py-2 font-bold">
+                      Auto Cashout is {autoCashoutValue ? 'set to ' + formatMultiplier(autoCashoutValue) : 'disabled'}
+                    </div>
                   ) : gameState === 'waiting' ? (
                     <div className="text-yellow-500 text-center py-2">
                       Waiting for next round...
