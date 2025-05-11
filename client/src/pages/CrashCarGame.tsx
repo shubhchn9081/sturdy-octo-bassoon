@@ -152,20 +152,32 @@ const CrashCarGame: React.FC = () => {
       setShowSmoke(false);
       
       // Play road video at speed based on multiplier
-      video.playbackRate = 0.5;
-      video.play().catch(err => console.log('Video play error:', err));
+      try {
+        video.playbackRate = 0.5; // 0.5 is within the valid range for most browsers
+        video.play().catch(err => console.log('Video play error:', err));
+      } catch (err) {
+        console.log('Video playback rate error:', err);
+        // Try to play at default rate if setting fails
+        video.play().catch(err => console.log('Video play error:', err));
+      }
       
       // Dynamic video speed based on multiplier
       videoTimeline.current = gsap.timeline();
       videoTimeline.current.to(video, {
-        playbackRate: 5,
+        // Use GSAP for animation, but we'll manually set playbackRate in onUpdate
+        // to ensure we have proper error handling and range checking
         duration: 10,
         ease: 'power1.in',
         onUpdate: () => {
           // Dynamically adjust playback rate based on multiplier
-          const newRate = Math.min(5, 0.5 + (currentMultiplier - 1) * 1.5);
+          // HTML5 video playbackRate must be between 0.25 and 5.0 for most browsers
+          const newRate = Math.min(5, Math.max(0.25, 0.5 + (currentMultiplier - 1) * 1.5));
           if (video) {
-            video.playbackRate = newRate;
+            try {
+              video.playbackRate = newRate;
+            } catch (e) {
+              console.log("Video playback rate limitation", e);
+            }
           }
         }
       });
@@ -263,10 +275,11 @@ const CrashCarGame: React.FC = () => {
           ease: 'power2.out',
           onUpdate: function() {
             try {
-              const rate = Math.max(0.2, 1 - this.progress());
+              // Set min playback rate to 0.25 to avoid browser limitations
+              const rate = Math.max(0.25, 1 - this.progress());
               video.playbackRate = rate;
             } catch (e) {
-              console.log("Video playback rate limitation");
+              console.log("Video playback rate limitation", e);
             }
           },
           onComplete: function() {
