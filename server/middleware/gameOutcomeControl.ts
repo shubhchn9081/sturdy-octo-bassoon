@@ -109,10 +109,11 @@ export const gameOutcomeControl = {
         console.log(`Game ID 7 detected - using special crash behavior`);
         
         // Check if any PLAYER bets exist for this game (not system-generated bets)
+        // Real players have userId > 0, system bets typically have userId = 0 or a negative value
         const bets = await storage.getBetsByGameId(7, 'active');
-        const hasPlayerBets = bets && bets.filter(bet => bet.isPlayer === true).length > 0;
+        const hasPlayerBets = bets && bets.filter(bet => bet.userId > 0).length > 0;
         
-        console.log(`Game ID 7: Total active bets: ${bets?.length || 0}, Player bets: ${bets?.filter(bet => bet.isPlayer === true).length || 0}`);
+        console.log(`Game ID 7: Total active bets: ${bets?.length || 0}, Player bets: ${bets?.filter(bet => bet.userId > 0).length || 0}`);
         
         if (!hasPlayerBets) {
           // No player bets - VERY high multipliers

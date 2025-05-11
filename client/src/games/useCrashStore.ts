@@ -61,8 +61,9 @@ const HEIGHT_SCALE = 50; // Reduced vertical scaling for ultra-flat trajectory
 // Helper functions
 function generateCrashPoint(activeBets: Bet[] = []): number {
   // Check if there are any player bets active (not system-generated bets)
-  const hasPlayerBets = activeBets.some(bet => bet.isPlayer === true && bet.status === 'active');
-  console.log(`Client: Player bets exist: ${hasPlayerBets} (total active bets: ${activeBets.length}, player bets: ${activeBets.filter(bet => bet.isPlayer === true && bet.status === 'active').length})`);
+  // Real players have userId > 0, system bets typically have userId = 0 or a negative value
+  const hasPlayerBets = activeBets.some(bet => bet.userId > 0 && bet.status === 'active');
+  console.log(`Client: Player bets exist: ${hasPlayerBets} (total active bets: ${activeBets.length}, player bets: ${activeBets.filter(bet => bet.userId > 0 && bet.status === 'active').length})`);
   
   // For game ID 7, implement more balanced distribution regardless of bets
   
