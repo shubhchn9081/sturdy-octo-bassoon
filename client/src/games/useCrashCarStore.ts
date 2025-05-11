@@ -256,7 +256,7 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
     currentMultiplier: 1.0,
     crashMultiplier: null,
     countdown: null,
-    isWaiting: true,
+    isWaiting: false, // Changed to false so the button shows 'PLACE BET' by default
     gameId: null,
     betAmount: 10.0,
     autoCashoutValue: null,
@@ -311,7 +311,7 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
             console.error('Bet placement failed:', errorData);
             set({
               errorMessage: errorData.message || 'Failed to place bet',
-              isWaiting: false
+              isWaiting: false // Ensure waiting state is cleared on error
             });
             return;
           }
@@ -319,13 +319,16 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
           const data = await response.json();
           console.log('Bet placed successfully:', data);
           
-          // Reset cashout triggered if we placed a new bet
-          set({ cashoutTriggered: null });
+          // Reset cashout triggered if we placed a new bet and explicitly set isWaiting to false
+          set({ 
+            cashoutTriggered: null,
+            isWaiting: false // Always ensure waiting state is cleared on success
+          });
         } catch (fetchError) {
           console.error('Fetch error during bet placement:', fetchError);
           set({
             errorMessage: 'Network error while placing bet',
-            isWaiting: false
+            isWaiting: false // Ensure waiting state is cleared on error
           });
           return;
         }
