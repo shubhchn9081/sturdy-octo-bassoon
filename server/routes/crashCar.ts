@@ -381,9 +381,16 @@ router.post('/place-bet', auth, async (req, res) => {
     }
     
     // Verify current game state allows bets
-    if (gameState.state !== GameState.WAITING) {
+    console.log('Bet placement request - Current game state:', {
+      state: gameState.state, 
+      currentMultiplier: gameState.currentMultiplier,
+      gameId: gameState.gameId
+    });
+    
+    // Allow bets during WAITING or CRASHED state (so users can place bets between rounds)
+    if (gameState.state !== GameState.WAITING && gameState.state !== GameState.CRASHED) {
       return res.status(400).json({ 
-        message: 'Cannot place bet now, game is already running or crashed',
+        message: 'Cannot place bet now, game is running',
         gameState: gameState.state
       });
     }
@@ -446,12 +453,42 @@ router.post('/cashout', auth, async (req, res) => {
     // Get user info
     const userId = req.user!.id;
     
-    // Find user's active bet
+    // Find user's active bet - but first log what we're searching through
+    console.log('Cashout request - Active bets:', {
+      totalBets: gameState.activeBets.length,
+      userId: userId,
+      gameId: gameId
+    });
+    
+    // More detailed logging of the active bets to diagnose issue
+    gameState.activeBets.forEach((bet, idx) => {
+      console.log(`Bet #${idx}:`, {
+        betUserId: bet.userId,
+        username: bet.username,
+        amount: bet.amount,
+        isCashedOut: bet.cashedOut
+      });
+    });
+    
+    // Do the search with improved error logging
     const betIndex = gameState.activeBets.findIndex(bet => 
       bet.userId === userId && !bet.cashedOut
     );
     
     if (betIndex === -1) {
+      console.error(`No active bet found for user ${userId} in game ${gameId}. Game state: ${gameState.state}, active bets: ${gameState.activeBets.length}`);
+      
+      // Check if there is a bet but it's already cashed out
+      const cashedOutBetIndex = gameState.activeBets.findIndex(bet => 
+        bet.userId === userId && bet.cashedOut
+      );
+      
+      if (cashedOutBetIndex !== -1) {
+        return res.status(400).json({ 
+          message: 'You have already cashed out for this round'
+        });
+      }
+      
       return res.status(404).json({ 
         message: 'No active bet found for this user'
       });

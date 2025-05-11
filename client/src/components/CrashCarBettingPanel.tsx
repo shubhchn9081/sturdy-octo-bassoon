@@ -368,10 +368,10 @@ export const CrashCarBettingPanel: React.FC<CrashCarBettingPanelProps> = ({
           /* When game is in ready state, show bet button */
           <Button
             onClick={handlePlaceBet}
-            disabled={betAmount < 100}
+            disabled={betAmount < 100 || gameState === 'running'}
             className={cn(
               "w-full h-14 text-white font-semibold rounded-lg transition-all",
-              betAmount < 100
+              betAmount < 100 || gameState === 'running'
                 ? "bg-gray-700 cursor-not-allowed"
                 : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500"
             )}
