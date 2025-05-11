@@ -113,11 +113,20 @@ export const CrashCarBettingPanel: React.FC<CrashCarBettingPanelProps> = ({
     if (betAmount < 100) {
       return; // Silently prevent invalid bets
     }
+    
+    // Make sure we show some indication that bet is being placed
+    console.log("Placing bet with amount:", betAmount);
+    
+    // Call the placeBet function from props
     placeBet();
   };
   
   // Explicit cash out handler (for button click)
   const handleCashOut = () => {
+    // Make sure we show some indication that cashout is happening
+    console.log("Cashing out at multiplier:", currentMultiplier);
+    
+    // Call the cashOut function from props
     cashOut();
   };
   
