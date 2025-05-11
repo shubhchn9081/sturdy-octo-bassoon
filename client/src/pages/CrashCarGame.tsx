@@ -83,8 +83,8 @@ const CrashCarGame: React.FC = () => {
   const [autoCashoutInput, setAutoCashoutInput] = useState<string>('');
   const [showSmoke, setShowSmoke] = useState(false);
   
-  // State for car positioning - can be adjusted as needed
-  const [carPositionY, setCarPositionY] = useState(180);
+  // State for car positioning - fixed at road level (240px)
+  const [carPositionY, setCarPositionY] = useState(240);
   
   // Fuel gauge animation
   useEffect(() => {
@@ -122,23 +122,22 @@ const CrashCarGame: React.FC = () => {
         console.log('Video pause error:', err);
       }
       
-      // Reset car position
+      // Reset car position - no vertical movement
       if (carContainerRef.current) {
         gsap.to(carContainerRef.current, {
-          y: 0,
-          x: 0,
+          x: 0, // Only reset horizontal position
           rotation: 0,
           scale: 1,
-          duration: 0.5
+          duration: 0.3
         });
       }
       
       // Idle animation for the car - gentle bobbing during refueling
+      // Very minimal idle animation that doesn't move the car up/down
       carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
       carTimeline.current.to(carContainerRef.current, {
-        y: '0px', // Keep car on the road, no vertical movement
-        x: '-2px', // Slight horizontal movement instead
-        duration: 1,
+        x: '-1px', // Extremely subtle horizontal movement only
+        duration: 1.5,
         ease: 'sine.inOut'
       });
       
@@ -189,18 +188,19 @@ const CrashCarGame: React.FC = () => {
       
       // Car animation - slight scaling and bobbing to simulate forward motion
       if (carContainerRef.current) {
+        // No vertical movement at all, only subtle rotation/horizontal effects
         carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
         carTimeline.current.to(carContainerRef.current, {
-          y: '0px', // Keep car on the road, no upward movement
-          rotation: 0.2, // Less rotation for more stability
-          scale: 1.01, // Slightly reduce the scaling effect
-          duration: 0.3, 
+          x: '1px', // Very subtle horizontal movement
+          rotation: 0.1, // Very minimal rotation 
+          scale: 1.005, // Barely noticeable scale change
+          duration: 0.2, 
           ease: 'sine.inOut'
         }).to(carContainerRef.current, {
-          y: '1px', // Slight downward instead of upward movement
-          rotation: -0.2, // Less rotation
+          x: '-1px', // Very subtle horizontal movement in opposite direction
+          rotation: -0.1, // Very minimal rotation in opposite direction
           scale: 1,
-          duration: 0.3,
+          duration: 0.2,
           ease: 'sine.inOut'
         });
         
