@@ -70,19 +70,10 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
     }
   };
 
-  // Handle place bet with animation
+  // Handle place bet with animation - disabled as per user request
   const handlePlaceBet = () => {
-    clearError();
-    
-    if (betAmount < 100) {
-      return;
-    }
-    
-    setButtonAnimating(true);
-    setTimeout(() => {
-      setButtonAnimating(false);
-      placeBet();
-    }, 300);
+    // Do nothing - buttons are removed
+    return;
   };
 
   // Calculate potential payout based on current state
@@ -102,33 +93,21 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
       const profit = potentialPayout - betAmount;
       
       return (
-        <Button
-          onClick={cashOut}
-          disabled={cashoutTriggered !== null}
-          className={cn(
-            "w-full rounded-full h-16 font-bold relative overflow-hidden transition-all",
-            cashoutTriggered !== null 
-              ? "bg-gray-700 text-gray-300" 
-              : "bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-400 hover:to-emerald-300 text-white shadow-lg"
-          )}
-          style={{
-            transform: cashoutTriggered !== null ? "scale(1)" : `scale(${1 + Math.min(currentMultiplier / 50, 0.08)})`,
-          }}
-        >
+        <div className="bg-gray-800 rounded-xl p-3 text-center">
           <div className="flex flex-col items-center">
-            <span className="text-lg">
-              {cashoutTriggered !== null ? "CASHED OUT" : "CASH OUT"}
+            <span className="text-lg text-gray-300">
+              Current Potential Payout
             </span>
-            <span className="text-xl font-mono font-bold">
+            <span className="text-xl font-mono font-bold text-white">
               ₹{potentialPayout.toFixed(2)}
             </span>
-            {cashoutTriggered === null && profit > 0 && (
-              <span className="text-sm">
+            {profit > 0 && (
+              <span className="text-sm text-green-400">
                 +₹{profit.toFixed(2)}
               </span>
             )}
           </div>
-        </Button>
+        </div>
       );
     } else if (isWaiting) {
       return (
@@ -140,31 +119,11 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
       );
     } else {
       return (
-        <Button
-          onClick={handlePlaceBet}
-          disabled={betAmount < 100}
-          className={cn(
-            "w-full rounded-full h-16 font-bold relative overflow-hidden transition-all",
-            buttonAnimating ? "duration-300 transform scale-95" : "duration-500",
-            betAmount < 100 
-              ? "bg-gray-700 text-gray-300" 
-              : "bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white shadow-lg"
-          )}
-        >
-          <div className="relative z-10">
-            {betAmount < 100 ? (
-              <div className="flex flex-col items-center">
-                <span>PLACE BET</span>
-                <span className="text-xs opacity-70">Min. bet: ₹100</span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center">
-                <span className="text-md">PLACE BET</span>
-                <span className="text-xs opacity-90">₹{betAmount.toFixed(2)}</span>
-              </div>
-            )}
-          </div>
-        </Button>
+        <div className="flex justify-center">
+          <Badge variant="outline" className="px-4 py-2 text-center bg-gray-800">
+            Ready for next round
+          </Badge>
+        </div>
       );
     }
   };

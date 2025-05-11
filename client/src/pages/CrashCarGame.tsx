@@ -491,13 +491,9 @@ const CrashCarGame: React.FC = () => {
                       CASH OUT @ {formatMultiplier(currentMultiplier)}
                     </Button>
                   ) : gameState === 'waiting' ? (
-                    <Button 
-                      onClick={placeBet} 
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-2"
-                      disabled={parseFloat(betInput) <= 0}
-                    >
-                      PLACE BET
-                    </Button>
+                    <div className="text-yellow-500 text-center py-2">
+                      Waiting for next round...
+                    </div>
                   ) : hasCashedOut ? (
                     <Badge variant="outline" className="bg-green-700 text-white px-4 py-2">
                       Cashed Out @ {formatMultiplier(cashoutTriggered || 0)}
