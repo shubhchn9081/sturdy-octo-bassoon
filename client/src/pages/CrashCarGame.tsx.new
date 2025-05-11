@@ -12,8 +12,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/use-wallet';
 import { gsap } from 'gsap';
 
-// Animation settings
-const CAR_IMG_PATH = '/car-orange.svg';
+// Asset paths
+const CAR_IMG_PATH = '/car.svg';
+const WHEEL_IMG_PATH = '/wheel.svg';
+const SMOKE_IMG_PATH = '/smoke.svg';
+
+// Video URL
+const ROAD_VIDEO_URL = "https://res.cloudinary.com/dbbig5cq5/video/upload/v1746993328/Generated_File_May_12_2025_-_1_23AM_rwdmgz.mp4";
 
 const CrashCarGame: React.FC = () => {
   const { toast } = useToast();
@@ -42,31 +47,29 @@ const CrashCarGame: React.FC = () => {
   // Refs for animation and DOM elements
   const videoRef = useRef<HTMLVideoElement>(null);
   const carRef = useRef<HTMLImageElement>(null);
+  const leftWheelRef = useRef<HTMLImageElement>(null);
+  const rightWheelRef = useRef<HTMLImageElement>(null);
+  const smokeRef = useRef<HTMLImageElement>(null);
   const carContainerRef = useRef<HTMLDivElement>(null);
   const fuelBarRef = useRef<HTMLDivElement>(null);
+  const multiplierRef = useRef<HTMLDivElement>(null);
   
   // Animation timeline refs
   const videoTimeline = useRef<gsap.core.Timeline | null>(null);
   const carTimeline = useRef<gsap.core.Timeline | null>(null);
   const wheelsTimeline = useRef<gsap.core.Timeline | null>(null);
   const fuelTimeline = useRef<gsap.core.Timeline | null>(null);
+  const smokeTimeline = useRef<gsap.core.Timeline | null>(null);
   
   // State for form inputs
   const [betInput, setBetInput] = useState('10.00');
   const [autoCashoutInput, setAutoCashoutInput] = useState<string>('');
-  const [wheelRotation, setWheelRotation] = useState(0);
-  
-  // Load the car image
-  useEffect(() => {
-    if (carRef.current) {
-      carRef.current.src = CAR_IMG_PATH;
-    }
-  }, []);
+  const [showSmoke, setShowSmoke] = useState(false);
   
   // Fuel gauge animation
   useEffect(() => {
     if (fuelBarRef.current && gameState === 'running') {
-      // Start full and decrease based on multiplier
+      // Animate fuel bar based on current fuel level
       gsap.to(fuelBarRef.current, {
         width: `${Math.max(0, fuelLevel)}%`,
         duration: 0.3,
@@ -84,23 +87,29 @@ const CrashCarGame: React.FC = () => {
     if (videoTimeline.current) videoTimeline.current.kill();
     if (carTimeline.current) carTimeline.current.kill();
     if (wheelsTimeline.current) wheelsTimeline.current.kill();
+    if (smokeTimeline.current) smokeTimeline.current.kill();
     
     // Set up new animations based on game state
     if (gameState === 'waiting') {
-      // Reset video to beginning and pause
+      // Hide smoke during waiting state
+      setShowSmoke(false);
+      
+      // Reset video to beginning and play slowly
       video.currentTime = 0;
-      video.pause();
+      video.playbackRate = 0.2;
+      video.play().catch(err => console.log('Video play error:', err));
       
       // Reset car position
       if (carContainerRef.current) {
         gsap.to(carContainerRef.current, {
           y: 0,
           rotation: 0,
+          scale: 1,
           duration: 0.5
         });
       }
       
-      // Idle animation for the car
+      // Idle animation for the car - gentle bobbing during refueling
       carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
       carTimeline.current.to(carContainerRef.current, {
         y: '-5px',
@@ -108,77 +117,103 @@ const CrashCarGame: React.FC = () => {
         ease: 'sine.inOut'
       });
       
-    } else if (gameState === 'running') {
-      // Play road video at normal speed initially
-      video.playbackRate = 1;
-      video.currentTime = 0;
-      video.play();
+      // Slow wheel rotation during idle
+      if (leftWheelRef.current && rightWheelRef.current) {
+        wheelsTimeline.current = gsap.timeline({ repeat: -1 });
+        wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
+          rotation: 360,
+          duration: 3,
+          ease: 'none',
+          transformOrigin: 'center center'
+        });
+      }
       
-      // Create timeline for video playback rate
+    } else if (gameState === 'running') {
+      // Hide smoke during running
+      setShowSmoke(false);
+      
+      // Play road video at speed based on multiplier
+      video.playbackRate = 0.5;
+      video.play().catch(err => console.log('Video play error:', err));
+      
+      // Dynamic video speed based on multiplier
       videoTimeline.current = gsap.timeline();
       videoTimeline.current.to(video, {
-        playbackRate: 3,
+        playbackRate: 5,
         duration: 10,
         ease: 'power1.in',
         onUpdate: () => {
-          // Adjust playback rate based on multiplier
-          const newRate = Math.min(5, 1 + (currentMultiplier - 1) * 2);
+          // Dynamically adjust playback rate based on multiplier
+          const newRate = Math.min(5, 0.5 + (currentMultiplier - 1) * 1.5);
           if (video) {
             video.playbackRate = newRate;
           }
         }
       });
       
-      // Create car animation for a subtle bounce effect
+      // Car animation - slight scaling and bobbing to simulate forward motion
       if (carContainerRef.current) {
         carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
         carTimeline.current.to(carContainerRef.current, {
           y: '-3px',
-          rotation: 1,
+          rotation: 0.5,
+          scale: 1.02,
           duration: 0.2,
           ease: 'sine.inOut'
         }).to(carContainerRef.current, {
           y: '0px',
-          rotation: -1,
+          rotation: -0.5,
+          scale: 1,
           duration: 0.2,
           ease: 'sine.inOut'
         });
         
-        // Make animation speed match the multiplier
-        carTimeline.current.timeScale(1);
+        // Make car animation speed match the multiplier
         gsap.to(carTimeline.current, {
-          timeScale: 3,
-          duration: 10,
-          ease: 'power1.in'
+          timeScale: () => Math.min(3, 1 + (currentMultiplier - 1) * 0.5),
+          duration: 0.5,
+          ease: 'power1.out'
         });
       }
       
       // Wheel rotation animation
-      const wheelElements = document.querySelectorAll('.car-wheel');
-      wheelsTimeline.current = gsap.timeline({ repeat: -1 });
-      wheelsTimeline.current.to(wheelElements, {
-        rotation: 360,
-        transformOrigin: 'center center',
-        duration: 0.5,
-        ease: 'none'
-      });
+      if (leftWheelRef.current && rightWheelRef.current) {
+        wheelsTimeline.current = gsap.timeline({ repeat: -1 });
+        wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
+          rotation: 360,
+          duration: 0.5,
+          ease: 'none',
+          transformOrigin: 'center center'
+        });
+        
+        // Make wheel rotation speed match the multiplier
+        gsap.to(wheelsTimeline.current, {
+          timeScale: () => Math.min(8, 1 + (currentMultiplier - 1) * 1.8),
+          duration: 0.5,
+          ease: 'power1.out'
+        });
+      }
       
-      // Make wheel rotation speed match the multiplier
-      gsap.to(wheelsTimeline.current, {
-        timeScale: 5,
-        duration: 10,
-        ease: 'power1.in'
-      });
+      // Animate multiplier display
+      if (multiplierRef.current) {
+        gsap.to(multiplierRef.current, {
+          scale: 1.1,
+          duration: 0.2,
+          yoyo: true,
+          repeat: -1,
+          ease: 'sine.inOut'
+        });
+      }
       
     } else if (gameState === 'crashed') {
+      // Show smoke when crashed (out of fuel)
+      setShowSmoke(true);
+      
       // Slow down video when crashed
       gsap.to(video, {
         playbackRate: 0,
         duration: 1,
-        ease: 'power1.out',
-        onComplete: () => {
-          video.pause();
-        }
+        ease: 'power2.out'
       });
       
       // Stop car animation
@@ -186,14 +221,14 @@ const CrashCarGame: React.FC = () => {
         carTimeline.current.kill();
       }
       
-      // Create car stopping/sputtering animation
+      // Create car stall/sputter animation
       if (carContainerRef.current) {
         gsap.to(carContainerRef.current, {
           x: '-10px',
-          rotation: -2,
-          duration: 0.2,
+          rotation: -1,
+          duration: 0.1,
           ease: 'power2.out',
-          repeat: 3,
+          repeat: 5,
           yoyo: true,
           onComplete: () => {
             gsap.to(carContainerRef.current, {
@@ -205,14 +240,36 @@ const CrashCarGame: React.FC = () => {
         });
       }
       
-      // Stop wheel rotation
+      // Slow down and stop wheel rotation
       if (wheelsTimeline.current) {
-        wheelsTimeline.current.timeScale(0.2);
-        setTimeout(() => {
-          if (wheelsTimeline.current) {
-            wheelsTimeline.current.kill();
+        gsap.to(wheelsTimeline.current, {
+          timeScale: 0,
+          duration: 1,
+          ease: 'power2.out',
+          onComplete: () => {
+            if (wheelsTimeline.current) {
+              wheelsTimeline.current.kill();
+            }
           }
-        }, 500);
+        });
+      }
+      
+      // Animate smoke puffs
+      if (smokeRef.current) {
+        smokeTimeline.current = gsap.timeline({ repeat: 3 });
+        smokeTimeline.current
+          .to(smokeRef.current, {
+            opacity: 1,
+            scale: 1.2,
+            duration: 0.5,
+            ease: 'power1.out'
+          })
+          .to(smokeRef.current, {
+            opacity: 0.7,
+            scale: 1,
+            duration: 0.5,
+            ease: 'power1.in'
+          });
       }
     }
     
@@ -221,6 +278,7 @@ const CrashCarGame: React.FC = () => {
       if (videoTimeline.current) videoTimeline.current.kill();
       if (carTimeline.current) carTimeline.current.kill();
       if (wheelsTimeline.current) wheelsTimeline.current.kill();
+      if (smokeTimeline.current) smokeTimeline.current.kill();
       video.pause();
     };
   }, [gameState, currentMultiplier]);
@@ -287,6 +345,18 @@ const CrashCarGame: React.FC = () => {
     return 'bg-red-600';
   };
   
+  // Preload all assets
+  useEffect(() => {
+    const preloadImage = (src: string) => {
+      const img = new Image();
+      img.src = src;
+    };
+    
+    preloadImage(CAR_IMG_PATH);
+    preloadImage(WHEEL_IMG_PATH);
+    preloadImage(SMOKE_IMG_PATH);
+  }, []);
+  
   return (
     <div className="w-full h-full">
       <Tabs defaultValue="game" className="w-full">
@@ -309,12 +379,15 @@ const CrashCarGame: React.FC = () => {
                         <span className="text-yellow-500">Starting in {countdown}s</span>
                       )}
                       {gameState === 'running' && (
-                        <span className="text-green-500 text-2xl animate-pulse">
+                        <div 
+                          ref={multiplierRef}
+                          className="text-green-500 text-2xl inline-block"
+                        >
                           {formatMultiplier(currentMultiplier)}
-                        </span>
+                        </div>
                       )}
                       {gameState === 'crashed' && (
-                        <span className="text-red-500">Ran out of fuel at {formatMultiplier(currentMultiplier)}</span>
+                        <span className="text-red-500">Out of fuel at {formatMultiplier(currentMultiplier)}</span>
                       )}
                     </CardTitle>
                     
@@ -338,33 +411,52 @@ const CrashCarGame: React.FC = () => {
                     <video
                       ref={videoRef}
                       className="absolute top-0 left-0 w-full h-full object-cover"
-                      src="https://cdn.pixabay.com/vimeo/328726510/racing-25201.mp4?width=1280&hash=5c7700eb4f0277c6272df8c7afa08f16b2a33c23"
+                      src={ROAD_VIDEO_URL}
                       muted
                       loop
                       playsInline
                     ></video>
                     
-                    {/* Car overlay */}
+                    {/* Car assembly with wheels and smoke */}
                     <div 
                       ref={carContainerRef}
-                      className="absolute left-1/2 bottom-12 transform -translate-x-1/2 z-10 w-40 h-24"
+                      className="absolute left-1/2 bottom-16 transform -translate-x-1/2 z-10"
+                      style={{ width: '200px', height: '100px' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
+                      {/* Car body */}
                       <img 
                         ref={carRef} 
                         src={CAR_IMG_PATH} 
                         alt="Racing Car" 
-                        className="w-full h-full"
+                        className="w-full h-full absolute top-0 left-0"
                       />
-                      {/* Wheel elements for animation */}
-                      <div className="car-wheel absolute left-8 bottom-2 w-8 h-8 rounded-full bg-gray-800 border-2 border-gray-600">
-                        <div className="absolute top-1/2 left-1/2 w-5 h-1 bg-white transform -translate-x-1/2 -translate-y-1/2"></div>
-                        <div className="absolute top-1/2 left-1/2 w-1 h-5 bg-white transform -translate-x-1/2 -translate-y-1/2"></div>
-                      </div>
-                      <div className="car-wheel absolute right-8 bottom-2 w-8 h-8 rounded-full bg-gray-800 border-2 border-gray-600">
-                        <div className="absolute top-1/2 left-1/2 w-5 h-1 bg-white transform -translate-x-1/2 -translate-y-1/2"></div>
-                        <div className="absolute top-1/2 left-1/2 w-1 h-5 bg-white transform -translate-x-1/2 -translate-y-1/2"></div>
-                      </div>
+                      
+                      {/* Wheels that will rotate */}
+                      <img 
+                        ref={leftWheelRef}
+                        src={WHEEL_IMG_PATH} 
+                        alt="Left Wheel" 
+                        className="absolute bottom-0 left-12 w-10 h-10"
+                        style={{ transformOrigin: 'center center' }}
+                      />
+                      <img 
+                        ref={rightWheelRef}
+                        src={WHEEL_IMG_PATH} 
+                        alt="Right Wheel" 
+                        className="absolute bottom-0 right-12 w-10 h-10"
+                        style={{ transformOrigin: 'center center' }}
+                      />
+                      
+                      {/* Smoke puffs that appear when crashed */}
+                      {showSmoke && (
+                        <img 
+                          ref={smokeRef}
+                          src={SMOKE_IMG_PATH} 
+                          alt="Exhaust Smoke" 
+                          className="absolute -top-8 left-10 w-16 h-16 opacity-80"
+                        />
+                      )}
                     </div>
                   </div>
                   
@@ -391,7 +483,7 @@ const CrashCarGame: React.FC = () => {
                   {gameState === 'running' && !hasCashedOut && hasActiveBet ? (
                     <Button 
                       onClick={cashOut} 
-                      className="bg-green-500 hover:bg-green-600 text-white px-8 py-2"
+                      className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 animate-pulse"
                     >
                       CASH OUT @ {formatMultiplier(currentMultiplier)}
                     </Button>

@@ -1,29 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsContent, Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCrashCarStore, GameState } from '../games/useCrashCarStore';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Gauge, Car } from 'lucide-react';
+import { Gauge } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/use-wallet';
 import { gsap } from 'gsap';
 
-// Animation settings
-const CAR_DEFAULT_X = 120;
-const CAR_DEFAULT_Y = 210;
-const WHEEL_RADIUS = 8;
+// Asset paths
+const CAR_IMG_PATH = '/car.svg';
+const WHEEL_IMG_PATH = '/wheel.svg';
+const SMOKE_IMG_PATH = '/smoke.svg';
 
-// Image paths
-const CAR_IMG_PATH = '/car-orange.svg';
-const BUILDINGS_FAR_PATH = '/buildings-far.svg';
-const BUILDINGS_MID_PATH = '/buildings-mid.svg';
-const BUILDINGS_NEAR_PATH = '/buildings-near.svg';
-const ROAD_PATH = '/road.svg';
+// Video URL
+const ROAD_VIDEO_URL = "https://res.cloudinary.com/dbbig5cq5/video/upload/v1746993328/Generated_File_May_12_2025_-_1_23AM_rwdmgz.mp4";
 
 const CrashCarGame: React.FC = () => {
   const { toast } = useToast();
@@ -49,478 +44,244 @@ const CrashCarGame: React.FC = () => {
     clearError
   } = useCrashCarStore();
   
-  // Canvas and animation references
-  const gameCanvasRef = useRef<HTMLCanvasElement>(null);
+  // Refs for animation and DOM elements
+  const videoRef = useRef<HTMLVideoElement>(null);
   const carRef = useRef<HTMLImageElement>(null);
-  const buildingsFarRef = useRef<HTMLImageElement>(null);
-  const buildingsMidRef = useRef<HTMLImageElement>(null);
-  const buildingsNearRef = useRef<HTMLImageElement>(null);
-  const roadRef = useRef<HTMLImageElement>(null);
+  const leftWheelRef = useRef<HTMLImageElement>(null);
+  const rightWheelRef = useRef<HTMLImageElement>(null);
+  const smokeRef = useRef<HTMLImageElement>(null);
+  const carContainerRef = useRef<HTMLDivElement>(null);
+  const fuelBarRef = useRef<HTMLDivElement>(null);
+  const multiplierRef = useRef<HTMLDivElement>(null);
   
-  // GSAP animation references 
-  const tlWheelsRef = useRef<gsap.core.Timeline | null>(null);
-  const tlCarRef = useRef<gsap.core.Timeline | null>(null);
-  const tlBuildingsFarRef = useRef<gsap.core.Timeline | null>(null);
-  const tlBuildingsMidRef = useRef<gsap.core.Timeline | null>(null);
-  const tlBuildingsNearRef = useRef<gsap.core.Timeline | null>(null);
-  const tlRoadRef = useRef<gsap.core.Timeline | null>(null);
-  const tlFuelRef = useRef<gsap.core.Timeline | null>(null);
+  // Animation timeline refs
+  const videoTimeline = useRef<gsap.core.Timeline | null>(null);
+  const carTimeline = useRef<gsap.core.Timeline | null>(null);
+  const wheelsTimeline = useRef<gsap.core.Timeline | null>(null);
+  const fuelTimeline = useRef<gsap.core.Timeline | null>(null);
+  const smokeTimeline = useRef<gsap.core.Timeline | null>(null);
   
-  // Animation state
-  const [wheelRotation, setWheelRotation] = useState(0);
+  // State for form inputs
   const [betInput, setBetInput] = useState('10.00');
   const [autoCashoutInput, setAutoCashoutInput] = useState<string>('');
+  const [showSmoke, setShowSmoke] = useState(false);
   
-  // Canvas layers for separate animations
-  const farLayerRef = useRef<HTMLCanvasElement>(null);
-  const midLayerRef = useRef<HTMLCanvasElement>(null);
-  const nearLayerRef = useRef<HTMLCanvasElement>(null);
-  const roadLayerRef = useRef<HTMLCanvasElement>(null);
-  const carLayerRef = useRef<HTMLCanvasElement>(null);
-  
-  // Refs for animation state
-  const animationStateRef = useRef({
-    isRunning: false,
-    wheelAngle: 0,
-    farOffset: 0,
-    midOffset: 0,
-    nearOffset: 0,
-    roadOffset: 0,
-    carX: CAR_DEFAULT_X,
-    carY: CAR_DEFAULT_Y
-  });
-  
-  // Load all images 
+  // Fuel gauge animation
   useEffect(() => {
-    // Load car image
-    const carImg = new Image();
-    carImg.src = CAR_IMG_PATH;
-    carImg.onload = () => {
-      carRef.current = carImg;
-    };
-    
-    // Load buildings (far) image
-    const buildingsFarImg = new Image();
-    buildingsFarImg.src = BUILDINGS_FAR_PATH;
-    buildingsFarImg.onload = () => {
-      buildingsFarRef.current = buildingsFarImg;
-    };
-    
-    // Load buildings (mid) image
-    const buildingsMidImg = new Image();
-    buildingsMidImg.src = BUILDINGS_MID_PATH;
-    buildingsMidImg.onload = () => {
-      buildingsMidRef.current = buildingsMidImg;
-    };
-    
-    // Load buildings (near) image
-    const buildingsNearImg = new Image();
-    buildingsNearImg.src = BUILDINGS_NEAR_PATH;
-    buildingsNearImg.onload = () => {
-      buildingsNearRef.current = buildingsNearImg;
-    };
-    
-    // Load road image
-    const roadImg = new Image();
-    roadImg.src = ROAD_PATH;
-    roadImg.onload = () => {
-      roadRef.current = roadImg;
-    };
-  }, []);
+    if (fuelBarRef.current && gameState === 'running') {
+      // Animate fuel bar based on current fuel level
+      gsap.to(fuelBarRef.current, {
+        width: `${Math.max(0, fuelLevel)}%`,
+        duration: 0.3,
+        ease: 'power1.out'
+      });
+    }
+  }, [fuelLevel, gameState]);
   
-  // Initialize canvas layers
+  // Setup video playback based on game state
   useEffect(() => {
-    const initCanvas = (canvas: HTMLCanvasElement | null) => {
-      if (!canvas) return;
-      canvas.width = canvas.clientWidth;
-      canvas.height = canvas.clientHeight;
-      
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        // Set canvas context properties
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-      }
-    };
+    const video = videoRef.current;
+    if (!video) return;
     
-    initCanvas(farLayerRef.current);
-    initCanvas(midLayerRef.current);
-    initCanvas(nearLayerRef.current);
-    initCanvas(roadLayerRef.current);
-    initCanvas(carLayerRef.current);
-    
-    // Set up initial renders
-    requestAnimationFrame(renderAllLayers);
-    
-    // Clean up function
-    return () => {
-      if (tlWheelsRef.current) tlWheelsRef.current.kill();
-      if (tlCarRef.current) tlCarRef.current.kill();
-      if (tlBuildingsFarRef.current) tlBuildingsFarRef.current.kill();
-      if (tlBuildingsMidRef.current) tlBuildingsMidRef.current.kill();
-      if (tlBuildingsNearRef.current) tlBuildingsNearRef.current.kill();
-      if (tlRoadRef.current) tlRoadRef.current.kill();
-      if (tlFuelRef.current) tlFuelRef.current.kill();
-    };
-  }, []);
-  
-  // Rendering functions
-  const renderFarBuildings = () => {
-    const canvas = farLayerRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = buildingsFarRef.current;
-    
-    if (!ctx || !img || !canvas) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Apply slight blur for depth effect
-    ctx.filter = 'blur(1px)';
-    
-    // Draw repeated far buildings with offset
-    const offset = animationStateRef.current.farOffset;
-    const imgWidth = 800;
-    
-    // Draw multiple times to cover the canvas
-    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
-      ctx.drawImage(img, x, 0, imgWidth, 200);
-    }
-    
-    ctx.filter = 'none';
-  };
-  
-  const renderMidBuildings = () => {
-    const canvas = midLayerRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = buildingsMidRef.current;
-    
-    if (!ctx || !img || !canvas) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw repeated mid buildings with offset
-    const offset = animationStateRef.current.midOffset;
-    const imgWidth = 800;
-    
-    // Draw multiple times to cover the canvas
-    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
-      ctx.drawImage(img, x, 20, imgWidth, 180);
-    }
-  };
-  
-  const renderNearBuildings = () => {
-    const canvas = nearLayerRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = buildingsNearRef.current;
-    
-    if (!ctx || !img || !canvas) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw repeated near buildings with offset and slight bounce effect
-    const offset = animationStateRef.current.nearOffset;
-    const imgWidth = 800;
-    const bounceOffset = Math.sin(Date.now() / 300) * 2; // Subtle bounce
-    
-    // Draw multiple times to cover the canvas
-    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
-      ctx.drawImage(img, x, 60 + bounceOffset, imgWidth, 140);
-    }
-  };
-  
-  const renderRoad = () => {
-    const canvas = roadLayerRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = roadRef.current;
-    
-    if (!ctx || !img || !canvas) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw repeated road with offset
-    const offset = animationStateRef.current.roadOffset;
-    const imgWidth = 800;
-    
-    // Draw multiple times to cover the canvas
-    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
-      ctx.drawImage(img, x, canvas.height - 100, imgWidth, 100);
-    }
-  };
-  
-  const renderCar = () => {
-    const canvas = carLayerRef.current;
-    const ctx = canvas?.getContext('2d');
-    const img = carRef.current;
-    
-    if (!ctx || !img || !canvas) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    const { carX, carY, wheelAngle } = animationStateRef.current;
-    
-    // Draw car body
-    ctx.drawImage(img, carX, carY - 60, 120, 60);
-    
-    // Draw rotating wheels with spokes
-    const frontWheelX = carX + 85;
-    const rearWheelX = carX + 35;
-    const wheelY = carY - 10;
-    
-    // Front wheel
-    ctx.save();
-    ctx.translate(frontWheelX, wheelY);
-    ctx.rotate(wheelAngle);
-    ctx.beginPath();
-    ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = '#333';
-    ctx.fill();
-    
-    // Wheel spokes
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -WHEEL_RADIUS);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(WHEEL_RADIUS, 0);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, WHEEL_RADIUS);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-WHEEL_RADIUS, 0);
-    ctx.strokeStyle = '#FFF';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-    
-    // Rear wheel
-    ctx.save();
-    ctx.translate(rearWheelX, wheelY);
-    ctx.rotate(wheelAngle);
-    ctx.beginPath();
-    ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = '#333';
-    ctx.fill();
-    
-    // Wheel spokes
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -WHEEL_RADIUS);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(WHEEL_RADIUS, 0);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, WHEEL_RADIUS);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-WHEEL_RADIUS, 0);
-    ctx.strokeStyle = '#FFF';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-  };
-  
-  const renderAllLayers = () => {
-    renderFarBuildings();
-    renderMidBuildings();
-    renderNearBuildings();
-    renderRoad();
-    renderCar();
-    
-    if (animationStateRef.current.isRunning) {
-      requestAnimationFrame(renderAllLayers);
-    }
-  };
-  
-  // Update animations based on game state
-  useEffect(() => {
     // Kill any existing animations
-    if (tlWheelsRef.current) tlWheelsRef.current.kill();
-    if (tlCarRef.current) tlCarRef.current.kill();
-    if (tlBuildingsFarRef.current) tlBuildingsFarRef.current.kill();
-    if (tlBuildingsMidRef.current) tlBuildingsMidRef.current.kill();
-    if (tlBuildingsNearRef.current) tlBuildingsNearRef.current.kill();
-    if (tlRoadRef.current) tlRoadRef.current.kill();
-    if (tlFuelRef.current) tlFuelRef.current.kill();
+    if (videoTimeline.current) videoTimeline.current.kill();
+    if (carTimeline.current) carTimeline.current.kill();
+    if (wheelsTimeline.current) wheelsTimeline.current.kill();
+    if (smokeTimeline.current) smokeTimeline.current.kill();
     
-    if (gameState === 'running') {
-      // Start animation
-      animationStateRef.current.isRunning = true;
+    // Set up new animations based on game state
+    if (gameState === 'waiting') {
+      // Hide smoke during waiting state
+      setShowSmoke(false);
       
-      // Create the wheel rotation animation
-      tlWheelsRef.current = gsap.timeline({ repeat: -1 });
-      tlWheelsRef.current.to(animationStateRef.current, {
-        wheelAngle: Math.PI * 2,
-        duration: 0.5,
-        ease: "none",
-        onUpdate: () => {
-          requestAnimationFrame(renderCar);
-        }
-      });
+      // Reset video to beginning and play slowly
+      video.currentTime = 0;
+      video.playbackRate = 0.2;
+      video.play().catch(err => console.log('Video play error:', err));
       
-      // Adjust wheel rotation speed based on multiplier
-      const updateWheelSpeed = () => {
-        if (tlWheelsRef.current) {
-          const multiplierFactor = Math.pow(currentMultiplier, 1.4);
-          const rotationSpeed = Math.max(0.5, 0.5 / multiplierFactor);
-          tlWheelsRef.current.timeScale(multiplierFactor);
-        }
-      };
+      // Reset car position
+      if (carContainerRef.current) {
+        gsap.to(carContainerRef.current, {
+          y: 0,
+          rotation: 0,
+          scale: 1,
+          duration: 0.5
+        });
+      }
       
-      // Create far buildings animation
-      tlBuildingsFarRef.current = gsap.timeline({ repeat: -1 });
-      tlBuildingsFarRef.current.to(animationStateRef.current, {
-        farOffset: 800,
-        duration: 30,
-        ease: "none",
-        onUpdate: () => {
-          requestAnimationFrame(renderFarBuildings);
-        }
-      });
-      
-      // Create mid buildings animation
-      tlBuildingsMidRef.current = gsap.timeline({ repeat: -1 });
-      tlBuildingsMidRef.current.to(animationStateRef.current, {
-        midOffset: 800,
-        duration: 15,
-        ease: "none",
-        onUpdate: () => {
-          requestAnimationFrame(renderMidBuildings);
-        }
-      });
-      
-      // Create near buildings animation
-      tlBuildingsNearRef.current = gsap.timeline({ repeat: -1 });
-      tlBuildingsNearRef.current.to(animationStateRef.current, {
-        nearOffset: 800,
-        duration: 6,
-        ease: "none",
-        onUpdate: () => {
-          requestAnimationFrame(renderNearBuildings);
-        }
-      });
-      
-      // Create road animation
-      tlRoadRef.current = gsap.timeline({ repeat: -1 });
-      tlRoadRef.current.to(animationStateRef.current, {
-        roadOffset: 800,
-        duration: 3,
-        ease: "none",
-        onUpdate: () => {
-          requestAnimationFrame(renderRoad);
-        }
-      });
-      
-      // Update animation speeds based on multiplier
-      const updateAnimationSpeeds = () => {
-        const multiplierFactor = Math.pow(currentMultiplier, 1.5);
-        
-        if (tlBuildingsFarRef.current) {
-          tlBuildingsFarRef.current.timeScale(multiplierFactor * 0.8);
-        }
-        
-        if (tlBuildingsMidRef.current) {
-          tlBuildingsMidRef.current.timeScale(multiplierFactor);
-        }
-        
-        if (tlBuildingsNearRef.current) {
-          tlBuildingsNearRef.current.timeScale(multiplierFactor * 1.2);
-        }
-        
-        if (tlRoadRef.current) {
-          tlRoadRef.current.timeScale(multiplierFactor * 1.5);
-        }
-        
-        updateWheelSpeed();
-      };
-      
-      // Set up an interval to update speeds based on multiplier
-      const speedUpdateInterval = setInterval(updateAnimationSpeeds, 100);
-      
-      // Render initial state
-      renderAllLayers();
-      
-      return () => {
-        clearInterval(speedUpdateInterval);
-        animationStateRef.current.isRunning = false;
-      };
-    } else if (gameState === 'crashed') {
-      // Stop the car
-      if (tlCarRef.current) tlCarRef.current.kill();
-      if (tlWheelsRef.current) tlWheelsRef.current.kill();
-      if (tlBuildingsFarRef.current) tlBuildingsFarRef.current.kill();
-      if (tlBuildingsMidRef.current) tlBuildingsMidRef.current.kill();
-      if (tlBuildingsNearRef.current) tlBuildingsNearRef.current.kill();
-      if (tlRoadRef.current) tlRoadRef.current.kill();
-      
-      // Car stops animation
-      tlCarRef.current = gsap.timeline();
-      tlCarRef.current.to(animationStateRef.current, {
-        carX: CAR_DEFAULT_X - 20,
-        duration: 0.5,
-        ease: "power2.out",
-        onUpdate: renderCar
-      }).to(animationStateRef.current, {
-        carX: CAR_DEFAULT_X + 5,
-        duration: 0.2,
-        ease: "power1.out",
-        onUpdate: renderCar
-      }).to(animationStateRef.current, {
-        carX: CAR_DEFAULT_X,
-        duration: 0.1,
-        ease: "power1.out",
-        onUpdate: renderCar
-      });
-      
-      // Render final state
-      setTimeout(() => {
-        renderAllLayers();
-        animationStateRef.current.isRunning = false;
-      }, 1000);
-      
-    } else {
-      // Game is in waiting state
-      // Reset animation state
-      animationStateRef.current = {
-        isRunning: false,
-        wheelAngle: 0,
-        farOffset: 0,
-        midOffset: 0,
-        nearOffset: 0,
-        roadOffset: 0,
-        carX: CAR_DEFAULT_X,
-        carY: CAR_DEFAULT_Y
-      };
-      
-      // Render idle state
-      renderAllLayers();
-      
-      // Add idle animation for waiting state
-      tlCarRef.current = gsap.timeline({ repeat: -1, yoyo: true });
-      tlCarRef.current.to(animationStateRef.current, {
-        carY: CAR_DEFAULT_Y - 2,
+      // Idle animation for the car - gentle bobbing during refueling
+      carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
+      carTimeline.current.to(carContainerRef.current, {
+        y: '-5px',
         duration: 1,
-        ease: "sine.inOut",
-        onUpdate: renderCar
+        ease: 'sine.inOut'
       });
-    }
-  }, [gameState]);
-  
-  // Update fuel visualization based on actual fuelLevel from the store
-  useEffect(() => {
-    if (gameState === 'running') {
-      // Create a dynamic decrease in fuel based on the multiplier
-      const expectedFuel = Math.max(0, 100 - (currentMultiplier - 1) * 12); 
       
-      // Only update if there's a significant change
-      if (Math.abs(expectedFuel - fuelLevel) > 2) {
-        if (tlFuelRef.current) tlFuelRef.current.kill();
+      // Slow wheel rotation during idle
+      if (leftWheelRef.current && rightWheelRef.current) {
+        wheelsTimeline.current = gsap.timeline({ repeat: -1 });
+        wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
+          rotation: 360,
+          duration: 3,
+          ease: 'none',
+          transformOrigin: 'center center'
+        });
+      }
+      
+    } else if (gameState === 'running') {
+      // Hide smoke during running
+      setShowSmoke(false);
+      
+      // Play road video at speed based on multiplier
+      video.playbackRate = 0.5;
+      video.play().catch(err => console.log('Video play error:', err));
+      
+      // Dynamic video speed based on multiplier
+      videoTimeline.current = gsap.timeline();
+      videoTimeline.current.to(video, {
+        playbackRate: 5,
+        duration: 10,
+        ease: 'power1.in',
+        onUpdate: () => {
+          // Dynamically adjust playback rate based on multiplier
+          const newRate = Math.min(5, 0.5 + (currentMultiplier - 1) * 1.5);
+          if (video) {
+            video.playbackRate = newRate;
+          }
+        }
+      });
+      
+      // Car animation - slight scaling and bobbing to simulate forward motion
+      if (carContainerRef.current) {
+        carTimeline.current = gsap.timeline({ repeat: -1, yoyo: true });
+        carTimeline.current.to(carContainerRef.current, {
+          y: '-3px',
+          rotation: 0.5,
+          scale: 1.02,
+          duration: 0.2,
+          ease: 'sine.inOut'
+        }).to(carContainerRef.current, {
+          y: '0px',
+          rotation: -0.5,
+          scale: 1,
+          duration: 0.2,
+          ease: 'sine.inOut'
+        });
         
-        tlFuelRef.current = gsap.timeline();
-        tlFuelRef.current.to({}, {
-          duration: 0.3,
-          onUpdate: () => {
-            // This is empty because we're just using the fuel level from the store
+        // Make car animation speed match the multiplier
+        gsap.to(carTimeline.current, {
+          timeScale: () => Math.min(3, 1 + (currentMultiplier - 1) * 0.5),
+          duration: 0.5,
+          ease: 'power1.out'
+        });
+      }
+      
+      // Wheel rotation animation
+      if (leftWheelRef.current && rightWheelRef.current) {
+        wheelsTimeline.current = gsap.timeline({ repeat: -1 });
+        wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
+          rotation: 360,
+          duration: 0.5,
+          ease: 'none',
+          transformOrigin: 'center center'
+        });
+        
+        // Make wheel rotation speed match the multiplier
+        gsap.to(wheelsTimeline.current, {
+          timeScale: () => Math.min(8, 1 + (currentMultiplier - 1) * 1.8),
+          duration: 0.5,
+          ease: 'power1.out'
+        });
+      }
+      
+      // Animate multiplier display
+      if (multiplierRef.current) {
+        gsap.to(multiplierRef.current, {
+          scale: 1.1,
+          duration: 0.2,
+          yoyo: true,
+          repeat: -1,
+          ease: 'sine.inOut'
+        });
+      }
+      
+    } else if (gameState === 'crashed') {
+      // Show smoke when crashed (out of fuel)
+      setShowSmoke(true);
+      
+      // Slow down video when crashed
+      gsap.to(video, {
+        playbackRate: 0,
+        duration: 1,
+        ease: 'power2.out'
+      });
+      
+      // Stop car animation
+      if (carTimeline.current) {
+        carTimeline.current.kill();
+      }
+      
+      // Create car stall/sputter animation
+      if (carContainerRef.current) {
+        gsap.to(carContainerRef.current, {
+          x: '-10px',
+          rotation: -1,
+          duration: 0.1,
+          ease: 'power2.out',
+          repeat: 5,
+          yoyo: true,
+          onComplete: () => {
+            gsap.to(carContainerRef.current, {
+              rotation: 0,
+              x: 0,
+              duration: 0.5
+            });
           }
         });
       }
+      
+      // Slow down and stop wheel rotation
+      if (wheelsTimeline.current) {
+        gsap.to(wheelsTimeline.current, {
+          timeScale: 0,
+          duration: 1,
+          ease: 'power2.out',
+          onComplete: () => {
+            if (wheelsTimeline.current) {
+              wheelsTimeline.current.kill();
+            }
+          }
+        });
+      }
+      
+      // Animate smoke puffs
+      if (smokeRef.current) {
+        smokeTimeline.current = gsap.timeline({ repeat: 3 });
+        smokeTimeline.current
+          .to(smokeRef.current, {
+            opacity: 1,
+            scale: 1.2,
+            duration: 0.5,
+            ease: 'power1.out'
+          })
+          .to(smokeRef.current, {
+            opacity: 0.7,
+            scale: 1,
+            duration: 0.5,
+            ease: 'power1.in'
+          });
+      }
     }
-  }, [fuelLevel, currentMultiplier, gameState]);
+    
+    // Cleanup on component unmount
+    return () => {
+      if (videoTimeline.current) videoTimeline.current.kill();
+      if (carTimeline.current) carTimeline.current.kill();
+      if (wheelsTimeline.current) wheelsTimeline.current.kill();
+      if (smokeTimeline.current) smokeTimeline.current.kill();
+      video.pause();
+    };
+  }, [gameState, currentMultiplier]);
   
   // Update window global with refreshBalance function
   useEffect(() => {
@@ -584,6 +345,18 @@ const CrashCarGame: React.FC = () => {
     return 'bg-red-600';
   };
   
+  // Preload all assets
+  useEffect(() => {
+    const preloadImage = (src: string) => {
+      const img = new Image();
+      img.src = src;
+    };
+    
+    preloadImage(CAR_IMG_PATH);
+    preloadImage(WHEEL_IMG_PATH);
+    preloadImage(SMOKE_IMG_PATH);
+  }, []);
+  
   return (
     <div className="w-full h-full">
       <Tabs defaultValue="game" className="w-full">
@@ -606,51 +379,89 @@ const CrashCarGame: React.FC = () => {
                         <span className="text-yellow-500">Starting in {countdown}s</span>
                       )}
                       {gameState === 'running' && (
-                        <span className="text-green-500 text-2xl animate-pulse">
+                        <div 
+                          ref={multiplierRef}
+                          className="text-green-500 text-2xl inline-block"
+                        >
                           {formatMultiplier(currentMultiplier)}
-                        </span>
+                        </div>
                       )}
                       {gameState === 'crashed' && (
-                        <span className="text-red-500">Ran out of fuel at {formatMultiplier(currentMultiplier)}</span>
+                        <span className="text-red-500">Out of fuel at {formatMultiplier(currentMultiplier)}</span>
                       )}
                     </CardTitle>
                     
                     <div className="flex items-center gap-2">
                       <Gauge className="h-5 w-5 text-yellow-500" />
                       <Label>Fuel:</Label>
-                      <Progress value={fuelLevel} className="w-24" />
+                      <div className="w-24 h-4 bg-gray-300 rounded-full overflow-hidden">
+                        <div
+                          ref={fuelBarRef}
+                          className="h-full bg-yellow-500 transition-all duration-300"
+                          style={{ width: `${fuelLevel}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
                 
                 <CardContent className="relative">
                   <div className="relative w-full h-64 bg-gray-900 rounded-md overflow-hidden">
-                    {/* Stacked canvas layers for animation */}
-                    <canvas
-                      ref={farLayerRef}
-                      className="absolute top-0 left-0 w-full h-full"
-                    />
-                    <canvas
-                      ref={midLayerRef}
-                      className="absolute top-0 left-0 w-full h-full"
-                    />
-                    <canvas
-                      ref={nearLayerRef}
-                      className="absolute top-0 left-0 w-full h-full"
-                    />
-                    <canvas
-                      ref={roadLayerRef}
-                      className="absolute top-0 left-0 w-full h-full"
-                    />
-                    <canvas
-                      ref={carLayerRef}
-                      className="absolute top-0 left-0 w-full h-full"
+                    {/* Video background */}
+                    <video
+                      ref={videoRef}
+                      className="absolute top-0 left-0 w-full h-full object-cover"
+                      src={ROAD_VIDEO_URL}
+                      muted
+                      loop
+                      playsInline
+                    ></video>
+                    
+                    {/* Car assembly with wheels and smoke */}
+                    <div 
+                      ref={carContainerRef}
+                      className="absolute left-1/2 bottom-16 transform -translate-x-1/2 z-10"
+                      style={{ width: '200px', height: '100px' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
-                    />
+                    >
+                      {/* Car body */}
+                      <img 
+                        ref={carRef} 
+                        src={CAR_IMG_PATH} 
+                        alt="Racing Car" 
+                        className="w-full h-full absolute top-0 left-0"
+                      />
+                      
+                      {/* Wheels that will rotate */}
+                      <img 
+                        ref={leftWheelRef}
+                        src={WHEEL_IMG_PATH} 
+                        alt="Left Wheel" 
+                        className="absolute bottom-0 left-12 w-10 h-10"
+                        style={{ transformOrigin: 'center center' }}
+                      />
+                      <img 
+                        ref={rightWheelRef}
+                        src={WHEEL_IMG_PATH} 
+                        alt="Right Wheel" 
+                        className="absolute bottom-0 right-12 w-10 h-10"
+                        style={{ transformOrigin: 'center center' }}
+                      />
+                      
+                      {/* Smoke puffs that appear when crashed */}
+                      {showSmoke && (
+                        <img 
+                          ref={smokeRef}
+                          src={SMOKE_IMG_PATH} 
+                          alt="Exhaust Smoke" 
+                          className="absolute -top-8 left-10 w-16 h-16 opacity-80"
+                        />
+                      )}
+                    </div>
                   </div>
                   
                   {gameState === 'waiting' && (
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center bg-black bg-opacity-70 rounded-lg p-4 z-20">
                       <div className="text-white text-xl mb-2">Car Refueling...</div>
                       <Progress value={(10 - (countdown || 0)) * 10} className="w-48" />
                     </div>
@@ -672,7 +483,7 @@ const CrashCarGame: React.FC = () => {
                   {gameState === 'running' && !hasCashedOut && hasActiveBet ? (
                     <Button 
                       onClick={cashOut} 
-                      className="bg-green-500 hover:bg-green-600 text-white px-8 py-2"
+                      className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 animate-pulse"
                     >
                       CASH OUT @ {formatMultiplier(currentMultiplier)}
                     </Button>
