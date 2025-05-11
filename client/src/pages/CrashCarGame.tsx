@@ -4,19 +4,26 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsContent, Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useCrashCarStore } from '../games/useCrashCarStore';
+import { useCrashCarStore, GameState } from '../games/useCrashCarStore';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Gauge, Car } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/use-wallet';
+import { gsap } from 'gsap';
 
-// Animation constants
-const CAR_WIDTH = 120;
-const CAR_HEIGHT = 60;
-const ROAD_HEIGHT = 70;
+// Animation settings
+const CAR_DEFAULT_X = 120;
+const CAR_DEFAULT_Y = 210;
 const WHEEL_RADIUS = 8;
+
+// Image paths
+const CAR_IMG_PATH = '/car-orange.svg';
+const BUILDINGS_FAR_PATH = '/buildings-far.svg';
+const BUILDINGS_MID_PATH = '/buildings-mid.svg';
+const BUILDINGS_NEAR_PATH = '/buildings-near.svg';
+const ROAD_PATH = '/road.svg';
 
 const CrashCarGame: React.FC = () => {
   const { toast } = useToast();
@@ -42,241 +49,487 @@ const CrashCarGame: React.FC = () => {
     clearError
   } = useCrashCarStore();
   
-  // Canvas references for animation
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const carImageRef = useRef<HTMLImageElement | null>(null);
-  const roadImageRef = useRef<HTMLImageElement | null>(null);
-  const buildingImageRef = useRef<HTMLImageElement | null>(null);
-  const crashImageRef = useRef<HTMLImageElement | null>(null);
+  // Canvas and animation references
+  const gameCanvasRef = useRef<HTMLCanvasElement>(null);
+  const carRef = useRef<HTMLImageElement>(null);
+  const buildingsFarRef = useRef<HTMLImageElement>(null);
+  const buildingsMidRef = useRef<HTMLImageElement>(null);
+  const buildingsNearRef = useRef<HTMLImageElement>(null);
+  const roadRef = useRef<HTMLImageElement>(null);
   
-  // State for animation
-  const [roadOffset, setRoadOffset] = useState(0);
-  const [buildingOffset, setBuildingOffset] = useState(0);
+  // GSAP animation references 
+  const tlWheelsRef = useRef<gsap.core.Timeline | null>(null);
+  const tlCarRef = useRef<gsap.core.Timeline | null>(null);
+  const tlBuildingsFarRef = useRef<gsap.core.Timeline | null>(null);
+  const tlBuildingsMidRef = useRef<gsap.core.Timeline | null>(null);
+  const tlBuildingsNearRef = useRef<gsap.core.Timeline | null>(null);
+  const tlRoadRef = useRef<gsap.core.Timeline | null>(null);
+  const tlFuelRef = useRef<gsap.core.Timeline | null>(null);
+  
+  // Animation state
   const [wheelRotation, setWheelRotation] = useState(0);
-  const [animationId, setAnimationId] = useState<number | null>(null);
-  const [carPosition, setCarPosition] = useState({ x: 100, y: 180 });
   const [betInput, setBetInput] = useState('10.00');
   const [autoCashoutInput, setAutoCashoutInput] = useState<string>('');
-  const [showCrash, setShowCrash] = useState(false);
   
-  // Load images when the component mounts
+  // Canvas layers for separate animations
+  const farLayerRef = useRef<HTMLCanvasElement>(null);
+  const midLayerRef = useRef<HTMLCanvasElement>(null);
+  const nearLayerRef = useRef<HTMLCanvasElement>(null);
+  const roadLayerRef = useRef<HTMLCanvasElement>(null);
+  const carLayerRef = useRef<HTMLCanvasElement>(null);
+  
+  // Refs for animation state
+  const animationStateRef = useRef({
+    isRunning: false,
+    wheelAngle: 0,
+    farOffset: 0,
+    midOffset: 0,
+    nearOffset: 0,
+    roadOffset: 0,
+    carX: CAR_DEFAULT_X,
+    carY: CAR_DEFAULT_Y
+  });
+  
+  // Load all images 
   useEffect(() => {
-    // Create and load car image
+    // Load car image
     const carImg = new Image();
-    carImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjYwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxnPgogICAgPCEtLSBDYXIgYm9keSAtLT4KICAgIDxyZWN0IHg9IjIwIiB5PSIzMCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjIwIiBmaWxsPSJyZWQiIHJ4PSI1IiByeT0iNSIvPgogICAgPHJlY3QgeD0iNDAiIHk9IjEwIiB3aWR0aD0iNDAiIGhlaWdodD0iMjAiIGZpbGw9InJlZCIgcng9IjUiIHJ5PSI1Ii8+CiAgICA8IS0tIENhciB3aW5kb3dzIC0tPgogICAgPHJlY3QgeD0iNDUiIHk9IjEzIiB3aWR0aD0iMzAiIGhlaWdodD0iMTQiIGZpbGw9IiM4OGYiIHJ4PSIyIiByeT0iMiIvPgogICAgPCEtLSBXaGVlbHMgLS0+CiAgICA8Y2lyY2xlIGN4PSIzNSIgY3k9IjUwIiByPSI4IiBmaWxsPSIjMzMzIi8+CiAgICA8Y2lyY2xlIGN4PSI4NSIgY3k9IjUwIiByPSI4IiBmaWxsPSIjMzMzIi8+CiAgICA8Y2lyY2xlIGN4PSIzNSIgY3k9IjUwIiByPSI0IiBmaWxsPSIjNzc3Ii8+CiAgICA8Y2lyY2xlIGN4PSI4NSIgY3k9IjUwIiByPSI0IiBmaWxsPSIjNzc3Ii8+CiAgICA8IS0tIEhlYWRsaWdodHMgLS0+CiAgICA8cmVjdCB4PSI5NSIgeT0iMzIiIHdpZHRoPSI1IiBoZWlnaHQ9IjYiIGZpbGw9IiNmZmYiIHJ4PSIyIiByeT0iMiIvPgogICAgPCEtLSBUYWlsbGlnaHRzIC0tPgogICAgPHJlY3QgeD0iMjAiIHk9IjMyIiB3aWR0aD0iNCIgaGVpZ2h0PSI2IiBmaWxsPSIjZmMwIiByeD0iMiIgcnk9IjIiLz4KICA8L2c+Cjwvc3ZnPg==';
-    carImageRef.current = carImg;
+    carImg.src = CAR_IMG_PATH;
+    carImg.onload = () => {
+      carRef.current = carImg;
+    };
     
-    // Create and load road image
+    // Load buildings (far) image
+    const buildingsFarImg = new Image();
+    buildingsFarImg.src = BUILDINGS_FAR_PATH;
+    buildingsFarImg.onload = () => {
+      buildingsFarRef.current = buildingsFarImg;
+    };
+    
+    // Load buildings (mid) image
+    const buildingsMidImg = new Image();
+    buildingsMidImg.src = BUILDINGS_MID_PATH;
+    buildingsMidImg.onload = () => {
+      buildingsMidRef.current = buildingsMidImg;
+    };
+    
+    // Load buildings (near) image
+    const buildingsNearImg = new Image();
+    buildingsNearImg.src = BUILDINGS_NEAR_PATH;
+    buildingsNearImg.onload = () => {
+      buildingsNearRef.current = buildingsNearImg;
+    };
+    
+    // Load road image
     const roadImg = new Image();
-    roadImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjcwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxnPgogICAgPCEtLSBSb2FkIGJhY2tncm91bmQgLS0+CiAgICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjcwIiBmaWxsPSIjNTU1Ii8+CiAgICA8IS0tIFJvYWQgbWFya2luZ3MgLS0+CiAgICA8cmVjdCB4PSIwIiB5PSIzMCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZmZmIi8+CiAgICA8cmVjdCB4PSI0MCIgeT0iMzAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2ZmZiIvPgogICAgPHJlY3QgeD0iODAiIHk9IjMwIiB3aWR0aD0iMjAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmYiLz4KICA8L2c+Cjwvc3ZnPg==';
-    roadImageRef.current = roadImg;
-    
-    // Create and load building image
-    const buildingImg = new Image();
-    buildingImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyBpZD0iYnVpbGRpbmdzIj4KICAgIDwhLS0gQnVpbGRpbmcgMSAtLT4KICAgIDxyZWN0IHg9IjAiIHk9IjIwIiB3aWR0aD0iMzAiIGhlaWdodD0iMTAwIiBmaWxsPSIjNTU4OEE5Ii8+CiAgICA8IS0tIFdpbmRvd3MgLS0+CiAgICA8cmVjdCB4PSI1IiB5PSIzMCIgd2lkdGg9IjgiIGhlaWdodD0iMTAiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjE3IiB5PSIzMCIgd2lkdGg9IjgiIGhlaWdodD0iMTAiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjUiIHk9IjQ1IiB3aWR0aD0iOCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzg4RiIvPgogICAgPHJlY3QgeD0iMTciIHk9IjQ1IiB3aWR0aD0iOCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzg4RiIvPgogICAgPHJlY3QgeD0iNSIgeT0iNjAiIHdpZHRoPSI4IiBoZWlnaHQ9IjEwIiBmaWxsPSIjODhGIi8+CiAgICA8cmVjdCB4PSIxNyIgeT0iNjAiIHdpZHRoPSI4IiBoZWlnaHQ9IjEwIiBmaWxsPSIjODhGIi8+CiAgICA8cmVjdCB4PSI1IiB5PSI3NSIgd2lkdGg9IjgiIGhlaWdodD0iMTAiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjE3IiB5PSI3NSIgd2lkdGg9IjgiIGhlaWdodD0iMTAiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjE3IiB5PSI5MCIgd2lkdGg9IjgiIGhlaWdodD0iMTAiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjUiIHk9IjkwIiB3aWR0aD0iOCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzg4RiIvPgogICAgPCEtLSBCdWlsZGluZyAyIC0tPgogICAgPHJlY3QgeD0iMzUiIHk9IjQwIiB3aWR0aD0iMzUiIGhlaWdodD0iODAiIGZpbGw9IiM4MzdFN0MiLz4KICAgIDwhLS0gV2luZG93cyAtLT4KICAgIDxyZWN0IHg9IjQwIiB5PSI0NSIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjODhGIi8+CiAgICA8cmVjdCB4PSI1NSIgeT0iNDUiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzg4RiIvPgogICAgPHJlY3QgeD0iNDAiIHk9IjYwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjU1IiB5PSI2MCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjODhGIi8+CiAgICA8cmVjdCB4PSI0MCIgeT0iNzUiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzg4RiIvPgogICAgPHJlY3QgeD0iNTUiIHk9Ijc1IiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjQwIiB5PSI5MCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjODhGIi8+CiAgICA8cmVjdCB4PSI1NSIgeT0iOTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzg4RiIvPgogICAgPCEtLSBCdWlsZGluZyAzIC0tPgogICAgPHJlY3QgeD0iNzUiIHk9IjUwIiB3aWR0aD0iMjUiIGhlaWdodD0iNzAiIGZpbGw9IiM3NTZCQjEiLz4KICAgIDwhLS0gV2luZG93cyAtLT4KICAgIDxyZWN0IHg9IjgwIiB5PSI1NSIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzg4RiIvPgogICAgPHJlY3QgeD0iOTAiIHk9IjU1IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjODhGIi8+CiAgICA8cmVjdCB4PSI4MCIgeT0iNjgiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjkwIiB5PSI2OCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzg4RiIvPgogICAgPHJlY3QgeD0iODAiIHk9IjgxIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjODhGIi8+CiAgICA8cmVjdCB4PSI5MCIgeT0iODEiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM4OEYiLz4KICAgIDxyZWN0IHg9IjgwIiB5PSI5NCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzg4RiIvPgogICAgPHJlY3QgeD0iOTAiIHk9Ijk0IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjODhGIi8+CiAgPC9nPgo8L3N2Zz4=';
-    buildingImageRef.current = buildingImg;
-    
-    // Create and load crash image
-    const crashImg = new Image();
-    crashImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZXhwbG9zaW9uR3JhZGllbnQiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSIgZng9IjUwJSIgZnk9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIyMCUiIHN0b3AtY29sb3I9IiNmZjAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI0MCUiIHN0b3AtY29sb3I9IiNmNzAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI2MCUiIHN0b3AtY29sb3I9IiNmMzAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI4MCUiIHN0b3AtY29sb3I9IiNmMDAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSJyZ2JhKDI1NSwwLDAsMCkiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxnPgogICAgPGNpcmNsZSBjeD0iNjAiIGN5PSI2MCIgcj0iNTAiIGZpbGw9InVybCgjZXhwbG9zaW9uR3JhZGllbnQpIi8+CiAgICA8IS0tIEV4cGxvc2lvbiBTcGlrZXMgLS0+CiAgICA8cGF0aCBkPSJNNjAgMTAgTDcwIDUwIEw1MCA1MCBaIiBmaWxsPSIjZjcwIi8+CiAgICA8cGF0aCBkPSJNMTEwIDYwIEw3MCA3MCBMNzAgNTAgWiIgZmlsbD0iI2Y3MCIvPgogICAgPHBhdGggZD0iTTYwIDExMCBMNTAgNzAgTDcwIDcwIFoiIGZpbGw9IiNmNzAiLz4KICAgIDxwYXRoIGQ9Ik0xMCA2MCBMNTAgNTAgTDUwIDcwIFoiIGZpbGw9IiNmNzAiLz4KICAgIDxwYXRoIGQ9Ik05MCAzMCBMNjUgNTUgTDc1IDQ1IFoiIGZpbGw9IiNmZjAiLz4KICAgIDxwYXRoIGQ9Ik05MCA5MCBMNDV2NjUgTDU1IDc1IFoiIGZpbGw9IiNmZjAiLz4KICAgIDxwYXRoIGQ9Ik0zMCA5MCBMODU1IDY1IEw0NSA1NSBaIiBmaWxsPSIjZmYwIi8+CiAgICA8cGF0aCBkPSJNMzAgMzAgTDQ1IDU1IEw1NSA0NSBaIiBmaWxsPSIjZmYwIi8+CiAgPC9nPgo8L3N2Zz4=';
-    crashImageRef.current = crashImg;
-    
-    return () => {
-      // Clean up animation on unmount
-      if (animationId !== null) {
-        cancelAnimationFrame(animationId);
-      }
+    roadImg.src = ROAD_PATH;
+    roadImg.onload = () => {
+      roadRef.current = roadImg;
     };
   }, []);
   
-  // Handle animation based on game state
+  // Initialize canvas layers
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Initialize canvas
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-    
-    // Animation function for running the car
-    const animate = () => {
-      if (!ctx || !roadImageRef.current || !carImageRef.current || !buildingImageRef.current) return;
+    const initCanvas = (canvas: HTMLCanvasElement | null) => {
+      if (!canvas) return;
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
       
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Calculate animation speeds based on multiplier
-      // Exponential curve for speed to make it increase faster as multiplier grows
-      const multiplierFactor = Math.pow(currentMultiplier, 1.5);
-      const roadSpeed = Math.max(3, multiplierFactor * 8);
-      const buildingSpeed = Math.max(1, multiplierFactor * 4);
-      const wheelRotationSpeed = Math.max(0.1, multiplierFactor * 0.3);
-      
-      // Move the background buildings
-      setBuildingOffset(prev => (prev + buildingSpeed) % 300);
-      
-      // Draw buildings (background)
-      for (let x = -buildingOffset % 300; x < canvas.width; x += 300) {
-        ctx.drawImage(buildingImageRef.current, x, 0, 300, canvas.height - ROAD_HEIGHT);
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Set canvas context properties
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
       }
-      
-      // Move the road
-      setRoadOffset(prev => (prev + roadSpeed) % 100);
-      
-      // Draw repeated road pattern
-      for (let x = -roadOffset % 100; x < canvas.width; x += 100) {
-        ctx.drawImage(roadImageRef.current, x, canvas.height - ROAD_HEIGHT, 100, ROAD_HEIGHT);
-      }
-      
-      // Update wheel rotation
-      setWheelRotation(prev => (prev + wheelRotationSpeed) % (Math.PI * 2));
-      
-      // Draw the car
-      if (!showCrash) {
-        // Draw the car body
-        ctx.drawImage(carImageRef.current, carPosition.x, carPosition.y - CAR_HEIGHT, CAR_WIDTH, CAR_HEIGHT);
-        
-        // Draw the rotating wheels
-        const frontWheelX = carPosition.x + 85;
-        const rearWheelX = carPosition.x + 35;
-        const wheelY = carPosition.y - 10;
-        
-        // Front wheel
-        ctx.save();
-        ctx.translate(frontWheelX, wheelY);
-        ctx.rotate(wheelRotation);
-        ctx.beginPath();
-        ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = '#333';
-        ctx.fill();
-        
-        // Wheel spokes
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, -WHEEL_RADIUS);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(WHEEL_RADIUS, 0);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, WHEEL_RADIUS);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(-WHEEL_RADIUS, 0);
-        ctx.strokeStyle = '#FFF';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.restore();
-        
-        // Rear wheel
-        ctx.save();
-        ctx.translate(rearWheelX, wheelY);
-        ctx.rotate(wheelRotation);
-        ctx.beginPath();
-        ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = '#333';
-        ctx.fill();
-        
-        // Wheel spokes
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, -WHEEL_RADIUS);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(WHEEL_RADIUS, 0);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, WHEEL_RADIUS);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(-WHEEL_RADIUS, 0);
-        ctx.strokeStyle = '#FFF';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.restore();
-        
-      } else if (crashImageRef.current) {
-        // Draw the crash explosion
-        ctx.drawImage(crashImageRef.current, carPosition.x - 30, carPosition.y - 90, 180, 180);
-      }
-      
-      // Continue animation
-      const id = requestAnimationFrame(animate);
-      setAnimationId(id);
     };
     
-    // Start or stop animation based on game state
-    if (gameState === 'running') {
-      setShowCrash(false);
-      animate();
-    } else if (gameState === 'crashed') {
-      setShowCrash(true);
-      animate();
-      
-      // Stop animation after 2 seconds of showing crash
-      setTimeout(() => {
-        if (animationId !== null) {
-          cancelAnimationFrame(animationId);
-          setAnimationId(null);
-        }
-      }, 2000);
-    } else {
-      // Game is in waiting state
-      setShowCrash(false);
-      
-      // Just draw the car in idle position with slow wheel rotation
-      const drawIdleCar = () => {
-        if (ctx && roadImageRef.current && carImageRef.current && buildingImageRef.current) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          
-          // Draw buildings (background)
-          for (let x = 0; x < canvas.width; x += 300) {
-            ctx.drawImage(buildingImageRef.current, x, 0, 300, canvas.height - ROAD_HEIGHT);
-          }
-          
-          // Draw road
-          for (let x = 0; x < canvas.width; x += 100) {
-            ctx.drawImage(roadImageRef.current, x, canvas.height - ROAD_HEIGHT, 100, ROAD_HEIGHT);
-          }
-          
-          // Draw the car body
-          ctx.drawImage(carImageRef.current, carPosition.x, carPosition.y - CAR_HEIGHT, CAR_WIDTH, CAR_HEIGHT);
-          
-          // Draw the static wheels
-          const frontWheelX = carPosition.x + 85;
-          const rearWheelX = carPosition.x + 35;
-          const wheelY = carPosition.y - 10;
-          
-          // Front wheel
-          ctx.beginPath();
-          ctx.arc(frontWheelX, wheelY, WHEEL_RADIUS, 0, Math.PI * 2);
-          ctx.fillStyle = '#333';
-          ctx.fill();
-          
-          // Rear wheel
-          ctx.beginPath();
-          ctx.arc(rearWheelX, wheelY, WHEEL_RADIUS, 0, Math.PI * 2);
-          ctx.fillStyle = '#333';
-          ctx.fill();
-        }
-        
-        const id = requestAnimationFrame(drawIdleCar);
-        setAnimationId(id);
-      };
-      
-      drawIdleCar();
+    initCanvas(farLayerRef.current);
+    initCanvas(midLayerRef.current);
+    initCanvas(nearLayerRef.current);
+    initCanvas(roadLayerRef.current);
+    initCanvas(carLayerRef.current);
+    
+    // Set up initial renders
+    requestAnimationFrame(renderAllLayers);
+    
+    // Clean up function
+    return () => {
+      if (tlWheelsRef.current) tlWheelsRef.current.kill();
+      if (tlCarRef.current) tlCarRef.current.kill();
+      if (tlBuildingsFarRef.current) tlBuildingsFarRef.current.kill();
+      if (tlBuildingsMidRef.current) tlBuildingsMidRef.current.kill();
+      if (tlBuildingsNearRef.current) tlBuildingsNearRef.current.kill();
+      if (tlRoadRef.current) tlRoadRef.current.kill();
+      if (tlFuelRef.current) tlFuelRef.current.kill();
+    };
+  }, []);
+  
+  // Rendering functions
+  const renderFarBuildings = () => {
+    const canvas = farLayerRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = buildingsFarRef.current;
+    
+    if (!ctx || !img || !canvas) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Apply slight blur for depth effect
+    ctx.filter = 'blur(1px)';
+    
+    // Draw repeated far buildings with offset
+    const offset = animationStateRef.current.farOffset;
+    const imgWidth = 800;
+    
+    // Draw multiple times to cover the canvas
+    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
+      ctx.drawImage(img, x, 0, imgWidth, 200);
     }
     
-    return () => {
-      if (animationId !== null) {
-        cancelAnimationFrame(animationId);
+    ctx.filter = 'none';
+  };
+  
+  const renderMidBuildings = () => {
+    const canvas = midLayerRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = buildingsMidRef.current;
+    
+    if (!ctx || !img || !canvas) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw repeated mid buildings with offset
+    const offset = animationStateRef.current.midOffset;
+    const imgWidth = 800;
+    
+    // Draw multiple times to cover the canvas
+    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
+      ctx.drawImage(img, x, 20, imgWidth, 180);
+    }
+  };
+  
+  const renderNearBuildings = () => {
+    const canvas = nearLayerRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = buildingsNearRef.current;
+    
+    if (!ctx || !img || !canvas) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw repeated near buildings with offset and slight bounce effect
+    const offset = animationStateRef.current.nearOffset;
+    const imgWidth = 800;
+    const bounceOffset = Math.sin(Date.now() / 300) * 2; // Subtle bounce
+    
+    // Draw multiple times to cover the canvas
+    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
+      ctx.drawImage(img, x, 60 + bounceOffset, imgWidth, 140);
+    }
+  };
+  
+  const renderRoad = () => {
+    const canvas = roadLayerRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = roadRef.current;
+    
+    if (!ctx || !img || !canvas) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw repeated road with offset
+    const offset = animationStateRef.current.roadOffset;
+    const imgWidth = 800;
+    
+    // Draw multiple times to cover the canvas
+    for (let x = -offset % imgWidth; x < canvas.width + imgWidth; x += imgWidth) {
+      ctx.drawImage(img, x, canvas.height - 100, imgWidth, 100);
+    }
+  };
+  
+  const renderCar = () => {
+    const canvas = carLayerRef.current;
+    const ctx = canvas?.getContext('2d');
+    const img = carRef.current;
+    
+    if (!ctx || !img || !canvas) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const { carX, carY, wheelAngle } = animationStateRef.current;
+    
+    // Draw car body
+    ctx.drawImage(img, carX, carY - 60, 120, 60);
+    
+    // Draw rotating wheels with spokes
+    const frontWheelX = carX + 85;
+    const rearWheelX = carX + 35;
+    const wheelY = carY - 10;
+    
+    // Front wheel
+    ctx.save();
+    ctx.translate(frontWheelX, wheelY);
+    ctx.rotate(wheelAngle);
+    ctx.beginPath();
+    ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = '#333';
+    ctx.fill();
+    
+    // Wheel spokes
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -WHEEL_RADIUS);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(WHEEL_RADIUS, 0);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, WHEEL_RADIUS);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-WHEEL_RADIUS, 0);
+    ctx.strokeStyle = '#FFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+    
+    // Rear wheel
+    ctx.save();
+    ctx.translate(rearWheelX, wheelY);
+    ctx.rotate(wheelAngle);
+    ctx.beginPath();
+    ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = '#333';
+    ctx.fill();
+    
+    // Wheel spokes
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -WHEEL_RADIUS);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(WHEEL_RADIUS, 0);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, WHEEL_RADIUS);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-WHEEL_RADIUS, 0);
+    ctx.strokeStyle = '#FFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  };
+  
+  const renderAllLayers = () => {
+    renderFarBuildings();
+    renderMidBuildings();
+    renderNearBuildings();
+    renderRoad();
+    renderCar();
+    
+    if (animationStateRef.current.isRunning) {
+      requestAnimationFrame(renderAllLayers);
+    }
+  };
+  
+  // Update animations based on game state
+  useEffect(() => {
+    // Kill any existing animations
+    if (tlWheelsRef.current) tlWheelsRef.current.kill();
+    if (tlCarRef.current) tlCarRef.current.kill();
+    if (tlBuildingsFarRef.current) tlBuildingsFarRef.current.kill();
+    if (tlBuildingsMidRef.current) tlBuildingsMidRef.current.kill();
+    if (tlBuildingsNearRef.current) tlBuildingsNearRef.current.kill();
+    if (tlRoadRef.current) tlRoadRef.current.kill();
+    if (tlFuelRef.current) tlFuelRef.current.kill();
+    
+    if (gameState === 'running') {
+      // Start animation
+      animationStateRef.current.isRunning = true;
+      
+      // Create the wheel rotation animation
+      tlWheelsRef.current = gsap.timeline({ repeat: -1 });
+      tlWheelsRef.current.to(animationStateRef.current, {
+        wheelAngle: Math.PI * 2,
+        duration: 0.5,
+        ease: "none",
+        onUpdate: () => {
+          requestAnimationFrame(renderCar);
+        }
+      });
+      
+      // Adjust wheel rotation speed based on multiplier
+      const updateWheelSpeed = () => {
+        if (tlWheelsRef.current) {
+          const multiplierFactor = Math.pow(currentMultiplier, 1.4);
+          const rotationSpeed = Math.max(0.5, 0.5 / multiplierFactor);
+          tlWheelsRef.current.timeScale(multiplierFactor);
+        }
+      };
+      
+      // Create far buildings animation
+      tlBuildingsFarRef.current = gsap.timeline({ repeat: -1 });
+      tlBuildingsFarRef.current.to(animationStateRef.current, {
+        farOffset: 800,
+        duration: 30,
+        ease: "none",
+        onUpdate: () => {
+          requestAnimationFrame(renderFarBuildings);
+        }
+      });
+      
+      // Create mid buildings animation
+      tlBuildingsMidRef.current = gsap.timeline({ repeat: -1 });
+      tlBuildingsMidRef.current.to(animationStateRef.current, {
+        midOffset: 800,
+        duration: 15,
+        ease: "none",
+        onUpdate: () => {
+          requestAnimationFrame(renderMidBuildings);
+        }
+      });
+      
+      // Create near buildings animation
+      tlBuildingsNearRef.current = gsap.timeline({ repeat: -1 });
+      tlBuildingsNearRef.current.to(animationStateRef.current, {
+        nearOffset: 800,
+        duration: 6,
+        ease: "none",
+        onUpdate: () => {
+          requestAnimationFrame(renderNearBuildings);
+        }
+      });
+      
+      // Create road animation
+      tlRoadRef.current = gsap.timeline({ repeat: -1 });
+      tlRoadRef.current.to(animationStateRef.current, {
+        roadOffset: 800,
+        duration: 3,
+        ease: "none",
+        onUpdate: () => {
+          requestAnimationFrame(renderRoad);
+        }
+      });
+      
+      // Update animation speeds based on multiplier
+      const updateAnimationSpeeds = () => {
+        const multiplierFactor = Math.pow(currentMultiplier, 1.5);
+        
+        if (tlBuildingsFarRef.current) {
+          tlBuildingsFarRef.current.timeScale(multiplierFactor * 0.8);
+        }
+        
+        if (tlBuildingsMidRef.current) {
+          tlBuildingsMidRef.current.timeScale(multiplierFactor);
+        }
+        
+        if (tlBuildingsNearRef.current) {
+          tlBuildingsNearRef.current.timeScale(multiplierFactor * 1.2);
+        }
+        
+        if (tlRoadRef.current) {
+          tlRoadRef.current.timeScale(multiplierFactor * 1.5);
+        }
+        
+        updateWheelSpeed();
+      };
+      
+      // Set up an interval to update speeds based on multiplier
+      const speedUpdateInterval = setInterval(updateAnimationSpeeds, 100);
+      
+      // Render initial state
+      renderAllLayers();
+      
+      return () => {
+        clearInterval(speedUpdateInterval);
+        animationStateRef.current.isRunning = false;
+      };
+    } else if (gameState === 'crashed') {
+      // Stop the car
+      if (tlCarRef.current) tlCarRef.current.kill();
+      if (tlWheelsRef.current) tlWheelsRef.current.kill();
+      if (tlBuildingsFarRef.current) tlBuildingsFarRef.current.kill();
+      if (tlBuildingsMidRef.current) tlBuildingsMidRef.current.kill();
+      if (tlBuildingsNearRef.current) tlBuildingsNearRef.current.kill();
+      if (tlRoadRef.current) tlRoadRef.current.kill();
+      
+      // Car stops animation
+      tlCarRef.current = gsap.timeline();
+      tlCarRef.current.to(animationStateRef.current, {
+        carX: CAR_DEFAULT_X - 20,
+        duration: 0.5,
+        ease: "power2.out",
+        onUpdate: renderCar
+      }).to(animationStateRef.current, {
+        carX: CAR_DEFAULT_X + 5,
+        duration: 0.2,
+        ease: "power1.out",
+        onUpdate: renderCar
+      }).to(animationStateRef.current, {
+        carX: CAR_DEFAULT_X,
+        duration: 0.1,
+        ease: "power1.out",
+        onUpdate: renderCar
+      });
+      
+      // Render final state
+      setTimeout(() => {
+        renderAllLayers();
+        animationStateRef.current.isRunning = false;
+      }, 1000);
+      
+    } else {
+      // Game is in waiting state
+      // Reset animation state
+      animationStateRef.current = {
+        isRunning: false,
+        wheelAngle: 0,
+        farOffset: 0,
+        midOffset: 0,
+        nearOffset: 0,
+        roadOffset: 0,
+        carX: CAR_DEFAULT_X,
+        carY: CAR_DEFAULT_Y
+      };
+      
+      // Render idle state
+      renderAllLayers();
+      
+      // Add idle animation for waiting state
+      tlCarRef.current = gsap.timeline({ repeat: -1, yoyo: true });
+      tlCarRef.current.to(animationStateRef.current, {
+        carY: CAR_DEFAULT_Y - 2,
+        duration: 1,
+        ease: "sine.inOut",
+        onUpdate: renderCar
+      });
+    }
+  }, [gameState]);
+  
+  // Update fuel visualization based on actual fuelLevel from the store
+  useEffect(() => {
+    if (gameState === 'running') {
+      // Create a dynamic decrease in fuel based on the multiplier
+      const expectedFuel = Math.max(0, 100 - (currentMultiplier - 1) * 12); 
+      
+      // Only update if there's a significant change
+      if (Math.abs(expectedFuel - fuelLevel) > 2) {
+        if (tlFuelRef.current) tlFuelRef.current.kill();
+        
+        tlFuelRef.current = gsap.timeline();
+        tlFuelRef.current.to({}, {
+          duration: 0.3,
+          onUpdate: () => {
+            // This is empty because we're just using the fuel level from the store
+          }
+        });
       }
-    };
-  }, [gameState, currentMultiplier, carPosition, showCrash, wheelRotation]);
+    }
+  }, [fuelLevel, currentMultiplier, gameState]);
   
   // Update window global with refreshBalance function
   useEffect(() => {
-    (window as any).refreshBalance = refreshBalance;
-    return () => {
-      delete (window as any).refreshBalance;
-    };
+    if (typeof window !== 'undefined') {
+      (window as any).refreshBalance = refreshBalance;
+      return () => {
+        delete (window as any).refreshBalance;
+      };
+    }
   }, [refreshBalance]);
   
   // Handle error message display
@@ -358,7 +611,7 @@ const CrashCarGame: React.FC = () => {
                         </span>
                       )}
                       {gameState === 'crashed' && (
-                        <span className="text-red-500">Crashed at {formatMultiplier(currentMultiplier)}</span>
+                        <span className="text-red-500">Ran out of fuel at {formatMultiplier(currentMultiplier)}</span>
                       )}
                     </CardTitle>
                     
@@ -371,11 +624,30 @@ const CrashCarGame: React.FC = () => {
                 </CardHeader>
                 
                 <CardContent className="relative">
-                  <canvas 
-                    ref={canvasRef} 
-                    className="w-full h-64 bg-gray-800 rounded-md"
-                    data-game-id={useCrashCarStore.getState().gameId || ''}
-                  ></canvas>
+                  <div className="relative w-full h-64 bg-gray-900 rounded-md overflow-hidden">
+                    {/* Stacked canvas layers for animation */}
+                    <canvas
+                      ref={farLayerRef}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
+                    <canvas
+                      ref={midLayerRef}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
+                    <canvas
+                      ref={nearLayerRef}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
+                    <canvas
+                      ref={roadLayerRef}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
+                    <canvas
+                      ref={carLayerRef}
+                      className="absolute top-0 left-0 w-full h-full"
+                      data-game-id={useCrashCarStore.getState().gameId || ''}
+                    />
+                  </div>
                   
                   {gameState === 'waiting' && (
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
@@ -418,7 +690,7 @@ const CrashCarGame: React.FC = () => {
                     </Badge>
                   ) : (
                     <Button disabled className="px-8 py-2">
-                      {gameState === 'crashed' ? 'CRASHED' : 'WAITING...'}
+                      {gameState === 'crashed' ? 'OUT OF FUEL' : 'WAITING...'}
                     </Button>
                   )}
                 </CardFooter>

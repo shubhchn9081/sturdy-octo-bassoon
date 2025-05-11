@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="800" height="100" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <!-- Road background -->
+    <rect x="0" y="0" width="800" height="100" fill="#444444" />
+    
+    <!-- Road markings -->
+    <rect x="0" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="80" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="160" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="240" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="320" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="400" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="480" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="560" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="640" y="45" width="60" height="10" fill="#FFFFFF" />
+    <rect x="720" y="45" width="60" height="10" fill="#FFFFFF" />
+    
+    <!-- Road edge markings -->
+    <rect x="0" y="5" width="800" height="5" fill="#FFFFFF" />
+    <rect x="0" y="90" width="800" height="5" fill="#FFFFFF" />
+  </g>
+</svg>
