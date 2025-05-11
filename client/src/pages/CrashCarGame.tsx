@@ -13,7 +13,7 @@ import { useWallet } from '@/hooks/use-wallet';
 import { gsap } from 'gsap';
 
 // Asset paths
-const CAR_IMG_PATH = '/redtruck.png';
+const CAR_IMG_PATH = '/redtruck.png';  // Images in the public directory
 const WHEEL_IMG_PATH = '/redwheel.png';
 const SMOKE_IMG_PATH = '/smoke.svg';
 
@@ -420,8 +420,8 @@ const CrashCarGame: React.FC = () => {
                     {/* Car assembly with wheels and smoke */}
                     <div 
                       ref={carContainerRef}
-                      className="absolute left-1/2 bottom-10 transform -translate-x-1/2 z-10"
-                      style={{ width: '300px', height: '120px' }}
+                      className="absolute left-1/2 bottom-8 transform -translate-x-1/2 z-10"
+                      style={{ width: '280px', height: '100px' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
                       {/* Car body */}
@@ -437,14 +437,14 @@ const CrashCarGame: React.FC = () => {
                         ref={leftWheelRef}
                         src={WHEEL_IMG_PATH} 
                         alt="Left Wheel" 
-                        className="absolute bottom-4 left-16 w-16 h-16"
+                        className="absolute bottom-1 left-12 w-14 h-14"
                         style={{ transformOrigin: 'center center' }}
                       />
                       <img 
                         ref={rightWheelRef}
                         src={WHEEL_IMG_PATH} 
                         alt="Right Wheel" 
-                        className="absolute bottom-4 right-16 w-16 h-16"
+                        className="absolute bottom-1 right-12 w-14 h-14"
                         style={{ transformOrigin: 'center center' }}
                       />
                       
@@ -454,7 +454,7 @@ const CrashCarGame: React.FC = () => {
                           ref={smokeRef}
                           src={SMOKE_IMG_PATH} 
                           alt="Exhaust Smoke" 
-                          className="absolute -top-12 left-24 w-24 h-24 opacity-80"
+                          className="absolute -top-10 left-20 w-20 h-20 opacity-80"
                         />
                       )}
                     </div>
