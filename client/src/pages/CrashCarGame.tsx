@@ -83,6 +83,9 @@ const CrashCarGame: React.FC = () => {
   const [autoCashoutInput, setAutoCashoutInput] = useState<string>('');
   const [showSmoke, setShowSmoke] = useState(false);
   
+  // State for car positioning - can be adjusted as needed
+  const [carPositionY, setCarPositionY] = useState(180);
+  
   // Fuel gauge animation
   useEffect(() => {
     if (fuelBarRef.current && gameState === 'running') {
@@ -123,6 +126,7 @@ const CrashCarGame: React.FC = () => {
       if (carContainerRef.current) {
         gsap.to(carContainerRef.current, {
           y: 0,
+          x: 0,
           rotation: 0,
           scale: 1,
           duration: 0.5
@@ -452,6 +456,22 @@ const CrashCarGame: React.FC = () => {
     preloadImage(SMOKE_IMG_PATH);
   }, []);
   
+  // Add keyboard controls to adjust car position (for testing purposes)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp') {
+        setCarPositionY(prev => Math.max(0, prev - 5));
+        console.log('Car position Y:', carPositionY - 5);
+      } else if (e.key === 'ArrowDown') {
+        setCarPositionY(prev => prev + 5);
+        console.log('Car position Y:', carPositionY + 5);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [carPositionY]);
+  
   return (
     <div className="w-full h-full">
       <Tabs defaultValue="game" className="w-full">
@@ -517,6 +537,39 @@ const CrashCarGame: React.FC = () => {
                          2. Car drawn on top of wheels
                          3. Motion effects visible only during running state
                     */}
+                    
+                    {/* Position guide overlay - will remove after positioning */}
+                    <div 
+                      className="absolute top-0 left-0 w-full h-full" 
+                      style={{ zIndex: 10, pointerEvents: 'none' }}
+                    >
+                      {/* Horizontal lines every 20px */}
+                      {Array.from({ length: 20 }).map((_, i) => (
+                        <div key={`h-line-${i}`} className="absolute w-full h-[1px] bg-white/50"
+                             style={{ top: `${i * 20}px`, zIndex: 100 }}>
+                          <div className="absolute -top-2 -left-10 text-xs text-white bg-black/50 px-1">
+                            {i * 20}px
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Vertical center line */}
+                      <div className="absolute h-full w-[1px] bg-red-500/70 left-1/2"></div>
+                      
+                      {/* Road position marker */}
+                      <div className="absolute h-[2px] w-full bg-green-500/70" style={{ top: '240px' }}>
+                        <div className="absolute -top-4 right-2 text-xs text-green-400 bg-black/50 px-1">
+                          Road level: 240px
+                        </div>
+                      </div>
+                      
+                      {/* Current position indicator */}
+                      <div className="absolute top-2 right-2 bg-black/70 text-white p-2 rounded text-xs">
+                        <div>Car Y Position: {carPositionY}px</div>
+                        <div className="text-gray-400 mt-1">Use arrow keys (↑/↓) to adjust</div>
+                      </div>
+                    </div>
+                    
                     <div 
                       ref={carContainerRef}
                       className="absolute left-1/2"
@@ -524,8 +577,10 @@ const CrashCarGame: React.FC = () => {
                         width: '240px', 
                         height: '120px', 
                         position: 'relative',
-                        transform: 'translateX(-50%) translateY(180px)' // Center horizontally and move down more to place car on the road
+                        transform: `translateX(-50%) translateY(${carPositionY}px)`,
+                        border: '1px dashed rgba(255, 255, 255, 0.3)' // Temporary border to see the container
                       }}
+                      data-position-y={carPositionY} // Adding data attribute for debugging
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
                       {/* Layer 1: Wheel motion effects positioned over the tires in the image */}
