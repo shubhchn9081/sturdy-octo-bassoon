@@ -742,6 +742,23 @@ const CrashCarGame: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Mobile Betting Panel - Only visible on mobile devices */}
+      <div className="md:hidden">
+        <MobileBettingPanel 
+          gameState={gameState}
+          betAmount={betAmount}
+          autoCashoutValue={autoCashoutValue}
+          currentMultiplier={currentMultiplier}
+          cashoutTriggered={cashoutTriggered}
+          errorMessage={errorMessage}
+          isWaiting={gameState === 'waiting'}
+          setBetAmount={setBetAmount}
+          setAutoCashoutValue={setAutoCashoutValue}
+          placeBet={placeBet}
+          cashOut={cashOut}
+          clearError={clearError}
+        />
+      </div>
     </div>
   );
 };

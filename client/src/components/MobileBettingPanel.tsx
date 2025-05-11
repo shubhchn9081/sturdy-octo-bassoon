@@ -4,7 +4,7 @@ import { useWallet } from '@/hooks/use-wallet';
 import { cn } from '@/lib/utils';
 
 interface MobileBettingPanelProps {
-  gameState: string;
+  gameState: string; // Game state as string
   betAmount: number;
   autoCashoutValue: number | null;
   currentMultiplier: number;
@@ -86,7 +86,7 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
 
   // Calculate potential payout based on current state
   const getPotentialPayout = () => {
-    if (gameState === 'active') {
+    if (gameState === 'running') {
       return betAmount * currentMultiplier;
     } else if (autoCashoutValue) {
       return betAmount * autoCashoutValue;
@@ -96,7 +96,7 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
 
   // Render appropriate action button based on game state
   const renderActionButton = () => {
-    if (gameState === 'active') {
+    if (gameState === 'running') {
       const potentialPayout = betAmount * currentMultiplier;
       const profit = potentialPayout - betAmount;
       
@@ -129,7 +129,7 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
           </div>
         </Button>
       );
-    } else if (gameState === 'countdown' || isWaiting) {
+    } else if (isWaiting) {
       return (
         <Button
           onClick={() => {/* Cancel functionality */}}
@@ -176,11 +176,11 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
         <div 
           className={cn(
             "h-full transition-all duration-300",
-            gameState === 'active' ? "bg-green-500" : 
+            gameState === 'running' ? "bg-green-500" : 
             gameState === 'crashed' ? "bg-red-500" : "bg-amber-500"
           )}
           style={{ 
-            width: gameState === 'active' ? `${Math.min(100, (currentMultiplier / 10) * 100)}%` : '100%'
+            width: gameState === 'running' ? `${Math.min(100, (currentMultiplier / 10) * 100)}%` : '100%'
           }}
         />
       </div>
@@ -194,7 +194,7 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
             <span className="text-white font-bold">₹{typeof balance === 'number' ? balance.toFixed(2) : '0.00'}</span>
           </div>
           
-          {gameState === 'active' && (
+          {gameState === 'running' && (
             <div className="flex-1 flex flex-col items-center">
               <span className="text-xs text-gray-400">Multiplier</span>
               <span className="text-white font-bold text-2xl">{currentMultiplier.toFixed(2)}x</span>

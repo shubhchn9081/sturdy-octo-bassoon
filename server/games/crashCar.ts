@@ -10,6 +10,7 @@ const CRASH_CAR_DEFAULT_PARAMS = {
   baseMultiplier: 1.00, // Starting multiplier
   maxPossibleMultiplier: 1000, // Theoretical maximum multiplier
   defaultMaxCrashPoint: 50, // Default maximum multiplier to cap at
+  gameId: 101, // Unique game ID for crash car game
 };
 
 /**
