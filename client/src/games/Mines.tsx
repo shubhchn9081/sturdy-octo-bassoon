@@ -117,15 +117,16 @@ const MinesGame = () => {
   function calculateMultiplier(diamonds: number, mines: number): number {
     try {
       // Import multiplier table from shared module
-      // First try to use our local simplified table
+      // First try to use our local simplified table with higher multipliers
       const minesMultiplierTable: Record<number, number[]> = {
-        // Values are low but realistic to allow small wins
-        1: [1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40, 1.45, 1.50],
-        3: [1.03, 1.06, 1.09, 1.12, 1.15, 1.18, 1.21, 1.24, 1.27, 1.30],
-        5: [1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.10],
-        10: [1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07],
-        20: [1.01, 1.02, 1.03, 1.04, 1.05],
-        24: [1.01]
+        // Values with increased rewards for better gameplay
+        1: [1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 2.75, 3.00, 3.50, 4.00, 4.50, 5.00],
+        3: [1.15, 1.30, 1.45, 1.60, 1.80, 2.00, 2.20, 2.40, 2.60, 2.80, 3.00, 3.50],
+        5: [1.08, 1.16, 1.24, 1.32, 1.50, 1.70, 1.90, 2.10, 2.30, 2.50, 2.70, 2.90],
+        10: [1.10, 1.20, 1.30, 1.40, 1.50, 1.60, 1.80, 2.00, 2.25, 2.50, 2.75, 3.00],
+        15: [1.15, 1.30, 1.45, 1.60, 1.75, 1.90, 2.05, 2.20, 2.35, 2.50, 2.65, 2.80],
+        20: [1.20, 1.40, 1.60, 1.80, 2.00, 2.20, 2.40, 2.60, 2.80, 3.00, 3.20, 3.40],
+        24: [1.25, 1.50, 1.75, 2.00, 2.50, 3.00, 3.50, 4.00]
       };
       
       // Special handling for beginning of game
@@ -136,12 +137,13 @@ const MinesGame = () => {
         return minesMultiplierTable[mines][diamonds - 1];
       }
       
-      // Fallback for mine counts not in our table - provide small but real multipliers
-      return 1.0 + (diamonds * 0.01); // Very small increment per diamond
+      // Fallback for mine counts not in our table - provide better multipliers
+      // Start at 1.1x and increase by 0.1 per diamond for a more rewarding experience
+      return 1.1 + (diamonds * 0.1); 
     } catch (error) {
       console.error("Error calculating multiplier:", error);
       // Fallback to a safe value if something goes wrong
-      return 1.0 + (diamonds * 0.01);
+      return 1.1 + (diamonds * 0.1);
     }
   }
   
