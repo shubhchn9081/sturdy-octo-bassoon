@@ -92,10 +92,11 @@ export async function generateCrashCarCrashPoint(
         // Check if there's a specific crash point value in the forcedOutcomeValue
         if (crashCarControl.forcedOutcomeValue && 
             typeof crashCarControl.forcedOutcomeValue === 'object' && 
-            crashCarControl.forcedOutcomeValue.crashPoint) {
+            'crashPoint' in crashCarControl.forcedOutcomeValue) {
           // Use exact crash point from forcedOutcomeValue (which should be low for a loss)
-          console.log(`[CRASH CAR] Using exact crash point for loss: ${crashCarControl.forcedOutcomeValue.crashPoint}x for user ${userId}`);
-          return Number(crashCarControl.forcedOutcomeValue.crashPoint);
+          const crashPoint = (crashCarControl.forcedOutcomeValue as { crashPoint: number }).crashPoint;
+          console.log(`[CRASH CAR] Using exact crash point for loss: ${crashPoint}x for user ${userId}`);
+          return Number(crashPoint);
         }
         
         // Default loss behavior - force a crash at 1.0x or slightly above
