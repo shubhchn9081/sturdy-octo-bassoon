@@ -294,6 +294,7 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         });
         
         try {
+          console.log('Sending bet request to server...');
           // Send bet to server - use the correct endpoint (/api/crash-car/bet)
           const response = await fetch('/api/crash-car/bet', {
             method: 'POST',
@@ -303,11 +304,21 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
             body: JSON.stringify({
               amount: betAmount,
               autoCashout: get().autoCashoutValue
-            })
+            }),
+            credentials: 'include' // Important: Include credentials for session cookies
           });
           
+          console.log('Received response:', response.status, response.statusText);
+          
           if (!response.ok) {
-            const errorData = await response.json();
+            const errorText = await response.text();
+            let errorData;
+            try {
+              errorData = JSON.parse(errorText);
+            } catch (e) {
+              errorData = { message: errorText || 'Unknown error' };
+            }
+            
             console.error('Bet placement failed:', errorData);
             set({
               errorMessage: errorData.message || 'Failed to place bet',
@@ -316,14 +327,27 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
             return;
           }
           
-          const data = await response.json();
-          console.log('Bet placed successfully:', data);
-          
-          // Reset cashout triggered if we placed a new bet and explicitly set isWaiting to false
-          set({ 
-            cashoutTriggered: null,
-            isWaiting: false // Always ensure waiting state is cleared on success
-          });
+          // Try to parse the response as JSON
+          let data;
+          try {
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+            data = JSON.parse(responseText);
+            console.log('Bet placed successfully:', data);
+            
+            // Reset cashout triggered if we placed a new bet and explicitly set isWaiting to false
+            set({ 
+              cashoutTriggered: null,
+              isWaiting: false // Always ensure waiting state is cleared on success
+            });
+          } catch (parseError) {
+            console.error('Error parsing response:', parseError);
+            set({
+              errorMessage: 'Invalid response from server',
+              isWaiting: false
+            });
+            return;
+          }
         } catch (fetchError) {
           console.error('Fetch error during bet placement:', fetchError);
           set({
@@ -367,7 +391,8 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         // Set cashout triggered UI state immediately
         set({ cashoutTriggered: currentMultiplier });
         
-        // Send cashout request to server
+        // Send cashout request to server with detailed logging
+        console.log('Sending cashout request to server...');
         const response = await fetch('/api/crash-car/cashout', {
           method: 'POST',
           headers: {
@@ -375,21 +400,41 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
           },
           body: JSON.stringify({
             gameId: gameId || ''
-          })
+          }),
+          credentials: 'include' // Include cookies for session authentication
         });
         
-        const data = await response.json();
+        console.log('Received cashout response:', response.status, response.statusText);
         
-        if (!response.ok) {
-          // Handle common error cases without showing to user
-          const errorMsg = data.message || 'Failed to cash out';
-          console.error('Failed to cash out:', errorMsg);
+        // Handle the response with better error handling
+        let data;
+        try {
+          const responseText = await response.text();
+          console.log('Cashout response text:', responseText);
           
-          // Only show certain errors to the user
-          if (!errorMsg.includes('already cashed out') && 
-              !errorMsg.includes('No active bet found')) {
-            set({ errorMessage: errorMsg });
+          // Try to parse as JSON
+          try {
+            data = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error('Error parsing cashout response:', parseError);
+            data = { message: 'Invalid server response' };
           }
+          
+          if (!response.ok) {
+            // Handle common error cases without showing to user
+            const errorMsg = data.message || 'Failed to cash out';
+            console.error('Failed to cash out:', errorMsg);
+            
+            // Only show certain errors to the user
+            if (!errorMsg.includes('already cashed out') && 
+                !errorMsg.includes('No active bet found')) {
+              set({ errorMessage: errorMsg });
+            }
+            return;
+          }
+        } catch (responseError) {
+          console.error('Error processing cashout response:', responseError);
+          set({ errorMessage: 'Error processing server response' });
           return;
         }
         
