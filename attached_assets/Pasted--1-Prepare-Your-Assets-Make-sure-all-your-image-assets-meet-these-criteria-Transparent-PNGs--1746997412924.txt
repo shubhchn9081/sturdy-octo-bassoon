@@ -1,0 +1,101 @@
+🧰 1. Prepare Your Assets
+Make sure all your image assets meet these criteria:
+
+✅ Transparent PNGs
+
+✅ Tyres are centered and of same size
+
+✅ Truck does NOT have tyres drawn
+
+✅ Use consistent scale for truck and tyres
+
+🧭 2. Understand Coordinate System
+In most engines (and even HTML canvas), images are positioned by top-left corner, so your tyres will align incorrectly unless you adjust the anchor or offset manually.
+
+🧮 3. Manual Offset Logic
+Assume:
+
+Car image: car.png
+
+Wheel image: wheel.png
+
+Car starting position: (x = 200, y = 300)
+
+Car width: carWidth = 500px
+
+Car height: carHeight = 150px
+
+Wheel size: wheelSize = 100px
+
+You’ll typically want:
+
+Front wheel at front fender
+
+Back wheel at rear fender
+
+💡 Example Positioning Logic in Code:
+javascript
+Copy
+Edit
+const carX = 200;
+const carY = 300;
+const carWidth = 500;
+const wheelSize = 100;
+
+// Draw car
+ctx.drawImage(carImage, carX, carY);
+
+// Draw front wheel
+ctx.drawImage(wheelImage, carX + carWidth - 120, carY + carHeight - 40, wheelSize, wheelSize);
+
+// Draw back wheel
+ctx.drawImage(wheelImage, carX + 40, carY + carHeight - 40, wheelSize, wheelSize);
+📐 4. Adjust for Visual Accuracy
+Manually fine-tune these values:
+
++ 40 and - 120 → distance from left edge of car image
+
++ carHeight - 40 → position vertically aligned to bottom of car
+
+Use browser dev tools (transform, translate, etc.) to tweak until the tyres look visually aligned under the wheel arches.
+
+🧱 5. Layering Order (Z-Index)
+Ensure tyres appear under the car:
+
+Canvas: draw tyres first, then car on top
+
+HTML DOM: tyres should have lower z-index
+
+🛠 Optional (DOM Version)
+html
+Copy
+Edit
+<div class="game-scene">
+  <img src="wheel.png" class="wheel back" />
+  <img src="wheel.png" class="wheel front" />
+  <img src="car.png" class="car" />
+</div>
+css
+Copy
+Edit
+.wheel {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  z-index: 1;
+}
+.car {
+  position: absolute;
+  left: 200px;
+  top: 300px;
+  width: 500px;
+  z-index: 2;
+}
+.wheel.back {
+  left: 240px;  /* carX + rear offset */
+  top: 410px;   /* carY + carHeight - offset */
+}
+.wheel.front {
+  left: 540px;  /* carX + carWidth - front offset */
+  top: 410px;
+}

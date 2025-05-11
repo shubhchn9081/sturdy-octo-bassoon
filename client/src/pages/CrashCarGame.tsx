@@ -436,54 +436,78 @@ const CrashCarGame: React.FC = () => {
                       playsInline
                     ></video>
                     
-                    {/* Car assembly with wheels */}
+                    {/* Game scene with layered elements as per guidance:
+                         1. Wheels drawn first (lower z-index)
+                         2. Car drawn on top of wheels
+                         3. Motion effects visible only during running state
+                    */}
                     <div 
                       ref={carContainerRef}
-                      className="absolute left-1/2 bottom-5 transform -translate-x-1/2 z-10"
-                      style={{ width: '240px', height: '120px' }}
+                      className="absolute left-1/2 bottom-5 transform -translate-x-1/2"
+                      style={{ width: '240px', height: '120px', position: 'relative' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
-                      {/* Always visible tires - aligning with the white circles in the truck image */}
-                      <img 
-                        ref={leftWheelRef}
-                        src={WHEEL_IMG_PATH} 
-                        alt="Left Wheel" 
-                        className="absolute bottom-1 left-6 w-24 h-24 z-10"
-                        style={{ transformOrigin: 'center center', animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none' }}
-                      />
-                      <img 
-                        ref={rightWheelRef}
-                        src={WHEEL_IMG_PATH} 
-                        alt="Right Wheel" 
-                        className="absolute bottom-1 right-4 w-24 h-24 z-10"
-                        style={{ transformOrigin: 'center center', animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none' }}
-                      />
+                      {/* Layer 1: Tires - positioned to match the wheel arches in the image */}
+                      <div className="wheels" style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 1 }}>
+                        {/* Back wheel */}
+                        <img 
+                          ref={leftWheelRef}
+                          src={WHEEL_IMG_PATH} 
+                          alt="Back Wheel" 
+                          className="absolute bottom-2"
+                          style={{ 
+                            left: '40px',
+                            width: '60px', 
+                            height: '60px',
+                            transformOrigin: 'center center', 
+                            animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
+                          }}
+                        />
+                        
+                        {/* Front wheel */}
+                        <img 
+                          ref={rightWheelRef}
+                          src={WHEEL_IMG_PATH} 
+                          alt="Front Wheel" 
+                          className="absolute bottom-2"
+                          style={{ 
+                            right: '40px',
+                            width: '60px', 
+                            height: '60px',
+                            transformOrigin: 'center center', 
+                            animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
+                          }}
+                        />
+                      </div>
                       
-                      {/* Motion effects - only shows during running state, aligned with wheels */}
+                      {/* Layer 2: Motion effects - only shows during running state */}
                       {gameState === 'running' && (
-                        <>
+                        <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 2 }}>
                           {/* Ground dust effect */}
-                          <div className="absolute bottom-1 left-8 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          <div className="absolute bottom-1 right-8 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                        </>
+                          <div className="absolute bottom-0 left-10 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-0 right-10 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                        </div>
                       )}
                       
-                      {/* Car body - intentionally positioned above the wheels (z-20) */}
+                      {/* Layer 3: Car body on top */}
                       <img 
                         ref={carRef} 
                         src={CAR_IMG_PATH} 
                         alt="Racing Truck" 
-                        className="w-full h-auto absolute top-0 left-0 object-contain z-20"
+                        className="absolute top-0 left-0 w-full h-auto object-contain"
+                        style={{ zIndex: 3 }}
                       />
                       
-                      {/* Smoke puffs that appear when crashed */}
+                      {/* Layer 4: Smoke puffs that appear when crashed (highest z-index) */}
                       {showSmoke && (
-                        <img 
-                          ref={smokeRef}
-                          src={SMOKE_IMG_PATH} 
-                          alt="Exhaust Smoke" 
-                          className="absolute -top-12 left-16 w-20 h-20 opacity-80"
-                        />
+                        <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 4 }}>
+                          <img 
+                            ref={smokeRef}
+                            src={SMOKE_IMG_PATH} 
+                            alt="Exhaust Smoke" 
+                            className="absolute -top-10 left-20 w-20 h-20 opacity-80"
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
