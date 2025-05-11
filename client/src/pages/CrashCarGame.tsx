@@ -511,120 +511,8 @@ const CrashCarGame: React.FC = () => {
               </Card>
             </div>
             
-            {/* Right Column - Bet Controls & History */}
+            {/* Right Column - Game History */}
             <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Place Your Bet</CardTitle>
-                  <CardDescription>Set your bet amount and auto cashout</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bet-amount">Bet Amount (₹)</Label>
-                    <Input 
-                      id="bet-amount" 
-                      type="number" 
-                      min="1" 
-                      step="1" 
-                      value={betInput}
-                      onChange={handleBetInputChange}
-                      disabled={gameState !== 'waiting'}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="auto-cashout">Auto Cashout (optional)</Label>
-                    <Input 
-                      id="auto-cashout" 
-                      type="number" 
-                      min="1.01" 
-                      step="0.01" 
-                      placeholder="Auto cashout at multiplier..." 
-                      value={autoCashoutInput}
-                      onChange={handleAutoCashoutChange}
-                      disabled={gameState !== 'waiting'}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Quick Bet</Label>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          setBetInput('10.00');
-                          setBetAmount(10.00);
-                        }}
-                        disabled={gameState !== 'waiting'}
-                      >
-                        ₹10
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          setBetInput('50.00');
-                          setBetAmount(50.00);
-                        }}
-                        disabled={gameState !== 'waiting'}
-                      >
-                        ₹50
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          setBetInput('100.00');
-                          setBetAmount(100.00);
-                        }}
-                        disabled={gameState !== 'waiting'}
-                      >
-                        ₹100
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Quick Cashout</Label>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          setAutoCashoutInput('1.5');
-                          setAutoCashoutValue(1.5);
-                        }}
-                        disabled={gameState !== 'waiting'}
-                      >
-                        1.5×
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          setAutoCashoutInput('2.0');
-                          setAutoCashoutValue(2.0);
-                        }}
-                        disabled={gameState !== 'waiting'}
-                      >
-                        2.0×
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          setAutoCashoutInput('');
-                          setAutoCashoutValue(null);
-                        }}
-                        disabled={gameState !== 'waiting'}
-                      >
-                        None
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
               
               <Card className="mt-4">
                 <CardHeader>
@@ -742,8 +630,8 @@ const CrashCarGame: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      {/* Mobile Betting Panel - Only visible on mobile devices */}
-      <div className="md:hidden">
+      {/* Betting Panel - Visible on all devices */}
+      <div>
         <MobileBettingPanel 
           gameState={gameState}
           betAmount={betAmount}
