@@ -12,9 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/use-wallet';
 import { gsap } from 'gsap';
 
-// Asset paths
-const CAR_IMG_PATH = '/redtruck.png';  // Images in the public directory
-const WHEEL_IMG_PATH = '/redwheel.png';
+// Asset paths (using Cloudinary for reliable hosting)
+const CAR_IMG_PATH = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746995731/ChatGPT_Image_May_12_2025_01_47_11_AM_nmflxy.png';
+const WHEEL_IMG_PATH = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746995724/ChatGPT_Image_May_12_2025_01_48_33_AM_clbmrc.png';
 const SMOKE_IMG_PATH = '/smoke.svg';
 
 // Video URL
@@ -420,8 +420,8 @@ const CrashCarGame: React.FC = () => {
                     {/* Car assembly with wheels and smoke */}
                     <div 
                       ref={carContainerRef}
-                      className="absolute left-1/2 bottom-8 transform -translate-x-1/2 z-10"
-                      style={{ width: '280px', height: '100px' }}
+                      className="absolute left-1/2 bottom-5 transform -translate-x-1/2 z-10"
+                      style={{ width: '240px', height: '120px' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
                       {/* Car body */}
@@ -429,7 +429,7 @@ const CrashCarGame: React.FC = () => {
                         ref={carRef} 
                         src={CAR_IMG_PATH} 
                         alt="Racing Truck" 
-                        className="w-full h-full absolute top-0 left-0 object-contain"
+                        className="w-full h-auto absolute top-0 left-0 object-contain"
                       />
                       
                       {/* Wheels that will rotate */}
@@ -437,14 +437,14 @@ const CrashCarGame: React.FC = () => {
                         ref={leftWheelRef}
                         src={WHEEL_IMG_PATH} 
                         alt="Left Wheel" 
-                        className="absolute bottom-1 left-12 w-14 h-14"
+                        className="absolute bottom-4 left-14 w-12 h-12"
                         style={{ transformOrigin: 'center center' }}
                       />
                       <img 
                         ref={rightWheelRef}
                         src={WHEEL_IMG_PATH} 
                         alt="Right Wheel" 
-                        className="absolute bottom-1 right-12 w-14 h-14"
+                        className="absolute bottom-4 right-14 w-12 h-12"
                         style={{ transformOrigin: 'center center' }}
                       />
                       
@@ -454,7 +454,7 @@ const CrashCarGame: React.FC = () => {
                           ref={smokeRef}
                           src={SMOKE_IMG_PATH} 
                           alt="Exhaust Smoke" 
-                          className="absolute -top-10 left-20 w-20 h-20 opacity-80"
+                          className="absolute -top-12 left-16 w-20 h-20 opacity-80"
                         />
                       )}
                     </div>
