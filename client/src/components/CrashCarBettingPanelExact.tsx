@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useWallet } from '@/hooks/use-wallet';
+import { useCrashCarStore } from '@/games/useCrashCarStore';
 
 type CrashCarBettingPanelProps = {
   gameState: string;
@@ -36,6 +37,9 @@ const CrashCarBettingPanel = ({
   cashOut,
   clearError
 }: CrashCarBettingPanelProps) => {
+  // Add check for player having an active bet
+  const activeBets = useCrashCarStore(state => state.activeBets);
+  const hasActiveBet = activeBets.some(bet => bet.isPlayer && bet.status === 'active');
   const { balance } = useWallet();
   const [localBetAmount, setLocalBetAmount] = useState<string>(betAmount.toString());
   const [autoPlay, setAutoPlay] = useState<boolean>(false);
@@ -201,7 +205,7 @@ const CrashCarBettingPanel = ({
       
       {/* Action Button - copying the style from slots game */}
       <div>
-        {gameState === 'running' ? (
+        {gameState === 'running' && hasActiveBet ? (
           <Button
             variant="default"
             className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-black rounded-lg shadow-lg shadow-green-500/30"
@@ -221,20 +225,27 @@ const CrashCarBettingPanel = ({
             variant="default"
             className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-black rounded-lg shadow-lg shadow-green-500/30"
             onClick={placeBet}
-            disabled={isWaiting || betAmount <= 0}
+            disabled={isWaiting || betAmount <= 0 || gameState === 'running'}
           >
             {isWaiting ? (
               <>
                 <RefreshCw className="mr-2 h-6 w-6 animate-spin" />
                 Waiting...
               </>
+            ) : gameState === 'running' ? (
+              'IN PROGRESS'
             ) : (
               'PLACE BET'
             )}
           </Button>
         )}
         
-        {typeof balance === 'number' && betAmount > balance && (
+        {/* Only show insufficient balance warning when both values are valid numbers and there's not enough balance */}
+        {typeof balance === 'number' && 
+         typeof betAmount === 'number' && 
+         betAmount > 0 && 
+         balance > 0 && 
+         betAmount > balance && (
           <p className="text-xs text-red-500 flex items-center justify-center mt-1">
             <AlertTriangle className="h-3 w-3 mr-1" />
             Insufficient balance

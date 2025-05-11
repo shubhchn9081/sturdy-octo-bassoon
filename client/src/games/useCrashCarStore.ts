@@ -284,40 +284,62 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         // Set waiting state to disable UI during request
         set({ isWaiting: true, errorMessage: null });
         
-        // Send bet to server - use the correct endpoint from slots
-        const response = await fetch('/api/crash-car/place-bet', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            amount: betAmount,
-            autoCashout: get().autoCashoutValue
-          })
+        // Log the bet attempt for debugging
+        console.log('Placing bet with:', {
+          amount: betAmount,
+          autoCashout: get().autoCashoutValue
         });
         
-        const data = await response.json();
-        
-        if (!response.ok) {
+        try {
+          // Send bet to server - use the correct endpoint (/api/crash-car/bet)
+          const response = await fetch('/api/crash-car/bet', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              amount: betAmount,
+              autoCashout: get().autoCashoutValue
+            })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Bet placement failed:', errorData);
+            set({
+              errorMessage: errorData.message || 'Failed to place bet',
+              isWaiting: false
+            });
+            return;
+          }
+          
+          const data = await response.json();
+          console.log('Bet placed successfully:', data);
+          
+          // Reset cashout triggered if we placed a new bet
+          set({ cashoutTriggered: null });
+        } catch (fetchError) {
+          console.error('Fetch error during bet placement:', fetchError);
           set({
-            errorMessage: data.message || 'Failed to place bet',
+            errorMessage: 'Network error while placing bet',
             isWaiting: false
           });
           return;
         }
-        
-        // Reset cashout triggered if we placed a new bet
-        set({ cashoutTriggered: null });
         
         // Force refresh wallet balance
         if (typeof window !== 'undefined' && (window as any).refreshBalance) {
           (window as any).refreshBalance();
         }
       } catch (error) {
+        console.error('Uncaught error in placeBet:', error);
         set({ 
           errorMessage: error instanceof Error ? error.message : 'Error placing bet',
           isWaiting: false
         });
+      } finally {
+        // Always make sure we exit the waiting state
+        set({ isWaiting: false });
       }
     },
     
