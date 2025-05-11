@@ -511,10 +511,27 @@ const CrashCarGame: React.FC = () => {
               </Card>
             </div>
             
-            {/* Right Column - Game History */}
+            {/* Right Column - Betting Panel and Live Bets */}
             <div>
+              {/* Betting Panel */}
+              <div className="mb-4">
+                <MobileBettingPanel 
+                  gameState={gameState}
+                  betAmount={betAmount}
+                  autoCashoutValue={autoCashoutValue}
+                  currentMultiplier={currentMultiplier}
+                  cashoutTriggered={cashoutTriggered}
+                  errorMessage={errorMessage}
+                  isWaiting={gameState === 'waiting'}
+                  setBetAmount={setBetAmount}
+                  setAutoCashoutValue={setAutoCashoutValue}
+                  placeBet={placeBet}
+                  cashOut={cashOut}
+                  clearError={clearError}
+                />
+              </div>
               
-              <Card className="mt-4">
+              <Card>
                 <CardHeader>
                   <CardTitle>Live Bets</CardTitle>
                 </CardHeader>
@@ -630,23 +647,6 @@ const CrashCarGame: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      {/* Betting Panel - Visible on all devices */}
-      <div className="mt-4 max-w-lg mx-auto">
-        <MobileBettingPanel 
-          gameState={gameState}
-          betAmount={betAmount}
-          autoCashoutValue={autoCashoutValue}
-          currentMultiplier={currentMultiplier}
-          cashoutTriggered={cashoutTriggered}
-          errorMessage={errorMessage}
-          isWaiting={gameState === 'waiting'}
-          setBetAmount={setBetAmount}
-          setAutoCashoutValue={setAutoCashoutValue}
-          placeBet={placeBet}
-          cashOut={cashOut}
-          clearError={clearError}
-        />
-      </div>
     </div>
   );
 };

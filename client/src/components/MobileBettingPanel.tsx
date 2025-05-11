@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/hooks/use-wallet';
 import { cn } from '@/lib/utils';
 
@@ -131,12 +132,11 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
       );
     } else if (isWaiting) {
       return (
-        <Button
-          onClick={() => {/* Cancel functionality */}}
-          className="w-full rounded-full h-16 font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-        >
-          CANCEL BET
-        </Button>
+        <div className="flex justify-center">
+          <Badge variant="outline" className="px-4 py-2 text-center">
+            Waiting for next round...
+          </Badge>
+        </div>
       );
     } else {
       return (
