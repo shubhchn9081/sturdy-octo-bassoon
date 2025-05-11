@@ -94,10 +94,13 @@ const CrashCarGame: React.FC = () => {
       // Hide smoke during waiting state
       setShowSmoke(false);
       
-      // Reset video to beginning and play slowly
+      // Pause the video during refueling/waiting state
       video.currentTime = 0;
-      video.playbackRate = 0.2;
-      video.play().catch(err => console.log('Video play error:', err));
+      try {
+        video.pause();
+      } catch (err) {
+        console.log('Video pause error:', err);
+      }
       
       // Reset car position
       if (carContainerRef.current) {
@@ -117,13 +120,11 @@ const CrashCarGame: React.FC = () => {
         ease: 'sine.inOut'
       });
       
-      // Moderate wheel rotation during idle - more visible
+      // Keep wheels stationary during idle/refueling
       if (leftWheelRef.current && rightWheelRef.current) {
-        wheelsTimeline.current = gsap.timeline({ repeat: -1 });
-        wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
-          rotation: 360,
-          duration: 1.5, // Faster rotation during waiting state
-          ease: 'none',
+        // Reset wheel rotation to 0
+        gsap.set([leftWheelRef.current, rightWheelRef.current], { 
+          rotation: 0,
           transformOrigin: 'center center'
         });
       }
@@ -435,36 +436,44 @@ const CrashCarGame: React.FC = () => {
                       playsInline
                     ></video>
                     
-                    {/* Car assembly with motion effects */}
+                    {/* Car assembly with wheels */}
                     <div 
                       ref={carContainerRef}
                       className="absolute left-1/2 bottom-5 transform -translate-x-1/2 z-10"
                       style={{ width: '240px', height: '120px' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
-                      {/* Motion effects - only shows during running state */}
+                      {/* Always visible tires - aligning with the white circles in the truck image */}
+                      <img 
+                        ref={leftWheelRef}
+                        src={WHEEL_IMG_PATH} 
+                        alt="Left Wheel" 
+                        className="absolute bottom-1 left-6 w-24 h-24 z-10"
+                        style={{ transformOrigin: 'center center', animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none' }}
+                      />
+                      <img 
+                        ref={rightWheelRef}
+                        src={WHEEL_IMG_PATH} 
+                        alt="Right Wheel" 
+                        className="absolute bottom-1 right-4 w-24 h-24 z-10"
+                        style={{ transformOrigin: 'center center', animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none' }}
+                      />
+                      
+                      {/* Motion effects - only shows during running state, aligned with wheels */}
                       {gameState === 'running' && (
                         <>
-                          {/* Speed lines behind wheels */}
-                          <div className="absolute bottom-8 left-28 w-28 h-6 bg-white/30 -skew-x-12 rounded-sm blur-sm"></div>
-                          <div className="absolute bottom-8 right-24 w-28 h-6 bg-white/30 -skew-x-12 rounded-sm blur-sm"></div>
-                          
                           {/* Ground dust effect */}
-                          <div className="absolute bottom-1 left-28 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          <div className="absolute bottom-1 right-24 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
-                          
-                          {/* Wheel blur circles - simulates wheel rotation */}
-                          <div className="absolute bottom-4 left-28 w-12 h-12 rounded-full border-4 border-red-500/50 blur-[1px] animate-spin" style={{animationDuration: '0.1s'}}></div>
-                          <div className="absolute bottom-4 right-24 w-12 h-12 rounded-full border-4 border-red-500/50 blur-[1px] animate-spin" style={{animationDuration: '0.1s'}}></div>
+                          <div className="absolute bottom-1 left-8 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-1 right-8 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
                         </>
                       )}
                       
-                      {/* Car body */}
+                      {/* Car body - intentionally positioned above the wheels (z-20) */}
                       <img 
                         ref={carRef} 
                         src={CAR_IMG_PATH} 
                         alt="Racing Truck" 
-                        className="w-full h-auto absolute top-0 left-0 object-contain"
+                        className="w-full h-auto absolute top-0 left-0 object-contain z-20"
                       />
                       
                       {/* Smoke puffs that appear when crashed */}
