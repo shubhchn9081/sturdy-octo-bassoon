@@ -270,15 +270,15 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         const { betAmount, gameState } = get();
         
         // Validate game state
-        if (gameState !== 'waiting') {
-          // Silent return - no error message for automated operation
+        if (gameState !== 'crashed' && gameState !== 'waiting') {
+          // Show error message because we are using buttons now
+          set({ errorMessage: 'Can only place bets during waiting period or after crash' });
           return;
         }
         
         // Validate bet amount
         if (betAmount < 100) {
-          // Minimum bet amount validation without showing an error to user
-          console.log('Bet amount must be at least 100 INR');
+          set({ errorMessage: 'Minimum bet amount is ₹100' });
           return;
         }
         
@@ -297,8 +297,10 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         const data = await response.json();
         
         if (!response.ok) {
-          // Don't show error in UI - just log it
-          console.error('Failed to place bet:', data.message || 'Unknown error');
+          // Show error in UI for better user feedback
+          const errorMsg = data.message || 'Failed to place bet';
+          console.error('Failed to place bet:', errorMsg);
+          set({ errorMessage: errorMsg });
           return;
         }
         
@@ -310,8 +312,13 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
           (window as any).refreshBalance();
         }
       } catch (error) {
-        // Silent error handling - log to console but don't show to user
+        // Provide user feedback
         console.error('Error placing bet:', error);
+        set({ 
+          errorMessage: error instanceof Error 
+            ? error.message 
+            : 'Error placing bet' 
+        });
       }
     },
     
@@ -321,13 +328,13 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         
         // Validate game state
         if (gameState !== 'running') {
-          // Silent return - no error needed for automated operation
+          set({ errorMessage: 'Can only cash out during active game' });
           return;
         }
         
         // Check if already cashed out
         if (cashoutTriggered !== null) {
-          // Already cashed out, silent return
+          console.log('Already cashed out at', cashoutTriggered);
           return;
         }
         
@@ -348,8 +355,9 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
         const data = await response.json();
         
         if (!response.ok) {
-          // Don't show error to user in UI
-          console.error('Failed to cash out:', data.message || 'Unknown error');
+          const errorMsg = data.message || 'Failed to cash out';
+          console.error('Failed to cash out:', errorMsg);
+          set({ errorMessage: errorMsg });
           return;
         }
         
@@ -362,8 +370,12 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
           (window as any).refreshBalance();
         }
       } catch (error) {
-        // Silent error handling - log to console but don't show to user
         console.error('Error cashing out:', error);
+        set({ 
+          errorMessage: error instanceof Error 
+            ? error.message 
+            : 'Error cashing out' 
+        });
       }
     },
     
