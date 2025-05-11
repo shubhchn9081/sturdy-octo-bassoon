@@ -398,14 +398,41 @@ router.post('/place-bet', auth, async (req, res) => {
     // Deduct amount from user balance
     await storage.updateUserBalance(userId, -amount, 'INR');
     
-    // Add bet to active bets
-    gameState.activeBets.push({
-      userId,
-      username: user.username,
-      amount,
-      cashedOut: false,
-      cashoutMultiplier: null,
-      profit: null
+    // Check if there's already a bet for this user
+    const existingBetIndex = gameState.activeBets.findIndex(bet => bet.userId === userId);
+    
+    if (existingBetIndex >= 0) {
+      // Update existing bet
+      gameState.activeBets[existingBetIndex] = {
+        userId,
+        username: user.username,
+        amount,
+        cashedOut: false,
+        cashoutMultiplier: null,
+        profit: null
+      };
+      console.log(`Updated existing bet for user ${userId} with amount ${amount}`);
+    } else {
+      // Add new bet to active bets
+      gameState.activeBets.push({
+        userId,
+        username: user.username,
+        amount,
+        cashedOut: false,
+        cashoutMultiplier: null,
+        profit: null
+      });
+      console.log(`Added new bet for user ${userId} with amount ${amount}`);
+    }
+    
+    // Log the current active bets after adding this one
+    console.log('Active bets after adding:', {
+      totalBets: gameState.activeBets.length,
+      bets: gameState.activeBets.map(b => ({ 
+        userId: b.userId, 
+        amount: b.amount,
+        isCashedOut: b.cashedOut
+      }))
     });
     
     // Broadcast updated game state

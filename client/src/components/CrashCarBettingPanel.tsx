@@ -176,8 +176,9 @@ export const CrashCarBettingPanel: React.FC<CrashCarBettingPanelProps> = ({
   // Determine if a bet can be placed
   const canPlaceBet = gameState !== 'running' && gameState !== 'waiting';
   
-  // Determine if user can cash out
-  const canCashOut = gameState === 'running' && cashoutTriggered === null;
+  // Determine if user can cash out - add check for bet amount
+  const hasPlacedBet = betAmount > 0;
+  const canCashOut = gameState === 'running' && cashoutTriggered === null && hasPlacedBet;
   
   // Determine if user has an active bet
   const hasActiveBet = !!autoCashoutValue || gameState === 'waiting' || gameState === 'running';
@@ -341,17 +342,24 @@ export const CrashCarBettingPanel: React.FC<CrashCarBettingPanelProps> = ({
           ) : (
             <Button
               onClick={handleCashOut}
+              disabled={!canCashOut}
               className={cn(
                 "w-full h-14 text-white font-semibold rounded-lg transition-all transform",
-                "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400",
+                canCashOut 
+                  ? "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400"
+                  : "bg-gray-700 cursor-not-allowed",
                 "flex flex-col items-center"
               )}
               style={{
-                animation: "pulse 1.5s infinite"
+                animation: canCashOut ? "pulse 1.5s infinite" : "none"
               }}
             >
               <span className="text-sm">CASH OUT</span>
-              <span className="text-lg font-bold">₹{(betAmount * currentMultiplier).toFixed(2)}</span>
+              <span className="text-lg font-bold">
+                {hasPlacedBet 
+                  ? `₹${(betAmount * currentMultiplier).toFixed(2)}` 
+                  : "NO BET PLACED"}
+              </span>
             </Button>
           )
         ) : isWaiting ? (
