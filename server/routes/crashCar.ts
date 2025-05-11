@@ -65,6 +65,9 @@ let gameCountdownInterval: NodeJS.Timeout | null = null;
 let gameRunningInterval: NodeJS.Timeout | null = null;
 let forceCrashTimeout: NodeJS.Timeout | null = null;
 
+// Store auto-cashout settings for users
+const userAutoCashouts = new Map<number, { userId: number, multiplier: number, amount: number }>();
+
 // Generate a unique game ID
 function generateGameId(): string {
   return `car-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -613,11 +616,11 @@ export function setWebSocketServer(
 router.post('/crash-car/bet', auth, async (req, res) => {
   // Forward to the place-bet endpoint for compatibility
   try {
-    if (!req.session.userId) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({ message: "Authentication required" });
     }
 
-    const userId = req.session.userId;
+    const userId = req.user.id;
     
     // Get user
     const user = await storage.getUser(userId);
@@ -633,8 +636,20 @@ router.post('/crash-car/bet', auth, async (req, res) => {
       return res.status(400).json({ message: "Invalid bet amount" });
     }
     
-    if (parsedAmount > user.balance) {
-      return res.status(400).json({ message: "Insufficient balance" });
+    // Parse user balance correctly
+    let userBalance = 0;
+    if (typeof user.balance === 'number') {
+      userBalance = user.balance;
+    } else if (typeof user.balance === 'object' && user.balance !== null) {
+      userBalance = (user.balance as any)?.INR || 0;
+    }
+    
+    if (parsedAmount > userBalance) {
+      return res.status(400).json({ 
+        message: "Insufficient balance",
+        balance: userBalance,
+        required: parsedAmount
+      });
     }
     
     // Allow bets during WAITING or CRASHED state (so users can place bets between rounds)
@@ -684,7 +699,7 @@ router.post('/crash-car/bet', auth, async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Bet placed successfully', 
-      newBalance: user.balance - parsedAmount,
+      newBalance: userBalance - parsedAmount,
       gameState: gameState.state,
       countdown: gameState.countdown
     });
