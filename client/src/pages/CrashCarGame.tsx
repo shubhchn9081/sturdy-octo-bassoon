@@ -275,6 +275,7 @@ const CrashCarGame: React.FC = () => {
               <canvas 
                 ref={canvasRef} 
                 className="w-full h-64 bg-gray-800 rounded-md"
+                data-game-id={useCrashCarStore.getState().gameId || ''}
               ></canvas>
               
               {gameState === 'waiting' && (

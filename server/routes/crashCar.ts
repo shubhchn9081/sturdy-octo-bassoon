@@ -332,7 +332,7 @@ router.get('/game-state', auth, (req, res) => {
 // Schema for placing a bet
 const placeBetSchema = z.object({
   amount: z.number().positive(),
-  autoCashout: z.number().positive().optional()
+  autoCashout: z.union([z.number().positive(), z.null()]).optional()
 });
 
 // Schema for cashing out
