@@ -10,7 +10,7 @@ const CRASH_CAR_DEFAULT_PARAMS = {
   baseMultiplier: 1.00, // Starting multiplier
   maxPossibleMultiplier: 1000, // Theoretical maximum multiplier
   defaultMaxCrashPoint: 50, // Default maximum multiplier to cap at
-  gameId: 101, // Unique game ID for crash car game
+  gameId: 99, // Unique game ID for crash car game - matching the ID in client/src/games/index.ts
 };
 
 /**
@@ -37,7 +37,7 @@ export async function generateCrashCarCrashPoint(
       if (
         globalControl.forceAllUsersWin && 
         (affectedGames.length === 0 || 
-         affectedGames.includes(101)) // Assuming 101 is crash car game ID
+         affectedGames.includes(CRASH_CAR_DEFAULT_PARAMS.gameId)) // Use the gameId constant
       ) {
         const targetMultiplier = globalControl.targetMultiplier || 2.0;
         return globalControl.useExactMultiplier 
@@ -58,7 +58,7 @@ export async function generateCrashCarCrashPoint(
     // Check for user-specific controls
     const userControls = await storage.getUserGameControls(userId);
     const crashCarControl = userControls.find(control => 
-      control.gameId === 101 && // Assuming 101 is crash car game ID
+      control.gameId === CRASH_CAR_DEFAULT_PARAMS.gameId && // Use the gameId constant
       control.forceOutcome && 
       control.gamesPlayed < control.durationGames
     );

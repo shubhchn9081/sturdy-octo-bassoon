@@ -9,7 +9,7 @@ import crypto from 'crypto';
 const router = express.Router();
 
 // Game constants
-const CRASH_CAR_GAME_ID = 101; // Unique ID for Crash Car game
+const CRASH_CAR_GAME_ID = 99; // Unique ID for Crash Car game - matching the ID in client/src/games/index.ts
 const WAITING_PERIOD_MS = 10000; // 10 seconds waiting period
 const FORCE_CRASH_TIMEOUT_MS = 120000; // Force game end after 2 minutes max
 
@@ -122,7 +122,8 @@ async function startGameRunning() {
   // Generate a fair crash point for this round
   const serverSeed = crypto.randomBytes(32).toString('hex');
   const clientSeed = gameState.gameId;
-  const nonce = Date.now();
+  // Use a smaller nonce that fits in PostgreSQL integer (max 2,147,483,647)
+  const nonce = Math.floor(Math.random() * 1000000);
   
   // Use an admin user ID for the global crash point
   const adminUserId = 1; // Assuming admin user has ID 1
@@ -258,7 +259,8 @@ async function processLostBets() {
       // Create a new server seed and nonce for this specific bet
       const serverSeed = crypto.randomBytes(32).toString('hex');
       const clientSeed = gameState.gameId + '-' + bet.userId;
-      const nonce = Date.now() + bet.userId;
+      // Use a smaller nonce that fits in PostgreSQL integer (max 2,147,483,647)
+      const nonce = Math.floor(Math.random() * 1000000) + bet.userId;
       
       // Create the outcome
       const outcome = await createCrashCarOutcome(
@@ -471,7 +473,8 @@ router.post('/cashout', auth, async (req, res) => {
     // Create a bet record in the database
     const serverSeed = crypto.randomBytes(32).toString('hex');
     const clientSeed = gameState.gameId + '-' + userId;
-    const nonce = Date.now() + userId;
+    // Use a smaller nonce that fits in PostgreSQL integer (max 2,147,483,647)
+    const nonce = Math.floor(Math.random() * 1000000) + userId;
     
     // Create the outcome
     const outcome = await createCrashCarOutcome(
