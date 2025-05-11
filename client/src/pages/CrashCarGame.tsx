@@ -178,6 +178,7 @@ const SimpleBettingPanel = ({
       
       {/* Action Button */}
       <div>
+        {/* Cash out button - only show during running game with an active bet */}
         {gameState === 'running' && hasActiveBet ? (
           <Button
             variant="default"
@@ -194,22 +195,15 @@ const SimpleBettingPanel = ({
             )}
           </Button>
         ) : (
+          /* Place bet button - always show during waiting/refueling phase */
           <Button
             variant="default"
             className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-black rounded-lg shadow-lg shadow-green-500/30"
             onClick={placeBet}
-            disabled={isWaiting || betAmount <= 0 || gameState === 'running'}
+            disabled={betAmount <= 0 || gameState === 'running'}
           >
-            {isWaiting ? (
-              <>
-                <RefreshCw className="mr-2 h-6 w-6 animate-spin" />
-                Waiting...
-              </>
-            ) : gameState === 'running' ? (
-              'IN PROGRESS'
-            ) : (
-              'PLACE BET'
-            )}
+            {/* Never show the waiting animation */}
+            {gameState === 'running' ? 'IN PROGRESS' : 'PLACE BET'}
           </Button>
         )}
         
