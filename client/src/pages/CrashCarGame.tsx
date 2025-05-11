@@ -13,8 +13,7 @@ import { useWallet } from '@/hooks/use-wallet';
 import { gsap } from 'gsap';
 
 // Asset paths (using Cloudinary for reliable hosting)
-const CAR_IMG_PATH = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746995731/ChatGPT_Image_May_12_2025_01_47_11_AM_nmflxy.png';
-const WHEEL_IMG_PATH = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746995724/ChatGPT_Image_May_12_2025_01_48_33_AM_clbmrc.png';
+const CAR_IMG_PATH = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746998237/ChatGPT_Image_May_12_2025_02_46_05_AM_azrrku.png';
 const SMOKE_IMG_PATH = '/smoke.svg';
 
 // Video URL
@@ -47,12 +46,12 @@ const CrashCarGame: React.FC = () => {
   // Refs for animation and DOM elements
   const videoRef = useRef<HTMLVideoElement>(null);
   const carRef = useRef<HTMLImageElement>(null);
-  const leftWheelRef = useRef<HTMLImageElement>(null);
-  const rightWheelRef = useRef<HTMLImageElement>(null);
   const smokeRef = useRef<HTMLImageElement>(null);
   const carContainerRef = useRef<HTMLDivElement>(null);
   const fuelBarRef = useRef<HTMLDivElement>(null);
   const multiplierRef = useRef<HTMLDivElement>(null);
+  const frontWheelEffectRef = useRef<HTMLDivElement>(null);
+  const backWheelEffectRef = useRef<HTMLDivElement>(null);
   
   // Animation timeline refs
   const videoTimeline = useRef<gsap.core.Timeline | null>(null);
@@ -121,9 +120,10 @@ const CrashCarGame: React.FC = () => {
       });
       
       // Keep wheels stationary during idle/refueling
-      if (leftWheelRef.current && rightWheelRef.current) {
-        // Reset wheel rotation to 0
-        gsap.set([leftWheelRef.current, rightWheelRef.current], { 
+      if (frontWheelEffectRef.current && backWheelEffectRef.current) {
+        // Reset wheel effects
+        gsap.set([frontWheelEffectRef.current, backWheelEffectRef.current], { 
+          opacity: 0,
           rotation: 0,
           transformOrigin: 'center center'
         });
@@ -177,14 +177,20 @@ const CrashCarGame: React.FC = () => {
         });
       }
       
-      // Wheel rotation animation - faster and more pronounced
-      if (leftWheelRef.current && rightWheelRef.current) {
+      // Wheel effect animation - motion blur and spinning radial gradient
+      if (frontWheelEffectRef.current && backWheelEffectRef.current) {
+        // Show the wheel effects during running state
+        gsap.set([frontWheelEffectRef.current, backWheelEffectRef.current], {
+          opacity: 1,
+          transformOrigin: 'center center'
+        });
+        
+        // Create rotation animation
         wheelsTimeline.current = gsap.timeline({ repeat: -1 });
-        wheelsTimeline.current.to([leftWheelRef.current, rightWheelRef.current], {
+        wheelsTimeline.current.to([frontWheelEffectRef.current, backWheelEffectRef.current], {
           rotation: 360,
           duration: 0.2, // Faster base rotation
-          ease: 'none',
-          transformOrigin: 'center center'
+          ease: 'none'
         });
         
         // Make wheel rotation speed match the multiplier - higher max speed
@@ -259,7 +265,7 @@ const CrashCarGame: React.FC = () => {
         });
       }
       
-      // Slow down and stop wheel rotation
+      // Slow down and stop wheel effects
       if (wheelsTimeline.current) {
         gsap.to(wheelsTimeline.current, {
           timeScale: 0,
@@ -268,6 +274,13 @@ const CrashCarGame: React.FC = () => {
           onComplete: () => {
             if (wheelsTimeline.current) {
               wheelsTimeline.current.kill();
+            }
+            // Hide wheel effects when stopped
+            if (frontWheelEffectRef.current && backWheelEffectRef.current) {
+              gsap.to([frontWheelEffectRef.current, backWheelEffectRef.current], {
+                opacity: 0,
+                duration: 0.5
+              });
             }
           }
         });
@@ -372,7 +385,6 @@ const CrashCarGame: React.FC = () => {
     };
     
     preloadImage(CAR_IMG_PATH);
-    preloadImage(WHEEL_IMG_PATH);
     preloadImage(SMOKE_IMG_PATH);
   }, []);
   
@@ -447,34 +459,38 @@ const CrashCarGame: React.FC = () => {
                       style={{ width: '240px', height: '120px', position: 'relative' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
-                      {/* Layer 1: Tires - positioned to match the wheel arches in the image */}
-                      <div className="wheels" style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 1 }}>
-                        {/* Back wheel */}
-                        <img 
-                          ref={leftWheelRef}
-                          src={WHEEL_IMG_PATH} 
-                          alt="Back Wheel" 
-                          className="absolute bottom-2"
+                      {/* Layer 1: Wheel motion effects positioned over the tires in the image */}
+                      <div className="wheel-effects" style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 1 }}>
+                        {/* Back wheel motion effect */}
+                        <div 
+                          ref={backWheelEffectRef}
+                          className="absolute"
                           style={{ 
-                            left: '40px',
-                            width: '60px', 
-                            height: '60px',
-                            transformOrigin: 'center center', 
+                            bottom: '12px',
+                            left: '42px',
+                            width: '55px', 
+                            height: '55px',
+                            borderRadius: '50%',
+                            background: gameState === 'running' 
+                              ? 'radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(255,255,255,0.2) 40%, rgba(0,0,0,0) 70%)' 
+                              : 'none',
                             animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
                           }}
                         />
                         
-                        {/* Front wheel */}
-                        <img 
-                          ref={rightWheelRef}
-                          src={WHEEL_IMG_PATH} 
-                          alt="Front Wheel" 
-                          className="absolute bottom-2"
+                        {/* Front wheel motion effect */}
+                        <div 
+                          ref={frontWheelEffectRef}
+                          className="absolute"
                           style={{ 
-                            right: '40px',
-                            width: '60px', 
-                            height: '60px',
-                            transformOrigin: 'center center', 
+                            bottom: '12px',
+                            right: '45px',
+                            width: '55px', 
+                            height: '55px',
+                            borderRadius: '50%',
+                            background: gameState === 'running' 
+                              ? 'radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(255,255,255,0.2) 40%, rgba(0,0,0,0) 70%)' 
+                              : 'none',
                             animation: gameState === 'running' ? 'spin 0.1s linear infinite' : 'none'
                           }}
                         />
