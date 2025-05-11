@@ -458,7 +458,7 @@ router.post('/crash-car/place-bet', auth, async (req, res) => {
 });
 
 // Cash out from the current game
-router.post('/crash-car/cashout', auth, async (req, res) => {
+router.post('/cashout', auth, async (req, res) => {
   try {
     // Validate input
     const { gameId } = cashoutSchema.parse(req.body);
@@ -613,7 +613,7 @@ export function setWebSocketServer(
 }
 
 // Add API endpoint aliases for backward compatibility
-router.post('/crash-car/bet', auth, async (req, res) => {
+router.post('/bet', auth, async (req, res) => {
   // Forward to the place-bet endpoint for compatibility
   try {
     if (!req.user || !req.user.id) {
