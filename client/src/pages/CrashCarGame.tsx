@@ -11,6 +11,7 @@ import { Gauge } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/use-wallet';
 import { gsap } from 'gsap';
+import { MobileBettingPanel } from '@/components/MobileBettingPanel';
 
 // Asset paths (using Cloudinary for reliable hosting)
 const CAR_IMG_PATH = 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746998237/ChatGPT_Image_May_12_2025_02_46_05_AM_azrrku.png';

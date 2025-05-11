@@ -355,7 +355,21 @@ router.post('/place-bet', auth, async (req, res) => {
     }
     
     // Check if user has enough balance
-    const userBalance = (user.balance as any)?.INR || 0;
+    // Fix balance check to properly read balance regardless of format
+    let userBalance = 0;
+    if (typeof user.balance === 'number') {
+      userBalance = user.balance;
+    } else if (typeof user.balance === 'object' && user.balance !== null) {
+      userBalance = (user.balance as any)?.INR || 0;
+    }
+    
+    console.log('User balance check:', { 
+      userId: userId, 
+      balanceRaw: user.balance, 
+      parsedBalance: userBalance, 
+      betAmount: amount 
+    });
+    
     if (userBalance < amount) {
       return res.status(400).json({ 
         message: 'Insufficient balance',
@@ -490,12 +504,23 @@ router.post('/cashout', auth, async (req, res) => {
     
     // Return success with updated info
     const user = await storage.getUser(userId);
+    
+    // Fix balance handling for the response
+    let newBalance = 0;
+    if (user) {
+      if (typeof user.balance === 'number') {
+        newBalance = user.balance;
+      } else if (typeof user.balance === 'object' && user.balance !== null) {
+        newBalance = (user.balance as any)?.INR || 0;
+      }
+    }
+    
     res.json({ 
       success: true, 
       message: 'Successfully cashed out', 
       cashoutMultiplier: currentMultiplier,
       profit: bet.profit,
-      newBalance: user ? (user.balance as any)?.INR || 0 : 0
+      newBalance: newBalance
     });
   } catch (error) {
     console.error('Error cashing out:', error);
