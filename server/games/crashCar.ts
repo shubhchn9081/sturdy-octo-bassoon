@@ -68,6 +68,17 @@ export async function generateCrashCarCrashPoint(
         // Increment the counter for this control
         await storage.incrementUserGameControlCounter(crashCarControl.id);
         
+        // Check if there's a specific crash point value in the forcedOutcomeValue
+        if (crashCarControl.forcedOutcomeValue && 
+            typeof crashCarControl.forcedOutcomeValue === 'object' && 
+            'crashPoint' in crashCarControl.forcedOutcomeValue) {
+          // Use exact crash point from forcedOutcomeValue
+          const crashPoint = (crashCarControl.forcedOutcomeValue as { crashPoint: number }).crashPoint;
+          console.log(`[CRASH CAR] Using exact crash point: ${crashPoint}x for user ${userId}`);
+          return Number(crashPoint);
+        }
+        
+        // Fall back to regular targetMultiplier if no specific crashPoint is set
         const targetMultiplier = crashCarControl.targetMultiplier || 2.0;
         return crashCarControl.useExactMultiplier 
           ? targetMultiplier 
@@ -78,7 +89,16 @@ export async function generateCrashCarCrashPoint(
         // Increment the counter for this control
         await storage.incrementUserGameControlCounter(crashCarControl.id);
         
-        // Force a crash at 1.0x or slightly above
+        // Check if there's a specific crash point value in the forcedOutcomeValue
+        if (crashCarControl.forcedOutcomeValue && 
+            typeof crashCarControl.forcedOutcomeValue === 'object' && 
+            crashCarControl.forcedOutcomeValue.crashPoint) {
+          // Use exact crash point from forcedOutcomeValue (which should be low for a loss)
+          console.log(`[CRASH CAR] Using exact crash point for loss: ${crashCarControl.forcedOutcomeValue.crashPoint}x for user ${userId}`);
+          return Number(crashCarControl.forcedOutcomeValue.crashPoint);
+        }
+        
+        // Default loss behavior - force a crash at 1.0x or slightly above
         return 1.0 + Math.random() * 0.2;
       }
     }

@@ -1998,6 +1998,35 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+            
+            {/* Crash Car game specific controls */}
+            {showCrashCarControls && outcomeType === 'win' && forceOutcome && (
+              <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                <div className="text-sm font-medium mb-3 text-primary">Crash Car Game Specific Controls</div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="crashCarMultiplier" className="text-right">
+                    Crash Point
+                  </Label>
+                  <div className="col-span-3 flex items-center gap-2">
+                    <input
+                      id="crashCarMultiplier"
+                      type="number"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      value={crashCarMultiplier}
+                      onChange={(e) => setCrashCarMultiplier(Math.max(1.01, Number(e.target.value)))}
+                      min="1.01"
+                      step="0.1"
+                    />
+                    <span className="text-sm font-bold">x</span>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-muted-foreground mt-2">
+                  Set the exact multiplier where the car will crash. This allows the user to cash out before this point to win.
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setGameControlDialogOpen(false)}>
