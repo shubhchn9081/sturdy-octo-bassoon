@@ -48,7 +48,7 @@ export async function generateCrashCarCrashPoint(
       if (
         globalControl.forceAllUsersLose && 
         (affectedGames.length === 0 || 
-         affectedGames.includes(101))
+         affectedGames.includes(CRASH_CAR_DEFAULT_PARAMS.gameId))
       ) {
         // Force a crash at 1.0x or slightly above
         return 1.0 + Math.random() * 0.2;
