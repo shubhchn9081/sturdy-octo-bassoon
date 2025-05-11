@@ -113,24 +113,36 @@ const MinesGame = () => {
     }
   }
 
-  // Calculate multiplier using the modified multiplier table
+  // Calculate multiplier using the shared multiplier table
   function calculateMultiplier(diamonds: number, mines: number): number {
-    // Modified multiplier table with all values set to 0 to prevent winning
-    const minesMultiplierTable: Record<number, number[]> = {
-      // All mine counts with zero multipliers to make winning impossible
-      1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      3: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      5: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      10: [0, 0, 0, 0, 0, 0, 0],
-      20: [0, 0, 0],
-      24: [0]
-    };
-    
-    // Special handling for beginning of game
-    if (diamonds === 0) return 1;
-    
-    // Always return 0 for any number of diamonds collected (except at the start)
-    return 0;
+    try {
+      // Import multiplier table from shared module
+      // First try to use our local simplified table
+      const minesMultiplierTable: Record<number, number[]> = {
+        // Values are low but realistic to allow small wins
+        1: [1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40, 1.45, 1.50],
+        3: [1.03, 1.06, 1.09, 1.12, 1.15, 1.18, 1.21, 1.24, 1.27, 1.30],
+        5: [1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.10],
+        10: [1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07],
+        20: [1.01, 1.02, 1.03, 1.04, 1.05],
+        24: [1.01]
+      };
+      
+      // Special handling for beginning of game
+      if (diamonds === 0) return 1;
+      
+      // If we have a multiplier for this mine count
+      if (minesMultiplierTable[mines] && diamonds <= minesMultiplierTable[mines].length) {
+        return minesMultiplierTable[mines][diamonds - 1];
+      }
+      
+      // Fallback for mine counts not in our table - provide small but real multipliers
+      return 1.0 + (diamonds * 0.01); // Very small increment per diamond
+    } catch (error) {
+      console.error("Error calculating multiplier:", error);
+      // Fallback to a safe value if something goes wrong
+      return 1.0 + (diamonds * 0.01);
+    }
   }
   
   // Fetch controlled mine positions from the server

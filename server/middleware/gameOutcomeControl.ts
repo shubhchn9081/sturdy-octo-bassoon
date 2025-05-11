@@ -232,22 +232,10 @@ export const gameOutcomeControl = {
     mineCount: number = 5
   ): Promise<number[]> {
     try {
-      // OVERRIDE: Always force a loss for Mines game (gameId 1)
-      if (gameId === 1) {
-        console.log(`[MINES] FORCED OVERRIDE: Always guaranteeing loss for user ${userId}`);
-        
-        // ALWAYS GUARANTEE A LOSS by placing mines in all positions
-        // except those already revealed
-        const availablePositions = Array.from({ length: totalSquares }, (_, i) => i)
-          .filter(pos => !currentlyRevealed.includes(pos));
-        
-        console.log(`[MINES] Enforcing loss by placing mines in all ${availablePositions.length} available positions`);
-        
-        // Return all available positions as mines
-        return availablePositions;
-      }
-        
-      // For other games, check if we need to force the outcome
+      // Removed the override that forced a loss for Mines game (gameId 1)
+      // Now using the standard game outcome control like all other games
+      
+      // Check if we need to force the outcome
       const controlResult = await this.shouldForceOutcome(userId, gameId);
       const { shouldForce, forcedOutcome, forcedValue, targetMultiplier, useExactMultiplier } = controlResult;
       
