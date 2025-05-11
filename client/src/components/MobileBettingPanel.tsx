@@ -170,9 +170,9 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm p-3 border-t border-gray-700 z-30 overflow-hidden rounded-t-xl">
+    <div className="bg-gray-900/95 backdrop-blur-sm p-3 border border-gray-700 z-30 overflow-hidden rounded-xl mt-4">
       {/* Game status indicator */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gray-800">
+      <div className="relative w-full h-1 bg-gray-800 mb-3">
         <div 
           className={cn(
             "h-full transition-all duration-300",
@@ -188,7 +188,7 @@ export const MobileBettingPanel: React.FC<MobileBettingPanelProps> = ({
       {/* Main container */}
       <div className="flex flex-col gap-3 mt-1">
         {/* Top section: Balance + Current Multiplier + Auto cashout toggle */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2">
           <div className="flex-1 flex flex-col">
             <span className="text-xs text-gray-400">Balance</span>
             <span className="text-white font-bold">₹{typeof balance === 'number' ? balance.toFixed(2) : '0.00'}</span>

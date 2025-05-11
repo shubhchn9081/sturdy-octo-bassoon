@@ -631,7 +631,7 @@ const CrashCarGame: React.FC = () => {
         </TabsContent>
       </Tabs>
       {/* Betting Panel - Visible on all devices */}
-      <div>
+      <div className="mt-4 max-w-lg mx-auto">
         <MobileBettingPanel 
           gameState={gameState}
           betAmount={betAmount}
