@@ -209,12 +209,30 @@ const CrashCarGame: React.FC = () => {
       // Show smoke when crashed (out of fuel)
       setShowSmoke(true);
       
-      // Slow down video when crashed
-      gsap.to(video, {
-        playbackRate: 0,
-        duration: 1,
-        ease: 'power2.out'
-      });
+      // Stop video completely when crashed
+      try {
+        // First slow down, then pause
+        gsap.to(video, {
+          duration: 0.5,
+          ease: 'power2.out',
+          onUpdate: function() {
+            try {
+              const rate = Math.max(0.2, 1 - this.progress());
+              video.playbackRate = rate;
+            } catch (e) {
+              console.log("Video playback rate limitation");
+            }
+          },
+          onComplete: function() {
+            // After slowdown animation completes, pause the video
+            video.pause();
+          }
+        });
+      } catch (e) {
+        console.log("Error stopping video:", e);
+        // Fallback - try to pause directly
+        video.pause();
+      }
       
       // Stop car animation
       if (carTimeline.current) {
@@ -417,35 +435,36 @@ const CrashCarGame: React.FC = () => {
                       playsInline
                     ></video>
                     
-                    {/* Car assembly with wheels and smoke */}
+                    {/* Car assembly with motion effects */}
                     <div 
                       ref={carContainerRef}
                       className="absolute left-1/2 bottom-5 transform -translate-x-1/2 z-10"
                       style={{ width: '240px', height: '120px' }}
                       data-game-id={useCrashCarStore.getState().gameId || ''}
                     >
+                      {/* Motion effects - only shows during running state */}
+                      {gameState === 'running' && (
+                        <>
+                          {/* Speed lines behind wheels */}
+                          <div className="absolute bottom-8 left-28 w-28 h-6 bg-white/30 -skew-x-12 rounded-sm blur-sm"></div>
+                          <div className="absolute bottom-8 right-24 w-28 h-6 bg-white/30 -skew-x-12 rounded-sm blur-sm"></div>
+                          
+                          {/* Ground dust effect */}
+                          <div className="absolute bottom-1 left-28 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          <div className="absolute bottom-1 right-24 w-16 h-4 bg-gray-300/30 -skew-x-12 rounded-sm blur-sm animate-pulse"></div>
+                          
+                          {/* Wheel blur circles - simulates wheel rotation */}
+                          <div className="absolute bottom-4 left-28 w-12 h-12 rounded-full border-4 border-red-500/50 blur-[1px] animate-spin" style={{animationDuration: '0.1s'}}></div>
+                          <div className="absolute bottom-4 right-24 w-12 h-12 rounded-full border-4 border-red-500/50 blur-[1px] animate-spin" style={{animationDuration: '0.1s'}}></div>
+                        </>
+                      )}
+                      
                       {/* Car body */}
                       <img 
                         ref={carRef} 
                         src={CAR_IMG_PATH} 
                         alt="Racing Truck" 
                         className="w-full h-auto absolute top-0 left-0 object-contain"
-                      />
-                      
-                      {/* Wheels that will rotate */}
-                      <img 
-                        ref={leftWheelRef}
-                        src={WHEEL_IMG_PATH} 
-                        alt="Left Wheel" 
-                        className="absolute bottom-2 left-24 w-20 h-20"
-                        style={{ transformOrigin: 'center center' }}
-                      />
-                      <img 
-                        ref={rightWheelRef}
-                        src={WHEEL_IMG_PATH} 
-                        alt="Right Wheel" 
-                        className="absolute bottom-2 right-20 w-20 h-20"
-                        style={{ transformOrigin: 'center center' }}
                       />
                       
                       {/* Smoke puffs that appear when crashed */}
