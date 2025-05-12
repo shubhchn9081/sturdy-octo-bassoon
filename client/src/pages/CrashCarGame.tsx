@@ -43,8 +43,13 @@ const SimpleBettingPanel = ({
   const { balance } = useWallet();
   const [localBetAmount, setLocalBetAmount] = useState<string>(betAmount.toString());
   const [autoPlay, setAutoPlay] = useState<boolean>(false);
+  
+  // Extract all needed state from the store at the top of the component
   const activeBets = useCrashCarStore(state => state.activeBets);
   const isWaiting = useCrashCarStore(state => state.isWaiting);
+  const speed = useCrashCarStore(state => Math.round(state.speed * 100));
+  const fuelLevel = useCrashCarStore(state => state.fuelLevel);
+  const fuelLevelRounded = useCrashCarStore(state => Math.round(state.fuelLevel));
   
   // Check if player has an active bet
   const hasActiveBet = activeBets.some(bet => bet.isPlayer && bet.status === 'active');
@@ -185,7 +190,7 @@ const SimpleBettingPanel = ({
                   <span className="text-blue-300">Speed:</span>
                 </div>
                 <span className="font-bold text-blue-400">
-                  {useCrashCarStore(state => Math.round(state.speed * 100))} km/h
+                  {speed} km/h
                 </span>
               </div>
               
@@ -194,19 +199,19 @@ const SimpleBettingPanel = ({
                 <Gauge size={16} className="text-yellow-500" />
                 <div className="w-full">
                   <Progress 
-                    value={useCrashCarStore(state => state.fuelLevel)} 
+                    value={fuelLevel} 
                     max={100}
                     className={`h-2 bg-gray-700 ${
-                      useCrashCarStore(state => state.fuelLevel) < 25 
+                      fuelLevel < 25 
                         ? 'data-[value]:bg-red-500' 
-                        : useCrashCarStore(state => state.fuelLevel) < 50 
+                        : fuelLevel < 50 
                           ? 'data-[value]:bg-yellow-500' 
                           : 'data-[value]:bg-green-500'
                     }`}
                   />
                 </div>
                 <span className="text-xs text-gray-300 w-8 text-right">
-                  {useCrashCarStore(state => Math.round(state.fuelLevel))}%
+                  {fuelLevelRounded}%
                 </span>
               </div>
             </div>
