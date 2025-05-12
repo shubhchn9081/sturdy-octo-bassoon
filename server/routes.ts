@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer } from "ws";
 import { storage } from "./storage";
 import { z } from "zod";
 import multer from "multer";
@@ -16,8 +16,9 @@ import apayRoutes from "./routes/apay";
 import slotsRoutes from "./routes/slots";
 import cupAndBallRoutes from "./routes/cup-and-ball";
 import towerClimbRoutes from "./routes/tower-climb";
-import crashCarRoutes, { setWebSocketServer } from "./routes/crashCar";
+import crashCarRoutes, { setWebSocketServer as setCrashCarWebSocketServer } from "./routes/crashCar";
 import diceTradingRoutes from "./routes/diceTrading";
+import { setWebSocketServer, broadcastToTopic } from "./utils/websocket";
 
 // Function to generate username from full name
 function generateUsernameFromFullName(fullName: string): string {
@@ -1350,76 +1351,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  // Setup WebSocket server for real-time sports betting updates
+  // Setup WebSocket server for real-time game updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
-  // Keep track of clients and their subscriptions
-  const clients = new Map<WebSocket, { topics: Set<string> }>();
-  
-  // Handle WebSocket connections
-  wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
-    
-    // Initialize client data
-    clients.set(ws, { topics: new Set() });
-    
-    // Handle messages from clients
-    ws.on('message', (message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        console.log('Received WebSocket message:', data);
-        
-        if (data.action === 'subscribe' && data.topic) {
-          const clientData = clients.get(ws);
-          if (clientData) {
-            clientData.topics.add(data.topic);
-            console.log(`Client subscribed to topic: ${data.topic}`);
-          }
-        } else if (data.action === 'unsubscribe' && data.topic) {
-          const clientData = clients.get(ws);
-          if (clientData) {
-            clientData.topics.delete(data.topic);
-            console.log(`Client unsubscribed from topic: ${data.topic}`);
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    });
-    
-    // Handle client disconnection
-    ws.on('close', () => {
-      console.log('WebSocket client disconnected');
-      clients.delete(ws);
-    });
-    
-    // Send initial connection confirmation
-    ws.send(JSON.stringify({
-      type: 'connection',
-      status: 'connected',
-      message: 'Successfully connected to the WebSocket server'
-    }));
-  });
-  
-  // Setup function to broadcast messages to subscribed clients
-  const broadcastToTopic = (topic: string, payload: any) => {
-    clients.forEach((clientData, client) => {
-      if (client.readyState === WebSocket.OPEN && clientData.topics.has(topic)) {
-        client.send(JSON.stringify({
-          topic,
-          timestamp: Date.now(),
-          payload
-        }));
-      }
-    });
-  };
+  // Initialize the WebSocket server with our utility
+  setWebSocketServer(wss);
   
   // Initialize the crash car game with the WebSocket server
-  setWebSocketServer(wss, broadcastToTopic);
-  
-  // Make broadcastToTopic available globally for other modules
-  global.broadcastToTopic = broadcastToTopic;
-  global.webSocketServer = wss;
+  setCrashCarWebSocketServer(wss, broadcastToTopic);
   
   // Simulate live odds updates
   const simulateOddsChanges = () => {
