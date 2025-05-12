@@ -136,8 +136,8 @@ const DiceTrading = () => {
   const { toast } = useToast();
   const { balance, symbol, refreshBalance } = useWallet();
   
-  // Game state - start with a smaller bet to avoid balance issues
-  const [betAmount, setBetAmount] = useState(1);
+  // Game state - start with minimum bet amount of 100 INR
+  const [betAmount, setBetAmount] = useState(100);
   const [minRange, setMinRange] = useState(40);
   const [maxRange, setMaxRange] = useState(60);
   const [rangeSize, setRangeSize] = useState(20);
@@ -236,20 +236,23 @@ const DiceTrading = () => {
   
   // Increment/decrement bet amount
   const handleIncrementBet = () => {
-    setBetAmount(prev => prev + 1);
+    setBetAmount(prev => prev + 100);
   };
   
   const handleDecrementBet = () => {
-    if (betAmount > 1) {
-      setBetAmount(prev => prev - 1);
+    if (betAmount > 100) {
+      setBetAmount(prev => Math.max(100, prev - 100));
     }
   };
   
   // Handle changes to bet amount
   const handleBetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    if (!isNaN(value) && value > 0) {
+    if (!isNaN(value) && value >= 100) {
       setBetAmount(value);
+    } else if (e.target.value === '') {
+      // Allow empty input for easier editing but enforce 100 minimum on blur
+      setBetAmount(100);
     }
   };
   
@@ -703,7 +706,7 @@ const DiceTrading = () => {
             </div>
 
             <div className="text-right">
-              <div className="text-green-400 font-bold text-xl">${potentialWin.toFixed(2)}</div>
+              <div className="text-green-400 font-bold text-xl">₹{potentialWin.toFixed(2)}</div>
               <div className="text-sm text-white">Possible Payout</div>
             </div>
           </div>
@@ -742,39 +745,69 @@ const DiceTrading = () => {
           
           {/* Bet Amount Controls */}
           <div className="relative mb-4">
-            <div className="text-sm text-white mb-2">Bet Amount</div>
-            <div className="flex items-center gap-2">
+            <div className="flex justify-between mb-2">
+              <div className="text-sm text-white">Bet Amount</div>
+              <div className="text-sm text-gray-400">Balance: ₹{balance.toFixed(2)}</div>
+            </div>
+            
+            {/* Editable bet amount with INR currency */}
+            <div className="flex items-center gap-2 mb-3">
               <button 
-                onClick={() => setBetAmount(1)}
-                className="bg-[#0F212E] text-white py-2 px-3 rounded-md text-xs"
-              >
-                min
-              </button>
-              
-              <button 
-                onClick={handleDecrementBet}
-                className="bg-[#0F212E] text-white py-2 px-4 rounded-l-md hover:bg-blue-700 transition-colors"
+                onClick={() => setBetAmount(Math.max(100, betAmount / 2))}
+                className="bg-[#0F212E] text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                disabled={isRolling}
               >
                 <Minus size={16} />
               </button>
               
-              <div className="flex-1 bg-[#0F212E] py-2 text-center text-white font-medium border-l border-r border-[#172B3A]">
-                ${betAmount}
+              <div className="relative flex-1">
+                <Input
+                  type="number"
+                  value={betAmount}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    if (!isNaN(value) && value >= 100) {
+                      setBetAmount(value);
+                    } else if (e.target.value === '') {
+                      setBetAmount(100);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (betAmount < 100) setBetAmount(100);
+                  }}
+                  min="100"
+                  step="100"
+                  disabled={isRolling}
+                  className="w-full bg-[#0F212E] py-2 text-center text-white font-medium"
+                />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</div>
               </div>
               
               <button 
-                onClick={handleIncrementBet}
-                className="bg-[#0F212E] text-white py-2 px-4 rounded-r-md hover:bg-blue-700 transition-colors"
+                onClick={() => setBetAmount(betAmount * 2)}
+                className="bg-[#0F212E] text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                disabled={isRolling}
               >
                 <Plus size={16} />
               </button>
-              
-              <button 
-                onClick={() => setBetAmount(100)}
-                className="bg-[#0F212E] text-white py-2 px-3 rounded-md text-xs"
-              >
-                max
-              </button>
+            </div>
+            
+            {/* Quick bet amount options */}
+            <div className="grid grid-cols-4 gap-2 mb-2">
+              {[100, 500, 1000, 5000].map(amount => (
+                <button
+                  key={amount}
+                  onClick={() => setBetAmount(amount)}
+                  className={`py-2 px-3 rounded-md text-sm transition-colors ${
+                    betAmount === amount 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-[#0F212E] text-white hover:bg-[#1E3A4A]'
+                  }`}
+                  disabled={isRolling}
+                >
+                  {amount}
+                </button>
+              ))}
             </div>
           </div>
           
@@ -839,7 +872,7 @@ const DiceTrading = () => {
                     {bet.result}
                   </span>
                   <span className={`text-xs font-semibold ${bet.win ? 'text-green-500' : 'text-red-500'}`}>
-                    {bet.win ? `+${bet.profit.toFixed(2)}` : `-${bet.amount.toFixed(2)}`}
+                    {bet.win ? `+₹${bet.profit.toFixed(2)}` : `-₹${bet.amount.toFixed(2)}`}
                   </span>
                 </div>
               </div>
