@@ -8,23 +8,23 @@ interface PromotionalBannerProps {
 const banners = [
   {
     id: 1,
+    image: '/banners/dice-trading-banner.png',
+    alt: 'DICE TRADING - Bull market for your bets!'
+  },
+  {
+    id: 2,
     image: '/banners/carx-banner-new.png',
     alt: 'NEW ARRIVAL - CarX - RACE TO WIN!'
   },
   {
-    id: 2,
+    id: 3,
     image: '/banners/mines-matrix-banner.png',
     alt: 'Mines Game - Skip the mines, win the cash!'
   },
   {
-    id: 3,
+    id: 4,
     image: '/banners/crash-game-banner-new.png',
     alt: 'Crash Game - Test your nerve, play crash!'
-  },
-  {
-    id: 4,
-    image: '/banners/dice-trading-banner.png',
-    alt: 'DICE TRADING - Bull market for your bets!'
   }
 ];
 
@@ -53,8 +53,8 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
           transition={{ duration: 0.6 }}
         >
           {/* Link banners to appropriate pages */}
-          <a href={currentBanner === 0 ? "/car-crash" : 
-                  currentBanner === 3 ? "/dice-trading" : 
+          <a href={currentBanner === 0 ? "/dice-trading" : 
+                  currentBanner === 1 ? "/car-crash" : 
                   "/casino"} className="block">
             <motion.div 
               className="relative rounded-lg shadow-lg overflow-hidden transition-transform duration-300"
