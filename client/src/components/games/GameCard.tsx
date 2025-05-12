@@ -363,8 +363,8 @@ const GameCard = ({
               }}
             />
             
-            {/* Banner at bottom - excluding ROCKET LAUNCH */}
-            {name !== "ROCKET LAUNCH" && (
+            {/* Banner at bottom - excluding certain games */}
+            {name !== "ROCKET LAUNCH" && name !== "DICE TRADING" && (
               <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
                 name === "TOWER CLIMB" || name === "CRASH CAR"
                   ? "bg-gradient-to-r from-green-700 to-green-500" 
