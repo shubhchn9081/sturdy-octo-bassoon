@@ -31,6 +31,8 @@ interface GameStateInfo {
   activeBets: ActiveBet[];
   gameId: string;
   previousGames: PreviousGame[];
+  fuelLevel: number; // 0-100% fuel remaining
+  speed: number;     // Current speed multiplier
 }
 
 interface ActiveBet {
@@ -57,7 +59,9 @@ let gameState: GameStateInfo = {
   crashTime: null,
   activeBets: [],
   gameId: generateGameId(),
-  previousGames: []
+  previousGames: [],
+  fuelLevel: 100, // Start with full fuel
+  speed: 1.0      // Initial speed
 };
 
 // Game timers
@@ -75,11 +79,12 @@ function generateGameId(): string {
 
 // Calculate current multiplier based on elapsed time
 function calculateMultiplier(elapsedMs: number): number {
-  // Use an exponential curve formula: 1.0 + 0.05 * (e^(t/15) - 1)
-  // This gives a curve that starts slow and accelerates
+  // Use a faster exponential curve formula: 1.0 + 0.1 * (e^(t/10) - 1)
+  // This gives a curve that accelerates much quicker
   const elapsedSec = elapsedMs / 1000;
-  const growthFactor = 0.05;
-  const multiplier = 1.0 + growthFactor * (Math.exp(elapsedSec / 15) - 1);
+  const growthFactor = 0.1;  // Increased from 0.05
+  const timeScaling = 10;    // Reduced from 15
+  const multiplier = 1.0 + growthFactor * (Math.exp(elapsedSec / timeScaling) - 1);
   
   // Round to 2 decimal places
   return Math.round(multiplier * 100) / 100;
@@ -97,7 +102,9 @@ function startNewGameRound() {
     crashTime: null,
     activeBets: [],
     gameId: generateGameId(),
-    previousGames: gameState.previousGames.slice(0, 20) // Keep only last 20 games
+    previousGames: gameState.previousGames.slice(0, 20), // Keep only last 20 games
+    fuelLevel: 100, // Reset to full fuel
+    speed: 1.0      // Reset initial speed
   };
   
   console.log(`Starting new Crash Car game round: ${gameState.gameId}`);
@@ -310,7 +317,9 @@ function broadcastGameState() {
         currentMultiplier: gameState.currentMultiplier,
         gameId: gameState.gameId,
         activeBets: gameState.activeBets,
-        previousGames: gameState.previousGames
+        previousGames: gameState.previousGames,
+        fuelLevel: gameState.fuelLevel,
+        speed: gameState.speed
       }
     };
     
