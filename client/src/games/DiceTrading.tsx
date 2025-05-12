@@ -164,7 +164,7 @@ const DiceTrading = () => {
     maxRange: number;
     win: boolean;
     profit: number;
-    timestamp: number;
+    timestamp: number | string;  // Allow either number or string for flexibility
   }>>([]);
   
   // WebSocket connection
@@ -270,25 +270,55 @@ const DiceTrading = () => {
     setMaxRange(boundedValue);
   };
   
-  // Handle vertical slider drag for mobile and desktop
+  // Handle vertical slider drag for mobile and desktop - more robust implementation
   const handleSliderDrag = (event: React.MouseEvent | React.TouchEvent, sliderRef: React.RefObject<HTMLDivElement>, isMin: boolean) => {
     event.preventDefault();
     
     const sliderElement = sliderRef.current;
     if (!sliderElement) return;
     
+    // Get the slider dimensions
     const sliderRect = sliderElement.getBoundingClientRect();
     const sliderHeight = sliderRect.height;
+    const sliderTop = sliderRect.top;
+    const sliderBottom = sliderRect.bottom;
+    
+    // Define max and min constraints to prevent sliders from going off-chart
+    const MIN_PERCENTAGE = 5;   // 5% from top
+    const MAX_PERCENTAGE = 95;  // 5% from bottom
+    
+    // Reference values corresponding to chart lines
+    const REFERENCE_LINES = [23, 40, 60];
     
     const handleMove = (clientY: number) => {
-      // Calculate percentage based on position within slider
-      const relativeY = clientY - sliderRect.top;
-      const percentage = 100 - Math.max(0, Math.min(100, (relativeY / sliderHeight) * 100));
+      // Constrain clientY to be within slider bounds
+      const constrainedY = Math.max(sliderTop, Math.min(sliderBottom, clientY));
       
+      // Calculate percentage based on position within slider
+      const relativeY = constrainedY - sliderTop;
+      let percentage = 100 - Math.max(0, Math.min(100, (relativeY / sliderHeight) * 100));
+      
+      // Round percentage to integer
+      percentage = Math.round(percentage);
+      
+      // Snap to reference lines if within 3% of them (magnetic effect)
+      for (const refLine of REFERENCE_LINES) {
+        if (Math.abs(percentage - refLine) <= 3) {
+          percentage = refLine;
+          break;
+        }
+      }
+      
+      // Apply boundaries
+      percentage = Math.max(MIN_PERCENTAGE, Math.min(MAX_PERCENTAGE, percentage));
+      
+      // Update the correct range based on if it's min or max handle
       if (isMin) {
-        handleMinRangeChange(Math.round(percentage));
+        // For min handle, ensure it doesn't go above max - 5%
+        handleMinRangeChange(Math.min(percentage, maxRange - 5));
       } else {
-        handleMaxRangeChange(Math.round(percentage));
+        // For max handle, ensure it doesn't go below min + 5%
+        handleMaxRangeChange(Math.max(percentage, minRange + 5));
       }
     };
     
@@ -488,53 +518,71 @@ const DiceTrading = () => {
               />
             </div>
             
-            {/* Left side - Interactive slider with draggable circles - made narrower */}
-            <div className="w-8 h-full flex flex-col relative z-20" ref={sliderRef}>
+            {/* Left side - Interactive slider with draggable circles - adjusted for better visibility */}
+            <div className="w-12 h-full flex flex-col relative z-20" ref={sliderRef}>
               {/* Slider track */}
-              <div className="absolute left-1/2 -translate-x-1/2 w-0.5 h-full bg-gray-700 rounded-full"></div>
+              <div className="absolute left-1/2 -translate-x-1/2 w-1 h-full bg-gray-700 rounded-full"></div>
               
               {/* Selected range */}
               <div 
-                className="absolute left-1/2 -translate-x-1/2 w-0.5 bg-blue-400 rounded-full" 
+                className="absolute left-1/2 -translate-x-1/2 w-2 bg-blue-400 rounded-full shadow-lg shadow-blue-400/30" 
                 style={{ 
                   top: `${100 - maxRange}%`, 
                   height: `${maxRange - minRange}%` 
                 }}
               ></div>
               
+              {/* Reference lines that match with the chart */}
+              <div className="absolute -left-2 right-2 h-px bg-blue-500/30" style={{ top: '40%' }}>
+                <span className="absolute -left-7 -top-3 text-xs text-blue-400">60</span>
+              </div>
+              <div className="absolute -left-2 right-2 h-px bg-blue-500/30" style={{ top: '60%' }}>
+                <span className="absolute -left-7 -top-3 text-xs text-blue-400">40</span>
+              </div>
+              <div className="absolute -left-2 right-2 h-px bg-blue-500/30" style={{ top: '77%' }}>
+                <span className="absolute -left-7 -top-3 text-xs text-blue-400">23</span>
+                <div className="absolute -left-12 top-0 w-5 h-5 rounded-full border-2 border-blue-400 flex items-center justify-center">
+                  <span className="text-blue-400 text-[10px]">23</span>
+                </div>
+              </div>
+              
               {/* Max handle - Top circle (upper bound) */}
               <div
-                className="absolute left-1/2 -translate-x-1/2 w-12 h-12 flex items-center justify-center z-20"
-                style={{ top: `${100 - maxRange}%` }}
+                className="absolute left-1/2 -translate-x-1/2 w-10 h-10 flex items-center justify-center z-20"
+                style={{ 
+                  top: `${Math.min(95, Math.max(5, 100 - maxRange))}%`,  // Constrain to keep in view (5-95%)
+                }}
               >
                 <div 
-                  className="w-12 h-12 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none bg-[#0F212E]/80 shadow-lg"
+                  className="w-8 h-8 rounded-full border-3 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none bg-[#0F212E]/90 shadow-lg"
                   onMouseDown={(e) => handleSliderDrag(e, sliderRef, false)}
                   onTouchStart={(e) => handleSliderDrag(e, sliderRef, false)}
                 >
-                  <span className="text-blue-400 text-sm font-semibold">{maxRange}</span>
+                  <span className="text-blue-400 text-xs font-semibold">{maxRange}</span>
                 </div>
                 {/* Outside value label matching screenshot */}
-                <div className="absolute -left-7 whitespace-nowrap flex items-center">
-                  <span className="text-blue-400 text-sm font-bold">{maxRange}</span>
+                <div className="absolute -left-6 whitespace-nowrap flex items-center">
+                  <span className="text-blue-400 text-xs font-bold">{maxRange}</span>
                 </div>
               </div>
               
               {/* Min handle - Bottom circle (lower bound) */}
               <div
-                className="absolute left-1/2 -translate-x-1/2 w-12 h-12 flex items-center justify-center z-20"
-                style={{ top: `${100 - minRange}%` }}
+                className="absolute left-1/2 -translate-x-1/2 w-10 h-10 flex items-center justify-center z-20"
+                style={{ 
+                  top: `${Math.min(95, Math.max(5, 100 - minRange))}%`,  // Constrain to keep in view (5-95%)
+                }}
               >
                 <div 
-                  className="w-12 h-12 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none bg-[#0F212E]/80 shadow-lg"
+                  className="w-8 h-8 rounded-full border-3 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none bg-[#0F212E]/90 shadow-lg"
                   onMouseDown={(e) => handleSliderDrag(e, sliderRef, true)}
                   onTouchStart={(e) => handleSliderDrag(e, sliderRef, true)}
                 >
-                  <span className="text-blue-400 text-sm font-semibold">{minRange}</span>
+                  <span className="text-blue-400 text-xs font-semibold">{minRange}</span>
                 </div>
                 {/* Outside value label matching screenshot */}
-                <div className="absolute -left-7 whitespace-nowrap flex items-center">
-                  <span className="text-blue-400 text-sm font-bold">{minRange}</span>
+                <div className="absolute -left-6 whitespace-nowrap flex items-center">
+                  <span className="text-blue-400 text-xs font-bold">{minRange}</span>
                 </div>
               </div>
               
@@ -637,6 +685,18 @@ const DiceTrading = () => {
                   />
                   
                   {/* Horizontal reference lines at 40 and 60 to match screenshot */}
+                  <ReferenceLine
+                    y={23}
+                    stroke="#3B82F6"
+                    strokeDasharray="3 3"
+                    label={{
+                      value: "23",
+                      position: "left",
+                      fill: "#3B82F6",
+                      fontSize: 13
+                    }}
+                  />
+                  
                   <ReferenceLine
                     y={40}
                     stroke="#3B82F6"
