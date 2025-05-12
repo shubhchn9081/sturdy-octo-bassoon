@@ -17,6 +17,7 @@ import slotsRoutes from "./routes/slots";
 import cupAndBallRoutes from "./routes/cup-and-ball";
 import towerClimbRoutes from "./routes/tower-climb";
 import crashCarRoutes, { setWebSocketServer } from "./routes/crashCar";
+import diceTradingRoutes from "./routes/diceTrading";
 
 // Function to generate username from full name
 function generateUsernameFromFullName(fullName: string): string {
@@ -87,6 +88,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup crash car game routes
   app.use('/api/crash-car', crashCarRoutes);
+  
+  // Setup dice trading game routes
+  app.use('/api/dice-trading', diceTradingRoutes);
   
   // prefix all routes with /api
 
