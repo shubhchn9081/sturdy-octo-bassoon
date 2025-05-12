@@ -70,7 +70,7 @@ const GameCard = ({
     switch (name) {
       case 'CRASH CAR':
         // Using the new provided crash car image
-        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1747012224/ChatGPT_Image_May_12_2025_06_36_56_AM_ymsede.png';
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1747012882/ChatGPT_Image_May_12_2025_06_50_33_AM_ggfvbv.png';
       case 'TOWER CLIMB':
         // Using the new arrival image for Tower Climb
         return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746456001/ChatGPT_Image_May_5_2025_08_09_43_PM_yyk1nr.png';
