@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, IndianRupee, ArrowRight, CheckCircle, Shield } from "lucide-react";
+import { Loader2, CreditCard, IndianRupee, ArrowRight, CheckCircle, Shield, TrendingUp } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Generate a unique ID for transactions
 function generateUniqueId(): string {
@@ -163,19 +164,52 @@ export function APay() {
             <Label className="text-xs text-[#7F8990] mb-2 block">Quick Select:</Label>
             <div className="grid grid-cols-5 gap-2">
               {quickAmounts.map((quickAmount) => (
-                <Button
-                  key={quickAmount}
-                  type="button"
-                  variant="outline"
-                  className={`text-sm py-1 h-auto border-[#3A4A59] 
-                    ${parseFloat(amount) === quickAmount 
-                      ? "bg-[#243442] border-[#57FBA2] text-[#57FBA2]" 
-                      : "text-white hover:bg-[#243442]"
-                    }`}
-                  onClick={() => selectQuickAmount(quickAmount)}
-                >
-                  ₹{quickAmount}
-                </Button>
+                quickAmount === 2000 ? (
+                  <TooltipProvider key={quickAmount}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          <div className="absolute -top-2 -right-2 z-10 bg-[#FF9900] text-black text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center shadow-md">
+                            <TrendingUp className="w-2 h-2 mr-0.5" />
+                            POPULAR
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={`text-sm py-1 h-auto border-[#3A4A59] w-full
+                              ${parseFloat(amount) === quickAmount 
+                                ? "bg-[#243442] border-[#FF9900] text-[#FF9900] ring-2 ring-[#FF9900]/30" 
+                                : "text-white hover:bg-[#243442] border-[#FF9900] ring-1 ring-[#FF9900]/20"
+                              }`}
+                            onClick={() => selectQuickAmount(quickAmount)}
+                          >
+                            ₹{quickAmount}
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-[#243442] border-[#3A4A59] text-white">
+                        <div className="flex items-center">
+                          <TrendingUp className="w-3.5 h-3.5 text-[#FF9900] mr-1.5" />
+                          <span>Most players choose this amount!</span>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <Button
+                    key={quickAmount}
+                    type="button"
+                    variant="outline"
+                    className={`text-sm py-1 h-auto border-[#3A4A59] 
+                      ${parseFloat(amount) === quickAmount 
+                        ? "bg-[#243442] border-[#57FBA2] text-[#57FBA2]" 
+                        : "text-white hover:bg-[#243442]"
+                      }`}
+                    onClick={() => selectQuickAmount(quickAmount)}
+                  >
+                    ₹{quickAmount}
+                  </Button>
+                )
               ))}
             </div>
           </div>
