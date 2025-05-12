@@ -51,18 +51,21 @@ const BlinkingDot = (props: DotProps) => {
 // Game ID
 const GAME_ID = 200;
 
-// Sample initial chart data - create steeper data pattern
-const sampleChartData = Array.from({ length: 10 }, (_, i) => {
-  // Make values spike more dramatically to create steeper lines
-  const baseValue = i % 2 === 0 
-    ? Math.floor(Math.random() * 40 + 10) // Lower values
-    : Math.floor(Math.random() * 40 + 50); // Higher values
-    
-  return {
-    round: i + 1,
-    value: baseValue
-  };
-});
+// Sample initial chart data - create pattern similar to the provided screenshot
+const sampleChartData = [
+  { round: 1, value: 60 },  // Start at 60
+  { round: 2, value: 42 },  // Drop
+  { round: 3, value: 70 },  // Sharp rise
+  { round: 4, value: 40 },  // Sharp drop
+  { round: 5, value: 45 },  // Small rise
+  { round: 6, value: 85 },  // Big spike
+  { round: 7, value: 45 },  // Sharp drop
+  { round: 8, value: 80 },  // Sharp rise
+  { round: 9, value: 35 },  // Sharp drop
+  { round: 10, value: 55 }, // Mid rise
+  { round: 11, value: 43 }, // Drop
+  { round: 12, value: 77 }  // End with rise
+];
 
 // Simplified DiceTrading Component
 const DiceTrading = () => {
@@ -357,11 +360,16 @@ const DiceTrading = () => {
         </div>
       </div>
       
-      {/* Chart and Controls Section */}
+      {/* Chart and Controls Section - Make chart stand out more */}
       <div className="flex flex-col gap-4">
-        {/* Chart Area with Line Graph */}
-        <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[40vh] md:h-[50vh]">
-          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative flex overflow-hidden">
+        {/* Chart Area with Line Graph - Increased size and prominence */}
+        <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[60vh] md:h-[70vh] shadow-xl border-2 border-blue-500/30 relative overflow-hidden">
+          {/* Glow effect behind chart */}
+          <div className="absolute inset-0 bg-blue-500/5 blur-xl"></div>
+          {/* Subtle animated gradient border */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-green-500/10 animate-pulse"></div>
+          
+          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-6 relative flex overflow-hidden">
             {/* Advanced trading background with bull image */}
             <div className="absolute inset-0 z-0">
               {/* Horizontal grid lines */}
