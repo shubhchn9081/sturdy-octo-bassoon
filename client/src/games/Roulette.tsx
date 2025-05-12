@@ -209,7 +209,7 @@ const Roulette = () => {
     setTotalBet(total);
   }, [bets]);
 
-  // Function to draw the roulette wheel
+  // Function to draw the roulette wheel with enhanced visuals
   const drawWheel = () => {
     const canvas = wheelCanvasRef.current;
     if (!canvas) return;
@@ -224,21 +224,69 @@ const Roulette = () => {
     
     const centerX = size / 2;
     const centerY = size / 2;
-    const radius = size / 2 - 10;
+    const outerRadius = size / 2 - 10;
+    const wheelRadius = outerRadius - 15; // Actual wheel radius, slightly smaller than outer rim
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw outer ring
+    // Create a circular drop shadow for the entire wheel
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    ctx.fillStyle = '#1a1a1a';
+    ctx.arc(centerX + 5, centerY + 5, outerRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fill();
+    
+    // Draw outer decorative rim (wooden color with gold trim)
+    const rimGradient = ctx.createRadialGradient(
+      centerX, centerY, outerRadius - 20,
+      centerX, centerY, outerRadius
+    );
+    rimGradient.addColorStop(0, '#8B4513'); // SaddleBrown
+    rimGradient.addColorStop(0.7, '#A0522D'); // Sienna
+    rimGradient.addColorStop(1, '#5D2906'); // Darker brown
+    
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = rimGradient;
+    ctx.fill();
+    
+    // Add decorative gold border
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
     ctx.strokeStyle = '#d4af37'; // Gold border
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 3;
     ctx.stroke();
     
-    // Draw number segments
+    // Add inner gold circle to separate rim from wheel
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, wheelRadius + 5, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Draw wheel base (dark surface)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = '#222222';
+    ctx.fill();
+    
+    // Add subtle texture to wheel
+    const textureSize = 2;
+    const textureOpacity = 0.03;
+    ctx.fillStyle = `rgba(255, 255, 255, ${textureOpacity})`;
+    for(let x = 0; x < size; x += textureSize) {
+      for(let y = 0; y < size; y += textureSize) {
+        // Only add texture within wheel radius
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < wheelRadius && Math.random() > 0.8) {
+          ctx.fillRect(x, y, textureSize, textureSize);
+        }
+      }
+    }
+    
+    // Draw number segments with enhanced 3D effect
     const segmentAngle = (2 * Math.PI) / ROULETTE_NUMBERS.length;
     ROULETTE_NUMBERS.forEach((number, i) => {
       const startAngle = i * segmentAngle - wheelRotationRef.current;
@@ -247,51 +295,188 @@ const Roulette = () => {
       // Draw segment
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, radius - 10, startAngle, endAngle);
+      ctx.arc(centerX, centerY, wheelRadius, startAngle, endAngle);
       ctx.closePath();
       
-      // Color based on number
-      let color;
+      // Color based on number with gradient for 3D effect
+      let baseColor;
       if (number === 0) {
-        color = '#008000'; // Green for zero
+        baseColor = '#008000'; // Green for zero
       } else if (NUMBER_COLORS[number as keyof typeof NUMBER_COLORS] === 'red') {
-        color = '#d40000'; // Red
+        baseColor = '#d40000'; // Red
       } else {
-        color = '#000000'; // Black
+        baseColor = '#000000'; // Black
       }
       
-      ctx.fillStyle = color;
+      // Create gradient for segment to add depth
+      const segmentGradient = ctx.createRadialGradient(
+        centerX, centerY, wheelRadius * 0.6,
+        centerX, centerY, wheelRadius
+      );
+      
+      // Compute lighter and darker variations of the base color
+      const lightenColor = (color: string, percent: number): string => {
+        const num = parseInt(color.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const r = Math.min(255, (num >> 16) + amt);
+        const g = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+        const b = Math.min(255, (num & 0x0000FF) + amt);
+        return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1);
+      };
+      
+      const darkenColor = (color: string, percent: number): string => {
+        const num = parseInt(color.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const r = Math.max(0, (num >> 16) - amt);
+        const g = Math.max(0, ((num >> 8) & 0x00FF) - amt);
+        const b = Math.max(0, (num & 0x0000FF) - amt);
+        return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1);
+      };
+      
+      const lighterColor = lightenColor(baseColor, 15);
+      const darkerColor = darkenColor(baseColor, 15);
+      
+      segmentGradient.addColorStop(0, lighterColor);
+      segmentGradient.addColorStop(1, darkerColor);
+      
+      ctx.fillStyle = segmentGradient;
       ctx.fill();
+      
+      // Add glossy highlight to each segment
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, wheelRadius, startAngle, endAngle);
+      ctx.closePath();
+      
+      const glossGradient = ctx.createRadialGradient(
+        centerX - wheelRadius * 0.3, centerY - wheelRadius * 0.3, 0,
+        centerX, centerY, wheelRadius
+      );
+      glossGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+      glossGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+      glossGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      
+      ctx.fillStyle = glossGradient;
+      ctx.fill();
+      
+      // Gold segment dividers with shadow
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + wheelRadius * Math.cos(startAngle),
+        centerY + wheelRadius * Math.sin(startAngle)
+      );
+      // Add shadow effect
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
       ctx.strokeStyle = '#d4af37'; // Gold dividers
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
       
-      // Draw number text
+      // Reset shadow for text
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      // Draw number text with shadow for better readability
       ctx.save();
+      const textRadius = wheelRadius * 0.75;
       ctx.translate(
-        centerX + (radius - 30) * Math.cos(startAngle + segmentAngle / 2),
-        centerY + (radius - 30) * Math.sin(startAngle + segmentAngle / 2)
+        centerX + textRadius * Math.cos(startAngle + segmentAngle / 2),
+        centerY + textRadius * Math.sin(startAngle + segmentAngle / 2)
       );
       ctx.rotate(startAngle + segmentAngle / 2 + Math.PI / 2);
-      ctx.fillStyle = '#ffffff';
+      
+      // Text shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
       ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.fillText(number.toString(), 1, 1);
+      
+      // Main text
+      ctx.fillStyle = '#ffffff';
       ctx.fillText(number.toString(), 0, 0);
       ctx.restore();
     });
     
-    // Draw center hub
+    // Draw decorative center hub with metallic effect
+    const hubRadius = wheelRadius * 0.25;
+    const hubGradient = ctx.createRadialGradient(
+      centerX - hubRadius * 0.3, centerY - hubRadius * 0.3, 0,
+      centerX, centerY, hubRadius
+    );
+    hubGradient.addColorStop(0, '#888888');
+    hubGradient.addColorStop(0.7, '#555555');
+    hubGradient.addColorStop(1, '#333333');
+    
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
-    ctx.fillStyle = '#3a3a3a';
+    ctx.arc(centerX, centerY, hubRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = hubGradient;
     ctx.fill();
+    
+    // Hub border with drop shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
     ctx.strokeStyle = '#d4af37';
     ctx.lineWidth = 2;
     ctx.stroke();
     
-    // Draw ball if spinning
-    if (isSpinning) {
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    
+    // Add decorative spokes to the hub
+    for (let i = 0; i < 8; i++) {
+      const angle = i * Math.PI / 4;
+      ctx.beginPath();
+      ctx.moveTo(
+        centerX + (hubRadius * 0.7) * Math.cos(angle),
+        centerY + (hubRadius * 0.7) * Math.sin(angle)
+      );
+      ctx.lineTo(
+        centerX + (hubRadius * 1.3) * Math.cos(angle),
+        centerY + (hubRadius * 1.3) * Math.sin(angle)
+      );
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    
+    // Draw ball if spinning with enhanced lighting and shadow effects
+    if (isSpinning && ballPositionRef.current.x !== 0) {
+      // Ball shadow
+      ctx.beginPath();
+      ctx.arc(
+        ballPositionRef.current.x + 2,
+        ballPositionRef.current.y + 2,
+        9,
+        0,
+        2 * Math.PI
+      );
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fill();
+      
+      // Main ball with gradient for 3D effect
+      const ballGradient = ctx.createRadialGradient(
+        ballPositionRef.current.x - 3, 
+        ballPositionRef.current.y - 3, 
+        0,
+        ballPositionRef.current.x, 
+        ballPositionRef.current.y, 
+        9
+      );
+      ballGradient.addColorStop(0, '#ffffff');
+      ballGradient.addColorStop(0.7, '#e0e0e0');
+      ballGradient.addColorStop(1, '#c0c0c0');
+      
       ctx.beginPath();
       ctx.arc(
         ballPositionRef.current.x,
@@ -300,11 +485,23 @@ const Roulette = () => {
         0,
         2 * Math.PI
       );
-      ctx.fillStyle = '#f0f0f0';
+      ctx.fillStyle = ballGradient;
       ctx.fill();
       ctx.strokeStyle = '#d4af37';
       ctx.lineWidth = 1;
       ctx.stroke();
+      
+      // Ball highlight (small white circle to simulate light reflection)
+      ctx.beginPath();
+      ctx.arc(
+        ballPositionRef.current.x - 3,
+        ballPositionRef.current.y - 3,
+        2.5,
+        0,
+        2 * Math.PI
+      );
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fill();
     }
   };
 
@@ -737,48 +934,107 @@ const Roulette = () => {
       
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      const ballRadius = (canvas.width / 2) - 25;
+      const outerRadius = canvas.width / 2 - 10;
+      const wheelRadius = outerRadius - 15;
+      const ballTrackRadius = wheelRadius - 15; // Ball runs slightly inside the wheel edge
       
-      // Initialize ball at top of wheel
+      // Initialize ball position
       ballPositionRef.current = {
         x: centerX,
-        y: centerY - ballRadius
+        y: centerY - ballTrackRadius
       };
       
-      // Start animation
-      const startTime = performance.now();
-      const spinDuration = 6000; // 6 seconds
+      // Set spin durations for realistic physics
+      const wheelSpinDuration = 6000; // Wheel spins longer
+      const ballSpinDuration = 4500;  // Ball slows down faster
+      const ballSlideDuration = 1500; // Ball slides into final pocket
       
-      // Create GSAP timeline for smooth animation
+      // Create master GSAP animation timeline
       const tl = gsap.timeline({
         onComplete: () => {
           processResult(randomNumber, response.betId!);
         }
       });
       
-      // Wheel rotation animation
+      // Wheel spin animation - starts fast and gradually slows down
       tl.to(wheelRotationRef, {
         current: targetAngle,
-        duration: spinDuration / 1000,
-        ease: "power2.inOut",
+        duration: wheelSpinDuration / 1000,
+        ease: "power2.out", // Smooth deceleration
         onUpdate: () => drawWheel()
-      });
+      }, 0); // Start at timeline beginning (0)
       
-      // Ball animation
+      // Ball animation in 3 phases:
+      
+      // Phase 1: Ball spins rapidly in opposite direction to wheel
       tl.to(ballRotationRef, {
-        current: Math.PI * 16,
-        duration: spinDuration / 1000,
-        ease: "power3.out",
+        current: Math.PI * 20, // Ball makes several full rotations
+        duration: ballSpinDuration / 1000 * 0.6, // First 60% of total ball spin time
+        ease: "power1.in", // Ball accelerates slightly at start
         onUpdate: () => {
-          // Calculate ball position based on rotation
-          const ballAngle = ballRotationRef.current;
+          // Calculate ball position - ball moves in opposite direction to wheel
+          const wheelAngle = wheelRotationRef.current;
+          const ballAngle = ballRotationRef.current - wheelAngle * 0.5; // Ball moves opposite to wheel at different rate
           ballPositionRef.current = {
-            x: centerX + ballRadius * Math.sin(ballAngle),
-            y: centerY - ballRadius * Math.cos(ballAngle)
+            x: centerX + ballTrackRadius * Math.sin(ballAngle),
+            y: centerY - ballTrackRadius * Math.cos(ballAngle)
           };
           drawWheel();
         }
-      }, 0); // Start at the same time as wheel animation
+      }, 0); // Start at timeline beginning (0)
+      
+      // Phase 2: Ball starts to slow down more rapidly than the wheel
+      tl.to(ballRotationRef, {
+        current: Math.PI * 24, // Continue rotation but slower
+        duration: ballSpinDuration / 1000 * 0.4, // Last 40% of total ball spin time
+        ease: "power3.out", // Strong deceleration
+        onUpdate: () => {
+          // Calculate position - still moving opposite to wheel
+          const wheelAngle = wheelRotationRef.current;
+          const ballAngle = ballRotationRef.current - wheelAngle * 0.3; // Ball syncs more with wheel as it slows
+          ballPositionRef.current = {
+            x: centerX + ballTrackRadius * Math.sin(ballAngle),
+            y: centerY - ballTrackRadius * Math.cos(ballAngle)
+          };
+          drawWheel();
+        }
+      }, `<+${ballSpinDuration / 1000 * 0.6}`); // Start after Phase 1
+      
+      // Phase 3: Ball slides into pocket (coming to final rest)
+      tl.to({}, {
+        duration: ballSlideDuration / 1000,
+        ease: "bounce.out", // Bouncy effect as ball settles in pocket
+        onUpdate: () => {
+          // Calculate final position - gradually move toward the final number pocket
+          const progress = tl.progress();
+          const finalProgress = Math.min(1, (progress - 0.75) * 4); // Normalized progress for final phase
+          
+          // Current rotation from wheel
+          const wheelAngle = wheelRotationRef.current;
+          
+          // Find angle for the winning number
+          const segmentAngle = (2 * Math.PI) / ROULETTE_NUMBERS.length;
+          const numberIndex = ROULETTE_NUMBERS.indexOf(finalNumberRef.current);
+          const finalAngle = numberIndex * segmentAngle - wheelAngle;
+          
+          // Current ball angle
+          const currentBallAngle = ballRotationRef.current - wheelAngle * 0.3;
+          
+          // Interpolate between current position and final pocket position
+          const interpolatedAngle = currentBallAngle + (finalAngle - currentBallAngle) * finalProgress;
+          
+          // Calculate ball radius that gradually decreases (ball moves toward center)
+          const currentBallRadius = ballTrackRadius - (finalProgress * 15);
+          
+          // Update ball position
+          ballPositionRef.current = {
+            x: centerX + currentBallRadius * Math.sin(interpolatedAngle),
+            y: centerY - currentBallRadius * Math.cos(interpolatedAngle)
+          };
+          
+          drawWheel();
+        }
+      }, `>-0.5`); // Overlap with Phase 2 for smooth transition
       
       // At the end, snap ball to the winning number position
       tl.to(ballRotationRef, {
