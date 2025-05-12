@@ -31,6 +31,8 @@ const GameCard = ({
   // Function to get gradient style based on game type - exact Stake.com colors
   const getGradientStyle = () => {
     switch (name) {
+      case 'DICE TRADING':
+        return { background: 'linear-gradient(135deg, #0077b6 0%, #0096c7 50%, #00b4d8 100%)' }; // Blue gradient for trading
       case 'DICE':
         return { background: '#7b1fa2' }; // Purple
       case 'MINES':
@@ -68,6 +70,9 @@ const GameCard = ({
   const getImageSource = () => {
     // For games with Cloudinary images
     switch (name) {
+      case 'DICE TRADING':
+        // Using the new dice trading game image
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1747069880/ChatGPT_Image_May_12_2025_10_41_13_PM_im8ymc.png';
       case 'CRASH CAR':
         // Using the new provided crash car image
         return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1747012882/ChatGPT_Image_May_12_2025_06_50_33_AM_ggfvbv.png';
@@ -361,11 +366,11 @@ const GameCard = ({
             {/* Banner at bottom - excluding ROCKET LAUNCH */}
             {name !== "ROCKET LAUNCH" && (
               <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
-                name === "TOWER CLIMB" || name === "CRASH CAR"
+                name === "TOWER CLIMB" || name === "CRASH CAR" || name === "DICE TRADING"
                   ? "bg-gradient-to-r from-green-700 to-green-500" 
                   : "bg-gradient-to-r from-green-600 to-green-400"
               }`}>
-                {name === "TOWER CLIMB" || name === "CRASH CAR" ? "🔥 New Arrival 🔥" : "High RTP Game"}
+                {name === "TOWER CLIMB" || name === "CRASH CAR" || name === "DICE TRADING" ? "🔥 New Arrival 🔥" : "High RTP Game"}
               </div>
             )}
           </>
