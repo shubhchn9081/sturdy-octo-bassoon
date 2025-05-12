@@ -222,118 +222,61 @@ const DiceTrading = () => {
   };
   
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-screen bg-[#0E1C27] p-4">
-      {/* Left section: Chart and Vertical Slider */}
-      <div className="flex flex-1 bg-[#172B3A] rounded-lg">
-        {/* Vertical Y-axis slider */}
-        <div className="w-24 h-full px-4 py-6 flex flex-col justify-between bg-[#0F212E]">
-          <div className="h-full relative flex flex-col items-center">
-            {/* Vertical scale */}
-            <div className="absolute inset-0 flex flex-col justify-between items-end py-4">
-              <span className="text-xs text-gray-400">100</span>
-              <span className="text-xs text-gray-400">75</span>
-              <span className="text-xs text-gray-400">50</span>
-              <span className="text-xs text-gray-400">25</span>
-              <span className="text-xs text-gray-400">0</span>
-            </div>
-            
-            {/* Range display - custom vertical implementation */}
-            <div className="w-10 h-full mx-auto relative">
-              {/* Background track */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-full bg-gray-700 rounded-full"></div>
-              
-              {/* Selected range */}
-              <div 
-                className="absolute left-1/2 -translate-x-1/2 w-2 bg-primary rounded-full" 
-                style={{ 
-                  top: `${100 - maxRange}%`, 
-                  height: `${maxRange - minRange}%` 
-                }}
-              ></div>
-              
-              {/* Max handle */}
-              <div
-                className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-primary rounded-full transform -translate-y-1/2 cursor-grab hover:scale-110 transition-transform"
-                style={{ top: `${100 - maxRange}%` }}
-                onMouseDown={(event) => {
-                  const sliderTrack = event.currentTarget.parentElement;
-                  if (!sliderTrack) return;
-                  
-                  const rect = sliderTrack.getBoundingClientRect();
-                  
-                  const handleDrag = (e: MouseEvent) => {
-                    const y = e.clientY - rect.top;
-                    const percentage = 100 - Math.max(0, Math.min(100, (y / rect.height) * 100));
-                    handleMaxRangeChange(Math.round(percentage));
-                  };
-                  
-                  const handleMouseUp = () => {
-                    document.removeEventListener('mousemove', handleDrag);
-                    document.removeEventListener('mouseup', handleMouseUp);
-                  };
-                  
-                  // Initial calculation
-                  handleDrag(event.nativeEvent);
-                  
-                  document.addEventListener('mousemove', handleDrag);
-                  document.addEventListener('mouseup', handleMouseUp);
-                }}
-              ></div>
-              
-              {/* Min handle */}
-              <div
-                className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-primary rounded-full transform -translate-y-1/2 cursor-grab hover:scale-110 transition-transform"
-                style={{ top: `${100 - minRange}%` }}
-                onMouseDown={(event) => {
-                  const sliderTrack = event.currentTarget.parentElement;
-                  if (!sliderTrack) return;
-                  
-                  const rect = sliderTrack.getBoundingClientRect();
-                  
-                  const handleDrag = (e: MouseEvent) => {
-                    const y = e.clientY - rect.top;
-                    const percentage = 100 - Math.max(0, Math.min(100, (y / rect.height) * 100));
-                    handleMinRangeChange(Math.round(percentage));
-                  };
-                  
-                  const handleMouseUp = () => {
-                    document.removeEventListener('mousemove', handleDrag);
-                    document.removeEventListener('mouseup', handleMouseUp);
-                  };
-                  
-                  // Initial calculation
-                  handleDrag(event.nativeEvent);
-                  
-                  document.addEventListener('mousemove', handleDrag);
-                  document.addEventListener('mouseup', handleMouseUp);
-                }}
-              ></div>
-            </div>
+    <div className="flex flex-col md:flex-col w-full h-full bg-[#0E1C27] p-2 md:p-4 max-w-[100vw] overflow-hidden">
+      {/* Game Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-r from-green-400 to-blue-500 p-1 rounded">
+            <TrendingUp size={16} className="text-white" />
           </div>
+          <h1 className="text-xl font-bold text-white">DICE TRADING</h1>
         </div>
-        
-        {/* Chart area */}
-        <div className="flex-1 h-full p-4">
-          <div className="h-full w-full bg-[#0F212E] rounded-lg p-4">
-            <div className="text-lg font-semibold mb-2 text-white">Dice Trading Results</div>
-            
+        <div className="text-white font-medium flex items-center">
+          <div className="bg-[#172B3A] p-1 px-2 rounded text-sm">Scalping</div>
+        </div>
+      </div>
+      
+      {/* Chart and Controls Section */}
+      <div className="flex flex-col gap-4">
+        {/* Chart Area with Line Graph */}
+        <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[40vh] md:h-[50vh]">
+          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative">
+            {/* Y-axis markers on the right side */}
+            <div className="absolute right-0 top-0 h-full pr-2 flex flex-col justify-between py-4 z-10 text-xs">
+              <span className="text-blue-400">100</span>
+              <span className="text-blue-400">90</span>
+              <span className="text-blue-400">80</span>
+              <span className="text-blue-400">70</span>
+              <span className="text-blue-400">60</span>
+              <span className="text-blue-400">50</span>
+              <span className="text-blue-400">40</span>
+              <span className="text-blue-400">30</span>
+              <span className="text-blue-400">20</span>
+              <span className="text-blue-400">10</span>
+              <span className="text-blue-400">0</span>
+            </div>
+          
             {/* Chart display for historical results */}
-            <div className="w-full h-[calc(100%-40px)]">
+            <div className="w-full h-full pr-8">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={chartData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                   <XAxis 
                     dataKey="round" 
-                    stroke="#888888" 
-                    tick={{ fill: '#888888' }}
+                    stroke="#3B82F6" 
+                    tick={{ fill: '#3B82F6' }}
+                    tickLine={false}
+                    axisLine={false}
                   />
                   <YAxis 
                     domain={[0, 100]} 
-                    stroke="#888888" 
-                    tick={{ fill: '#888888' }}
+                    stroke="#3B82F6" 
+                    tick={false}
+                    tickLine={false}
+                    axisLine={false}
                   />
                   <Tooltip 
                     contentStyle={{ 
@@ -344,166 +287,227 @@ const DiceTrading = () => {
                     labelStyle={{ color: 'white' }}
                   />
                   
-                  {/* Selected range area */}
+                  {/* Range area */}
                   <ReferenceLine 
                     y={minRange} 
                     stroke="#3B82F6" 
-                    strokeDasharray="3 3" 
-                    label={{ 
-                      value: `Min: ${minRange}`, 
-                      fill: '#3B82F6',
-                      position: 'left'
-                    }} 
+                    strokeDasharray="3 3"
                   />
                   <ReferenceLine 
                     y={maxRange} 
                     stroke="#3B82F6" 
-                    strokeDasharray="3 3" 
-                    label={{ 
-                      value: `Max: ${maxRange}`, 
-                      fill: '#3B82F6',
-                      position: 'left'
-                    }} 
+                    strokeDasharray="3 3"
                   />
                   
                   {/* Result line */}
                   <Line
                     type="monotone"
                     dataKey="value"
-                    stroke="#F59E0B"
+                    stroke="#22c55e"
                     strokeWidth={2}
-                    dot={{ fill: '#F59E0B', r: 4 }}
-                    activeDot={{ fill: '#FFFFFF', stroke: '#F59E0B', strokeWidth: 2, r: 6 }}
+                    dot={{ fill: 'white', stroke: '#22c55e', r: 4 }}
+                    activeDot={{ fill: '#FFFFFF', stroke: '#22c55e', strokeWidth: 2, r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            
+            {/* Range indicator circles - Fixed on right side */}
+            <div className="absolute right-3 top-0 h-full flex flex-col justify-between py-8">
+              <div 
+                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
+                onClick={() => handleMaxRangeChange(90)}
+                onTouchStart={() => handleMaxRangeChange(90)}
+              ></div>
+              <div 
+                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
+                onClick={() => {
+                  handleMaxRangeChange(60);
+                  handleMinRangeChange(40);
+                }}
+                onTouchStart={() => {
+                  handleMaxRangeChange(60);
+                  handleMinRangeChange(40);
+                }}
+              ></div>
+              <div 
+                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
+                onClick={() => {
+                  handleMaxRangeChange(40);
+                  handleMinRangeChange(20);
+                }}
+                onTouchStart={() => {
+                  handleMaxRangeChange(40);
+                  handleMinRangeChange(20);
+                }}
+              ></div>
+              <div 
+                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
+                onClick={() => handleMinRangeChange(10)}
+                onTouchStart={() => handleMinRangeChange(10)}
+              ></div>
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Right section: Betting panel and stats */}
-      <div className="w-full lg:w-80 flex flex-col gap-4">
-        {/* Current result display */}
-        <Card className="bg-[#172B3A] border-0 overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-[#0F212E] p-4 flex justify-between items-center">
+
+        {/* Risk and Stats Section */}
+        <div className="bg-[#172B3A] rounded-lg p-3">
+          <div className="flex justify-between items-center mb-4">
+            {/* Risk meter */}
+            <div className="flex flex-col">
+              <div className="mb-1 relative w-32 h-6 bg-[#0F212E] rounded-full overflow-hidden">
+                <div className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-400 to-green-500" style={{ width: `${winChance}%` }}></div>
+                <div className="absolute left-0 top-0 h-full w-full flex items-center justify-center text-xs text-white font-medium">Risk</div>
+              </div>
+            </div>
+            
+            {/* Multiplier and Payout */}
+            <div className="text-right">
+              <div className="text-green-400 font-bold text-xl">{multiplier.toFixed(2)}x</div>
+              <div className="text-sm text-white">Multiplier</div>
+            </div>
+
+            <div className="text-right">
+              <div className="text-green-400 font-bold text-xl">${potentialWin.toFixed(2)}</div>
+              <div className="text-sm text-white">Possible Payout</div>
+            </div>
+          </div>
+          
+          {/* Roll Between Range */}
+          <div className="mb-4">
+            <div className="text-sm text-white mb-1">Roll Between</div>
+            <div className="grid grid-cols-4 gap-2">
+              <div className="bg-[#0F212E] p-2 rounded text-center text-white font-medium">
+                {minRange}
+              </div>
+              <div className="bg-[#0F212E] p-2 rounded text-center text-white font-medium">
+                {Math.floor(minRange + (maxRange - minRange) / 3)}
+              </div>
+              <div className="text-center text-white font-medium p-2">&</div>
+              <div className="bg-[#0F212E] p-2 rounded text-center text-white font-medium">
+                {maxRange}
+              </div>
+            </div>
+          </div>
+          
+          {/* Bet Amount Controls */}
+          <div className="relative mb-4">
+            <div className="text-sm text-white mb-2">Bet Amount</div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setBetAmount(1)}
+                className="bg-[#0F212E] text-white py-2 px-3 rounded-md text-xs"
+              >
+                min
+              </button>
+              
+              <button 
+                onClick={handleDecrementBet}
+                className="bg-[#0F212E] text-white py-2 px-4 rounded-l-md hover:bg-blue-700 transition-colors"
+              >
+                <Minus size={16} />
+              </button>
+              
+              <div className="flex-1 bg-[#0F212E] py-2 text-center text-white font-medium border-l border-r border-[#172B3A]">
+                ${betAmount}
+              </div>
+              
+              <button 
+                onClick={handleIncrementBet}
+                className="bg-[#0F212E] text-white py-2 px-4 rounded-r-md hover:bg-blue-700 transition-colors"
+              >
+                <Plus size={16} />
+              </button>
+              
+              <button 
+                onClick={() => setBetAmount(100)}
+                className="bg-[#0F212E] text-white py-2 px-3 rounded-md text-xs"
+              >
+                max
+              </button>
+            </div>
+          </div>
+          
+          {/* Place Bet Button */}
+          <Button
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-md transition-colors text-lg font-bold"
+            disabled={isRolling}
+            onClick={placeBet}
+          >
+            {isRolling ? 'Rolling...' : 'Place bet'}
+          </Button>
+        </div>
+        
+        {/* Game Stats */}
+        <div className="bg-[#172B3A] rounded-lg p-3 hidden md:block">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Current Roll / Result */}
+            <div className="flex justify-between items-center">
               <span className="text-gray-300">Current Roll</span>
               {result !== null && (
-                <span className={`text-2xl font-bold ${won ? 'text-green-500' : 'text-red-500'}`}>
+                <span className={`text-xl font-bold ${won ? 'text-green-500' : 'text-red-500'}`}>
                   {result}
                 </span>
               )}
             </div>
             
-            <div className="p-4 space-y-4">
-              {/* Range display */}
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Range</span>
-                <span className="text-white font-semibold">{minRange} - {maxRange}</span>
-              </div>
-              
-              {/* Range size */}
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Range Size</span>
-                <span className="text-white font-semibold">{rangeSize}%</span>
-              </div>
-              
-              {/* Multiplier */}
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Multiplier</span>
-                <span className="text-white font-semibold">×{multiplier.toFixed(2)}</span>
-              </div>
-              
-              {/* Win chance */}
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Win Chance</span>
-                <span className="text-white font-semibold">{winChance}%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Betting controls */}
-        <Card className="bg-[#172B3A] border-0">
-          <CardContent className="p-4 space-y-4">
-            {/* Bet amount input */}
-            <div className="space-y-2">
-              <label className="text-gray-400 text-sm">Bet Amount</label>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={handleDecrementBet}
-                  className="bg-[#0F212E] text-white p-2 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <Minus size={16} />
-                </button>
-                <Input
-                  type="number"
-                  value={betAmount}
-                  onChange={handleBetAmountChange}
-                  className="bg-[#0F212E] border-[#0F212E] text-white"
-                />
-                <button 
-                  onClick={handleIncrementBet}
-                  className="bg-[#0F212E] text-white p-2 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
+            {/* Range display */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Range</span>
+              <span className="text-white font-semibold">{minRange} - {maxRange}</span>
             </div>
             
-            {/* Potential win display */}
-            <div className="bg-[#0F212E] p-3 rounded-md">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Potential Win</span>
-                <span className="text-white font-semibold">{potentialWin.toFixed(2)} {symbol}</span>
-              </div>
+            {/* Range size */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Range Size</span>
+              <span className="text-white font-semibold">{rangeSize}%</span>
             </div>
             
-            {/* Place bet button */}
-            <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors"
-              disabled={isRolling}
-              onClick={placeBet}
-            >
-              {isRolling ? 'Rolling...' : 'Roll Dice'}
-            </Button>
-          </CardContent>
-        </Card>
+            {/* Win chance */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Win Chance</span>
+              <span className="text-white font-semibold">{winChance}%</span>
+            </div>
+          </div>
+        </div>
         
-        {/* Recent activity */}
-        <Card className="bg-[#172B3A] border-0 flex-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Users size={18} className="text-gray-400" />
-              <span className="text-white font-semibold">Recent Activity</span>
-            </div>
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
-              {recentBets.map((bet, index) => (
-                <div key={index} className="bg-[#0F212E] p-2 rounded-md text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">{bet.username}</span>
-                    <span className={`font-semibold ${bet.win ? 'text-green-500' : 'text-red-500'}`}>
-                      {bet.result}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-gray-400">Range: {bet.minRange}-{bet.maxRange}</span>
-                    <span className={`font-semibold ${bet.win ? 'text-green-500' : 'text-red-500'}`}>
-                      {bet.win ? `+${bet.profit.toFixed(2)}` : `-${bet.amount.toFixed(2)}`} {symbol}
-                    </span>
-                  </div>
+        {/* Recent activity - Only shown on larger screens */}
+        <div className="bg-[#172B3A] rounded-lg p-3 hidden md:block">
+          <div className="flex items-center gap-2 mb-2">
+            <Users size={18} className="text-blue-400" />
+            <span className="text-white font-semibold">Recent Activity</span>
+          </div>
+          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            {recentBets.map((bet, index) => (
+              <div key={index} className="bg-[#0F212E] p-2 rounded-md text-sm flex justify-between items-center">
+                <div className="flex items-center">
+                  <span className="text-gray-300 mr-2">{bet.username}</span>
+                  <span className="text-gray-400 text-xs">({bet.minRange}-{bet.maxRange})</span>
                 </div>
-              ))}
-              
-              {recentBets.length === 0 && (
-                <div className="text-center py-4 text-gray-400">
-                  No recent bets
+                <div className="flex items-center">
+                  <span className={`mr-2 font-medium ${bet.win ? 'text-green-500' : 'text-red-500'}`}>
+                    {bet.result}
+                  </span>
+                  <span className={`text-xs font-semibold ${bet.win ? 'text-green-500' : 'text-red-500'}`}>
+                    {bet.win ? `+${bet.profit.toFixed(2)}` : `-${bet.amount.toFixed(2)}`}
+                  </span>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            ))}
+            
+            {recentBets.length === 0 && (
+              <div className="text-center py-2 text-gray-400 text-sm">
+                No recent bets
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Footer - game info */}
+      <div className="mt-auto pt-2 text-center text-xs text-gray-500">
+        <div>Turbo Games · Trading Dice</div>
+        <div>{new Date().toLocaleDateString()} | {new Date().toLocaleTimeString()}</div>
       </div>
     </div>
   );
