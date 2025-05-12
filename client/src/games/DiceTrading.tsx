@@ -431,13 +431,13 @@ const DiceTrading = () => {
                         className="absolute left-0 top-0 h-full" 
                         style={{ 
                           width: `${riskLevel}%`,
-                          background: riskLevel > 75 
-                            ? 'linear-gradient(to right, #22c55e, #16a34a)' // Brighter green for very high risk
+                          background: riskLevel > 70 
+                            ? 'linear-gradient(to right, #ef4444, #dc2626)' // Red for very high risk (above 70%)
                             : riskLevel > 50 
-                              ? 'linear-gradient(to right, #22c55e, #22c55e)' // Standard green for high risk
+                              ? 'linear-gradient(to right, #22c55e, #16a34a)' // Green for high risk (50-70%)
                               : riskLevel > 25 
-                                ? 'linear-gradient(to right, #2563eb, #3b82f6)' // Blue for medium risk  
-                                : 'linear-gradient(to right, #6b7280, #9ca3af)' // Gray for low risk
+                                ? 'linear-gradient(to right, #2563eb, #3b82f6)' // Blue for medium risk (25-50%) 
+                                : 'linear-gradient(to right, #6b7280, #9ca3af)' // Gray for low risk (0-25%)
                         }}
                       ></div>
                       
