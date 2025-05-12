@@ -54,8 +54,13 @@ const DiceTrading = () => {
   // WebSocket reference
   const socketRef = useRef<WebSocket | null>(null);
   
-  // Chart data
-  const [chartData, setChartData] = useState<Array<{ round: number; value: number }>>([]);
+  // Chart data with initial sample points
+  const [chartData, setChartData] = useState<Array<{ round: number; value: number }>>(
+    Array.from({ length: 10 }, (_, i) => ({
+      round: i + 1,
+      value: Math.floor(Math.random() * 100)
+    }))
+  );
   const [animatingLine, setAnimatingLine] = useState(false);
   const [displayedData, setDisplayedData] = useState<Array<{ round: number; value: number }>>([]);
   
@@ -129,6 +134,11 @@ const DiceTrading = () => {
         socket.close();
       }
     };
+  }, []);
+  
+  // Initialize displayedData from chartData on mount
+  useEffect(() => {
+    setDisplayedData(chartData);
   }, []);
   
   // Update range size, multiplier, and win chance when min/max changes
