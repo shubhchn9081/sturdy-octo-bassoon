@@ -331,6 +331,16 @@ const DiceTrading = () => {
   const placeBet = async () => {
     if (isRolling) return;
     
+    // Check if user has enough balance
+    if (betAmount > balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You need ₹${betAmount.toFixed(2)} to place this bet. Your current balance is ₹${balance.toFixed(2)}.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
       setIsRolling(true);
       setWon(null);
@@ -346,7 +356,8 @@ const DiceTrading = () => {
           amount: betAmount,
           minRange,
           maxRange,
-          clientSeed
+          clientSeed,
+          currency: 'INR' // Explicitly define currency as INR
         })
       });
       
@@ -375,7 +386,7 @@ const DiceTrading = () => {
       if (playerWon) {
         toast({
           title: "You Won!",
-          description: `You won ${betProfit.toFixed(2)} ${symbol}!`,
+          description: `You won ₹${betProfit.toFixed(2)}!`,
           variant: "default",
         });
       } else {
@@ -386,8 +397,22 @@ const DiceTrading = () => {
         });
       }
       
-      // Refresh balance
+      // Immediately refresh balance to show the updated wallet amount
       refreshBalance();
+      
+      // Add to recent bets if not already there
+      const newBet = {
+        username: "You",
+        minRange: minRange,
+        maxRange: maxRange,
+        result: diceResult,
+        win: playerWon,
+        amount: betAmount,
+        profit: betProfit,
+        timestamp: new Date().toISOString()
+      };
+      
+      setRecentBets(prev => [newBet, ...prev.slice(0, 9)]);
       
     } catch (error) {
       console.error('Error in dice trading game:', error);
@@ -398,6 +423,9 @@ const DiceTrading = () => {
       });
     } finally {
       setIsRolling(false);
+      
+      // Refresh balance again after bet is complete
+      setTimeout(() => refreshBalance(), 500);
     }
   };
   
