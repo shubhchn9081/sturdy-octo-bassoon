@@ -241,8 +241,8 @@ const DiceTrading = () => {
         {/* Chart Area with Line Graph */}
         <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[40vh] md:h-[50vh]">
           <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative">
-            {/* Y-axis markers on the right side */}
-            <div className="absolute right-0 top-0 h-full pr-2 flex flex-col justify-between py-4 z-10 text-xs">
+            {/* Y-axis markers on the left side */}
+            <div className="absolute left-0 top-0 h-full pl-2 flex flex-col justify-between py-4 z-10 text-xs">
               <span className="text-blue-400">100</span>
               <span className="text-blue-400">90</span>
               <span className="text-blue-400">80</span>
@@ -257,7 +257,7 @@ const DiceTrading = () => {
             </div>
           
             {/* Chart display for historical results */}
-            <div className="w-full h-full pr-8">
+            <div className="w-full h-full pl-8">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={chartData}
@@ -312,39 +312,23 @@ const DiceTrading = () => {
               </ResponsiveContainer>
             </div>
             
-            {/* Range indicator circles - Fixed on right side */}
-            <div className="absolute right-3 top-0 h-full flex flex-col justify-between py-8">
+            {/* Range indicator circles - Fixed on left side (only 2 circles) */}
+            <div className="absolute left-3 top-0 h-full flex flex-col justify-between py-8">
               <div 
                 className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
                 onClick={() => handleMaxRangeChange(90)}
-                onTouchStart={() => handleMaxRangeChange(90)}
-              ></div>
-              <div 
-                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
-                onClick={() => {
-                  handleMaxRangeChange(60);
-                  handleMinRangeChange(40);
-                }}
-                onTouchStart={() => {
-                  handleMaxRangeChange(60);
-                  handleMinRangeChange(40);
-                }}
-              ></div>
-              <div 
-                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
-                onClick={() => {
-                  handleMaxRangeChange(40);
-                  handleMinRangeChange(20);
-                }}
-                onTouchStart={() => {
-                  handleMaxRangeChange(40);
-                  handleMinRangeChange(20);
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  handleMaxRangeChange(90);
                 }}
               ></div>
               <div 
                 className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
                 onClick={() => handleMinRangeChange(10)}
-                onTouchStart={() => handleMinRangeChange(10)}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  handleMinRangeChange(10);
+                }}
               ></div>
             </div>
           </div>
