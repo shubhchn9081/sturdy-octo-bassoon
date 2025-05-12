@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, IndianRupee, ArrowRight, CheckCircle, Shield, TrendingUp } from "lucide-react";
+import { Loader2, CreditCard, IndianRupee, ArrowRight, CheckCircle, Shield, TrendingUp, Gift } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Generate a unique ID for transactions
