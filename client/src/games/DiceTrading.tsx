@@ -477,11 +477,15 @@ const DiceTrading = () => {
                 style={{ top: `${100 - maxRange}%` }}
               >
                 <div 
-                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none"
+                  className="w-12 h-12 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none bg-[#0F212E]/80 shadow-lg"
                   onMouseDown={(e) => handleSliderDrag(e, sliderRef, false)}
                   onTouchStart={(e) => handleSliderDrag(e, sliderRef, false)}
                 >
-                  <span className="text-blue-400 text-xs font-semibold">{maxRange}</span>
+                  <span className="text-blue-400 text-sm font-semibold">{maxRange}</span>
+                </div>
+                {/* Outside value label matching screenshot */}
+                <div className="absolute -left-7 whitespace-nowrap flex items-center">
+                  <span className="text-blue-400 text-sm font-bold">{maxRange}</span>
                 </div>
               </div>
               
@@ -491,11 +495,15 @@ const DiceTrading = () => {
                 style={{ top: `${100 - minRange}%` }}
               >
                 <div 
-                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none"
+                  className="w-12 h-12 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none bg-[#0F212E]/80 shadow-lg"
                   onMouseDown={(e) => handleSliderDrag(e, sliderRef, true)}
                   onTouchStart={(e) => handleSliderDrag(e, sliderRef, true)}
                 >
-                  <span className="text-blue-400 text-xs font-semibold">{minRange}</span>
+                  <span className="text-blue-400 text-sm font-semibold">{minRange}</span>
+                </div>
+                {/* Outside value label matching screenshot */}
+                <div className="absolute -left-7 whitespace-nowrap flex items-center">
+                  <span className="text-blue-400 text-sm font-bold">{minRange}</span>
                 </div>
               </div>
               
