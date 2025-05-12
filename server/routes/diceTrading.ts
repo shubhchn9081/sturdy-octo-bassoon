@@ -45,11 +45,21 @@ router.post('/place-bet', auth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Currently assuming only INR currency
+    // Get user balance (handling both numeric and object formats)
     const currency = 'INR';
-    const userBalance = typeof user.balance === 'object' && user.balance !== null 
-      ? (user.balance as Record<string, number>)[currency] || 0
-      : 0;
+    let userBalance = 0;
+    
+    if (typeof user.balance === 'number') {
+      // Legacy numeric balance (treated as INR)
+      userBalance = user.balance;
+    } else if (typeof user.balance === 'object' && user.balance !== null) {
+      // JSONB format with multiple currencies
+      const balanceObj = user.balance as Record<string, number>;
+      userBalance = balanceObj[currency] || 0;
+    }
+    
+    // Debug log
+    console.log(`Checking balance for user ${user.id}: Has ${userBalance}, needs ${amount}`);
     
     if (userBalance < amount) {
       return res.status(400).json({ message: 'Insufficient balance' });

@@ -21,8 +21,8 @@ const DiceTrading = () => {
   const { toast } = useToast();
   const { balance, symbol, refreshBalance } = useWallet();
   
-  // Game state
-  const [betAmount, setBetAmount] = useState(10);
+  // Game state - start with a smaller bet to avoid balance issues
+  const [betAmount, setBetAmount] = useState(1);
   const [minRange, setMinRange] = useState(40);
   const [maxRange, setMaxRange] = useState(60);
   const [rangeSize, setRangeSize] = useState(20);
@@ -172,6 +172,7 @@ const DiceTrading = () => {
       
       if (!response.ok) {
         const errorData = await response.json();
+        console.log("API error response:", errorData);
         throw new Error(errorData.message || 'Failed to place bet');
       }
       
@@ -212,7 +213,7 @@ const DiceTrading = () => {
       console.error('Error in dice trading game:', error);
       toast({
         title: "Error placing bet",
-        description: "An error occurred while placing your bet",
+        description: error instanceof Error ? error.message : "An error occurred while placing your bet",
         variant: "destructive"
       });
     } finally {
