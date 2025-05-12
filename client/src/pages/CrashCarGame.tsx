@@ -43,6 +43,7 @@ const SimpleBettingPanel = ({
   const { balance } = useWallet();
   const [localBetAmount, setLocalBetAmount] = useState<string>(betAmount.toString());
   const [autoPlay, setAutoPlay] = useState<boolean>(false);
+  const [betPlaced, setBetPlaced] = useState<boolean>(false);
   
   // Extract all needed state from the store at the top of the component
   const activeBets = useCrashCarStore(state => state.activeBets);
@@ -53,6 +54,16 @@ const SimpleBettingPanel = ({
   
   // Check if player has an active bet
   const hasActiveBet = activeBets.some(bet => bet.isPlayer && bet.status === 'active');
+  
+  // Custom place bet function that sets feedback
+  const handlePlaceBet = () => {
+    placeBet();
+    setBetPlaced(true);
+    // Reset after 2 seconds
+    setTimeout(() => {
+      setBetPlaced(false);
+    }, 2000);
+  };
   
   // Preset bet amounts
   const presetAmounts = [1, 100, 10000, 50000];
@@ -241,12 +252,14 @@ const SimpleBettingPanel = ({
           /* Place bet button - always show during waiting/refueling phase */
           <Button
             variant="default"
-            className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-black rounded-lg shadow-lg shadow-green-500/30"
-            onClick={placeBet}
-            disabled={betAmount <= 0 || gameState === 'running'}
+            className={`w-full h-16 text-2xl font-bold ${betPlaced 
+              ? 'bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600' 
+              : 'bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600'
+            } text-black rounded-lg shadow-lg shadow-green-500/30`}
+            onClick={handlePlaceBet}
+            disabled={betAmount <= 0 || gameState === 'running' || betPlaced}
           >
-            {/* Never show the waiting animation */}
-            {gameState === 'running' ? 'IN PROGRESS' : 'PLACE BET'}
+            {betPlaced ? 'BET PLACED ✓' : (gameState === 'running' ? 'IN PROGRESS' : 'PLACE BET')}
           </Button>
         )}
         
