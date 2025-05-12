@@ -25,7 +25,7 @@ export const GAMES = [
     id: 300,
     name: 'ROULETTE',
     slug: 'roulette',
-    type: 'NOVITO ORIGINALS',
+    type: 'TABLE GAMES',
     description: 'Classic European Roulette with multiple bet types',
     color: 'bg-[#d40000]',
     iconType: 'target',
