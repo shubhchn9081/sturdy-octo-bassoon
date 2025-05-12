@@ -69,10 +69,14 @@ export default function SupportPage() {
               <CardTitle className="text-2xl font-bold ml-3">Live Support</CardTitle>
             </div>
             <div className="flex items-center">
-              <Badge className="bg-green-500 mr-2 flex items-center animate-pulse">
-                <Circle className="h-2 w-2 mr-1 fill-white" /> Online
-              </Badge>
-              <span className="text-sm text-gray-300">{agentName} is available</span>
+              <div className="flex items-center bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-1 rounded-full mr-3 shadow-md shadow-emerald-800/30">
+                <div className="relative mr-1.5">
+                  <Circle className="h-2 w-2 fill-white" />
+                  <div className="absolute top-0 left-0 h-2 w-2 bg-white rounded-full animate-ping opacity-75"></div>
+                </div>
+                <span className="text-xs font-medium text-white">Online</span>
+              </div>
+              <span className="text-sm font-medium text-gray-300">{agentName} is available</span>
             </div>
           </div>
           <CardDescription className="text-[#7F8990]">
@@ -89,26 +93,36 @@ export default function SupportPage() {
               Our support team is ready to assist you with any questions or issues you might have.
             </p>
             <Button 
-              className="bg-[#1375e1] hover:bg-[#1060c0] text-white px-6 py-6 text-lg flex items-center"
+              className="bg-gradient-to-r from-[#1375e1] to-[#0d5bb2] hover:from-[#1060c0] hover:to-[#0a4e9a] text-white px-8 py-7 text-lg font-medium flex items-center rounded-lg shadow-lg shadow-blue-900/20 transition-all duration-200 hover:shadow-xl hover:shadow-blue-900/30 hover:transform hover:scale-[1.02]"
               onClick={() => window.open('https://t.me/Novito_support', '_blank')}
             >
-              <MessageSquare className="h-5 w-5 mr-2" />
+              <MessageSquare className="h-5 w-5 mr-3" />
               Talk to Support
             </Button>
-            <div className="flex flex-col items-center mt-4">
-              <span className="text-sm text-[#7F8990]">24*7 Support</span>
-              <span className="text-sm text-[#7F8990]">Real humans, No bots</span>
-              <span className="text-sm text-[#7F8990]">Multi-language support</span>
+            <div className="flex flex-col items-center mt-5 space-y-1.5">
+              <div className="bg-[#0F212E] px-4 py-1.5 rounded-full text-sm font-medium text-white">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#1375e1] to-[#4cd964]">24*7 Support</span>
+              </div>
+              <div className="bg-[#0F212E] px-4 py-1.5 rounded-full text-sm font-medium text-white">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#1375e1] to-[#4cd964]">Real humans, No bots</span>
+              </div>
+              <div className="bg-[#0F212E] px-4 py-1.5 rounded-full text-sm font-medium text-white">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#1375e1] to-[#4cd964]">Multi-language support</span>
+              </div>
             </div>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6">
             {supportFeatures.map((feature, index) => (
-              <Card key={index} className="bg-[#0F212E] border-[#243442] text-white">
+              <Card key={index} className="bg-[#0F212E] border-[#243442] text-white hover:shadow-xl hover:shadow-blue-900/10 transition-all duration-300 hover:transform hover:scale-[1.02] group">
                 <CardContent className="p-6 flex flex-col items-center text-center">
-                  {feature.icon}
-                  <h3 className="font-semibold my-3">{feature.title}</h3>
-                  <p className="text-[#7F8990] text-sm">{feature.description}</p>
+                  <div className="bg-gradient-to-br from-[#132a3a] to-[#0d1c27] p-4 rounded-full mb-4 ring-2 ring-[#1375e1]/10 group-hover:ring-[#1375e1]/30 transition-all duration-300">
+                    <div className="text-[#1375e1] group-hover:text-[#1687f5] transition-colors">
+                      {feature.icon}
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-lg mb-3 group-hover:text-[#1375e1] transition-colors">{feature.title}</h3>
+                  <p className="text-[#7F8990] text-sm leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
