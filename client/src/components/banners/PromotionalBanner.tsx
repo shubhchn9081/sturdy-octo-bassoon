@@ -8,16 +8,21 @@ interface PromotionalBannerProps {
 const banners = [
   {
     id: 1,
+    image: '/banners/carx-banner.png',
+    alt: 'NEW ARRIVAL - CarX - RACE TO WIN!'
+  },
+  {
+    id: 2,
     image: '/banners/mines-matrix-banner.png',
     alt: 'Mines Game - Skip the mines, win the cash!'
   },
   {
-    id: 2,
+    id: 3,
     image: '/banners/crash-game-banner-new.png',
     alt: 'Crash Game - Test your nerve, play crash!'
   },
   {
-    id: 3,
+    id: 4,
     image: '/banners/slots-banner.png',
     alt: 'Slots Game - Try your luck and spin slots!'
   }
@@ -47,8 +52,8 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {/* All banners now link to the casino page */}
-          <a href="/casino" className="block">
+          {/* Link banners to appropriate pages */}
+          <a href={currentBanner === 0 ? "/races" : "/casino"} className="block">
             <motion.div 
               className="relative rounded-lg shadow-lg overflow-hidden transition-transform duration-300"
               whileHover={{ scale: 1.01 }}
