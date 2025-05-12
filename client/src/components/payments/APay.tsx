@@ -163,39 +163,32 @@ export function APay() {
           <div className="mb-6">
             <Label className="text-xs text-[#7F8990] mb-2 block">Quick Select:</Label>
             <div className="grid grid-cols-5 gap-2">
-              {quickAmounts.map((quickAmount) => (
-                quickAmount === 2000 ? (
-                  <TooltipProvider key={quickAmount}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="relative">
-                          <div className="absolute -top-2 -right-2 z-10 bg-[#FF9900] text-black text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center shadow-md">
-                            <TrendingUp className="w-2 h-2 mr-0.5" />
-                            POPULAR
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className={`text-sm py-1 h-auto border-[#3A4A59] w-full
-                              ${parseFloat(amount) === quickAmount 
-                                ? "bg-[#243442] border-[#FF9900] text-[#FF9900] ring-2 ring-[#FF9900]/30" 
-                                : "text-white hover:bg-[#243442] border-[#FF9900] ring-1 ring-[#FF9900]/20"
-                              }`}
-                            onClick={() => selectQuickAmount(quickAmount)}
-                          >
-                            ₹{quickAmount}
-                          </Button>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-[#243442] border-[#3A4A59] text-white">
-                        <div className="flex items-center">
-                          <TrendingUp className="w-3.5 h-3.5 text-[#FF9900] mr-1.5" />
-                          <span>Most players choose this amount!</span>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
+              {quickAmounts.map((quickAmount) => {
+                if (quickAmount === 2000) {
+                  return (
+                    <div key={quickAmount} className="relative">
+                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10 bg-[#FF9900] text-black text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center shadow-md whitespace-nowrap">
+                        <TrendingUp className="w-2 h-2 mr-0.5" />
+                        POPULAR
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={`text-sm py-1 pt-3 h-auto border-[#3A4A59] w-full
+                          ${parseFloat(amount) === quickAmount 
+                            ? "bg-[#243442] border-[#FF9900] text-[#FF9900] ring-2 ring-[#FF9900]/30" 
+                            : "text-white hover:bg-[#243442] border-[#FF9900] ring-1 ring-[#FF9900]/20"
+                          }`}
+                        onClick={() => selectQuickAmount(quickAmount)}
+                        title="Most players choose this amount!"
+                      >
+                        ₹{quickAmount}
+                      </Button>
+                    </div>
+                  );
+                }
+                
+                return (
                   <Button
                     key={quickAmount}
                     type="button"
@@ -209,8 +202,8 @@ export function APay() {
                   >
                     ₹{quickAmount}
                   </Button>
-                )
-              ))}
+                );
+              })}
             </div>
           </div>
           
