@@ -240,24 +240,50 @@ const DiceTrading = () => {
       <div className="flex flex-col gap-4">
         {/* Chart Area with Line Graph */}
         <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[40vh] md:h-[50vh]">
-          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative">
-            {/* Y-axis markers on the left side */}
-            <div className="absolute left-0 top-0 h-full pl-2 flex flex-col justify-between py-4 z-10 text-xs">
-              <span className="text-blue-400">100</span>
-              <span className="text-blue-400">90</span>
-              <span className="text-blue-400">80</span>
-              <span className="text-blue-400">70</span>
-              <span className="text-blue-400">60</span>
-              <span className="text-blue-400">50</span>
-              <span className="text-blue-400">40</span>
-              <span className="text-blue-400">30</span>
-              <span className="text-blue-400">20</span>
-              <span className="text-blue-400">10</span>
-              <span className="text-blue-400">0</span>
+          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative flex">
+            {/* Left side - only 2 fixed range slider circles */}
+            <div className="w-12 h-full flex flex-col justify-between py-6 relative">
+              {/* Top range circle (100 mark) */}
+              <div className="flex items-center">
+                <div 
+                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-pointer"
+                  onClick={() => handleMaxRangeChange(90)}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    handleMaxRangeChange(90);
+                  }}
+                >
+                  <span className="text-blue-400 text-xs font-semibold">100</span>
+                </div>
+              </div>
+              
+              {/* Bottom range circle (0 mark) */}
+              <div className="flex items-center">
+                <div 
+                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-pointer"
+                  onClick={() => handleMinRangeChange(10)}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    handleMinRangeChange(10);
+                  }}
+                >
+                  <span className="text-blue-400 text-xs font-semibold">0</span>
+                </div>
+              </div>
+              
+              {/* Vertical number labels */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-0 h-full flex flex-col justify-between text-xs font-medium text-blue-400 pointer-events-none">
+                <div className="opacity-0">100</div>
+                <div>80</div>
+                <div>60</div>
+                <div>40</div>
+                <div>20</div>
+                <div className="opacity-0">0</div>
+              </div>
             </div>
           
             {/* Chart display for historical results */}
-            <div className="w-full h-full pl-8">
+            <div className="flex-1 h-full pl-2">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={chartData}
@@ -311,26 +337,6 @@ const DiceTrading = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            
-            {/* Range indicator circles - Fixed on left side (only 2 circles) */}
-            <div className="absolute left-3 top-0 h-full flex flex-col justify-between py-8">
-              <div 
-                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
-                onClick={() => handleMaxRangeChange(90)}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  handleMaxRangeChange(90);
-                }}
-              ></div>
-              <div 
-                className="w-8 h-8 rounded-full border-4 border-blue-400 bg-transparent cursor-pointer"
-                onClick={() => handleMinRangeChange(10)}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  handleMinRangeChange(10);
-                }}
-              ></div>
-            </div>
           </div>
         </div>
 
@@ -361,14 +367,29 @@ const DiceTrading = () => {
           <div className="mb-4">
             <div className="text-sm text-white mb-1">Roll Between</div>
             <div className="grid grid-cols-4 gap-2">
-              <div className="bg-[#0F212E] p-2 rounded text-center text-white font-medium">
+              <div 
+                className="bg-[#0F212E] p-2 rounded text-center text-white font-medium cursor-pointer hover:bg-[#1E3A4A] transition-colors"
+                onClick={() => handleMinRangeChange(Math.max(0, minRange - 5))}
+              >
                 {minRange}
               </div>
-              <div className="bg-[#0F212E] p-2 rounded text-center text-white font-medium">
-                {Math.floor(minRange + (maxRange - minRange) / 3)}
+              <div 
+                className="bg-[#0F212E] p-2 rounded text-center text-white font-medium cursor-pointer hover:bg-[#1E3A4A] transition-colors"
+                onClick={() => {
+                  // Adjust min/max ranges to middle values
+                  const midpoint = Math.floor((minRange + maxRange) / 2);
+                  const range = 10;
+                  handleMinRangeChange(midpoint - range);
+                  handleMaxRangeChange(midpoint + range);
+                }}
+              >
+                {Math.floor((minRange + maxRange) / 2)}
               </div>
               <div className="text-center text-white font-medium p-2">&</div>
-              <div className="bg-[#0F212E] p-2 rounded text-center text-white font-medium">
+              <div 
+                className="bg-[#0F212E] p-2 rounded text-center text-white font-medium cursor-pointer hover:bg-[#1E3A4A] transition-colors"
+                onClick={() => handleMaxRangeChange(Math.min(100, maxRange + 5))}
+              >
                 {maxRange}
               </div>
             </div>
