@@ -119,7 +119,7 @@ router.post('/place-bet', auth, async (req, res) => {
     broadcastToTopic('dice-trading', {
       type: 'bet-result',
       userId: req.user!.id,
-      username: user?.username || 'Anonymous',
+      username: updatedUserInfo?.username || 'Anonymous',
       amount: amount,
       result: outcome.result,
       minRange: outcome.minRange,
@@ -133,7 +133,7 @@ router.post('/place-bet', auth, async (req, res) => {
     // Return the bet result to the requesting client
     res.json({
       bet,
-      balance: user?.balance,
+      balance: updatedUserInfo?.balance,
       serverSeedHash: hashedServerSeed
     });
     

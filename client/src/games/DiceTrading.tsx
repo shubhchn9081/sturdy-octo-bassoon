@@ -197,6 +197,33 @@ const DiceTrading = () => {
     }, 500);
   };
   
+  // API client for dice trading
+  const placeTradingBet = async (params: {
+    amount: number;
+    minRange: number;
+    maxRange: number;
+  }) => {
+    const clientSeed = Math.random().toString(36).substring(2, 15);
+    
+    const response = await fetch('/api/dice-trading/place-bet', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...params,
+        clientSeed
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to place bet');
+    }
+    
+    return await response.json();
+  };
+  
   // Handle placing a bet
   const handlePlaceBet = async () => {
     if (isRolling) return;
@@ -205,29 +232,12 @@ const DiceTrading = () => {
       setIsRolling(true);
       setWon(null);
       
-      // Generate client seed for provably fair verification
-      const clientSeed = Math.random().toString(36).substring(2, 15);
-      
       // Place bet via API
-      const response = await fetch('/api/dice-trading/place-bet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: betAmount,
-          minRange,
-          maxRange,
-          clientSeed
-        })
+      const data = await placeTradingBet({
+        amount: betAmount,
+        minRange,
+        maxRange
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to place bet');
-      }
-      
-      const data = await response.json();
       
       // Get the result from server response
       const diceResult = data.bet.outcome.result;
@@ -310,10 +320,12 @@ const DiceTrading = () => {
               <button
                 className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-primary rounded-full transform -translate-y-1/2 cursor-grab hover:scale-110 transition-transform"
                 style={{ top: `${100 - maxRange}%` }}
-                onMouseDown={() => {
+                onMouseDown={(event) => {
+                  const rangeBar = event.currentTarget.parentElement;
+                  if (!rangeBar) return;
+                  
+                  const rect = rangeBar.getBoundingClientRect();
                   const handleDrag = (e: MouseEvent) => {
-                    const container = e.currentTarget as HTMLElement;
-                    const rect = container.getBoundingClientRect();
                     const y = e.clientY - rect.top;
                     const percentage = 100 - Math.max(0, Math.min(100, (y / rect.height) * 100));
                     handleMaxRangeChange(Math.round(percentage));
@@ -324,6 +336,9 @@ const DiceTrading = () => {
                     document.removeEventListener('mouseup', handleMouseUp);
                   };
                   
+                  // Initial calculation
+                  handleDrag(event.nativeEvent);
+                  
                   document.addEventListener('mousemove', handleDrag);
                   document.addEventListener('mouseup', handleMouseUp);
                 }}
@@ -333,10 +348,12 @@ const DiceTrading = () => {
               <button
                 className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-primary rounded-full transform -translate-y-1/2 cursor-grab hover:scale-110 transition-transform"
                 style={{ top: `${100 - minRange}%` }}
-                onMouseDown={() => {
+                onMouseDown={(event) => {
+                  const rangeBar = event.currentTarget.parentElement;
+                  if (!rangeBar) return;
+                  
+                  const rect = rangeBar.getBoundingClientRect();
                   const handleDrag = (e: MouseEvent) => {
-                    const container = e.currentTarget as HTMLElement;
-                    const rect = container.getBoundingClientRect();
                     const y = e.clientY - rect.top;
                     const percentage = 100 - Math.max(0, Math.min(100, (y / rect.height) * 100));
                     handleMinRangeChange(Math.round(percentage));
@@ -346,6 +363,9 @@ const DiceTrading = () => {
                     document.removeEventListener('mousemove', handleDrag);
                     document.removeEventListener('mouseup', handleMouseUp);
                   };
+                  
+                  // Initial calculation
+                  handleDrag(event.nativeEvent);
                   
                   document.addEventListener('mousemove', handleDrag);
                   document.addEventListener('mouseup', handleMouseUp);
