@@ -417,10 +417,16 @@ const DiceTrading = () => {
         {/* Risk and Stats Section */}
         <div className="bg-[#172B3A] rounded-lg p-3">
           <div className="flex justify-between items-center mb-4">
-            {/* Risk meter */}
+            {/* Risk meter - inverse of winChance (smaller window = higher risk) */}
             <div className="flex flex-col">
               <div className="mb-1 relative w-32 h-6 bg-[#0F212E] rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-400 to-green-500" style={{ width: `${winChance}%` }}></div>
+                <div 
+                  className="absolute left-0 top-0 h-full" 
+                  style={{ 
+                    width: `${100 - winChance}%`,
+                    background: `linear-gradient(to right, #22c55e, #22c55e)`
+                  }}
+                ></div>
                 <div className="absolute left-0 top-0 h-full w-full flex items-center justify-center text-xs text-white font-medium">Risk</div>
               </div>
             </div>
