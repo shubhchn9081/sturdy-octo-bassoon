@@ -68,6 +68,9 @@ const GameCard = ({
   const getImageSource = () => {
     // For games with Cloudinary images
     switch (name) {
+      case 'CRASH CAR':
+        // Using the new provided crash car image
+        return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1747012224/ChatGPT_Image_May_12_2025_06_36_56_AM_ymsede.png';
       case 'TOWER CLIMB':
         // Using the new arrival image for Tower Climb
         return 'https://res.cloudinary.com/dbbig5cq5/image/upload/v1746456001/ChatGPT_Image_May_5_2025_08_09_43_PM_yyk1nr.png';
@@ -358,11 +361,11 @@ const GameCard = ({
             {/* Banner at bottom - excluding ROCKET LAUNCH */}
             {name !== "ROCKET LAUNCH" && (
               <div className={`absolute bottom-0 left-0 w-full py-1 px-2 text-white text-xs font-semibold text-center ${
-                name === "TOWER CLIMB" 
+                name === "TOWER CLIMB" || name === "CRASH CAR"
                   ? "bg-gradient-to-r from-green-700 to-green-500" 
                   : "bg-gradient-to-r from-green-600 to-green-400"
               }`}>
-                {name === "TOWER CLIMB" ? "🔥 New Arrival 🔥" : "High RTP Game"}
+                {name === "TOWER CLIMB" || name === "CRASH CAR" ? "🔥 New Arrival 🔥" : "High RTP Game"}
               </div>
             )}
           </>
