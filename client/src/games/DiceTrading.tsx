@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { Globe, TrendingUp, TrendingDown, Timer, DollarSign, Percent, Plus, Minus } from 'lucide-react';
+import { Globe, TrendingUp, TrendingDown, Timer, DollarSign, Percent, Plus, Minus, Users } from 'lucide-react';
 
 // Game ID based on registration in games/index.ts
 const GAME_ID = 200; // We'll add this to the games index
@@ -39,10 +39,97 @@ const DiceTrading = () => {
   const [won, setWon] = useState<boolean | null>(null);
   const [profit, setProfit] = useState(0);
   
+  // Recent activity
+  const [recentBets, setRecentBets] = useState<Array<{
+    username: string;
+    amount: number;
+    result: number;
+    minRange: number;
+    maxRange: number;
+    win: boolean;
+    profit: number;
+    timestamp: number;
+  }>>([]);
+  
+  // WebSocket reference
+  const socketRef = useRef<WebSocket | null>(null);
+  
   // Chart data
   const [chartData, setChartData] = useState<Array<{ round: number; value: number }>>([]);
   const [animatingLine, setAnimatingLine] = useState(false);
   const [displayedData, setDisplayedData] = useState<Array<{ round: number; value: number }>>([]);
+  
+  // Setup WebSocket connection for real-time updates
+  useEffect(() => {
+    // Create WebSocket connection
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    const socket = new WebSocket(wsUrl);
+    socketRef.current = socket;
+    
+    // Connection opened
+    socket.addEventListener('open', () => {
+      console.log('WebSocket connected');
+      // Subscribe to dice-trading topic
+      socket.send(JSON.stringify({ 
+        action: 'subscribe', 
+        topic: 'dice-trading'
+      }));
+    });
+    
+    // Listen for messages
+    socket.addEventListener('message', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        // Only process dice-trading messages
+        if (data.topic === 'dice-trading') {
+          // Handle bet result updates
+          if (data.payload.type === 'bet-result') {
+            const betResult = data.payload;
+            
+            // Add to recent bets
+            setRecentBets(prev => {
+              const newBets = [betResult, ...prev].slice(0, 10);
+              return newBets;
+            });
+            
+            // Add to chart data if not already there
+            const nextRound = chartData.length + 1;
+            const newDataPoint = { round: nextRound, value: betResult.result };
+            
+            // Check if this is a new point before adding
+            const pointExists = chartData.some(point => 
+              point.round === nextRound && point.value === betResult.result);
+              
+            if (!pointExists) {
+              animateChart(newDataPoint);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    });
+    
+    // Connection closed
+    socket.addEventListener('close', () => {
+      console.log('WebSocket disconnected');
+    });
+    
+    // Connection error
+    socket.addEventListener('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+    
+    // Cleanup on unmount
+    return () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
+  }, []);
   
   // Update range size, multiplier, and win chance when min/max changes
   useEffect(() => {
@@ -372,6 +459,46 @@ const DiceTrading = () => {
                 <span className="text-sm text-white font-semibold">{multiplier.toFixed(2)}x</span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+        
+        {/* Recent activity panel */}
+        <Card className="bg-[#172B3A] border-none shadow-md">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-500" />
+                <span className="text-lg font-semibold text-white">Recent Activity</span>
+              </div>
+            </div>
+            
+            {recentBets.length === 0 ? (
+              <div className="text-sm text-gray-400 text-center py-2">
+                No recent bets yet
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {recentBets.map((bet, index) => (
+                  <div 
+                    key={index} 
+                    className={`p-2 rounded-md ${bet.win ? 'bg-green-900/30' : 'bg-red-900/30'}`}
+                  >
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs font-medium text-gray-300">{bet.username}</span>
+                      <span 
+                        className={`text-xs font-bold ${bet.win ? 'text-green-500' : 'text-red-500'}`}
+                      >
+                        {bet.win ? '+' : ''}{bet.profit.toFixed(2)} {symbol}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-gray-400">
+                      <span>Range: {bet.minRange}-{bet.maxRange}</span>
+                      <span>Result: {bet.result}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
         

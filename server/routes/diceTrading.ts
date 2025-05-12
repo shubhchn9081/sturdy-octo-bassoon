@@ -112,10 +112,28 @@ router.post('/place-bet', auth, async (req, res) => {
     // Update user balance
     await storage.updateUserBalance(req.user!.id, profit, currency);
     
-    // Return the bet result
+    // Get updated user information for the broadcast
+    const updatedUserInfo = await storage.getUser(req.user!.id);
+    
+    // Broadcast the bet result to all clients subscribed to dice-trading topic
+    broadcastToTopic('dice-trading', {
+      type: 'bet-result',
+      userId: req.user!.id,
+      username: user?.username || 'Anonymous',
+      amount: amount,
+      result: outcome.result,
+      minRange: outcome.minRange,
+      maxRange: outcome.maxRange,
+      multiplier: outcome.multiplier,
+      win: outcome.win,
+      profit: profit,
+      timestamp: Date.now()
+    });
+    
+    // Return the bet result to the requesting client
     res.json({
       bet,
-      balance: (await storage.getUser(req.user!.id))?.balance,
+      balance: user?.balance,
       serverSeedHash: hashedServerSeed
     });
     
