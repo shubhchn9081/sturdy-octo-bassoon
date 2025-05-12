@@ -509,24 +509,27 @@ export default function AdminPage() {
     }
   });
   
-  // Fetch user activity data (bets)
-  const { data: userBets, isLoading: userBetsLoading } = useQuery({
-    queryKey: ['/api/admin/bets', activityUserId, activityGameId, activityDateRange],
+  // Fetch user activity data (bets, deposits, withdrawals)
+  const [activityType, setActivityType] = useState<string>("all");
+  
+  const { data: userActivities, isLoading: userActivitiesLoading } = useQuery({
+    queryKey: ['/api/admin/user-activities', activityUserId, activityGameId, activityDateRange, activityType],
     queryFn: async () => {
       // Build the query parameters
       const params = new URLSearchParams();
       if (activityUserId) params.append('userId', activityUserId.toString());
       if (activityGameId) params.append('gameId', activityGameId.toString());
+      if (activityType !== "all") params.append('type', activityType);
       
       // Log what we're fetching for debugging
-      console.log(`Fetching bet history for user ID: ${activityUserId || 'all'}, game ID: ${activityGameId || 'all'}`);
+      console.log(`Fetching user activities for user ID: ${activityUserId || 'all'}, game ID: ${activityGameId || 'all'}, type: ${activityType || 'all'}`);
       
       const queryString = params.toString() ? `?${params.toString()}` : '';
-      const response = await fetch(`/api/admin/bets${queryString}`);
+      const response = await fetch(`/api/admin/user-activities${queryString}`);
       
       if (!response.ok) {
-        console.error('Failed to fetch bet history:', response.status, response.statusText);
-        throw new Error('Failed to fetch bet history');
+        console.error('Failed to fetch user activities:', response.status, response.statusText);
+        throw new Error('Failed to fetch user activities');
       }
       
       const data = await response.json();
@@ -549,12 +552,7 @@ export default function AdminPage() {
         }
         
         // Filter by date
-        return data.filter((bet: Bet) => new Date(bet.createdAt) >= cutoffDate);
-      }
-      
-      // If specifically looking at user 1039, log detailed data for debugging
-      if (activityUserId === 1039) {
-        console.log('Detailed user 1039 bet data:', data);
+        return data.filter((activity: any) => new Date(activity.createdAt) >= cutoffDate);
       }
       
       return data;

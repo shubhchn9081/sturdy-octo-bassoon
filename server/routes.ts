@@ -1185,6 +1185,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Server error' });
     }
   });
+  
+  // New endpoint to get all user activities (bets, deposits, withdrawals)
+  app.get('/api/admin/user-activities', isAdmin, async (req, res) => {
+    try {
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const gameId = req.query.gameId ? parseInt(req.query.gameId as string) : undefined;
+      const activityType = req.query.type as string | undefined;
+      
+      // Initialize arrays for different activity types
+      let bets: any[] = [];
+      let transactions: any[] = [];
+      let allActivities: any[] = [];
+      
+      // Get users to work with
+      const users = userId ? [await storage.getUser(userId)].filter(Boolean) as any[] : await storage.getAllUsers();
+      
+      // If no valid users, return empty array
+      if (!users || users.length === 0) {
+        return res.json([]);
+      }
+      
+      // Process each activity type based on filter
+      const includeTypes = activityType ? [activityType] : ['bet', 'deposit', 'withdrawal'];
+      
+      // Fetch bet data if needed
+      if (includeTypes.includes('bet')) {
+        for (const user of users) {
+          if (!user) continue;
+          const userBets = await storage.getBetHistory(user.id, gameId);
+          
+          // Transform bets to have consistent activity format
+          const formattedBets = userBets.map(bet => ({
+            id: `bet-${bet.id}`,
+            userId: bet.userId,
+            username: user.username,
+            type: 'bet',
+            gameId: bet.gameId,
+            gameName: bet.gameId.toString(), // We'll populate this later
+            amount: bet.amount,
+            currency: 'INR', // Default currency
+            status: bet.completed ? 'completed' : 'pending',
+            outcome: bet.profit && bet.profit > 0 ? 'win' : 'loss',
+            profit: bet.profit,
+            multiplier: bet.multiplier,
+            createdAt: bet.createdAt,
+            details: bet
+          }));
+          
+          bets = [...bets, ...formattedBets];
+        }
+      }
+      
+      // Fetch transactions if needed
+      if (includeTypes.includes('deposit') || includeTypes.includes('withdrawal')) {
+        for (const user of users) {
+          if (!user) continue;
+          const userTransactions = await storage.getUserTransactions(user.id);
+          
+          // Filter transactions by type if needed
+          const filteredTransactions = userTransactions.filter(tx => {
+            if (includeTypes.includes('deposit') && tx.type.includes('deposit')) return true;
+            if (includeTypes.includes('withdrawal') && tx.type.includes('withdrawal')) return true;
+            return false;
+          });
+          
+          // Transform transactions to have consistent activity format
+          const formattedTransactions = filteredTransactions.map(tx => ({
+            id: `tx-${tx.id}`,
+            userId: tx.userId,
+            username: user.username,
+            type: tx.type,
+            amount: tx.amount,
+            currency: tx.currency,
+            status: tx.status,
+            createdAt: tx.createdAt,
+            description: tx.description,
+            txid: tx.txid,
+            details: tx
+          }));
+          
+          transactions = [...transactions, ...formattedTransactions];
+        }
+      }
+      
+      // Combine all activities
+      allActivities = [...bets, ...transactions];
+      
+      // Get games for lookup to populate game names
+      const games = await storage.getAllGames();
+      const gameMap = games.reduce((map, game) => {
+        map[game.id] = game.name;
+        return map;
+      }, {} as Record<number, string>);
+      
+      // Populate game names for bets
+      allActivities = allActivities.map(activity => {
+        if (activity.type === 'bet' && activity.gameId && gameMap[activity.gameId]) {
+          return { ...activity, gameName: gameMap[activity.gameId] };
+        }
+        return activity;
+      });
+      
+      // Sort by most recent first
+      allActivities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      res.json(allActivities);
+    } catch (error) {
+      console.error('Error fetching user activities:', error);
+      res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+    }
+  });
 
   app.get('/api/admin/user-game-controls/:userId', isAdmin, async (req, res) => {
     try {
