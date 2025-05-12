@@ -44,10 +44,10 @@ export default function BetsPage() {
     },
   });
 
-  // Format amount with BTC symbol
+  // Format amount with INR symbol
   const formatAmount = (amount: number | null) => {
-    if (amount === null) return "0.00000000 BTC";
-    return `${amount.toFixed(8)} BTC`;
+    if (amount === null) return "₹0.00";
+    return `₹${amount.toFixed(2)}`;
   };
 
   // Get game name from game ID
