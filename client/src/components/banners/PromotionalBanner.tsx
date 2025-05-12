@@ -53,7 +53,7 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
           transition={{ duration: 0.6 }}
         >
           {/* Link banners to appropriate pages */}
-          <a href={currentBanner === 0 ? "/races" : "/casino"} className="block">
+          <a href={currentBanner === 0 ? "/car-crash" : "/casino"} className="block">
             <motion.div 
               className="relative rounded-lg shadow-lg overflow-hidden transition-transform duration-300"
               whileHover={{ scale: 1.01 }}
