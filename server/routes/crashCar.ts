@@ -175,11 +175,29 @@ async function startGameRunning() {
       // Calculate current multiplier
       gameState.currentMultiplier = calculateMultiplier(elapsedMs);
       
+      // Update speed based on current multiplier
+      gameState.speed = gameState.currentMultiplier;
+      
+      // Decrease fuel level - higher speeds burn fuel faster
+      // The fuel consumption rate increases as the multiplier/speed increases
+      const baseFuelConsumptionRate = 0.5; // Base rate of fuel consumption per interval
+      const speedFactor = Math.pow(gameState.speed, 1.5); // Exponential fuel consumption based on speed
+      
+      // Calculate fuel decrease amount for this interval
+      const fuelDecrease = baseFuelConsumptionRate * speedFactor;
+      
+      // Update fuel level, ensuring it doesn't go below 0
+      gameState.fuelLevel = Math.max(0, gameState.fuelLevel - fuelDecrease);
+      
       // Broadcast updated game state
       broadcastGameState();
       
-      // Check if it's time to crash
-      if (gameState.currentMultiplier >= gameState.crashPoint!) {
+      // Check if it's time to crash (either by reaching crash point or running out of fuel)
+      if (gameState.currentMultiplier >= gameState.crashPoint! || gameState.fuelLevel <= 0) {
+        // Log reason for crash
+        if (gameState.fuelLevel <= 0) {
+          console.log(`Crash Car game ${gameState.gameId} crashed due to fuel depletion`);
+        }
         endGame();
       }
     }, 100); // Update 10 times per second for smooth animation
@@ -193,6 +211,8 @@ async function startGameRunning() {
     gameState.state = GameState.RUNNING;
     gameState.countdown = null;
     gameState.startTime = Date.now();
+    gameState.fuelLevel = 100; // Initialize fuel level even in error case
+    gameState.speed = 1.0;     // Initialize speed even in error case
     
     // Start the game with default values
     gameRunningInterval = setInterval(() => {

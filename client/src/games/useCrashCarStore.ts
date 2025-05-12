@@ -134,14 +134,11 @@ export const useCrashCarStore = create<CrashCarGameState>((set, get) => {
             gameHistory: payload.previousGames.map((game: any) => ({
               crashPoint: game.crashPoint,
               timestamp: game.timestamp
-            }))
+            })),
+            // Use server-provided fuel level and speed
+            fuelLevel: payload.fuelLevel !== undefined ? payload.fuelLevel : state.fuelLevel,
+            speed: payload.speed !== undefined ? payload.speed : state.speed
           }));
-          
-          // Calculate fuel level and speed based on the current multiplier
-          const fuelLevel = Math.max(0, 100 - (payload.currentMultiplier - 1) * 10);
-          const speed = payload.currentMultiplier;
-          
-          set({ fuelLevel, speed });
           
           // If the game is running, check for auto-cashout
           if (payload.gameState === 'running') {

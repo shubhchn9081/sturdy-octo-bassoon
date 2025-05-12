@@ -169,8 +169,46 @@ const SimpleBettingPanel = ({
           
           {/* Multiplier display during game */}
           {gameState === 'running' && (
-            <div className="mt-1 p-1 bg-gradient-to-r from-blue-900 to-indigo-800 rounded text-center">
-              <span className="text-white text-lg font-bold">{currentMultiplier.toFixed(2)}×</span>
+            <div className="mt-1 space-y-2">
+              <div className="p-1 bg-gradient-to-r from-blue-900 to-indigo-800 rounded text-center">
+                <span className="text-white text-lg font-bold">{currentMultiplier.toFixed(2)}×</span>
+              </div>
+              
+              {/* Speed indicator */}
+              <div className="flex items-center justify-between text-xs py-1">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400 mr-1">
+                    <path d="m12 17 3-4-3-1-1-4-1 9Z"/>
+                    <path d="M14 5.5a9 9 0 1 1-4.11 17.04"/>
+                    <path d="M16 9.5a5 5 0 1 0-5.98 7.9"/>
+                  </svg>
+                  <span className="text-blue-300">Speed:</span>
+                </div>
+                <span className="font-bold text-blue-400">
+                  {useCrashCarStore(state => Math.round(state.speed * 100))} km/h
+                </span>
+              </div>
+              
+              {/* Fuel level indicator */}
+              <div className="flex items-center space-x-2">
+                <Gauge size={16} className="text-yellow-500" />
+                <div className="w-full">
+                  <Progress 
+                    value={useCrashCarStore(state => state.fuelLevel)} 
+                    max={100}
+                    className={`h-2 bg-gray-700 ${
+                      useCrashCarStore(state => state.fuelLevel) < 25 
+                        ? 'data-[value]:bg-red-500' 
+                        : useCrashCarStore(state => state.fuelLevel) < 50 
+                          ? 'data-[value]:bg-yellow-500' 
+                          : 'data-[value]:bg-green-500'
+                    }`}
+                  />
+                </div>
+                <span className="text-xs text-gray-300 w-8 text-right">
+                  {useCrashCarStore(state => Math.round(state.fuelLevel))}%
+                </span>
+              </div>
             </div>
           )}
         </div>
