@@ -20,7 +20,6 @@ import TowerClimb from '@/games/TowerClimb';
 import RocketLaunchRevised from '@/games/RocketLaunchRevised';
 import CrashCar from '@/games/CrashCar';
 import DiceTrading from '@/games/DiceTrading';
-import Roulette from '@/games/Roulette';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -41,8 +40,7 @@ const GameComponents: Record<string, React.ComponentType> = {
   'tower-climb': TowerClimb,
   'rocket-launch': RocketLaunchRevised,
   'crash-car': CrashCar,
-  'dice-trading': DiceTrading,
-  'roulette': Roulette
+  'dice-trading': DiceTrading
 };
 
 const GamePage = () => {

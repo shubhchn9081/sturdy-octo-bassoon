@@ -18,24 +18,8 @@ import TowerClimb from './TowerClimb';
 import RocketLaunchRevised from './RocketLaunchRevised';
 import CrashCar from './CrashCar';
 import DiceTrading from './DiceTrading';
-import Roulette from './Roulette';
 
 export const GAMES = [
-  {
-    id: 300,
-    name: 'ROULETTE',
-    slug: 'roulette',
-    type: 'TABLE GAMES',
-    description: 'Classic European Roulette with multiple bet types',
-    color: 'bg-[#d40000]',
-    iconType: 'target',
-    component: Roulette,
-    minBet: 1,
-    maxBet: 1000,
-    rtp: 97.3,
-    maxMultiplier: 36.00,
-    activePlayers: 9548
-  },
   {
     id: 99,
     name: 'CRASH CAR',
@@ -274,6 +258,5 @@ export default {
   TowerClimb,
   RocketLaunch: RocketLaunchRevised,
   CrashCar,
-  DiceTrading,
-  Roulette
+  DiceTrading
 };
