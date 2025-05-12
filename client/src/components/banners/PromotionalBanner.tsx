@@ -53,24 +53,21 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
           transition={{ duration: 0.6 }}
         >
           {/* Link banners to appropriate pages */}
-          <a href={currentBanner === 0 ? "/car-crash" : "/casino"} className="block">
+          <a href={currentBanner === 0 ? "/races" : "/casino"} className="block">
             <motion.div 
               className="relative rounded-lg shadow-lg overflow-hidden transition-transform duration-300"
               whileHover={{ scale: 1.01 }}
               style={{
-                height: currentBanner === 0 ? '300px' : '200px', // Taller for CarX banner
+                height: '200px',
                 maxWidth: '1200px',
                 margin: '0 auto',
               }}
             >
               {/* The banner image as background */}
               <div 
-                className="w-full h-full bg-center bg-contain bg-no-repeat"
+                className="w-full h-full bg-center bg-cover bg-no-repeat"
                 style={{
-                  backgroundImage: `url(${banners[currentBanner].image})`,
-                  backgroundColor: currentBanner === 0 ? '#0a0a1a' : 'transparent', // Dark sci-fi background for CarX
-                  backgroundPosition: 'center',
-                  backgroundSize: currentBanner === 0 ? 'contain' : 'cover'
+                  backgroundImage: `url(${banners[currentBanner].image})`
                 }}
                 role="img"
                 aria-label={banners[currentBanner].alt}
