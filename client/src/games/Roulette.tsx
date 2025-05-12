@@ -1036,20 +1036,23 @@ const Roulette = () => {
         }
       }, `>-0.5`); // Overlap with Phase 2 for smooth transition
       
-      // At the end, snap ball to the winning number position
-      tl.to(ballRotationRef, {
-        current: findAngleForNumber(randomNumber),
-        duration: 0.5,
+      // Add subtle wheel wobble effect at the end for realism
+      tl.to(wheelRotationRef, {
+        current: targetAngle - 0.03,
+        duration: 0.2,
         ease: "power1.inOut",
-        onUpdate: () => {
-          const ballAngle = ballRotationRef.current;
-          ballPositionRef.current = {
-            x: centerX + ballRadius * Math.sin(ballAngle),
-            y: centerY - ballRadius * Math.cos(ballAngle)
-          };
-          drawWheel();
-        }
-      });
+        onUpdate: () => drawWheel()
+      }, `>-0.2`);
+      
+      tl.to(wheelRotationRef, {
+        current: targetAngle,
+        duration: 0.2,
+        ease: "power1.inOut",
+        onUpdate: () => drawWheel()
+      }, ">");
+
+      // Start animation with initial wheel drawing
+      drawWheel();
     } catch (error) {
       console.error("Error spinning wheel:", error);
       toast({
