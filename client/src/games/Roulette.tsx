@@ -158,8 +158,8 @@ const BET_TYPES: Record<string, BetType> = {
   }
 };
 
-// Define chip values
-const CHIPS = [1, 5, 10, 25, 50, 100, 500, 1000];
+// Define bet amount values
+const BET_AMOUNTS = [1, 5, 10, 25, 50, 100, 500, 1000];
 
 // Main Roulette Component
 const Roulette = () => {
@@ -168,7 +168,7 @@ const Roulette = () => {
   const tableCanvasRef = useRef<HTMLCanvasElement>(null);
   
   // State management
-  const [selectedChip, setSelectedChip] = useState<number>(1);
+  const [selectedAmount, setSelectedAmount] = useState<number>(1);
   const [placedChips, setPlacedChips] = useState<BetChip[]>([]);
   const [bets, setBets] = useState<Bet[]>([]);
   const [totalBet, setTotalBet] = useState<number>(0);
@@ -610,7 +610,7 @@ const Roulette = () => {
 
   // Function to place a bet on a specific number
   const placeBetOnNumber = (number: number, position: { x: number, y: number }) => {
-    if (rawBalance < selectedChip) {
+    if (rawBalance < selectedAmount) {
       toast({
         variant: "destructive",
         title: "Insufficient balance",
@@ -623,7 +623,7 @@ const Roulette = () => {
     
     // Add chip to visual representation
     setPlacedChips(prev => [...prev, { 
-      amount: selectedChip,
+      amount: selectedAmount,
       position,
       betType
     }]);
@@ -634,18 +634,18 @@ const Roulette = () => {
       if (existingBet) {
         return prev.map(b => 
           b.type.name === betType.name 
-            ? { ...b, amount: b.amount + selectedChip } 
+            ? { ...b, amount: b.amount + selectedAmount } 
             : b
         );
       } else {
-        return [...prev, { type: betType, amount: selectedChip }];
+        return [...prev, { type: betType, amount: selectedAmount }];
       }
     });
   };
 
   // Function to place a bet on an outside bet area
   const placeBetOnOutside = (betKey: string, position: { x: number, y: number }) => {
-    if (rawBalance < selectedChip) {
+    if (rawBalance < selectedAmount) {
       toast({
         variant: "destructive",
         title: "Insufficient balance",
@@ -658,7 +658,7 @@ const Roulette = () => {
     
     // Add chip to visual representation
     setPlacedChips(prev => [...prev, { 
-      amount: selectedChip,
+      amount: selectedAmount,
       position,
       betType
     }]);
@@ -669,11 +669,11 @@ const Roulette = () => {
       if (existingBet) {
         return prev.map(b => 
           b.type.name === betType.name 
-            ? { ...b, amount: b.amount + selectedChip } 
+            ? { ...b, amount: b.amount + selectedAmount } 
             : b
         );
       } else {
-        return [...prev, { type: betType, amount: selectedChip }];
+        return [...prev, { type: betType, amount: selectedAmount }];
       }
     });
   };
@@ -1020,22 +1020,21 @@ const Roulette = () => {
             )}
           </div>
           
-          {/* Chip selection and bet controls */}
+          {/* Amount selection and bet controls */}
           <div className="mt-4 bg-[#172B3A] rounded-md border border-[#243442] p-3">
             <div className="flex flex-wrap gap-2 justify-center">
-              {CHIPS.map(chip => (
+              {BET_AMOUNTS.map(amount => (
                 <button
-                  key={chip}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
-                    selectedChip === chip 
-                      ? 'ring-2 ring-yellow-400 scale-110' 
-                      : ''
+                  key={amount}
+                  className={`px-4 py-2 rounded flex items-center justify-center font-medium text-white ${
+                    selectedAmount === amount 
+                      ? 'bg-primary shadow-lg scale-105 font-bold' 
+                      : 'bg-secondary hover:bg-primary/80'
                   }`}
-                  style={{ backgroundColor: getChipColor(chip) }}
-                  onClick={() => setSelectedChip(chip)}
+                  onClick={() => setSelectedAmount(amount)}
                   disabled={isSpinning}
                 >
-                  {chip}
+                  ₹{amount}
                 </button>
               ))}
             </div>
