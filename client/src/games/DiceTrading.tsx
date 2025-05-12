@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/context/WalletContext';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,9 @@ const DiceTrading = () => {
   
   // Chart data
   const [chartData, setChartData] = useState(sampleChartData);
+  
+  // Refs for interactive elements
+  const sliderRef = useRef<HTMLDivElement>(null);
   
   // Recent activity
   const [recentBets, setRecentBets] = useState<Array<{
@@ -137,14 +140,73 @@ const DiceTrading = () => {
   
   // Handle min range slider change
   const handleMinRangeChange = (newValue: number) => {
-    const validMin = Math.min(newValue, maxRange - 1);
-    setMinRange(validMin);
+    // Ensure the new value is within valid bounds
+    const boundedValue = Math.max(0, Math.min(newValue, maxRange - 1));
+    setMinRange(boundedValue);
   };
   
   // Handle max range slider change
   const handleMaxRangeChange = (newValue: number) => {
-    const validMax = Math.max(newValue, minRange + 1);
-    setMaxRange(validMax);
+    // Ensure the new value is within valid bounds
+    const boundedValue = Math.min(100, Math.max(newValue, minRange + 1));
+    setMaxRange(boundedValue);
+  };
+  
+  // Handle vertical slider drag for mobile and desktop
+  const handleSliderDrag = (event: React.MouseEvent | React.TouchEvent, sliderRef: React.RefObject<HTMLDivElement>, isMin: boolean) => {
+    event.preventDefault();
+    
+    const sliderElement = sliderRef.current;
+    if (!sliderElement) return;
+    
+    const sliderRect = sliderElement.getBoundingClientRect();
+    const sliderHeight = sliderRect.height;
+    
+    const handleMove = (clientY: number) => {
+      // Calculate percentage based on position within slider
+      const relativeY = clientY - sliderRect.top;
+      const percentage = 100 - Math.max(0, Math.min(100, (relativeY / sliderHeight) * 100));
+      
+      if (isMin) {
+        handleMinRangeChange(Math.round(percentage));
+      } else {
+        handleMaxRangeChange(Math.round(percentage));
+      }
+    };
+    
+    // Initial calculation
+    if ('touches' in event) {
+      // Touch event
+      handleMove(event.touches[0].clientY);
+      
+      const handleTouchMove = (e: TouchEvent) => {
+        e.preventDefault();
+        handleMove(e.touches[0].clientY);
+      };
+      
+      const handleTouchEnd = () => {
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+      
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
+    } else {
+      // Mouse event
+      handleMove(event.clientY);
+      
+      const handleMouseMove = (e: MouseEvent) => {
+        handleMove(e.clientY);
+      };
+      
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
   };
   
   // Place a bet via API
@@ -241,44 +303,56 @@ const DiceTrading = () => {
         {/* Chart Area with Line Graph */}
         <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[40vh] md:h-[50vh]">
           <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative flex">
-            {/* Left side - only 2 fixed range slider circles */}
-            <div className="w-12 h-full flex flex-col justify-between py-6 relative">
-              {/* Top range circle (100 mark) */}
-              <div className="flex items-center">
+            {/* Left side - Interactive slider with draggable circles */}
+            <div className="w-12 h-full flex flex-col relative" ref={sliderRef}>
+              {/* Slider track */}
+              <div className="absolute left-1/2 -translate-x-1/2 w-1 h-full bg-gray-700 rounded-full z-0"></div>
+              
+              {/* Selected range */}
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 w-1 bg-blue-400 rounded-full z-10" 
+                style={{ 
+                  top: `${100 - maxRange}%`, 
+                  height: `${maxRange - minRange}%` 
+                }}
+              ></div>
+              
+              {/* Max handle - Top circle (upper bound) */}
+              <div
+                className="absolute left-1/2 -translate-x-1/2 w-12 h-12 flex items-center justify-center z-20"
+                style={{ top: `${100 - maxRange}%` }}
+              >
                 <div 
-                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-pointer"
-                  onClick={() => handleMaxRangeChange(90)}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    handleMaxRangeChange(90);
-                  }}
+                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none"
+                  onMouseDown={(e) => handleSliderDrag(e, sliderRef, false)}
+                  onTouchStart={(e) => handleSliderDrag(e, sliderRef, false)}
                 >
-                  <span className="text-blue-400 text-xs font-semibold">100</span>
+                  <span className="text-blue-400 text-xs font-semibold">{maxRange}</span>
                 </div>
               </div>
               
-              {/* Bottom range circle (0 mark) */}
-              <div className="flex items-center">
+              {/* Min handle - Bottom circle (lower bound) */}
+              <div
+                className="absolute left-1/2 -translate-x-1/2 w-12 h-12 flex items-center justify-center z-20"
+                style={{ top: `${100 - minRange}%` }}
+              >
                 <div 
-                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-pointer"
-                  onClick={() => handleMinRangeChange(10)}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    handleMinRangeChange(10);
-                  }}
+                  className="w-10 h-10 rounded-full border-4 border-blue-400 flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none"
+                  onMouseDown={(e) => handleSliderDrag(e, sliderRef, true)}
+                  onTouchStart={(e) => handleSliderDrag(e, sliderRef, true)}
                 >
-                  <span className="text-blue-400 text-xs font-semibold">0</span>
+                  <span className="text-blue-400 text-xs font-semibold">{minRange}</span>
                 </div>
               </div>
               
               {/* Vertical number labels */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-0 h-full flex flex-col justify-between text-xs font-medium text-blue-400 pointer-events-none">
-                <div className="opacity-0">100</div>
+              <div className="absolute -left-2 top-0 h-full flex flex-col justify-between text-xs font-medium text-blue-400 pointer-events-none">
+                <div>100</div>
                 <div>80</div>
                 <div>60</div>
                 <div>40</div>
                 <div>20</div>
-                <div className="opacity-0">0</div>
+                <div>0</div>
               </div>
             </div>
           
