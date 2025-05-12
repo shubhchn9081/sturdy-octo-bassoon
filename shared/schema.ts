@@ -155,6 +155,14 @@ export type CrashCarOutcome = {
   fuelLevel?: number; // Remaining fuel level at cashout (for animation)
 };
 
+export type RouletteOutcome = {
+  number: number;
+  color: string;
+  win: boolean;
+  multiplier: number;
+  bets: { type: string; amount: number; won: boolean }[];
+};
+
 export type HiloOutcome = {
   initialCard: number;
   nextCard: number;
