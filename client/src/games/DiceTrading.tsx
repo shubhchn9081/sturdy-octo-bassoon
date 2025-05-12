@@ -302,15 +302,80 @@ const DiceTrading = () => {
       <div className="flex flex-col gap-4">
         {/* Chart Area with Line Graph */}
         <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[40vh] md:h-[50vh]">
-          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative flex">
+          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative flex overflow-hidden">
+            {/* Advanced trading background pattern */}
+            <div className="absolute inset-0 z-0 opacity-10">
+              {/* Horizontal grid lines */}
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div 
+                  key={`h-line-${i}`} 
+                  className="absolute w-full h-px bg-blue-300" 
+                  style={{ top: `${(i + 1) * 10}%` }}
+                ></div>
+              ))}
+              
+              {/* Vertical grid lines */}
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div 
+                  key={`v-line-${i}`} 
+                  className="absolute h-full w-px bg-blue-300" 
+                  style={{ left: `${(i + 1) * 8}%` }}
+                ></div>
+              ))}
+              
+              {/* Random candle patterns in background */}
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div 
+                  key={`candle-${i}`} 
+                  className="absolute w-1.5 bg-green-500" 
+                  style={{ 
+                    height: `${Math.random() * 15 + 5}%`, 
+                    top: `${Math.random() * 80 + 10}%`, 
+                    left: `${(i + 2) * 11}%` 
+                  }}
+                >
+                  <div 
+                    className="absolute w-px h-3 bg-green-500" 
+                    style={{ left: '50%', top: '-12px' }}
+                  ></div>
+                  <div 
+                    className="absolute w-px h-3 bg-green-500" 
+                    style={{ left: '50%', bottom: '-12px' }}
+                  ></div>
+                </div>
+              ))}
+              
+              {/* Random red candles */}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div 
+                  key={`red-candle-${i}`} 
+                  className="absolute w-1.5 bg-red-500" 
+                  style={{ 
+                    height: `${Math.random() * 12 + 3}%`, 
+                    top: `${Math.random() * 70 + 20}%`, 
+                    left: `${(i + 3) * 13}%` 
+                  }}
+                >
+                  <div 
+                    className="absolute w-px h-4 bg-red-500" 
+                    style={{ left: '50%', top: '-16px' }}
+                  ></div>
+                  <div 
+                    className="absolute w-px h-2 bg-red-500" 
+                    style={{ left: '50%', bottom: '-8px' }}
+                  ></div>
+                </div>
+              ))}
+            </div>
+            
             {/* Left side - Interactive slider with draggable circles */}
-            <div className="w-12 h-full flex flex-col relative" ref={sliderRef}>
+            <div className="w-12 h-full flex flex-col relative z-20" ref={sliderRef}>
               {/* Slider track */}
-              <div className="absolute left-1/2 -translate-x-1/2 w-1 h-full bg-gray-700 rounded-full z-0"></div>
+              <div className="absolute left-1/2 -translate-x-1/2 w-1 h-full bg-gray-700 rounded-full"></div>
               
               {/* Selected range */}
               <div 
-                className="absolute left-1/2 -translate-x-1/2 w-1 bg-blue-400 rounded-full z-10" 
+                className="absolute left-1/2 -translate-x-1/2 w-1 bg-blue-400 rounded-full" 
                 style={{ 
                   top: `${100 - maxRange}%`, 
                   height: `${maxRange - minRange}%` 
@@ -363,14 +428,20 @@ const DiceTrading = () => {
                   data={chartData}
                   margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
                 >
+                  {/* Background grid */}
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  
+                  {/* X-axis - Bottom */}
                   <XAxis 
                     dataKey="round" 
                     stroke="#3B82F6" 
-                    tick={{ fill: '#3B82F6' }}
-                    tickLine={false}
-                    axisLine={false}
+                    tick={{ fill: '#3B82F6', fontSize: 11 }}
+                    tickLine={{ stroke: '#3B82F6' }}
+                    axisLine={{ stroke: '#3B82F6', strokeWidth: 1 }}
+                    padding={{ left: 5, right: 5 }}
                   />
+                  
+                  {/* Y-axis - Hide ticks but keep domain */}
                   <YAxis 
                     domain={[0, 100]} 
                     stroke="#3B82F6" 
@@ -378,35 +449,76 @@ const DiceTrading = () => {
                     tickLine={false}
                     axisLine={false}
                   />
+                  
+                  {/* Tooltip styling */}
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: '#172B3A', 
                       borderColor: '#3B82F6',
-                      color: 'white'
+                      color: 'white',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
                     }}
-                    labelStyle={{ color: 'white' }}
+                    labelStyle={{ color: 'white', fontWeight: 'bold', marginBottom: '4px' }}
+                    formatter={(value) => [`${value}`, 'Value']}
+                    labelFormatter={(value) => `Round ${value}`}
                   />
                   
-                  {/* Range area */}
+                  {/* Top and bottom range indicators with color filling */}
                   <ReferenceLine 
                     y={minRange} 
                     stroke="#3B82F6" 
+                    strokeWidth={1.5}
                     strokeDasharray="3 3"
+                    label={{
+                      value: `${minRange}`,
+                      position: 'left',
+                      fill: '#3B82F6',
+                      fontSize: 11
+                    }}
                   />
                   <ReferenceLine 
                     y={maxRange} 
                     stroke="#3B82F6" 
+                    strokeWidth={1.5}
                     strokeDasharray="3 3"
+                    label={{
+                      value: `${maxRange}`,
+                      position: 'left',
+                      fill: '#3B82F6',
+                      fontSize: 11
+                    }}
                   />
                   
-                  {/* Result line */}
+                  {/* Colored area between min and max range */}
+                  <defs>
+                    <linearGradient id="rangeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.1} />
+                      <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Area that represents the betting range */}
+                  <rect
+                    x={0}
+                    y={100 - maxRange + '%'}
+                    width="100%"
+                    height={(maxRange - minRange) + '%'}
+                    fill="url(#rangeGradient)"
+                  />
+                  
+                  {/* Result line with smooth curve */}
                   <Line
                     type="monotone"
                     dataKey="value"
                     stroke="#22c55e"
-                    strokeWidth={2}
-                    dot={{ fill: 'white', stroke: '#22c55e', r: 4 }}
+                    strokeWidth={2.5}
+                    dot={{ fill: 'white', stroke: '#22c55e', r: 4, strokeWidth: 2 }}
                     activeDot={{ fill: '#FFFFFF', stroke: '#22c55e', strokeWidth: 2, r: 6 }}
+                    connectNulls={true}
+                    animationDuration={500}
+                    isAnimationActive={true}
                   />
                 </LineChart>
               </ResponsiveContainer>
