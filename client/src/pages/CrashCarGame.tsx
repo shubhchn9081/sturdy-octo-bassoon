@@ -731,7 +731,7 @@ const CrashCarGame: React.FC = () => {
                   
                   {gameState === 'waiting' && (
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center bg-black bg-opacity-70 rounded-lg p-4 z-20">
-                      <div className="text-white text-xl mb-2">Car Refueling...</div>
+                      <div className="text-white text-xl mb-2">Car Refueling, Place Your Bets</div>
                       <Progress value={(10 - (countdown || 0)) * 10} className="w-48" />
                     </div>
                   )}
