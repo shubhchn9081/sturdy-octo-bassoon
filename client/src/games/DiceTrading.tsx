@@ -7,6 +7,47 @@ import { Card, CardContent } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Percent, Plus, Minus, Users } from 'lucide-react';
 
+// Define keyframes for blinking animation
+const blinkAnimation = `
+  @keyframes blink {
+    0% { opacity: 1; r: 4; }
+    50% { opacity: 0.3; r: 6; }
+    100% { opacity: 1; r: 4; }
+  }
+`;
+
+// Custom dot component with blinking animation for the latest point
+interface DotProps {
+  cx?: number;
+  cy?: number;
+  index?: number;
+  dataLength?: number;
+  stroke?: string;
+  strokeWidth?: number;
+  r?: number;
+  fill?: string;
+}
+
+const BlinkingDot = (props: DotProps) => {
+  const { cx, cy, index, dataLength, stroke = "#22c55e", fill = "white" } = props;
+  const isLatestDot = index === dataLength! - 1;
+  
+  return (
+    <circle 
+      cx={cx} 
+      cy={cy} 
+      r={isLatestDot ? 5 : 4} 
+      fill={fill} 
+      stroke={stroke} 
+      strokeWidth={2}
+      style={isLatestDot ? {
+        animation: 'blink 1.5s infinite ease-in-out',
+        filter: 'drop-shadow(0 0 3px #22c55e)'
+      } : {}}
+    />
+  );
+};
+
 // Game ID
 const GAME_ID = 200;
 
@@ -18,6 +59,17 @@ const sampleChartData = Array.from({ length: 10 }, (_, i) => ({
 
 // Simplified DiceTrading Component
 const DiceTrading = () => {
+  // Add the blinking animation to the document
+  useEffect(() => {
+    // Add the blinking animation style to the head
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = blinkAnimation;
+    document.head.appendChild(styleEl);
+
+    return () => {
+      document.head.removeChild(styleEl);
+    };
+  }, []);
   const { toast } = useToast();
   const { balance, symbol, refreshBalance } = useWallet();
   
@@ -303,13 +355,13 @@ const DiceTrading = () => {
         {/* Chart Area with Line Graph */}
         <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[40vh] md:h-[50vh]">
           <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-4 relative flex overflow-hidden">
-            {/* Advanced trading background pattern */}
-            <div className="absolute inset-0 z-0 opacity-10">
+            {/* Advanced trading background with bull image */}
+            <div className="absolute inset-0 z-0">
               {/* Horizontal grid lines */}
               {Array.from({ length: 10 }).map((_, i) => (
                 <div 
                   key={`h-line-${i}`} 
-                  className="absolute w-full h-px bg-blue-300" 
+                  className="absolute w-full h-px bg-blue-300 opacity-10" 
                   style={{ top: `${(i + 1) * 10}%` }}
                 ></div>
               ))}
@@ -318,54 +370,21 @@ const DiceTrading = () => {
               {Array.from({ length: 12 }).map((_, i) => (
                 <div 
                   key={`v-line-${i}`} 
-                  className="absolute h-full w-px bg-blue-300" 
+                  className="absolute h-full w-px bg-blue-300 opacity-10" 
                   style={{ left: `${(i + 1) * 8}%` }}
                 ></div>
               ))}
-              
-              {/* Random candle patterns in background */}
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div 
-                  key={`candle-${i}`} 
-                  className="absolute w-1.5 bg-green-500" 
-                  style={{ 
-                    height: `${Math.random() * 15 + 5}%`, 
-                    top: `${Math.random() * 80 + 10}%`, 
-                    left: `${(i + 2) * 11}%` 
-                  }}
-                >
-                  <div 
-                    className="absolute w-px h-3 bg-green-500" 
-                    style={{ left: '50%', top: '-12px' }}
-                  ></div>
-                  <div 
-                    className="absolute w-px h-3 bg-green-500" 
-                    style={{ left: '50%', bottom: '-12px' }}
-                  ></div>
-                </div>
-              ))}
-              
-              {/* Random red candles */}
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div 
-                  key={`red-candle-${i}`} 
-                  className="absolute w-1.5 bg-red-500" 
-                  style={{ 
-                    height: `${Math.random() * 12 + 3}%`, 
-                    top: `${Math.random() * 70 + 20}%`, 
-                    left: `${(i + 3) * 13}%` 
-                  }}
-                >
-                  <div 
-                    className="absolute w-px h-4 bg-red-500" 
-                    style={{ left: '50%', top: '-16px' }}
-                  ></div>
-                  <div 
-                    className="absolute w-px h-2 bg-red-500" 
-                    style={{ left: '50%', bottom: '-8px' }}
-                  ></div>
-                </div>
-              ))}
+
+              {/* Premium bull image in the background */}
+              <div 
+                className="absolute right-0 bottom-0 w-40 h-40 opacity-20"
+                style={{
+                  backgroundImage: 'url("/assets/bullbg_Dice Trading.png")',
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'bottom right',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              />
             </div>
             
             {/* Left side - Interactive slider with draggable circles */}
@@ -431,11 +450,11 @@ const DiceTrading = () => {
                   {/* Background grid */}
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                   
-                  {/* X-axis - Bottom */}
+                  {/* X-axis - Hidden numbers */}
                   <XAxis 
                     dataKey="round" 
                     stroke="#3B82F6" 
-                    tick={{ fill: '#3B82F6', fontSize: 11 }}
+                    tick={false} 
                     tickLine={{ stroke: '#3B82F6' }}
                     axisLine={{ stroke: '#3B82F6', strokeWidth: 1 }}
                     padding={{ left: 5, right: 5 }}
