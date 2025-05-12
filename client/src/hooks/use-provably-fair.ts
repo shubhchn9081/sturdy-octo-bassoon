@@ -7,7 +7,8 @@ import {
   generateDiceNumber,
   generateCrashResult,
   generatePlinkoPath,
-  generateMinePositions
+  generateMinePositions,
+  generateRouletteResult
 } from "@/lib/provably-fair";
 
 export function useProvablyFair(gameType: string) {
@@ -63,6 +64,9 @@ export function useProvablyFair(gameType: string) {
       case "mines":
         return (totalSquares: number, mineCount: number) => 
           generateMinePositions(serverSeed, clientSeed, nonce, totalSquares, mineCount);
+      
+      case "roulette":
+        return generateRouletteResult(serverSeed, clientSeed, nonce);
         
       default:
         return generateRandomNumber(serverSeed, clientSeed, nonce);

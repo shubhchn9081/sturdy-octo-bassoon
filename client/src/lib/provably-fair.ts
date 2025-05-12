@@ -21,6 +21,12 @@ export function hashServerSeed(serverSeed: string): string {
   return CryptoJS.SHA256(serverSeed).toString(CryptoJS.enc.Hex);
 }
 
+// Generate a roulette result (0-36)
+export function generateRouletteResult(serverSeed: string, clientSeed: string, nonce: number): number {
+  const random = generateRandomNumber(serverSeed, clientSeed, nonce);
+  return Math.floor(random * 37); // 0-36 for European roulette
+}
+
 // Generate a random number between 0 and 1 based on seeds
 export function generateRandomNumber(serverSeed: string, clientSeed: string, nonce: number): number {
   const combinedSeed = `${serverSeed}-${clientSeed}-${nonce}`;
