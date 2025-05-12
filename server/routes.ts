@@ -1417,6 +1417,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize the crash car game with the WebSocket server
   setWebSocketServer(wss, broadcastToTopic);
   
+  // Make broadcastToTopic available globally for other modules
+  global.broadcastToTopic = broadcastToTopic;
+  global.webSocketServer = wss;
+  
   // Simulate live odds updates
   const simulateOddsChanges = () => {
     const sportCategories = ['soccer', 'basketball', 'tennis', 'cricket', 'american-football', 'baseball', 'ice-hockey', 'esports'];

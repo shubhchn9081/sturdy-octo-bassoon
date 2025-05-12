@@ -5,6 +5,7 @@ import { auth } from '../middleware/auth';
 import { gameOutcomeControl } from '../middleware/gameOutcomeControl';
 import { generateDiceTradingOutcome } from '../games/diceTrading';
 import { createServerSeed, hashServerSeed } from '../games/provably-fair';
+import { broadcastMessage } from '../routes';
 
 const router = express.Router();
 
