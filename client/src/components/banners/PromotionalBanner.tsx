@@ -20,6 +20,11 @@ const banners = [
     id: 3,
     image: '/banners/crash-game-banner-new.png',
     alt: 'Crash Game - Test your nerve, play crash!'
+  },
+  {
+    id: 4,
+    image: '/banners/dice-trading-banner.png',
+    alt: 'DICE TRADING - Bull market for your bets!'
   }
 ];
 
@@ -48,7 +53,9 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
           transition={{ duration: 0.6 }}
         >
           {/* Link banners to appropriate pages */}
-          <a href={currentBanner === 0 ? "/car-crash" : "/casino"} className="block">
+          <a href={currentBanner === 0 ? "/car-crash" : 
+                  currentBanner === 3 ? "/dice-trading" : 
+                  "/casino"} className="block">
             <motion.div 
               className="relative rounded-lg shadow-lg overflow-hidden transition-transform duration-300"
               whileHover={{ scale: 1.01 }}
