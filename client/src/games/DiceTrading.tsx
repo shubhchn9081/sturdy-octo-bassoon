@@ -420,14 +420,34 @@ const DiceTrading = () => {
             {/* Risk meter - inverse of winChance (smaller window = higher risk) */}
             <div className="flex flex-col">
               <div className="mb-1 relative w-32 h-6 bg-[#0F212E] rounded-full overflow-hidden">
-                <div 
-                  className="absolute left-0 top-0 h-full" 
-                  style={{ 
-                    width: `${100 - winChance}%`,
-                    background: `linear-gradient(to right, #22c55e, #22c55e)`
-                  }}
-                ></div>
-                <div className="absolute left-0 top-0 h-full w-full flex items-center justify-center text-xs text-white font-medium">Risk</div>
+                {/* Calculate risk level based on range size */}
+                {(() => {
+                  const riskLevel = Math.min(100, Math.max(0, 100 - rangeSize));
+                  
+                  return (
+                    <>
+                      {/* Risk background with vibrant green for high risk */}
+                      <div 
+                        className="absolute left-0 top-0 h-full" 
+                        style={{ 
+                          width: `${riskLevel}%`,
+                          background: riskLevel > 75 
+                            ? 'linear-gradient(to right, #22c55e, #16a34a)' // Brighter green for very high risk
+                            : riskLevel > 50 
+                              ? 'linear-gradient(to right, #22c55e, #22c55e)' // Standard green for high risk
+                              : riskLevel > 25 
+                                ? 'linear-gradient(to right, #2563eb, #3b82f6)' // Blue for medium risk  
+                                : 'linear-gradient(to right, #6b7280, #9ca3af)' // Gray for low risk
+                        }}
+                      ></div>
+                      
+                      {/* Risk label with dynamic text */}
+                      <div className="absolute left-0 top-0 h-full w-full flex items-center justify-center text-xs text-white font-medium">
+                        Risk: {Math.round(riskLevel)}%
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
             
