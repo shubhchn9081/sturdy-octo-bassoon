@@ -8,7 +8,7 @@ import {
   Clock, 
   MessageSquare, 
   Car, 
-  Palmtree, 
+  Palmtree as PalmIcon, 
   Zap, 
   Gamepad2, 
   ShieldCheck,
@@ -411,7 +411,7 @@ export default function VIPPage() {
               
               <div className="flex items-center mb-6">
                 <div className="mr-4 bg-gradient-to-br from-[#132a3a]/90 to-[#0d1c27]/90 p-4 rounded-full ring-2 ring-[#1375e1]/30 shadow-lg shadow-blue-900/20 group-hover:ring-[#1375e1]/50 transition-all">
-                  <Palmtree className="h-8 w-8 text-[#1375e1] group-hover:text-[#4cd964] transition-colors duration-300" />
+                  <PalmIcon className="h-8 w-8 text-[#1375e1] group-hover:text-[#4cd964] transition-colors duration-300" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-white group-hover:text-[#4cd964] transition-colors duration-300">Dubai Vacation</h3>
