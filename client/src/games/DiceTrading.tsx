@@ -4,7 +4,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useProvablyFair } from '@/hooks/use-provably-fair';
 import { useWallet } from '@/context/WalletContext';
-import { useGameBet } from '@/hooks/use-game-bet';
+// Direct API call approach - no need for useGameBet
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,8 +24,7 @@ const DiceTrading = () => {
   // Wallet/Balance
   const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
   
-  // Use the game bet hooks for consistent betting across all games
-  const { placeBet: placeGameBet } = useGameBet(GAME_ID);
+  // Direct API approach for betting
   
   // Game state
   const [betAmount, setBetAmount] = useState(10.00);

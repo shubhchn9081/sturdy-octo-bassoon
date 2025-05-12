@@ -19,6 +19,7 @@ import NewCupAndBall from '@/games/NewCupAndBall';
 import TowerClimb from '@/games/TowerClimb';
 import RocketLaunchRevised from '@/games/RocketLaunchRevised';
 import CrashCar from '@/games/CrashCar';
+import DiceTrading from '@/games/DiceTrading';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -38,7 +39,8 @@ const GameComponents: Record<string, React.ComponentType> = {
   'new-cup-game': NewCupAndBall,
   'tower-climb': TowerClimb,
   'rocket-launch': RocketLaunchRevised,
-  'crash-car': CrashCar
+  'crash-car': CrashCar,
+  'dice-trading': DiceTrading
 };
 
 const GamePage = () => {
