@@ -48,54 +48,55 @@ const BlinkingDot = (props: DotProps) => {
     // Enhanced blinking dot for latest point with glow effect
     return (
       <>
-        {/* Outer glow */}
+        {/* Outer glow - larger */}
         <circle 
           cx={cx} 
           cy={cy} 
-          r={12} 
+          r={16} 
           fill="rgba(34, 197, 94, 0.15)" 
           style={{
             animation: 'pulse 2.5s infinite ease-in-out',
           }}
         />
         
-        {/* Middle glow */}
+        {/* Middle glow - larger */}
         <circle 
           cx={cx} 
           cy={cy} 
-          r={8} 
+          r={11} 
           fill="rgba(34, 197, 94, 0.35)" 
           style={{
             animation: 'pulse 1.8s infinite ease-in-out',
           }}
         />
         
-        {/* Inner dot */}
+        {/* Inner dot - larger */}
         <circle 
           cx={cx} 
           cy={cy} 
-          r={5.5} 
+          r={7.5} 
           fill={fill} 
           stroke={stroke} 
-          strokeWidth={2.5}
+          strokeWidth={3}
           style={{
             animation: 'glow 1.5s infinite ease-in-out',
-            filter: 'drop-shadow(0 0 5px #22c55e)'
+            filter: 'drop-shadow(0 0 8px #22c55e)'
           }}
         />
       </>
     );
   }
   
-  // Regular dots for all other points
+  // Regular dots for all other points - larger
   return (
     <circle 
       cx={cx} 
       cy={cy} 
-      r={4.5} 
+      r={6} 
       fill={fill} 
       stroke={stroke} 
-      strokeWidth={2}
+      strokeWidth={2.5}
+      filter="drop-shadow(0 0 2px rgba(255, 255, 255, 0.5))"
     />
   );
 };
@@ -414,14 +415,14 @@ const DiceTrading = () => {
       
       {/* Chart and Controls Section - Make chart stand out more */}
       <div className="flex flex-col gap-4">
-        {/* Chart Area with Line Graph - Increased size and prominence */}
-        <div className="bg-[#172B3A] rounded-lg p-2 md:p-4 h-[60vh] md:h-[70vh] shadow-xl border-2 border-blue-500/30 relative overflow-hidden">
+        {/* Chart Area with Line Graph - Adjusted for bigger chart with smaller container */}
+        <div className="bg-[#172B3A] rounded-lg p-1 md:p-2 h-[50vh] md:h-[55vh] shadow-xl border-2 border-blue-500/30 relative overflow-hidden">
           {/* Glow effect behind chart */}
           <div className="absolute inset-0 bg-blue-500/5 blur-xl"></div>
           {/* Subtle animated gradient border */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-green-500/10 animate-pulse"></div>
           
-          <div className="h-full w-full bg-[#0F212E] rounded-lg p-2 md:p-6 relative flex overflow-hidden">
+          <div className="h-full w-full bg-[#0F212E] rounded-lg p-0 md:p-1 relative flex overflow-hidden">
             {/* Advanced trading background with bull image */}
             <div className="absolute inset-0 z-0">
               {/* Horizontal grid lines */}
@@ -456,14 +457,14 @@ const DiceTrading = () => {
               />
             </div>
             
-            {/* Left side - Interactive slider with draggable circles */}
-            <div className="w-12 h-full flex flex-col relative z-20" ref={sliderRef}>
+            {/* Left side - Interactive slider with draggable circles - made narrower */}
+            <div className="w-8 h-full flex flex-col relative z-20" ref={sliderRef}>
               {/* Slider track */}
-              <div className="absolute left-1/2 -translate-x-1/2 w-1 h-full bg-gray-700 rounded-full"></div>
+              <div className="absolute left-1/2 -translate-x-1/2 w-0.5 h-full bg-gray-700 rounded-full"></div>
               
               {/* Selected range */}
               <div 
-                className="absolute left-1/2 -translate-x-1/2 w-1 bg-blue-400 rounded-full" 
+                className="absolute left-1/2 -translate-x-1/2 w-0.5 bg-blue-400 rounded-full" 
                 style={{ 
                   top: `${100 - maxRange}%`, 
                   height: `${maxRange - minRange}%` 
@@ -621,19 +622,19 @@ const DiceTrading = () => {
                     }}
                   />
                   
-                  {/* Result line with steeper curve - enhanced style */}
+                  {/* Result line with steeper curve - enhanced style with thicker line */}
                   <Line
                     type="linear"
                     dataKey="value"
                     stroke="#22c55e"
-                    strokeWidth={3.5}
+                    strokeWidth={5}
                     dot={false}
-                    activeDot={{ fill: '#FFFFFF', stroke: '#22c55e', strokeWidth: 2, r: 6 }}
+                    activeDot={{ fill: '#FFFFFF', stroke: '#22c55e', strokeWidth: 3, r: 7 }}
                     connectNulls={true}
                     animationDuration={300}
                     isAnimationActive={true}
-                    // Adding drop shadow to line
-                    filter="drop-shadow(0px 0px 4px rgba(34, 197, 94, 0.5))"
+                    // Adding stronger drop shadow to line
+                    filter="drop-shadow(0px 0px 6px rgba(34, 197, 94, 0.6))"
                   />
                   
                   {/* Second line with custom blinking dots only */}
