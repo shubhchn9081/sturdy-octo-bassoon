@@ -723,7 +723,8 @@ const Roulette = () => {
       }
       
       // Generate a random result (0-36)
-      const randomNumber = Math.floor(getGameResult() * 37);
+      const gameResult = getGameResult();
+      const randomNumber = Math.floor((typeof gameResult === 'number' ? gameResult : Math.random()) * 37);
       finalNumberRef.current = randomNumber;
       
       // Animate wheel spin
