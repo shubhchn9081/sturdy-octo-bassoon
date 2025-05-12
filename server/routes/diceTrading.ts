@@ -94,7 +94,6 @@ router.post('/place-bet', auth, async (req, res) => {
       userId: req.user!.id,
       gameId: DICE_TRADING_GAME_ID,
       amount,
-      currency,
       profit: outcome.win ? amount * outcome.multiplier - amount : -amount,
       outcome: {
         result: outcome.result,

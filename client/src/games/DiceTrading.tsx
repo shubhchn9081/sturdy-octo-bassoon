@@ -25,7 +25,7 @@ const DiceTrading = () => {
   const { balance: walletBalance, symbol, formattedBalance, refreshBalance } = useWallet();
   
   // Use the game bet hooks for consistent betting across all games
-  const { placeBet: placeGameBet, completeBet: completeGameBet } = useGameBet(GAME_ID);
+  const { placeBet: placeGameBet } = useGameBet(GAME_ID);
   
   // Game state
   const [betAmount, setBetAmount] = useState(10.00);
@@ -122,28 +122,37 @@ const DiceTrading = () => {
       // Generate client seed for provably fair verification
       const clientSeed = Math.random().toString(36).substring(2, 15);
       
-      // Place bet via game bet hook
-      await placeGameBet({
-        amount: betAmount,
-        gameId: GAME_ID,
-        options: {
+      // Place bet via API
+      const response = await fetch('/api/dice-trading/place-bet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: betAmount,
           minRange,
           maxRange,
           clientSeed
-        }
+        })
       });
       
-      // For demo we'll simulate a dice roll locally
-      // In production this would come from the server
-      const diceResult = Math.floor(Math.random() * 101); // 0-100 inclusive
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to place bet');
+      }
+      
+      const data = await response.json();
+      
+      // Get the result from server response
+      const diceResult = data.bet.outcome.result;
       setResult(diceResult);
       
-      // Determine if player won
-      const playerWon = diceResult >= minRange && diceResult <= maxRange;
+      // Get win state from server response
+      const playerWon = data.bet.outcome.win;
       setWon(playerWon);
       
-      // Calculate profit
-      const betProfit = playerWon ? betAmount * multiplier - betAmount : -betAmount;
+      // Calculate profit from server response
+      const betProfit = data.bet.profit;
       setProfit(betProfit);
       
       // Add result to chart
@@ -165,16 +174,6 @@ const DiceTrading = () => {
           variant: "destructive",
         });
       }
-      
-      // Complete bet via game bet hook (in real impl this would be done through API)
-      await completeBet({
-        amount: playerWon ? betAmount * multiplier : 0,
-        gameId: GAME_ID,
-        options: {
-          result: diceResult,
-          won: playerWon
-        }
-      });
       
       // Refresh the balance to update UI
       refreshBalance();

@@ -17,6 +17,7 @@ import NewCupAndBall from './NewCupAndBall';
 import TowerClimb from './TowerClimb';
 import RocketLaunchRevised from './RocketLaunchRevised';
 import CrashCar from './CrashCar';
+import DiceTrading from './DiceTrading';
 
 export const GAMES = [
   {
@@ -217,6 +218,21 @@ export const GAMES = [
     maxMultiplier: 1000.00,
     activePlayers: 8421
   },
+  {
+    id: 200,
+    name: 'DICE TRADING',
+    slug: 'dice-trading',
+    type: 'NOVITO ORIGINALS',
+    description: 'Trade dice outcomes with custom ranges',
+    color: 'bg-blue-600',
+    iconType: 'chart', 
+    component: DiceTrading,
+    minBet: 0.00000001,
+    maxBet: 100,
+    rtp: 99,
+    maxMultiplier: 100.00,
+    activePlayers: 9732
+  },
 
 ];
 
@@ -241,5 +257,6 @@ export default {
   NewCupAndBall,
   TowerClimb,
   RocketLaunch: RocketLaunchRevised,
-  CrashCar
+  CrashCar,
+  DiceTrading
 };
