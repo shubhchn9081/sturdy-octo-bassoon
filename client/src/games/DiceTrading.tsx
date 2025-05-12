@@ -321,10 +321,12 @@ const DiceTrading = () => {
                 className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-primary rounded-full transform -translate-y-1/2 cursor-grab hover:scale-110 transition-transform"
                 style={{ top: `${100 - maxRange}%` }}
                 onMouseDown={(event) => {
-                  const rangeBar = event.currentTarget.parentElement;
-                  if (!rangeBar) return;
+                  // Get the parent container for the slider
+                  const sliderEl = event.currentTarget.closest('.h-full');
+                  if (!sliderEl) return;
                   
-                  const rect = rangeBar.getBoundingClientRect();
+                  const rect = sliderEl.getBoundingClientRect();
+                  
                   const handleDrag = (e: MouseEvent) => {
                     const y = e.clientY - rect.top;
                     const percentage = 100 - Math.max(0, Math.min(100, (y / rect.height) * 100));
@@ -349,10 +351,12 @@ const DiceTrading = () => {
                 className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-primary rounded-full transform -translate-y-1/2 cursor-grab hover:scale-110 transition-transform"
                 style={{ top: `${100 - minRange}%` }}
                 onMouseDown={(event) => {
-                  const rangeBar = event.currentTarget.parentElement;
-                  if (!rangeBar) return;
+                  // Get the parent container for the slider
+                  const sliderEl = event.currentTarget.closest('.h-full');
+                  if (!sliderEl) return;
                   
-                  const rect = rangeBar.getBoundingClientRect();
+                  const rect = sliderEl.getBoundingClientRect();
+                  
                   const handleDrag = (e: MouseEvent) => {
                     const y = e.clientY - rect.top;
                     const percentage = 100 - Math.max(0, Math.min(100, (y / rect.height) * 100));
