@@ -51,11 +51,18 @@ const BlinkingDot = (props: DotProps) => {
 // Game ID
 const GAME_ID = 200;
 
-// Sample initial chart data
-const sampleChartData = Array.from({ length: 10 }, (_, i) => ({
-  round: i + 1,
-  value: Math.floor(Math.random() * 100)
-}));
+// Sample initial chart data - create steeper data pattern
+const sampleChartData = Array.from({ length: 10 }, (_, i) => {
+  // Make values spike more dramatically to create steeper lines
+  const baseValue = i % 2 === 0 
+    ? Math.floor(Math.random() * 40 + 10) // Lower values
+    : Math.floor(Math.random() * 40 + 50); // Higher values
+    
+  return {
+    round: i + 1,
+    value: baseValue
+  };
+});
 
 // Simplified DiceTrading Component
 const DiceTrading = () => {
@@ -377,12 +384,14 @@ const DiceTrading = () => {
 
               {/* Premium bull image in the background */}
               <div 
-                className="absolute right-0 bottom-0 w-40 h-40 opacity-20"
+                className="absolute right-5 bottom-5 w-60 h-60 opacity-25"
                 style={{
-                  backgroundImage: 'url("/assets/bullbg_Dice Trading.png")',
+                  backgroundImage: 'url("/static/assets/bullbg_Dice Trading.png")',
                   backgroundSize: 'contain',
                   backgroundPosition: 'bottom right',
                   backgroundRepeat: 'no-repeat',
+                  filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))',
+                  transform: 'rotate(-5deg)',
                 }}
               />
             </div>
@@ -527,17 +536,26 @@ const DiceTrading = () => {
                     fill="url(#rangeGradient)"
                   />
                   
-                  {/* Result line with smooth curve */}
+                  {/* Result line with steeper curve */}
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="value"
                     stroke="#22c55e"
                     strokeWidth={2.5}
-                    dot={{ fill: 'white', stroke: '#22c55e', r: 4, strokeWidth: 2 }}
+                    dot={false}
                     activeDot={{ fill: '#FFFFFF', stroke: '#22c55e', strokeWidth: 2, r: 6 }}
                     connectNulls={true}
-                    animationDuration={500}
+                    animationDuration={300}
                     isAnimationActive={true}
+                  />
+                  
+                  {/* Second line with custom blinking dots only */}
+                  <Line
+                    type="linear"
+                    dataKey="value"
+                    stroke="none"
+                    dot={(props) => <BlinkingDot {...props} dataLength={chartData.length} />}
+                    isAnimationActive={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
