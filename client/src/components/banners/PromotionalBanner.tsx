@@ -8,7 +8,7 @@ interface PromotionalBannerProps {
 const banners = [
   {
     id: 1,
-    image: '/banners/carx-banner.png',
+    image: '/banners/carx-banner-new.png',
     alt: 'NEW ARRIVAL - CarX - RACE TO WIN!'
   },
   {
@@ -20,11 +20,6 @@ const banners = [
     id: 3,
     image: '/banners/crash-game-banner-new.png',
     alt: 'Crash Game - Test your nerve, play crash!'
-  },
-  {
-    id: 4,
-    image: '/banners/slots-banner.png',
-    alt: 'Slots Game - Try your luck and spin slots!'
   }
 ];
 
