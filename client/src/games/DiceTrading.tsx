@@ -7,12 +7,24 @@ import { Card, CardContent } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Percent, Plus, Minus, Users } from 'lucide-react';
 
-// Define keyframes for blinking animation
+// Define keyframes for blinking animation with improved pulse effect
 const blinkAnimation = `
   @keyframes blink {
-    0% { opacity: 1; r: 4; }
-    50% { opacity: 0.3; r: 6; }
-    100% { opacity: 1; r: 4; }
+    0% { opacity: 1; r: 5; }
+    50% { opacity: 0.4; r: 7; }
+    100% { opacity: 1; r: 5; }
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0.5; transform: scale(1); }
+  }
+  
+  @keyframes glow {
+    0% { filter: drop-shadow(0 0 3px rgba(34, 197, 94, 0.8)); }
+    50% { filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6)); }
+    100% { filter: drop-shadow(0 0 3px rgba(34, 197, 94, 0.8)); }
   }
 `;
 
@@ -32,18 +44,58 @@ const BlinkingDot = (props: DotProps) => {
   const { cx, cy, index, dataLength, stroke = "#22c55e", fill = "white" } = props;
   const isLatestDot = index === dataLength! - 1;
   
+  if (isLatestDot) {
+    // Enhanced blinking dot for latest point with glow effect
+    return (
+      <>
+        {/* Outer glow */}
+        <circle 
+          cx={cx} 
+          cy={cy} 
+          r={12} 
+          fill="rgba(34, 197, 94, 0.15)" 
+          style={{
+            animation: 'pulse 2.5s infinite ease-in-out',
+          }}
+        />
+        
+        {/* Middle glow */}
+        <circle 
+          cx={cx} 
+          cy={cy} 
+          r={8} 
+          fill="rgba(34, 197, 94, 0.35)" 
+          style={{
+            animation: 'pulse 1.8s infinite ease-in-out',
+          }}
+        />
+        
+        {/* Inner dot */}
+        <circle 
+          cx={cx} 
+          cy={cy} 
+          r={5.5} 
+          fill={fill} 
+          stroke={stroke} 
+          strokeWidth={2.5}
+          style={{
+            animation: 'glow 1.5s infinite ease-in-out',
+            filter: 'drop-shadow(0 0 5px #22c55e)'
+          }}
+        />
+      </>
+    );
+  }
+  
+  // Regular dots for all other points
   return (
     <circle 
       cx={cx} 
       cy={cy} 
-      r={isLatestDot ? 5 : 4} 
+      r={4.5} 
       fill={fill} 
       stroke={stroke} 
       strokeWidth={2}
-      style={isLatestDot ? {
-        animation: 'blink 1.5s infinite ease-in-out',
-        filter: 'drop-shadow(0 0 3px #22c55e)'
-      } : {}}
     />
   );
 };
@@ -544,17 +596,44 @@ const DiceTrading = () => {
                     fill="url(#rangeGradient)"
                   />
                   
-                  {/* Result line with steeper curve */}
+                  {/* Horizontal reference lines at 40 and 60 to match screenshot */}
+                  <ReferenceLine
+                    y={40}
+                    stroke="#3B82F6"
+                    strokeDasharray="3 3"
+                    label={{
+                      value: "40",
+                      position: "left",
+                      fill: "#3B82F6",
+                      fontSize: 13
+                    }}
+                  />
+                  
+                  <ReferenceLine
+                    y={60}
+                    stroke="#3B82F6"
+                    strokeDasharray="3 3"
+                    label={{
+                      value: "60",
+                      position: "left",
+                      fill: "#3B82F6",
+                      fontSize: 13
+                    }}
+                  />
+                  
+                  {/* Result line with steeper curve - enhanced style */}
                   <Line
                     type="linear"
                     dataKey="value"
                     stroke="#22c55e"
-                    strokeWidth={2.5}
+                    strokeWidth={3.5}
                     dot={false}
                     activeDot={{ fill: '#FFFFFF', stroke: '#22c55e', strokeWidth: 2, r: 6 }}
                     connectNulls={true}
                     animationDuration={300}
                     isAnimationActive={true}
+                    // Adding drop shadow to line
+                    filter="drop-shadow(0px 0px 4px rgba(34, 197, 94, 0.5))"
                   />
                   
                   {/* Second line with custom blinking dots only */}
